@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Cablevision | Contact Us</title>
+<link rel="shortcut icon" href="{{ url_for('static', filename='cablevision.jpg') }}?v=123" type="image/jpeg">
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user-contact-us.css') }}">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+<!-- NAVBAR -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+<div class="container">
+
+<a class="navbar-brand brand-logo" href="/">
+    <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo">
+    <span>CABLEVISION SYSTEMS CORPORATION</span>
+</a>
+
+<!--  hamburger button  -->
+<button class="hamburger" id="hamburgerBtn" type="button" aria-label="Menu">
+  <span></span>
+  <span></span>
+  <span></span>
+</button>
+
+<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+<span class="navbar-toggler-icon"></span>
+</button>
+
+<div class="collapse navbar-collapse" id="navMenu">
+<ul class="navbar-nav ms-auto">
+  <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+  <li class="nav-item"><a class="nav-link" href="/plans">Plans</a></li>
+  <li class="nav-item"><a class="nav-link active" href="/contact-us">Contact</a></li>
+  <li class="nav-item"><a class="nav-link" href="/coverage">Coverage</a></li>
+
+  
+    <!-- Dropdown for More (next to Coverage) -->
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" id="moreDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        More
+      </a>
+      <ul class="dropdown-menu" aria-labelledby="moreDropdown">
+        <!-- About Us  -->
+        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#aboutUsModal">About Us</a></li>
+        <!-- Mission  -->
+       <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#missionModal">Mission</a></li>
+        <!-- Vision  -->
+        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#visionModal">Vision</a></li>
+      </ul>
+    </li>
+
+<li class="nav-item">
+    <a class="nav-link" href="/login" target="_blank">Login</a>
+</li>
+</ul>
+</div>
+
+</div>
+</nav>
+
+
+<!-- HERO / PAGE HEADER -->
+<section class="contact-hero">
+  <div class="container text-center">
+    
+    <h1>Contact Cablevision</h1>
+    
+    <!-- Animated Underline -->
+    <div class="title-underline"></div>
+    
+    <p>For inquiries, support, and service requests, please contact us.</p>
+        
+    <!-- Scroll Indicator -->
+    <div class="scroll-indicator" id="scrollToContact">
+      <span>Contact Information Below</span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M12 5V19M12 19L5 12M12 19L19 12" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+
+
+<div class="contact-section">
+  <div class="container">
+
+    <div class="row g-4">
+
+      <!-- REQUIREMENTS -->
+      <div class="col-md-5">
+        <div class="contact-card">
+          <div class="section-header">
+            <div class="section-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M9 12H15M9 16H12M12 2C9.2 2 7 4.2 7 7C7 8.9 8.1 10.7 9.8 11.4C6.5 12.5 4 15.7 4 19.5H20C20 15.7 17.5 12.5 14.2 11.4C15.9 10.7 17 8.9 17 7C17 4.2 14.8 2 12 2Z" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="section-title">Requirements</div>
+            <div class="section-underline"></div>
+          </div>
+
+          <ol class="requirement-list">
+            <li>Submit a duly accomplished application form.</li>
+            <li>Valid government issued ID.</li>
+            <li>Proof of billing.</li>
+          </ol>
+        </div>
+      </div>
+
+      <!-- CONTACT OFFICES -->
+      <div class="col-md-7">
+        <div class="contact-card">
+          <div class="section-header">
+            <div class="section-icon">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22 16.92V19.92C22.0011 20.1985 21.9441 20.4742 21.8325 20.7294C21.7209 20.9845 21.5573 21.2136 21.352 21.4019C21.1467 21.5901 20.9041 21.7335 20.6398 21.8227C20.3755 21.9119 20.0954 21.9451 19.82 21.92C16.7428 21.5856 13.787 20.5341 11.19 18.85C8.77302 17.3147 6.72533 15.267 5.19002 12.85C3.49928 10.2412 2.44783 7.27167 2.12002 4.18C2.09507 3.90462 2.12829 3.62446 2.21753 3.36017C2.30677 3.09589 2.45019 2.85324 2.63846 2.64796C2.82673 2.44268 3.0558 2.27907 3.31099 2.16746C3.56618 2.05585 3.84187 1.99885 4.12002 2H7.12002C7.59504 1.99471 8.05942 2.13704 8.44799 2.4052C8.83655 2.67335 9.12984 3.05348 9.28502 3.5C9.53771 4.19562 9.71559 4.91933 9.81502 5.66C9.90433 6.32861 9.89061 7.00751 9.77446 7.67105C9.65831 8.3346 9.44174 8.97195 9.13502 9.56C8.96912 9.88183 8.76032 10.1784 8.51502 10.44C8.75282 10.8263 9.01316 11.1977 9.29502 11.55C9.65149 11.9961 10.0439 12.4112 10.47 12.79C10.8316 13.2145 11.2342 13.602 11.67 13.95C12.0173 14.2338 12.3926 14.4829 12.79 14.693C13.3865 14.998 14.0303 15.2129 14.695 15.33C15.2776 15.4427 15.8739 15.4575 16.46 15.374C17.2059 15.2731 17.935 15.094 18.635 14.84C19.0801 14.6842 19.4592 14.3913 19.7276 14.0036C19.996 13.6159 20.1395 13.1526 20.135 12.678V12.68" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="section-title">Contact Us</div>
+            <div class="section-underline"></div>
+          </div>
+
+          <div class="office-list">
+            <div class="office-row">
+              <div class="office">
+                <span class="dot"></span>
+                Pagsawitan Office
+              </div>
+              <div class="office-number">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h2A1.5 1.5 0 0 1 10 4.2l.6 2.6a1.5 1.5 0 0 1-.4 1.4L8.9 9.5a12 12 0 0 0 5.6 5.6l1.3-1.3a1.5 1.5 0 0 1 1.4-.4l2.6.6A1.5 1.5 0 0 1 21 15.5v2A2.5 2.5 0 0 1 18.5 20C10.5 20 4 13.5 4 5.5Z"/>
+                  <path d="M15 5a4 4 0 0 1 4 4"/>
+                  <path d="M15 2a7 7 0 0 1 7 7"/>
+                </svg>
+                0917-501-0341<br>(049) 501-1495
+              </div>
+            </div>
+
+            <div class="office-row">
+              <div class="office">
+                <span class="dot"></span>
+                Santa Cruz Ext. Office (Taleon)
+              </div>
+              <div class="office-number">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h2A1.5 1.5 0 0 1 10 4.2l.6 2.6a1.5 1.5 0 0 1-.4 1.4L8.9 9.5a12 12 0 0 0 5.6 5.6l1.3-1.3a1.5 1.5 0 0 1 1.4-.4l2.6.6A1.5 1.5 0 0 1 21 15.5v2A2.5 2.5 0 0 1 18.5 20C10.5 20 4 13.5 4 5.5Z"/>
+                  <path d="M15 5a4 4 0 0 1 4 4"/>
+                  <path d="M15 2a7 7 0 0 1 7 7"/>
+                </svg>
+                (049) 501-0922
+              </div>
+            </div>
+
+            <div class="office-row">
+              <div class="office">
+                <span class="dot"></span>
+                Magdalena Office
+              </div>
+              <div class="office-number">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h2A1.5 1.5 0 0 1 10 4.2l.6 2.6a1.5 1.5 0 0 1-.4 1.4L8.9 9.5a12 12 0 0 0 5.6 5.6l1.3-1.3a1.5 1.5 0 0 1 1.4-.4l2.6.6A1.5 1.5 0 0 1 21 15.5v2A2.5 2.5 0 0 1 18.5 20C10.5 20 4 13.5 4 5.5Z"/>
+                  <path d="M15 5a4 4 0 0 1 4 4"/>
+                  <path d="M15 2a7 7 0 0 1 7 7"/>
+                </svg>
+                (049) 503-6819
+              </div>
+            </div>
+
+            <div class="office-row">
+              <div class="office">
+                <span class="dot"></span>
+                Pila Ext. Office (Labuin)
+              </div>
+              <div class="office-number">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h2A1.5 1.5 0 0 1 10 4.2l.6 2.6a1.5 1.5 0 0 1-.4 1.4L8.9 9.5a12 12 0 0 0 5.6 5.6l1.3-1.3a1.5 1.5 0 0 1 1.4-.4l2.6.6A1.5 1.5 0 0 1 21 15.5v2A2.5 2.5 0 0 1 18.5 20C10.5 20 4 13.5 4 5.5Z"/>
+                    <path d="M15 5a4 4 0 0 1 4 4"/>
+                    <path d="M15 2a7 7 0 0 1 7 7"/>
+                  </svg>
+                (049) 559-5082
+              </div>
+            </div>
+
+            <div class="office-row">
+              <div class="office">
+                <span class="dot"></span>
+                Pila Poblacion Ext. Office
+              </div>
+              <div class="office-number">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h2A1.5 1.5 0 0 1 10 4.2l.6 2.6a1.5 1.5 0 0 1-.4 1.4L8.9 9.5a12 12 0 0 0 5.6 5.6l1.3-1.3a1.5 1.5 0 0 1 1.4-.4l2.6.6A1.5 1.5 0 0 1 21 15.5v2A2.5 2.5 0 0 1 18.5 20C10.5 20 4 13.5 4 5.5Z"/>
+                  <path d="M15 5a4 4 0 0 1 4 4"/>
+                  <path d="M15 2a7 7 0 0 1 7 7"/>
+                </svg>
+                (049) 559-0701
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer class="footer bg-dark text-white py-5">
+  <div class="container">
+    <div class="row">
+      <!-- Company Info -->
+      <div class="col-md-4 mb-4">
+        <h5 class="footer-heading">Cablevision Systems Corporation</h5>
+        <p class="footer-text">Delivering trusted cable and internet services since 1991. Fast, reliable internet for homes and businesses.</p>
+        <a href="https://www.facebook.com/mycv.cablevision" target="_blank" class="footer-link">
+          <img src="{{ url_for('static', filename='fb.png') }}" alt="Facebook" class="footer-icon">
+          <span>Follow us on Facebook</span>
+        </a>
+      </div>
+
+      <!-- Contact Info -->
+      <div class="col-md-4 mb-4">
+        <h5 class="footer-heading">Contact Us</h5>
+        <p class="footer-text">
+          <img src="{{ url_for('static', filename='contact-us.png') }}" alt="Contact" class="footer-icon-small">
+          <span>0917-838-8447 | 0917-310-7948</span>
+        </p>
+        <p class="footer-text">Get in touch for inquiries, support, or service requests.</p>
+      </div>
+
+      <!-- Service Areas -->
+      <div class="col-md-4 mb-4">
+        <h5 class="footer-heading">Service Areas</h5>
+        <p class="footer-text">
+          <img src="{{ url_for('static', filename='pin.png') }}" alt="Location" class="footer-icon-small">
+          <span>Santa Cruz, Pagsanjan, Magdalena, Pila</span>
+        </p>
+        <p class="footer-text">Providing services in these locations.</p>
+      </div>
+    </div>
+
+    <hr class="footer-divider">
+
+    <!-- Footer Navigation -->
+    <div class="footer-bottom">
+      <ul class="nav justify-content-center">
+        <li class="nav-item"><a class="nav-link text-white" href="/">Home</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="/plans">Plans</a></li>
+        <li class="nav-item"><a class="nav-link text-white active" href="/contact-us">Contact</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="/coverage">Coverage</a></li>
+      </ul>
+      <p class="text-center mt-3 footer-copyright">&copy; 2026 Cablevision Systems Corporation All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+
+<script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+
+<script>
+// Scroll to contact section when clicking scroll indicator
+document.addEventListener('DOMContentLoaded', function() {
+    const scrollIndicator = document.getElementById('scrollToContact');
+    if (scrollIndicator) {
+        scrollIndicator.addEventListener('click', function() {
+            const contactSection = document.querySelector('.contact-info, .contact-section, #contactForm');
+            if (contactSection) {
+                contactSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+        
+        // Make it keyboard accessible
+        scrollIndicator.setAttribute('tabindex', '0');
+        scrollIndicator.setAttribute('role', 'button');
+    }
+});
+</script>
+
+<!-- About Us Modal -->
+<div class="modal fade" id="aboutUsModal" tabindex="-1" aria-labelledby="aboutUsLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content about-modal">
+      
+      <!-- Modal Header with Logo and Title Centered -->
+      <div class="modal-header about-modal-header">
+        <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo" class="about-modal-logo">
+        <h5 class="modal-title" id="aboutUsLabel">About Us</h5>
+        <button type="button" class="btn-close about-modal-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body about-modal-body">
+        Cablevision Systems Corporation was conceptualized by five classmates from Class 1960 of Pedro Guevara Memorial High School. It was founded and registered with the Securities and Exchange Commission on October 10, 1992. The company was established to operate CATV Systems primarily in Sta. Cruz, Laguna and adjacent municipalities.
+
+        The Municipal Board of Sta. Cruz, Laguna granted Cablevision’s first CATV franchise on 12/14/91. The National Telecommunications Commission awarded the corresponding Provisional Authority six months later which enabled the company to begin CATV operations and connect subscribers. The company started with 12 television channels feeding regular off-the-air TV signals plus Satellite Television channels from free-to-air transmission all over the world. One television channel is made available for community access in accordance with its CATV mandate.
+
+        Two years later, the municipal board of Pagsanjan, Laguna awarded the company’s second CATV franchise in recognition of its ability to fulfill its commitment to the community.
+
+        The first office and CATV center was located at Mabini Street, Sta. Cruz Laguna, where the CATV headend and two Satellite TVRO Systems were installed. Three years later, the whole operation was transferred to Pagsawitan, still in Sta. Cruz, right next to the boundary of two towns it is serving.
+
+        The success of Cablevision throughout the years of each operation enabled us to expand and go beyond cable TV service. In July 2012, MyCV Broadband (Cable Internet) was launched. Since then our cable internet performance has been known as a very good compared to competition. This coming April 2014 the Company will be launching the prepaid cable internet.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Mission Modal -->
+<div class="modal fade" id="missionModal" tabindex="-1" aria-labelledby="missionLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content about-modal">
+      
+      <!-- Modal Header with Logo and Title Centered -->
+      <div class="modal-header about-modal-header">
+        <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo" class="about-modal-logo">
+        <h5 class="modal-title" id="missionLabel">Mission</h5>
+        <button type="button" class="btn-close about-modal-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body about-modal-body">
+        To make available the benefits of CATV Technology to the largest numbers of subscribers possible.
+
+        To be a model company where shareholders, management as well as workers fully participate in the development and share in the benefits of the company’s operations.
+      </div>
+      
+    </div>
+  </div>
+</div>
+
+<!-- Vision Modal -->
+<div class="modal fade" id="visionModal" tabindex="-1" aria-labelledby="visionLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content about-modal">
+      
+      <!-- Modal Header with Logo and Title Centered -->
+      <div class="modal-header about-modal-header">
+        <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo" class="about-modal-logo">
+        <h5 class="modal-title" id="visionLabel">Vision</h5>
+        <button type="button" class="btn-close about-modal-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body about-modal-body">
+        To be a relevant, dynamic telecommunications organization serving the information, entertainment and cultural needs of the community.
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+
+// Toggle ng mobile menu gamit ang tatlong guhit
+document.addEventListener('DOMContentLoaded', function() {
+  const hamburger = document.getElementById('hamburgerBtn');
+  const navMenu = document.getElementById('navMenu');
+  
+  if (hamburger && navMenu) {
+    hamburger.addEventListener('click', function() {
+      // Toggle Bootstrap collapse
+      const bsCollapse = bootstrap.Collapse.getInstance(navMenu);
+      if (bsCollapse) {
+        bsCollapse.toggle();
+      } else {
+        new bootstrap.Collapse(navMenu, { toggle: true });
+      }
+    });
+  }
+});
+
+</script>
+
+</body>
+</html>

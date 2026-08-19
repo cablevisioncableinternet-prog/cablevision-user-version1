@@ -1,0 +1,955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cablevision | Change Plan</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='cablevision.jpg') }}?v=123" type="image/jpeg">
+    
+    <!-- Prevent caching -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/user-change-plan.css') }}">
+    <link rel="stylesheet" href="/static/css/user-notification-system.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/device-login-alert.css') }}">
+</head>
+<body>
+
+<!-- ================= PAGE GUARD - WITH TAB ID VALIDATION ================= -->
+<script>
+    (function() {
+        // 👇 KUNIN ANG TAB ID MULA SA URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlTabId = urlParams.get('tab_id');
+        const sessionTabId = sessionStorage.getItem('tab_id');
+        const isLoggedIn = sessionStorage.getItem('username') && sessionStorage.getItem('userType') === 'user';
+        
+        console.log('🔍 Change Plan Page Guard Check:');
+        console.log('  - Logged in:', isLoggedIn);
+        console.log('  - URL Tab ID:', urlTabId);
+        console.log('  - Session Tab ID:', sessionTabId);
+        
+        // 👇 KUNG WALANG LOGIN, REDIRECT SA LOGIN PAGE
+        if (!isLoggedIn) {
+            console.log('❌ Not logged in, redirecting to login...');
+            window.location.replace('/');
+            return;
+        }
+        
+        // 👇 KUNG WALANG TAB ID SA URL PERO MERON SA SESSION
+        if (!urlTabId && sessionTabId) {
+            console.log('🔄 No tab_id in URL, adding from session...');
+            const newUrl = window.location.pathname + '?tab_id=' + sessionTabId;
+            window.location.replace(newUrl);
+            return;
+        }
+        
+        // 👇 KUNG MAY TAB ID SA URL PERO WALA SA SESSION
+        if (urlTabId && !sessionTabId) {
+            console.log('🔄 Tab ID found in URL, saving to session...');
+            sessionStorage.setItem('tab_id', urlTabId);
+            // I-reload ang page para mag-sync
+            window.location.reload();
+            return;
+        }
+        
+        // 👇 KUNG MAGKAIBA ANG TAB ID SA URL AT SESSION
+        if (urlTabId && sessionTabId && urlTabId !== sessionTabId) {
+            console.warn('⚠️ Tab ID mismatch! URL:', urlTabId, 'Session:', sessionTabId);
+            // Gamitin ang URL tab_id
+            sessionStorage.setItem('tab_id', urlTabId);
+            window.location.reload();
+            return;
+        }
+        
+        // ✅ LAHAT NG CHECKS PASSED - CONTINUE SA PAGE
+        console.log('✅ Page Guard passed! Tab ID:', urlTabId || sessionTabId);
+        console.log('👤 User:', sessionStorage.getItem('username'));
+        
+        // Replace the current history state to prevent back navigation
+        history.replaceState(null, null, window.location.href);
+        
+        // Listen for back button
+        window.addEventListener('popstate', function(event) {
+            const stillLoggedIn = sessionStorage.getItem('username') && sessionStorage.getItem('userType') === 'user';
+            if (!stillLoggedIn) {
+                window.location.replace('/');
+            } else {
+                history.pushState(null, null, window.location.href);
+            }
+        });
+        
+        // Check on page visibility change (for BFCache)
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                const stillLoggedIn = sessionStorage.getItem('username') && sessionStorage.getItem('userType') === 'user';
+                if (!stillLoggedIn) {
+                    window.location.replace('/');
+                }
+            }
+        });
+    })();
+</script>
+<!-- ================= END PAGE GUARD ================= -->
+
+<!-- TOAST -->
+<div class="custom-toast"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <h2>Cablevision</h2>
+        <p>Customer Portal</p>
+    </div>
+
+    <nav class="sidebar-menu">
+        <ul>
+            <li>
+                <a href="/user/dashboard">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7" rx="2"/>
+                    <rect x="14" y="3" width="7" height="7" rx="2"/>
+                    <rect x="3" y="14" width="7" height="7" rx="2"/>
+                    <rect x="14" y="14" width="7" height="7" rx="2"/>
+                </svg>
+                    <span class="menu-text">Dashboard</span>
+                </a>
+            </li>
+            <li class="active">
+                <a href="/user/change-plan">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 11a8.1 8.1 0 0 0-15.5-2m-.5-4v4h4"/>
+                        <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/>
+                    </svg>
+                    <span class="menu-text">Change Plan</span>
+                </a>
+            </li>
+            <li>
+                <a href="/user/request-termination">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <path d="M14 2v6h6"/>
+                        <path d="M8 15h8"/>
+                    </svg>
+                    <span class="menu-text">Request Termination</span>
+                </a>
+            </li>
+        </ul>
+        
+        <div class="sidebar-description">
+            <div class="desc-item">
+                <i class="fas fa-wifi"></i>
+                <div>
+                    <strong>Connection Details</strong>
+                    <span>View your internet status & speed</span>
+                </div>
+            </div>
+            <div class="desc-item">
+                <i class="fas fa-bullhorn"></i>
+                <div>
+                    <strong>Announcements</strong>
+                    <span>Latest news and promos</span>
+                </div>
+            </div>
+            <div class="desc-item">
+                <i class="fas fa-file-alt"></i>
+                <div>
+                    <strong>Application Form</strong>
+                    <span>View & download your application</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <p>© 2026 Cablevision Systems Corporation</p>
+            <p>All rights reserved.</p>
+        </div>
+    </nav>
+</aside>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+    <button class="hamburger" id="hamburgerBtn">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    
+    <div class="top-bar-left"></div>
+
+    <div class="top-bar-right">
+        <!-- NOTIFICATION -->
+        <div class="notification-dropdown">
+            <button id="userNotificationBtn" class="notification-btn">
+                <i class="fas fa-bell"></i>
+                <span id="userNotificationBadge" class="notification-badge" style="display: none;">0</span>
+            </button>
+            <div class="notification-menu" id="userNotificationMenu">
+                <div class="notification-header">
+                    <h4>My Notifications</h4>
+                    <button id="userMarkAllReadBtn" class="mark-read-btn">Mark all as read</button>
+                </div>
+                <div class="notification-list" id="userNotificationList">
+                    <div class="notification-empty">
+                        <i class="fas fa-bell-slash"></i>
+                        <p>No notifications</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROFILE DROPDOWN -->
+        <div class="profile-dropdown">
+            <button id="profileBtn">
+                <img src="" alt="Profile" class="profile-icon" id="profileIcon">
+                <span id="profileName"></span>
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <ul class="dropdown-menu" id="profileMenu">
+                <li><a href="/user/profile" id="profileLink"><i class="fas fa-user-circle"></i> Profile</a></li>
+                <li><a href="/user/login-history" id="loginHistoryLink"><i class="fas fa-history"></i> Login History</a></li>
+                <li><a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+ <!-- LOGOUT MODAL -->
+<div id="logoutModal" class="modal logout-modal">
+  <div class="modal-content logout-modal-content">
+    <span class="close-btn logout-close-btn" id="closeLogoutModal">&times;</span>
+    <div class="logout-icon-wrapper">
+    </div>
+    <h2 class="logout-title">Confirm Logout</h2>
+    <p class="logout-message">Are you sure you want to logout?</p>
+    <div class="logout-actions">
+      <button id="cancelLogout" class="btn logout-cancel"> <i class="fas fa-times"></i> Cancel</button>
+      <button id="confirmLogout" class="btn logout-confirm"> <i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================= CONFIRMATION MODAL FOR PLAN CHANGE ================= -->
+<div id="confirmPlanChangeModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" id="closeConfirmModal">&times;</span>
+        <div class="modal-icon">
+            <i class="fas fa-exchange-alt" style="font-size: 48px; color: #0047ab;"></i>
+        </div>
+        <h2>Confirm Plan Change</h2>
+        <p id="confirmModalMessage">Are you sure you want to change your plan?</p>
+        <div class="plan-change-summary" id="planChangeSummary">
+            <!-- Dynamic content will be inserted here -->
+        </div>
+        <div class="modal-actions">
+            <button id="cancelPlanChangeBtn" class="btn cancel"> <i class="fas fa-times"></i> Cancel</button>
+            <button id="confirmPlanChangeBtn" class="btn confirm"> <i class="fas fa-check"></i> Confirm Change</button>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<main class="main-content">
+    <!-- DASHBOARD HEADER -->
+    <div class="dashboard-header-card">
+        <div class="dashboard-header-left">
+            <h1>Change My Plan</h1>
+            <p>Cablevision Systems Corporation</p>
+        </div>
+        <div class="dashboard-header-right">
+        </div>
+    </div>
+
+    <!-- CURRENT PLAN CARD -->
+    <div class="card current-plan-card">
+        <div class="card-header">
+            <div class="header-title-section">
+                <h2><i class="fas fa-wifi"></i> Current Plan</h2>
+                <p class="header-subtitle">Your active internet subscription details</p>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="current-plan-details" id="currentPlanDetails">
+                <div class="plan-detail-item">
+                    <div class="plan-detail-label">Plan Name</div>
+                    <div class="plan-detail-value" id="currentPlanName">--</div>
+                </div>
+                <div class="plan-detail-item">
+                    <div class="plan-detail-label">Speed</div>
+                    <div class="plan-detail-value speed" id="currentPlanSpeed">--</div>
+                </div>
+                <div class="plan-detail-item">
+                    <div class="plan-detail-label">Monthly Price</div>
+                    <div class="plan-detail-value price" id="currentPlanPrice">--</div>
+                </div>
+                <div class="plan-detail-item">
+                    <div class="plan-detail-label">Contract Number</div>
+                    <div class="plan-detail-value" id="contractNumber">--</div>
+                </div>
+            </div>
+            <div id="pendingRequestAlert"></div>
+        </div>
+    </div>
+
+    <!-- AVAILABLE PLANS CARD -->
+    <div class="card available-plans-card">
+        <div class="card-header">
+            <div class="header-title-section">
+                <h2><i class="fas fa-list"></i> Available Plans</h2>
+                <p class="header-subtitle">Choose a new plan to upgrade or downgrade</p>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="plans-grid" id="plansGrid">
+                <div class="loading-container">
+                    <div class="spinner"></div>
+                    <p>Loading available plans...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<script src="/static/js/user-notification-system.js"></script>
+<script src="/static/js/session-manager.js"></script>
+
+<script>
+    // ==================== GLOBAL VARIABLES ====================
+    let currentPlan = null;
+    let selectedPlan = null;
+    let hasPendingRequest = false;
+    let pendingRequestData = null;
+    let pendingSelectedPlan = null;
+
+   function showToast(message, type = 'info') {
+    const LABELS = {
+        success: 'Success',
+        error:   'Error',
+        info:    'Notice',
+        loading: 'Please wait'
+    };
+
+    const ICONS = {
+        success: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+        error:   `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+        info:    `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+        loading: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="animation: toastSpin 1s linear infinite; display:block;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`
+    };
+
+    let toast = document.querySelector('.custom-toast');
+    if (!toast) {
+        toast = document.createElement('div');
+        toast.className = 'custom-toast';
+        document.body.appendChild(toast);
+
+        // Inject keyframes + spin once
+        if (!document.getElementById('toast-keyframes')) {
+            const s = document.createElement('style');
+            s.id = 'toast-keyframes';
+            s.textContent = `
+                @keyframes toastSpin     { to { transform: rotate(360deg); } }
+                @keyframes toastProgress { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+                @keyframes toastLoading  { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+            `;
+            document.head.appendChild(s);
+        }
+    }
+
+    // Build inner HTML
+    toast.innerHTML = `
+        <div class="custom-toast-body">
+            <span class="custom-toast-icon">${ICONS[type] || ICONS.info}</span>
+            <div class="custom-toast-text">
+                <span class="custom-toast-title">${LABELS[type] || 'Notice'}</span>
+                <span class="custom-toast-message">${message}</span>
+            </div>
+        </div>
+        <div class="custom-toast-progress">
+            <div class="custom-toast-progress-bar"></div>
+        </div>
+    `;
+
+    // Reset class, force reflow, then show
+    toast.className = `custom-toast ${type}`;
+    void toast.offsetWidth;
+    toast.classList.add('show');
+
+    // Clear any existing hide timer
+    clearTimeout(toast._hideTimer);
+
+    if (type === 'loading') {
+        // Loading stays visible until next showToast call — no auto-hide
+        // Progress bar uses the infinite sweep animation (set in CSS)
+    } else {
+        toast._hideTimer = setTimeout(() => {
+            toast.classList.remove('show');
+        }, 3000);
+    }
+}
+
+    // ==================== LOAD CURRENT PLAN ====================
+    async function loadCurrentPlan() {
+        try {
+            const username = sessionStorage.getItem('username');
+            const tabId = sessionStorage.getItem('tab_id');
+            
+            if (!username || !tabId) {
+                console.error('No username or tab_id found in session');
+                return;
+            }
+            
+            const response = await fetch(`/api/user/current-plan?username=${encodeURIComponent(username)}&tab_id=${tabId}`);
+            const data = await response.json();
+            
+            if (data.error) {
+                console.error('Error loading current plan:', data.error);
+                showToast(data.error, 'error');
+                return;
+            }
+            
+            currentPlan = data;
+            
+            document.getElementById('currentPlanName').textContent = data.plan || '--';
+            document.getElementById('currentPlanSpeed').textContent = data.speed ? `${data.speed}` : '-- Mbps';
+            
+            // 🔥 FIX: Extract numeric value from price string (e.g., "₱1600.00/month" → 1600.00)
+            let priceDisplay = '--';
+            if (data.price) {
+                // Remove ₱, commas, and /month text, then parse
+                const cleanPrice = String(data.price)
+                    .replace(/[₱,]/g, '')          // Remove ₱ and commas
+                    .replace(/\/month.*$/i, '')    // Remove "/month" and anything after
+                    .trim();
+                
+                const priceNum = parseFloat(cleanPrice);
+                if (!isNaN(priceNum) && priceNum > 0) {
+                    priceDisplay = `₱${priceNum.toLocaleString()}`;
+                }
+            }
+            document.getElementById('currentPlanPrice').textContent = priceDisplay;
+            
+            document.getElementById('contractNumber').textContent = data.contract_number || '--';
+            
+            // Check for pending request
+            if (data.pending_request) {
+                hasPendingRequest = true;
+                pendingRequestData = data.pending_request;
+                const alertDiv = document.getElementById('pendingRequestAlert');
+                const requestIdDisplay = pendingRequestData.request_id ? `<strong>Request ID: ${pendingRequestData.request_id}</strong><br>` : '';
+                alertDiv.innerHTML = `
+                    <div class="pending-badge">
+                        <i class="fas fa-clock"></i> 
+                        ${requestIdDisplay}
+                        You have a pending plan change request to ${pendingRequestData.plan} (${pendingRequestData.speed} Mbps)
+                        <br><small>Submitted on: ${new Date(pendingRequestData.requested_at).toLocaleString()}</small>
+                        <br><small>Status: Pending Approval</small>
+                    </div>
+                `;
+            }
+            
+        } catch (error) {
+            console.error('Error loading current plan:', error);
+            showToast('Failed to load current plan', 'error');
+        }
+    }
+
+    // ==================== LOAD AVAILABLE PLANS ====================
+    async function loadAvailablePlans() {
+        try {
+            const tabId = sessionStorage.getItem('tab_id');
+            const response = await fetch(`/api/user/available-plans?tab_id=${tabId}`);
+            const plans = await response.json();
+            
+            const grid = document.getElementById('plansGrid');
+            grid.innerHTML = '';
+            
+            if (plans.error) {
+                grid.innerHTML = `<div class="no-data-message" style="grid-column: 1/-1; text-align: center; padding: 40px;">${plans.error}</div>`;
+                return;
+            }
+            
+            if (!plans || plans.length === 0) {
+                grid.innerHTML = `<div class="no-data-message" style="grid-column: 1/-1; text-align: center; padding: 40px;">No plans available</div>`;
+                return;
+            }
+            
+            plans.forEach(plan => {
+                const isCurrentPlan = currentPlan && (currentPlan.plan === plan.name);
+                
+                // 🔥 FIX: Format price display
+                let priceDisplay = 'N/A';
+                if (plan.price) {
+                    const cleanPrice = String(plan.price)
+                        .replace(/[₱,]/g, '')
+                        .replace(/\/month.*$/i, '')
+                        .trim();
+                    const priceNum = parseFloat(cleanPrice);
+                    if (!isNaN(priceNum) && priceNum > 0) {
+                        priceDisplay = `₱${priceNum.toLocaleString()}`;
+                    }
+                }
+                
+                const card = document.createElement('div');
+                card.className = 'plan-card';
+                card.onclick = () => selectPlan(plan);
+                
+                card.innerHTML = `
+                    <div class="plan-name">${escapeHtml(plan.name)}</div>
+                    <div class="plan-speed">${escapeHtml(plan.speed)} <small>Mbps</small></div>
+                    <div class="plan-price">${priceDisplay} <small>/month</small></div>
+                    ${isCurrentPlan ? '<div class="current-plan-badge"><i class="fas fa-check"></i> Current Plan</div>' : ''}
+                `;
+                
+                grid.appendChild(card);
+            });
+            
+        } catch (error) {
+            console.error('Error loading plans:', error);
+            document.getElementById('plansGrid').innerHTML = `<div class="no-data-message" style="grid-column: 1/-1; text-align: center; padding: 40px; color: #ef4444;">Failed to load plans: ${error.message}</div>`;
+        }
+    }
+
+    // ==================== SELECT PLAN (SHOW MODAL IMMEDIATELY) ====================
+    function selectPlan(plan) {
+        if (hasPendingRequest) {
+            showToast('You already have a pending request. Please wait for approval.', 'warning');
+            return;
+        }
+        
+        if (currentPlan && currentPlan.plan === plan.name) {
+            showToast('This is already your current plan', 'warning');
+            return;
+        }
+        
+        selectedPlan = plan;
+        pendingSelectedPlan = plan;
+        
+        // Show confirmation modal immediately
+        showPlanChangeConfirmation(plan);
+    }
+
+    // ==================== SHOW PLAN CHANGE CONFIRMATION MODAL ====================
+    function showPlanChangeConfirmation(plan) {
+        pendingSelectedPlan = plan;
+        
+        const modal = document.getElementById('confirmPlanChangeModal');
+        const messageEl = document.getElementById('confirmModalMessage');
+        const summaryEl = document.getElementById('planChangeSummary');
+        
+        messageEl.innerHTML = `Are you sure you want to change your plan?`;
+        
+        // 🔥 FIX: Helper function to clean and format price
+        function formatPriceDisplay(priceValue) {
+            if (!priceValue) return 'N/A';
+            const cleanPrice = String(priceValue)
+                .replace(/[₱,]/g, '')
+                .replace(/\/month.*$/i, '')
+                .trim();
+            const priceNum = parseFloat(cleanPrice);
+            if (!isNaN(priceNum) && priceNum > 0) {
+                return `₱${priceNum.toLocaleString()}`;
+            }
+            return 'N/A';
+        }
+        
+        // Build summary HTML
+        summaryEl.innerHTML = `
+            <div class="summary-row">
+                <span class="summary-label">Current Plan:</span>
+                <span class="summary-value">${escapeHtml(currentPlan?.plan || 'N/A')}</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Current Speed:</span>
+                <span class="summary-value">${escapeHtml(currentPlan?.speed || 'N/A')} Mbps</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">Current Price:</span>
+                <span class="summary-value price">${formatPriceDisplay(currentPlan?.price)}</span>
+            </div>
+            <div class="summary-row" style="justify-content: center; gap: 20px;">
+                <i class="fas fa-arrow-down" style="color: #22c55e; font-size: 18px;"></i>
+                <i class="fas fa-arrow-up" style="color: #0047ab; font-size: 18px;"></i>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">New Plan:</span>
+                <span class="summary-value">${escapeHtml(plan.name)}</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">New Speed:</span>
+                <span class="summary-value">${escapeHtml(plan.speed)} Mbps</span>
+            </div>
+            <div class="summary-row">
+                <span class="summary-label">New Price:</span>
+                <span class="summary-value price">${formatPriceDisplay(plan.price)}</span>
+            </div>
+            <div class="warning-text">
+                <i class="fas fa-clock"></i> This request will be sent for admin approval.<br>
+                You will be notified once approved or rejected.
+            </div>
+        `;
+        
+        modal.classList.add('show');
+    }
+
+    function closePlanChangeModal() {
+        const modal = document.getElementById('confirmPlanChangeModal');
+        modal.classList.remove('show');
+        pendingSelectedPlan = null;
+    }
+
+    async function confirmPlanChange() {
+        if (!pendingSelectedPlan) return;
+        
+        const planToSubmit = pendingSelectedPlan;
+        closePlanChangeModal();
+        
+        const confirmBtn = document.getElementById('confirmPlanChangeBtn');
+        const originalText = confirmBtn.innerHTML;
+        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+        confirmBtn.disabled = true;
+        
+        try {
+            const username = sessionStorage.getItem('username');
+            const tabId = sessionStorage.getItem('tab_id');
+            
+            const response = await fetch('/api/user/submit-plan-change', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: username,
+                    plan_name: planToSubmit.name,
+                    plan_speed: planToSubmit.speed,
+                    plan_price: planToSubmit.price,
+                    tab_id: tabId  // 👈 ISAMA ANG TAB ID
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+            const requestId = data.request_id;
+            showToast(`✓ Request submitted! ID: ${requestId}`, 'success');
+                selectedPlan = null;
+                pendingSelectedPlan = null;
+                
+                // Reload to show pending status
+                setTimeout(() => {
+                    location.reload();
+                }, 2000);
+            } else {
+                showToast(data.error || 'Failed to submit request', 'error');
+                confirmBtn.innerHTML = originalText;
+                confirmBtn.disabled = false;
+            }
+            
+        } catch (error) {
+            console.error('Error submitting request:', error);
+            showToast('Network error. Please try again.', 'error');
+            confirmBtn.innerHTML = originalText;
+            confirmBtn.disabled = false;
+        }
+
+    }
+
+    // ==================== ESCAPE HTML ====================
+    function escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    // ==================== LOAD PROFILE NAME ====================
+    async function loadProfileName() {
+        try {
+            const username = sessionStorage.getItem('username');
+            const tabId = sessionStorage.getItem('tab_id');  // 👈 KUNIN ANG TAB ID
+            if (!username) return;
+            
+            // ✅ MAY TAB ID NA!
+            const response = await fetch(`/api/user/profile?username=${encodeURIComponent(username)}&tab_id=${tabId}`);
+            const data = await response.json();
+            const profileNameSpan = document.getElementById('profileName');
+            if (profileNameSpan && data.name) {
+                profileNameSpan.textContent = data.name;
+            } else if (profileNameSpan && data.username) {
+                profileNameSpan.textContent = data.username;
+            }
+        } catch (error) {
+            console.error('Error loading profile:', error);
+            const profileNameSpan = document.getElementById('');
+            if (profileNameSpan) profileNameSpan.textContent = sessionStorage.getItem('username') || 'User';
+        }
+    }
+
+    // ==================== PROFILE ICON ====================
+    async function loadProfileIcon() {
+        try {
+            const tabId = sessionStorage.getItem('tab_id');  // 👈 KUNIN ANG TAB ID
+            // ✅ MAY TAB ID NA!
+            const response = await fetch('/api/get-user-profile?tab_id=' + tabId);
+            const data = await response.json();
+            
+            const profileIcon = document.getElementById('profileIcon');
+            if (profileIcon && data.photo_url) {
+                profileIcon.src = data.photo_url;
+            } else if (profileIcon) {
+                profileIcon.src = '/static/cablevision.jpg';
+            }
+        } catch (error) {
+            console.error('Error loading profile icon:', error);
+            const profileIcon = document.getElementById('profileIcon');
+            if (profileIcon) {
+                profileIcon.src = '/static/cablevision.jpg';
+            }
+        }
+    }
+
+    // ==================== HAMBURGER MENU ====================
+    function setupHamburgerMenu() {
+        const hamburger = document.getElementById('hamburgerBtn');
+        const sidebar = document.getElementById('sidebar');
+        const sidebarOverlay = document.getElementById('sidebarOverlay');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('active');
+            if (sidebarOverlay) sidebarOverlay.classList.toggle('active');
+            document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
+        }
+
+        if (hamburger) hamburger.addEventListener('click', toggleSidebar);
+        if (sidebarOverlay) sidebarOverlay.addEventListener('click', toggleSidebar);
+    }
+
+    // ==================== PROFILE DROPDOWN ====================
+    function setupProfileDropdown() {
+        const profileBtn = document.getElementById('profileBtn');
+        const profileMenu = document.getElementById('profileMenu');
+        
+        if (profileBtn && profileMenu) {
+            profileBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                profileBtn.classList.toggle('active');
+                profileMenu.classList.toggle('show');
+            });
+            
+            document.addEventListener('click', function() {
+                profileMenu.classList.remove('show');
+                if (profileBtn) profileBtn.classList.remove('active');
+            });
+        }
+    }
+
+// ==================== LOGOUT ====================
+function setupLogout() {
+    const logoutBtn = document.getElementById('logoutBtn');
+    const logoutModal = document.getElementById('logoutModal');
+    const cancelLogout = document.getElementById('cancelLogout');
+    const confirmLogout = document.getElementById('confirmLogout');
+    const closeLogoutModal = document.querySelector('#logoutModal .close-btn');
+
+    if (logoutBtn && logoutModal) {
+        logoutBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            logoutModal.classList.add('show');
+            document.body.style.overflow = 'hidden';
+        });
+        
+        const closeModal = () => {
+            logoutModal.classList.remove('show');
+            document.body.style.overflow = '';
+        };
+        
+        if (cancelLogout) cancelLogout.addEventListener('click', closeModal);
+        if (closeLogoutModal) closeLogoutModal.addEventListener('click', closeModal);
+        
+        if (confirmLogout) {
+            confirmLogout.addEventListener('click', () => {
+                if (window.SessionManager) {
+                    window.SessionManager.logout('You have been logged out successfully.');
+                } else {
+                    localStorage.clear();
+                    sessionStorage.clear();
+                    window.location.replace('/');
+                }
+            });
+        }
+        
+        window.addEventListener('click', (e) => {
+            if (e.target === logoutModal) closeModal();
+        });
+    }
+}
+    // ==================== MODAL EVENT LISTENERS ====================
+    function setupModalEventListeners() {
+        const modal = document.getElementById('confirmPlanChangeModal');
+        const closeBtn = document.getElementById('closeConfirmModal');
+        const cancelBtn = document.getElementById('cancelPlanChangeBtn');
+        const confirmBtn = document.getElementById('confirmPlanChangeBtn');
+        
+        if (closeBtn) {
+            closeBtn.addEventListener('click', closePlanChangeModal);
+        }
+        
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', closePlanChangeModal);
+        }
+        
+        if (confirmBtn) {
+            confirmBtn.addEventListener('click', confirmPlanChange);
+        }
+        
+        // Close modal when clicking outside
+        window.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closePlanChangeModal();
+            }
+        });
+        
+        // Close modal with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && modal.classList.contains('show')) {
+                closePlanChangeModal();
+            }
+        });
+    }
+
+    // ==================== DATE AND TIME ====================
+    function updateDateTime() {
+        const now = new Date();
+        const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        
+        const dayName = days[now.getDay()];
+        const date = `${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+        const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        
+        const currentDay = document.getElementById('currentDay');
+        const currentDate = document.getElementById('currentDate');
+        const liveTime = document.getElementById('liveTime');
+        
+        if (currentDay) currentDay.textContent = dayName;
+        if (currentDate) currentDate.textContent = date;
+        if (liveTime) liveTime.textContent = time;
+    }
+
+    // ==================== LOAD PROFILE AND STORE USER ID ====================
+    async function loadProfile() {
+        try {
+            const tabId = sessionStorage.getItem('tab_id');
+            const res = await fetch("/api/get-user-profile?tab_id=" + tabId);
+            if (!res.ok) throw new Error("Failed to fetch profile");
+            const profile = await res.json();
+
+            const userId = profile.user_id || profile.id;
+            if (userId) {
+                localStorage.setItem('user_id', userId);
+                sessionStorage.setItem('user_id', userId);
+                console.log('✅ User ID stored from change-plan page:', userId);
+                
+                // 👇 INITIALIZE NOTIFICATIONS PAGKATAPOS MAKUHA ANG USER ID
+                if (window.UserNotificationSystem) {
+                    console.log('🔔 Initializing UserNotificationSystem from change-plan page...');
+                    window.UserNotificationSystem.init();
+                } else {
+                    console.warn('⚠️ UserNotificationSystem not found!');
+                }
+            } else {
+                console.warn('⚠️ No user_id found in profile response:', profile);
+            }
+
+            // Display profile name (kung wala pang loadProfileName)
+            const profileNameSpan = document.getElementById('profileName');
+            if (profileNameSpan) {
+                const displayName = profile.first_name || profile.username || userId || "User";
+                profileNameSpan.textContent = displayName;
+            }
+
+            // Display profile icon
+            const profileIcon = document.getElementById('profileIcon');
+            if (profileIcon && profile.profile_photo && profile.profile_photo !== 'none') {
+                profileIcon.src = profile.profile_photo;
+            } else if (profileIcon) {
+                profileIcon.src = '/static/profile.jpg';
+            }
+            
+            return profile;
+        } catch (err) {
+            console.error("Error loading profile:", err);
+        }
+    }
+
+    // ==================== INITIALIZATION ====================
+    document.addEventListener('DOMContentLoaded', async () => {
+        setupHamburgerMenu();
+        setupProfileDropdown();
+        setupLogout();
+        setupModalEventListeners();
+        await loadProfileName();
+        await loadProfileIcon();
+        await loadCurrentPlan();
+        await loadAvailablePlans();
+        
+        // 🔥 IDAGDAG ITO - INITIALIZE NOTIFICATION SYSTEM
+        // try {
+        //     if (window.UserNotificationSystem) {
+        //         console.log('🔔 Initializing notifications from change-plan page...');
+        //         await window.UserNotificationSystem.init();
+        //     } else {
+        //         console.warn('⚠️ UserNotificationSystem not found, waiting...');
+        //         // Wait for it to load
+        //         setTimeout(async () => {
+        //             if (window.UserNotificationSystem) {
+        //                 console.log('🔔 Initializing notifications (delayed)...');
+        //                 await window.UserNotificationSystem.init();
+        //             } else {
+        //                 console.error('❌ UserNotificationSystem still not available');
+        //             }
+        //         }, 2000);
+        //     }
+        // } catch (error) {
+        //     console.error('Error initializing notifications:', error);
+        // }
+        
+        updateDateTime();
+        setInterval(updateDateTime, 1000);
+    });
+
+    (function() {
+        const isLoggedIn = sessionStorage.getItem('username') && sessionStorage.getItem('userType') === 'user';
+        if (!isLoggedIn) {
+            window.location.replace('/');
+            return;
+        }
+        
+        // Check if user is terminated
+        const tabId = sessionStorage.getItem('tab_id');  // 👈 KUNIN ANG TAB ID
+        // ✅ MAY TAB ID NA!
+        fetch('/api/get-user-status?tab_id=' + tabId)
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'Terminated' || data.status === 'Inactive' || data.status === 'Deactivated') {
+                    sessionStorage.setItem('terminated_redirect', 'true');
+                    window.location.replace('/user/dashboard');
+                }
+            })
+            .catch(err => console.error('Error checking status:', err));
+    })();
+</script>
+<!-- Device Login Monitor -->
+<script src="{{ url_for('static', filename='js/device-login-monitor.js') }}"></script>
+
+</body>
+</html>

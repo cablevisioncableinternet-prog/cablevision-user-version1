@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Application Form</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user-application_success.css') }}">
+<link rel="icon" type="image/png" href="{{ url_for('static', filename='cablevision.jpg') }}">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+</head>
+
+<body>
+
+<!-- ================= FORMAL HEADER ================= -->
+<header class="app-header">
+    <div class="header-overlay">
+        <h1>My Application Form</h1>
+        <p>Here is your submitted application details</p>
+
+        <div class="app-number">
+            Application Number: <strong>{{ application_number }}</strong>
+        </div>
+
+        <div class="header-actions">
+            <a href="{{ url_for('download_pdf', application_number=application_number) }}" 
+               class="btn btn-success" target="_blank">
+                Download PDF
+            </a>
+
+            <a href="/user/profile"class="btn btn-light">
+               Back to Profile
+            </a>
+        </div>
+    </div>
+</header>
+
+<!-- ================= MAIN CONTENT ================= -->
+<div class="container app-container">
+
+    <!-- PLAN -->
+    <div class="card app-card">
+        <h4 class="section-title">Plan</h4>
+        <p>{{ plan }}</p>
+    </div>
+
+<!-- PROFILE PHOTO -->
+<div class="card app-card text-center">
+    <h4 class="section-title">Profile Photo</h4>
+
+    {% if profile_photo %}
+        <img src="{{ profile_photo }}" alt="Profile Photo" class="profile-photo-img mb-3">
+    {% else %}
+        <img src="{{ url_for('static', filename='default-profile.png') }}" alt="Default Profile Photo" class="profile-photo-img mb-3">
+    {% endif %}
+</div>       
+
+    <!-- PERSONAL INFO -->
+    <div class="card app-card">
+        <h4 class="section-title">Personal Information</h4>
+        <p><strong>Name:</strong> {{ first_name }} {{ middle_name }} {{ last_name }}</p>
+        <p><strong>Email:</strong> {{ email }}</p>
+        <p><strong>Mobile:</strong> {{ mobile }}</p>
+        <p><strong>Secondary Mobile:</strong> {{ secondary_mobile }}</p>
+        <p><strong>Phone (Landline):</strong> {{ phone }}</p>
+        <p><strong>Birthdate:</strong> {{ birthdate }}</p>
+        <p><strong>Place of Birth:</strong> {{ place_of_birth }}</p>
+        <p><strong>Mother's Maiden Name:</strong> {{ mother_maiden_name }}</p>
+        <p><strong>Sex:</strong> {{ sex }}</p>
+        <p><strong>Civil Status:</strong> {{ civil_status }}</p>
+        <p><strong>Citizenship:</strong> {{ citizenship }}</p>
+        <p><strong>Occupation:</strong> {{ occupation }}</p>
+        <p><strong>Home Ownership:</strong> {{ home_ownership }}</p>
+    </div>
+
+    <!-- ADDRESS -->
+    <div class="card app-card">
+        <h4 class="section-title">Address</h4>
+        <p><strong>Installation Address:</strong> {{ address }}</p>
+        <p><strong>House Number:</strong> {{ house_number }}</p>
+        <p><strong>Nearest Landmark:</strong> {{ landmark }}</p>
+        <p><strong>Billing Address:</strong> {{ billing_address }}</p>
+        <p><strong>Barangay:</strong> {{ barangay }}</p>
+        <p><strong>City:</strong> {{ city }}</p>
+        <p><strong>Province:</strong> {{ province }}</p>
+        <p><strong>Zip Code:</strong> {{ zip }}</p>
+    </div>
+
+    <!-- EMPLOYMENT -->
+    <div class="card app-card">
+        <h4 class="section-title">Employment Details</h4>
+        <p><strong>Employer:</strong> {{ employer }}</p>
+        <p><strong>Business Address:</strong> {{ business_address }}</p>
+        <p><strong>Business Phone:</strong> {{ business_phone }}</p>
+    </div>
+
+    <!-- SPOUSE -->
+    <div class="card app-card">
+        <h4 class="section-title">Spouse Information</h4>
+        <p><strong>Name:</strong> {{ spouse_name }}</p>
+        <p><strong>Occupation:</strong> {{ spouse_occupation }}</p>
+        <p><strong>Employer:</strong> {{ spouse_employer }}</p>
+        <p><strong>Phone:</strong> {{ spouse_phone }}</p>
+    </div>
+
+    <!-- FAMILY -->
+    <div class="card app-card">
+        <h4 class="section-title">Family Details</h4>
+        <p><strong>Parents:</strong> {{ parents_name }}</p>
+        <p><strong>Others:</strong> {{ others }}</p>
+    </div>
+
+    <!-- SERVICE -->
+    <div class="card app-card">
+        <h4 class="section-title">Service Classification</h4>
+        <p>{{ service_type }}</p>
+    </div>
+
+    <!-- TV SET -->
+    <div class="card app-card">
+        <h4 class="section-title">TV Set Details</h4>
+
+        <table class="table table-bordered table-sm">
+            <thead>
+                <tr>
+                    <th>Quantity</th>
+                    <th>Brand / Model</th>
+                    <th>B&W / Colored</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for i in range(tv_qty|length) %}
+                <tr>
+                    <td>{{ tv_qty[i] }}</td>
+                    <td>{{ tv_brand[i] }}</td>
+                    <td>{{ tv_type[i] }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- INSTALLATION -->
+    <div class="card app-card">
+        <h4 class="section-title">Installation Details</h4>
+        <p><strong>Installation Address:</strong> {{ installation_address }}</p>
+        <p><strong>Phone:</strong> {{ installation_phone }}</p>
+    </div>
+
+    <!-- SIGNATURE -->
+    <div class="card app-card">
+        <h4 class="section-title">Signature</h4>
+
+        {% if signature %}
+            <img src="{{ signature }}" class="signature-img">
+        {% else %}
+            <p class="text-danger">No signature provided</p>
+        {% endif %}
+    </div>
+
+ <!-- DOCUMENTS -->
+<div class="card app-card">
+    <h4 class="section-title">Uploaded Documents</h4>
+
+    <div class="row">
+
+        <!-- ID FRONT -->
+        <div class="col-md-4 mb-3 text-center">
+            <p><strong>Valid ID (Front)</strong></p>
+            {% if id_front %}
+                <img src="{{ id_front }}" class="doc-img">
+            {% else %}
+                <p class="text-danger">No ID Front uploaded</p>
+            {% endif %}
+        </div>
+
+        <!-- ID BACK -->
+        <div class="col-md-4 mb-3 text-center">
+            <p><strong>Valid ID (Back)</strong></p>
+            {% if id_back %}
+                <img src="{{ id_back }}" class="doc-img">
+            {% else %}
+                <p class="text-danger">No ID Back uploaded</p>
+            {% endif %}
+        </div>
+
+        <!-- PROOF OF BILLING -->
+       <div class="col-md-4 mb-3 text-center">
+    <p><strong>Proof of Billing</strong></p>
+    {% if proof_billing %}
+        <img src="{{ proof_billing }}" class="doc-img billing">
+    {% else %}
+        <p class="text-danger">No Proof of Billing uploaded</p>
+    {% endif %}
+</div>
+
+    </div>
+</div>
+    <!-- DATE -->
+    <div class="card app-card">
+        <h4 class="section-title">Submission Details</h4>
+        <p><strong>Date:</strong> {{ date_submitted }}</p>
+        <p><strong>Time:</strong> {{ time_submitted }}</p>
+    </div>
+
+    <!-- MAP -->
+    <div class="card app-card">
+        <h4 class="section-title">Pinned Location Preview</h4>
+
+        <div id="map"></div>
+
+        <p class="mt-2">
+            Latitude: <span id="lat">{{ latitude }}</span>,
+            Longitude: <span id="lng">{{ longitude }}</span>
+        </p>
+    </div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+<!-- IMPORTANT: Bootstrap JS (KULANG TO SA CODE MO) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+const lat = parseFloat("{{ latitude or 0 }}");
+const lng = parseFloat("{{ longitude or 0 }}");
+
+if (lat && lng) {
+    const map = L.map('map').setView([lat, lng], 16);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    L.marker([lat, lng]).addTo(map)
+        .bindPopup("Pinned Location")
+        .openPopup();
+} else {
+    document.getElementById('map').innerHTML =
+        "<p class='text-danger'>No location provided</p>";
+}
+
+/* =========================
+   IMAGE MODAL PREVIEW FIX
+========================= */
+document.querySelectorAll(".doc-img, .signature-img, .profile-photo-img").forEach(img => {
+    img.addEventListener("click", function () {
+        const modalImg = document.getElementById("modalImage");
+        modalImg.src = this.src;
+
+        // reset classes
+        modalImg.classList.remove("billing", "signature", "profile");
+
+        // detect type
+        if (this.classList.contains("billing")) {
+            modalImg.classList.add("billing");
+        } 
+        else if (this.classList.contains("signature-img")) {
+            modalImg.classList.add("signature");
+        } 
+        else if (this.classList.contains("profile-photo-img")) {
+            modalImg.classList.add("profile");
+        }
+
+        const modal = new bootstrap.Modal(document.getElementById('imageModal'));
+        modal.show();
+    });
+});
+</script>
+
+<!-- IMAGE PREVIEW MODAL -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content bg-dark">
+
+      <div class="modal-header border-0">
+      </div>
+
+      <div class="modal-body text-center">
+        <img id="modalImage" src="" class="img-fluid rounded" style="max-height: 80vh;">
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

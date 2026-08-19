@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cablevision | Login History</title>
+   <link rel="shortcut icon" href="{{ url_for('static', filename='cablevision.jpg') }}?v=123" type="image/jpeg">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Prevent caching -->
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/user-dashboard.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/user-login-history.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/device-login-alert.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+<!-- ================= PAGE GUARD - WITH TAB ID VALIDATION ================= -->
+<script>
+    (function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlTabId = urlParams.get('tab_id');
+        const sessionTabId = sessionStorage.getItem('tab_id');
+        const isLoggedIn = sessionStorage.getItem('username') && sessionStorage.getItem('userType') === 'user';
+        
+        if (!isLoggedIn) {
+            window.location.replace('/');
+            return;
+        }
+        
+        if (!urlTabId && sessionTabId) {
+            const newUrl = window.location.pathname + '?tab_id=' + sessionTabId;
+            window.location.replace(newUrl);
+            return;
+        }
+        
+        if (urlTabId && !sessionTabId) {
+            sessionStorage.setItem('tab_id', urlTabId);
+            window.location.reload();
+            return;
+        }
+        
+        if (urlTabId && sessionTabId && urlTabId !== sessionTabId) {
+            sessionStorage.setItem('tab_id', urlTabId);
+            window.location.reload();
+            return;
+        }
+        
+        if (!urlTabId && !sessionTabId) {
+            const newTabId = 'tab_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            sessionStorage.setItem('tab_id', newTabId);
+            const newUrl = window.location.pathname + '?tab_id=' + newTabId;
+            window.location.replace(newUrl);
+            return;
+        }
+        
+        // ===== CHECK USER STATUS AND DISABLE FEATURES =====
+        async function checkUserStatusAndDisableFeatures() {
+            try {
+                const tabId = sessionStorage.getItem('tab_id');
+                const response = await fetch('/api/get-user-status?tab_id=' + tabId);
+                const data = await response.json();
+                const status = data.status || 'Active';
+                
+                if (status === 'Terminated' || status === 'Inactive' || status === 'Deactivated') {
+                    const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
+                    sidebarLinks.forEach(link => {
+                        if (!link.href.includes('/user/dashboard') && !link.href.includes('/user/profile')) {
+                            link.style.pointerEvents = 'none';
+                            link.style.opacity = '0.5';
+                            link.style.cursor = 'not-allowed';
+                            link.title = 'This feature is disabled for your account status.';
+                            
+                            if (!link.querySelector('.fa-lock')) {
+                                const lockIcon = document.createElement('i');
+                                lockIcon.className = 'fas fa-lock';
+                                lockIcon.style.marginLeft = '8px';
+                                lockIcon.style.fontSize = '12px';
+                                lockIcon.style.color = '#dc2626';
+                                link.appendChild(lockIcon);
+                            }
+                        }
+                    });
+                    
+                    const mainContent = document.querySelector('.main-content');
+                    if (mainContent) {
+                        const existingBanner = document.querySelector('.status-banner');
+                        if (existingBanner) existingBanner.remove();
+                        
+                        const banner = document.createElement('div');
+                        banner.className = 'status-banner';
+                        
+                        let bannerTitle = '', bannerMessage = '', bannerIcon = '', bannerColor = '', bannerBg = '', bannerBorder = '';
+                        
+                        if (status === 'Terminated') {
+                            bannerTitle = 'Account Terminated';
+                            bannerMessage = 'Your account has been terminated. You can view your device history but cannot make changes. Sidebar features are disabled.';
+                            bannerIcon = 'fa-exclamation-circle';
+                            bannerColor = '#dc2626';
+                            bannerBg = '#fef2f2';
+                            bannerBorder = '#fecaca';
+                        } else if (status === 'Inactive' || status === 'Deactivated') {
+                            bannerTitle = 'Account Inactive';
+                            bannerMessage = 'Your account is currently inactive. Please visit our office to settle your outstanding balance.';
+                            bannerIcon = 'fa-info-circle';
+                            bannerColor = '#d97706';
+                            bannerBg = '#fffbeb';
+                            bannerBorder = '#fde68a';
+                        }
+                        
+                        banner.style.cssText = `
+                            background: ${bannerBg};
+                            border: 1px solid ${bannerBorder};
+                            border-radius: 12px;
+                            padding: 16px 20px;
+                            margin-bottom: 20px;
+                            display: flex;
+                            align-items: center;
+                            gap: 12px;
+                            color: ${bannerColor};
+                            animation: slideInDown 0.5s ease;
+                        `;
+                        
+                        banner.innerHTML = `
+                            <i class="fas ${bannerIcon}" style="font-size: 24px; flex-shrink: 0; color: ${bannerColor};"></i>
+                            <div style="flex: 1;">
+                                <strong style="font-size: 16px;">${bannerTitle}</strong>
+                                <p style="margin: 4px 0 0 0; font-size: 14px; color: #666;">${bannerMessage}</p>
+                            </div>
+                        `;
+                        mainContent.insertBefore(banner, mainContent.firstChild);
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking user status:', error);
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            checkUserStatusAndDisableFeatures();
+        });
+
+        history.replaceState(null, null, window.location.href);
+        
+        window.addEventListener('popstate', function(event) {
+            const stillLoggedIn = sessionStorage.getItem('username') && sessionStorage.getItem('userType') === 'user';
+            if (!stillLoggedIn) {
+                window.location.replace('/');
+            } else {
+                history.pushState(null, null, window.location.href);
+            }
+        });
+        
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                const stillLoggedIn = sessionStorage.getItem('username') && sessionStorage.getItem('userType') === 'user';
+                if (!stillLoggedIn) {
+                    window.location.replace('/');
+                }
+            }
+        });
+    })();
+</script>
+<!-- ================= END PAGE GUARD ================= -->
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <h2>Cablevision</h2>
+    <p>Customer Portal</p>
+  </div>
+
+  <nav class="sidebar-menu">
+    <ul>
+      <li>
+        <a href="/user/dashboard" id="dashboardLink">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="2"/>
+              <rect x="14" y="3" width="7" height="7" rx="2"/>
+              <rect x="3" y="14" width="7" height="7" rx="2"/>
+              <rect x="14" y="14" width="7" height="7" rx="2"/>
+            </svg>
+          <span class="menu-text">Dashboard</span>
+        </a>
+      </li>
+      <li>
+        <a href="/user/change-plan" id="changePlanLink">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 11a8.1 8.1 0 0 0-15.5-2m-.5-4v4h4"/>
+            <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/>
+          </svg>
+          <span class="menu-text">Change Plan</span>
+        </a>
+      </li>
+      <li>
+        <a href="/user/request-termination" id="terminationLink">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <path d="M14 2v6h6"/>
+            <path d="M8 15h8"/>
+          </svg>
+          <span class="menu-text">Request Termination</span>
+        </a>
+      </li>
+    </ul>
+    
+    <div class="sidebar-description">
+      <div class="desc-item">
+        <i class="fas fa-wifi"></i>
+        <div>
+          <strong>Connection Details</strong>
+          <span>View your internet status & speed</span>
+        </div>
+      </div>
+      <div class="desc-item">
+        <i class="fas fa-bullhorn"></i>
+        <div>
+          <strong>Announcements</strong>
+          <span>Latest news and promos</span>
+        </div>
+      </div>
+      <div class="desc-item">
+        <i class="fas fa-file-alt"></i>
+        <div>
+          <strong>Application Form</strong>
+          <span>View & download your application</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <p>© 2026 Cablevision Systems Corporation</p>
+      <p>All rights reserved.</p>
+    </div>
+  </nav>
+</aside>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+  <button class="hamburger" id="hamburgerBtn">
+    <span></span>
+    <span></span>
+    <span></span>
+  </button>
+  
+  <div class="top-bar-left"></div>
+
+  <div class="top-bar-right">
+
+    <!-- PROFILE DROPDOWN -->
+    <div class="profile-dropdown">
+      <button id="profileBtn">
+        <img src="" alt="Profile" class="profile-icon" id="profileIcon">
+        <span id="profileName"></span>
+        <i class="fas fa-chevron-down"></i>
+      </button>
+      <ul class="dropdown-menu" id="profileMenu">
+        <li><a href="/user/profile" id="profileLink"><i class="fas fa-user-circle"></i> Profile</a></li>
+        <li><a href="/user/login-history" id="loginHistoryLink" class="active"><i class="fas fa-history"></i> Login History</a></li>
+        <li><a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<main class="main-content">
+  <!-- PAGE HEADER CARD -->
+  <div class="dashboard-header-card history-page-header">
+    <div class="dashboard-header-left">
+      <h1> Login History & Active Devices</h1>
+      <p>Monitor current active sessions and log out recognized or unfamiliar devices</p>
+    </div>
+    <div class="dashboard-header-right">
+      <button class="btn-logout-all" id="logoutAllDevicesBtn">
+        <i class="fas fa-power-off"></i> Logout All Devices
+      </button>
+    </div>
+  </div>
+
+  <!-- CURRENT DEVICE SECTION -->
+  <section class="history-section">
+    <div class="section-title">
+      <i class="fas fa-laptop"></i> Current Logged In Device
+    </div>
+    
+    <div id="currentDeviceContainer">
+      <div style="text-align: center; padding: 20px; color: var(--text-light);">
+        <i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 8px;"></i>
+        <p>Loading current device information...</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- OTHER DEVICES & HISTORY SECTION -->
+  <section class="history-section">
+    <div class="section-title">
+      <i class="fas fa-mobile-alt"></i> Other Logged In Devices & History
+    </div>
+
+    <!-- BATCH SELECTION TOOLBAR -->
+    <div class="batch-toolbar" id="batchToolbar">
+      <div class="batch-left">
+        <label class="select-all-checkbox-wrap">
+          <input type="checkbox" id="selectAllDevices">
+          Select All
+        </label>
+        <span class="selected-count-badge" id="selectedCountBadge">0 selected</span>
+      </div>
+      <button class="btn-logout-selected" id="logoutSelectedBtn">
+        <i class="fas fa-sign-out-alt"></i> Logout Selected
+      </button>
+    </div>
+
+    <!-- DEVICES LIST / TABLE -->
+    <div class="devices-table-container">
+      <table class="devices-table" id="devicesTable">
+        <thead>
+          <tr>
+            <th style="width: 40px;"></th>
+            <th>Device & Browser</th>
+            <th>Location & IP Address</th>
+            <th>Login Time</th>
+            <th>Status</th>
+            <th style="text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody id="otherDevicesTbody">
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 24px; color: var(--text-light);">
+              <i class="fas fa-spinner fa-spin"></i> Loading devices list...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- EMPTY STATE -->
+    <div class="empty-devices" id="emptyDevicesState" style="display: none;">
+      <h3>No Other Active Devices</h3>
+      <p>Your account is currently only active on this device.</p>
+    </div>
+  </section>
+</main>
+
+ <!-- LOGOUT MODAL -->
+<div id="logoutModal" class="modal logouts-modal">
+  <div class="modal-content logouts-modal-content">
+    <span class="close-btn logouts-close-btn" id="closeLogoutModal">&times;</span>
+    <div class="logouts-icon-wrapper">
+    </div>
+    <h2 class="logouts-title">Confirm Logout</h2>
+    <p class="logouts-message">Are you sure you want to logout?</p>
+    <div class="logouts-actions">
+      <button id="cancelLogout" class="btn logouts-cancel"> <i class="fas fa-times"></i> Cancel</button>
+      <button id="confirmLogout" class="btn logouts-confirm"> <i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= DEVICE CONFIRMATION LOGOUT MODAL ================= -->
+<div id="deviceLogoutModal" class="device-logout-modal">
+  <div class="logout-modal-box">
+    <div class="modal-icon-alert">
+      <i class="fas fa-exclamation-triangle"></i>
+    </div>
+    <h3 id="modalLogoutTitle">Confirm Device Logout</h3>
+    <p id="modalLogoutMessage">Are you sure you want to log out the selected device? Once logged out, the device session info will be deleted.</p>
+
+    <div class="modal-device-preview" id="modalDevicePreview">
+      <i class="fas fa-desktop"></i> <span id="modalDeviceText">Selected Device</span>
+    </div>
+
+    <div class="logout-modal-actions">
+      <button type="button" class="btn-modal-cancel" id="btnCancelDeviceLogout"> <i class="fas fa-times"></i> Cancel</button>
+      <button type="button" class="btn-modal-confirm" id="btnConfirmDeviceLogout"> <i class="fas fa-sign-out-alt"></i> Confirm Logout</button>
+    </div>
+  </div>
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Intercept link navigation -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const allLinks = document.querySelectorAll('a');
+        allLinks.forEach(link => {
+            const href = link.getAttribute('href');
+            if (href && (href.startsWith('/') || href.startsWith('/user/') || href.startsWith('/dashboard'))) {
+                if (link.id !== 'logoutBtn') {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        window.location.replace(href);
+                    });
+                }
+            }
+        });
+    });
+</script>
+
+<!-- JS -->
+<script src="{{ url_for('static', filename='js/user-login-history.js') }}"></script>
+<script src="/static/js/user-notification-system.js"></script>
+<!-- Device Login Monitor -->
+<script src="{{ url_for('static', filename='js/device-login-monitor.js') }}"></script>
+
+</body>
+</html>

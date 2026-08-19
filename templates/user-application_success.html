@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Application Form | Cablevision</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user-application_success.css') }}">
+<link rel="shortcut icon" href="{{ url_for('static', filename='cablevision.jpg') }}?v=123" type="image/jpeg">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+    /* Re-apply Banner Styles */
+    .reapply-banner {
+        animation: slideDown 0.3s ease-out;
+    }
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .reapply-banner .btn-danger:hover {
+        background: #dc2626 !important;
+        transform: scale(1.02);
+        transition: all 0.2s ease;
+    }
+    
+    /* Status Alert Styles */
+    .alert {
+        animation: fadeIn 0.3s ease-out;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+        .reapply-banner > div {
+            flex-direction: column;
+            text-align: center;
+        }
+        .reapply-banner .btn-danger {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+    
+    /* Additional styles for better display */
+    .info-row {
+        display: flex;
+        margin-bottom: 8px;
+        flex-wrap: wrap;
+    }
+    .info-label {
+        font-weight: 600;
+        width: 180px;
+        min-width: 180px;
+    }
+    .info-value {
+        flex: 1;
+        word-break: break-word;
+    }
+    .badge-status {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 50px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+    .badge-pending {
+        background: #fef3c7;
+        color: #92400e;
+    }
+    .badge-approved {
+        background: #d1fae5;
+        color: #065f46;
+    }
+    .badge-rejected {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+    .section-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+        border-bottom: 2px solid #0047ab;
+        color: #0047ab;
+    }
+    .app-card {
+        margin-bottom: 25px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        border: none;
+    }
+    .app-header {
+        background: linear-gradient(135deg, #0047ab 0%, #003380 100%);
+        padding: 40px 20px;
+        text-align: center;
+        color: white;
+        margin-bottom: 30px;
+    }
+    .app-number {
+        background: rgba(255,255,255,0.2);
+        display: inline-block;
+        padding: 8px 24px;
+        border-radius: 50px;
+        margin: 15px 0;
+    }
+    .header-actions {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        flex-wrap: wrap;
+        margin-top: 20px;
+    }
+    .btn-success {
+        background: #28a745;
+        border: none;
+    }
+    .btn-light {
+        background: white;
+        color: #0047ab;
+    }
+    .doc-img, .signature-img, .profile-photo-img {
+        max-width: 200px;
+        cursor: pointer;
+        border-radius: 8px;
+        border: 1px solid #ddd;
+        padding: 5px;
+    }
+    .signature-img {
+        max-width: 300px;
+    }
+    #map {
+        height: 350px;
+        width: 100%;
+        border-radius: 12px;
+    }
+</style>
+</head>
+
+<body>
+
+<!-- ================= FORMAL HEADER ================= -->
+<header class="app-header">
+    <div class="header-overlay">
+        <h1>Application Submitted Successfully</h1>
+        <p>Your application has been received and is being processed</p>
+
+        <div class="app-number">
+            Application Number: <strong>{{ application_number or 'N/A' }}</strong>
+        </div>
+
+        <div class="header-actions">
+            <a href="{{ url_for('download_pdf', application_number=application_number) }}" 
+               class="btn btn-success" target="_blank">
+                📄 Download PDF
+            </a>
+
+            <a href="{{ url_for('plans') }}" class="btn btn-light">
+                ← Back to Plans
+            </a>
+        </div>
+    </div>
+</header>
+
+<!-- ================= RE-APPLY BANNER (kung rejected ang application) ================= -->
+{% if status and status|upper == 'REJECTED' %}
+<div class="reapply-banner" style="background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%); 
+                                    border-left: 5px solid #ef4444; 
+                                    padding: 20px 25px; 
+                                    margin: 20px auto; 
+                                    max-width: 800px; 
+                                    border-radius: 12px;
+                                    box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+    <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; justify-content: space-between;">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="font-size: 32px;">⚠️</div>
+            <div>
+                <h4 style="margin: 0 0 5px 0; color: #991b1b; font-weight: 700;">Application Rejected</h4>
+                <p style="margin: 0; color: #7f1d1d; font-size: 14px;">
+                    Your application was rejected.
+                    {% if rejection_reason and rejection_reason != 'none' %}
+                    <br><strong>Reason:</strong> {{ rejection_reason }}
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        <a href="{{ url_for('reapply_application', application_id=application_number) }}" 
+           class="btn btn-danger" 
+           style="background: #ef4444; border: none; padding: 10px 24px; font-weight: 600; border-radius: 50px;
+                  text-decoration: none; color: white; display: inline-flex; align-items: center; gap: 8px;">
+            🔄 Re-apply Now
+        </a>
+    </div>
+    <p style="margin: 15px 0 0 0; font-size: 12px; color: #b91c1c;">
+        Your previous information has been saved. Click "Re-apply Now" to review and resubmit your application.
+    </p>
+</div>
+{% endif %}
+
+<!-- ================= MAIN CONTENT ================= -->
+<div class="container app-container">
+
+    <!-- PLAN -->
+    <div class="card app-card">
+        <div class="card-body">
+            <h4 class="section-title">Selected Plan</h4>
+            <div class="info-row">
+                <span class="info-label">Plan Name:</span>
+                <span class="info-value">{{ plan or 'N/A' }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Speed:</span>
+                <span class="info-value">{{ plan_speed or 'N/A' }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">Price:</span>
+                <span class="info-value">{{ plan_price or 'N/A' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= STATUS MESSAGES ================= -->
+    {% if status %}
+    <div class="card app-card">
+        <div class="card-body">
+            <h4 class="section-title">Application Status</h4>
+            
+            {% if status|upper == 'REJECTED' %}
+            <div class="alert alert-danger" style="border-radius: 12px; border-left: 4px solid #dc2626; background: #fef2f2;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 28px;">❌</span>
+                    <div>
+                        <strong style="font-size: 16px; color: #991b1b;">Status: Rejected</strong>
+                        <p style="margin: 5px 0 0 0; color: #7f1d1d;">
+                            Your application has been rejected.
+                            {% if rejection_reason and rejection_reason != 'none' %}
+                            <br><strong>Reason given:</strong> {{ rejection_reason }}
+                            {% endif %}
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% elif status|upper == 'PENDING' %}
+            <div class="alert alert-warning" style="border-radius: 12px; border-left: 4px solid #f59e0b; background: #fffbeb;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 28px;"></span>
+                    <div>
+                        <strong style="font-size: 16px; color: #92400e;">Status: Pending</strong>
+                        <p style="margin: 5px 0 0 0; color: #78350f;">
+                            Your application is currently being reviewed by our team. You will receive an email notification once a decision has been made.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% elif status|upper == 'APPROVED' %}
+            <div class="alert alert-success" style="border-radius: 12px; border-left: 4px solid #10b981; background: #ecfdf5;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 28px;">✅</span>
+                    <div>
+                        <strong style="font-size: 16px; color: #065f46;">Status: Approved</strong>
+                        <p style="margin: 5px 0 0 0; color: #047857;">
+                            Congratulations! Your application has been approved.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- PROFILE PHOTO -->
+    <div class="card app-card">
+        <div class="card-body text-center">
+            <h4 class="section-title">Profile Photo</h4>
+            {% if profile_photo and profile_photo != 'none' and profile_photo|length > 10 %}
+                <img src="{{ profile_photo }}" alt="Profile Photo" class="profile-photo-img mb-3" style="max-width: 200px; border-radius: 10px; cursor: pointer;">
+            {% else %}
+                <img src="{{ url_for('static', filename='default-profile.png') }}" alt="Default Profile Photo" class="profile-photo-img mb-3" style="max-width: 200px; border-radius: 10px;">
+                <p class="text-muted small">No profile photo uploaded</p>
+            {% endif %}
+        </div>
+    </div>    
+
+    <!-- PERSONAL INFO -->
+    <div class="card app-card">
+        <div class="card-body">
+            <h4 class="section-title">Personal Information</h4>
+            
+            <div class="info-row">
+                <span class="info-label">Full Name:</span>
+                <span class="info-value">
+                    {% set name_parts = [] %}
+                    {% if first_name and first_name != 'none' %}{% set _ = name_parts.append(first_name) %}{% endif %}
+                    {% if middle_name and middle_name != 'none' %}{% set _ = name_parts.append(middle_name) %}{% endif %}
+                    {% if last_name and last_name != 'none' %}{% set _ = name_parts.append(last_name) %}{% endif %}
+                    {% if suffix and suffix != 'none' %}{% set _ = name_parts.append(suffix) %}{% endif %}
+                    {{ name_parts|join(' ') or 'N/A' }}
+                </span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Email:</span>
+                <span class="info-value">{{ email or 'N/A' }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Mobile Number:</span>
+                <span class="info-value">{{ mobile or 'N/A' }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Secondary Mobile:</span>
+                <span class="info-value">{{ secondary_mobile if secondary_mobile != 'none' else 'N/A' }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Landline:</span>
+                <span class="info-value">{{ phone if phone != 'none' else 'N/A' }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Birthdate:</span>
+                <span class="info-value">{{ birthdate or 'N/A' }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Place of Birth:</span>
+                <span class="info-value">{{ place_of_birth or 'N/A' }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Sex:</span>
+                <span class="info-value">{{ sex or 'N/A' }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Civil Status:</span>
+                <span class="info-value">{{ civil_status or 'N/A' }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Citizenship:</span>
+                <span class="info-value">{{ citizenship or 'N/A' }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Occupation:</span>
+                <span class="info-value">{{ occupation or 'N/A' }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Home Ownership:</span>
+                <span class="info-value">{{ home_ownership or 'N/A' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADDRESS -->
+    <div class="card app-card">
+        <div class="card-body">
+            <h4 class="section-title">Address Information</h4>
+            
+            <div class="info-row">
+                <span class="info-label">Street/Village:</span>
+                <span class="info-value">{{ address if address != 'none' else 'N/A' }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">House Number:</span>
+                <span class="info-value">{{ house_number or 'N/A' }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Nearest Landmark:</span>
+                <span class="info-value">{{ landmark or 'N/A' }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Billing Address:</span>
+                <span class="info-value">{{ billing_address or 'N/A' }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Barangay:</span>
+                <span class="info-value">{{ barangay or 'N/A' }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">City/Municipality:</span>
+                <span class="info-value">{{ city or 'N/A' }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Province:</span>
+                <span class="info-value">{{ province or 'N/A' }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Zip Code:</span>
+                <span class="info-value">{{ zip or 'N/A' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- EMPLOYMENT -->
+    <div class="card app-card">
+        <div class="card-body">
+            <h4 class="section-title">Employment Details</h4>
+            
+            <div class="info-row">
+                <span class="info-label">Employer/Company:</span>
+                <span class="info-value">{{ employer or 'N/A' }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Business Address:</span>
+                <span class="info-value">{{ business_address or 'N/A' }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Business Phone:</span>
+                <span class="info-value">{{ business_phone if business_phone != 'none' else 'N/A' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- SPOUSE -->
+    <div class="card app-card">
+        <div class="card-body">
+            <h4 class="section-title">Spouse Information</h4>
+            
+            <div class="info-row">
+                <span class="info-label">Spouse Name:</span>
+                <span class="info-value">{{ spouse_name if spouse_name != 'none' else 'N/A' }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Occupation:</span>
+                <span class="info-value">{{ spouse_occupation if spouse_occupation != 'none' else 'N/A' }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Employer:</span>
+                <span class="info-value">{{ spouse_employer if spouse_employer != 'none' else 'N/A' }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Phone:</span>
+                <span class="info-value">{{ spouse_phone if spouse_phone != 'none' else 'N/A' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- FAMILY -->
+    <div class="card app-card">
+        <div class="card-body">
+            <h4 class="section-title">Family Details</h4>
+            
+            <div class="info-row">
+                <span class="info-label">Father's Name:</span>
+                <span class="info-value">{{ father_name if father_name != 'none' else 'N/A' }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Mother's Maiden Name:</span>
+                <span class="info-value">{{ mother_maiden_name if mother_maiden_name != 'none' else 'N/A' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- SERVICE -->
+    <div class="card app-card">
+        <div class="card-body">
+            <h4 class="section-title">Service Classification</h4>
+            <div class="info-row">
+                <span class="info-label">Service Type:</span>
+                <span class="info-value">{{ service_type or 'N/A' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- TV SET -->
+    <div class="card app-card">
+        <div class="card-body">
+            <h4 class="section-title">TV Set Details</h4>
+            
+            {% if tv_qty and tv_qty|length > 0 %}
+            <table class="table table-bordered table-sm">
+                <thead class="table-light">
+                    <tr>
+                        <th>Quantity</th>
+                        <th>Brand / Model</th>
+                        <th>TV Type</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for i in range(tv_qty|length) %}
+                    <tr>
+                        <td>{{ tv_qty[i] if tv_qty[i] != 'none' else 'N/A' }}</td>
+                        <td>{{ tv_brand[i] if tv_brand[i] != 'none' else 'N/A' }}</td>
+                        <td>{{ tv_type[i] if tv_type[i] != 'none' else 'N/A' }}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted">No TV sets added</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- INSTALLATION -->
+    <div class="card app-card">
+        <div class="card-body">
+            <h4 class="section-title">Installation Details</h4>
+            
+            <div class="info-row">
+                <span class="info-label">Installation Address:</span>
+                <span class="info-value">{{ installation_address or 'N/A' }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Contact Phone:</span>
+                <span class="info-value">{{ installation_phone or 'N/A' }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Installation Fee Option:</span>
+                <span class="info-value">{{ installation_fee or 'N/A' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- SIGNATURE -->
+    <div class="card app-card">
+        <div class="card-body text-center">
+            <h4 class="section-title">E-Signature</h4>
+            {% if signature and signature != 'none' and signature|length > 10 %}
+                <img src="{{ signature }}" class="signature-img" style="max-width: 300px; border: 1px solid #ddd; padding: 5px; border-radius: 8px; cursor: pointer;">
+            {% else %}
+                <p class="text-muted">No signature provided</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- DOCUMENTS -->
+    <div class="card app-card">
+        <div class="card-body">
+            <h4 class="section-title">Uploaded Documents</h4>
+            <div class="row">
+                <!-- ID FRONT -->
+                <div class="col-md-4 mb-3 text-center">
+                    <p><strong>Valid ID (Front)</strong></p>
+                    {% if id_front and id_front != 'none' and id_front|length > 10 %}
+                        <img src="{{ id_front }}" class="doc-img" style="max-width: 200px; border: 1px solid #ddd; padding: 5px; border-radius: 8px; cursor: pointer;">
+                    {% else %}
+                        <p class="text-muted">No ID Front uploaded</p>
+                    {% endif %}
+                </div>
+
+                <!-- ID BACK -->
+                <div class="col-md-4 mb-3 text-center">
+                    <p><strong>Valid ID (Back)</strong></p>
+                    {% if id_back and id_back != 'none' and id_back|length > 10 %}
+                        <img src="{{ id_back }}" class="doc-img" style="max-width: 200px; border: 1px solid #ddd; padding: 5px; border-radius: 8px; cursor: pointer;">
+                    {% else %}
+                        <p class="text-muted">No ID Back uploaded</p>
+                    {% endif %}
+                </div>
+
+                <!-- PROOF OF BILLING -->
+                <div class="col-md-4 mb-3 text-center">
+                    <p><strong>Proof of Billing</strong></p>
+                    {% if proof_billing and proof_billing != 'none' and proof_billing|length > 10 %}
+                        <img src="{{ proof_billing }}" class="doc-img billing" style="max-width: 200px; border: 1px solid #ddd; padding: 5px; border-radius: 8px; cursor: pointer;">
+                    {% else %}
+                        <p class="text-muted">No Proof of Billing uploaded</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SUBMISSION DETAILS -->
+    <div class="card app-card">
+        <div class="card-body">
+            <h4 class="section-title">Submission Details</h4>
+            
+            <div class="info-row">
+                <span class="info-label">Date Submitted:</span>
+                <span class="info-value">{{ date_submitted or 'N/A' }}</span>
+            </div>
+            
+            <div class="info-row">
+                <span class="info-label">Time Submitted:</span>
+                <span class="info-value">{{ time_submitted or 'N/A' }}</span>
+            </div>
+            
+            <!-- Re-apply History -->
+            {% if reapplied_count and reapplied_count > 0 %}
+            <hr>
+            <div class="info-row">
+                <span class="info-label">Re-applied Count:</span>
+                <span class="info-value">{{ reapplied_count }} time(s)</span>
+            </div>
+            {% if reapplied_date %}
+            <div class="info-row">
+                <span class="info-label">Last Re-applied:</span>
+                <span class="info-value">{{ reapplied_date }}</span>
+            </div>
+            {% endif %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- MAP -->
+    <div class="card app-card">
+        <div class="card-body">
+            <h4 class="section-title">Pinned Location Preview</h4>
+            <div id="map"></div>
+            <p class="mt-2 text-muted small">
+                Latitude: <span id="lat">{{ latitude or '0' }}</span> | 
+                Longitude: <span id="lng">{{ longitude or '0' }}</span>
+            </p>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+// Initialize map if coordinates are valid
+const lat = parseFloat("{{ latitude or 0 }}");
+const lng = parseFloat("{{ longitude or 0 }}");
+
+if (lat && lng && lat !== 0 && lng !== 0) {
+    const map = L.map('map').setView([lat, lng], 16);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map);
+
+    L.marker([lat, lng]).addTo(map)
+        .bindPopup("<strong>Pinned Location</strong><br>Your selected installation location")
+        .openPopup();
+} else {
+    document.getElementById('map').innerHTML = 
+        '<div class="alert alert-info text-center mb-0">📍 No location coordinates provided for this application.</div>';
+}
+
+/* =========================
+   IMAGE MODAL PREVIEW
+========================= */
+document.querySelectorAll(".doc-img, .signature-img, .profile-photo-img").forEach(img => {
+    img.addEventListener("click", function () {
+        const modalImg = document.getElementById("modalImage");
+        if (modalImg && this.src) {
+            modalImg.src = this.src;
+            
+            // Remove existing classes
+            modalImg.classList.remove("billing", "signature", "profile");
+            
+            // Add class based on image type
+            if (this.classList.contains("billing")) {
+                modalImg.classList.add("billing");
+            } 
+            else if (this.classList.contains("signature-img")) {
+                modalImg.classList.add("signature");
+            } 
+            else if (this.classList.contains("profile-photo-img")) {
+                modalImg.classList.add("profile");
+            }
+            
+            // Show modal using Bootstrap
+            const modalElement = document.getElementById('imageModal');
+            if (modalElement) {
+                const modal = new bootstrap.Modal(modalElement);
+                modal.show();
+            }
+        }
+    });
+});
+
+// Close modal when clicking outside on mobile
+if ('ontouchstart' in window) {
+    const modalElement = document.getElementById('imageModal');
+    if (modalElement) {
+        modalElement.addEventListener('click', function(e) {
+            if (e.target === modalElement) {
+                const modal = bootstrap.Modal.getInstance(modalElement);
+                if (modal) modal.hide();
+            }
+        });
+    }
+}
+</script>
+
+<!-- IMAGE PREVIEW MODAL -->
+<div class="modal fade" id="imageModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content bg-transparent border-0">
+      <div class="modal-header border-0 p-0 position-relative">
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="position: absolute; right: 0; top: -10px; z-index: 10;"></button>
+      </div>
+      <div class="modal-body text-center p-0">
+        <img id="modalImage" src="" class="img-fluid rounded" style="max-height: 80vh; max-width: 100%;">
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

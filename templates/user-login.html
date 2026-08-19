@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Cablevision | Login</title>
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- Font Awesome 6 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+<!-- Main CSS -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user-login.css') }}">
+<link rel="shortcut icon" href="{{ url_for('static', filename='cablevision.jpg') }}?v=123" type="image/jpeg">
+
+<style>
+/* ================= TOAST NOTIFICATION ================= */
+.custom-toast {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-10px);
+    min-width: 300px;
+    max-width: 440px;
+    padding: 13px 16px 0 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    z-index: 99999;
+    opacity: 0;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid transparent;
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    letter-spacing: 0.1px;
+}
+
+.custom-toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+.custom-toast-body {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding-bottom: 13px;
+}
+
+.custom-toast-icon {
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+}
+
+.custom-toast-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    flex: 1;
+}
+
+.custom-toast-title {
+    font-size: 10px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.7px;
+    opacity: 0.55;
+    line-height: 1;
+}
+
+.custom-toast-message {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.45;
+    color: inherit;
+}
+
+.custom-toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    border-radius: 0 0 6px 6px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.custom-toast-progress-bar {
+    height: 100%;
+    width: 100%;
+    transform-origin: left;
+}
+
+.custom-toast.success {
+    background: #f6faf7;
+    border-color: #b7d9c0;
+    color: #1a3d27;
+}
+.custom-toast.success .custom-toast-progress-bar {
+    background: #3a7d52;
+    opacity: 0.5;
+    animation: toastProgress 3s linear forwards;
+}
+
+.custom-toast.error {
+    background: #fdf6f6;
+    border-color: #ddb8b8;
+    color: #3b1a1a;
+}
+.custom-toast.error .custom-toast-progress-bar {
+    background: #8b3333;
+    opacity: 0.5;
+    animation: toastProgress 3s linear forwards;
+}
+
+.custom-toast.info {
+    background: #f5f7fa;
+    border-color: #c0cad8;
+    color: #1a2638;
+}
+.custom-toast.info .custom-toast-progress-bar {
+    background: #2e4a6e;
+    opacity: 0.5;
+    animation: toastProgress 3s linear forwards;
+}
+
+.custom-toast.loading {
+    background: #f7f7f7;
+    border-color: #d4d4d4;
+    color: #1a1a1a;
+}
+.custom-toast.loading .custom-toast-progress-bar {
+    background: #555;
+    opacity: 0.35;
+    width: 40%;
+    animation: toastLoading 1.4s ease-in-out infinite;
+}
+
+@keyframes toastProgress {
+    from { transform: scaleX(1); }
+    to { transform: scaleX(0); }
+}
+
+@keyframes toastLoading {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+</style>
+</head>
+<body>
+
+<div class="login-container">
+
+   <!-- BRAND HEADER -->
+   <div class="brand-header">
+      <img src="/static/logo1.png" alt="Cablevision Logo" class="brand-image">
+      <h1 class="brand-title">CABLEVISION</h1>
+      <p class="brand-subtitle">SYSTEMS CORP.</p>
+   </div>
+
+   <!-- LOGIN FORM -->
+   <form method="POST" action="{{ url_for('login') }}" id="loginForm">
+    
+    <!-- USER ID -->
+    <div class="input-group">
+        <i class="fas fa-user"></i>
+        <input type="text" name="user_id" id="userIdInput" placeholder="Enter your User ID" required autocomplete="username">
+    </div>
+
+    <!-- PASSWORD -->
+    <div class="input-group password-wrapper">
+        <i class="fas fa-lock"></i>
+        <input type="password" name="password" id="password" placeholder="Password" required autocomplete="current-password">
+    </div>
+
+    <input type="hidden" name="ga_code" id="ga_code_hidden" value="">
+    <input type="hidden" name="tab_id" id="tab_id_hidden" value="">
+
+    <button type="submit" class="login-btn"> <i class="fas fa-sign-in-alt"></i> Login</button>
+
+    <!-- ERROR MESSAGE -->
+    <div class="error-message" id="error"></div>
+
+    <!-- Forgot Password -->
+    <div class="forgot-password-container">
+        <a href="#" id="forgotPasswordLink" class="forgot-password-link">
+            Forgot your password?
+        </a>
+    </div>
+
+    
+<div class="footer-text">
+   Cablevision Cable-Internet
+</div>
+   </form>
+</div>
+
+
+<!-- ================= FORGOT PASSWORD MODAL (ENHANCED - KATULAD NG SHARED) ================= -->
+<div id="forgotPasswordModal" class="forgot-modal">
+    <div class="forgot-modal-content">
+        <!-- HEADER -->
+        <div class="forgot-modal-header">
+            <img src="/static/logo1.png" alt="Cablevision Logo" class="forgot-modal-logo">
+            <h3>CABLEVISION SYSTEMS CORP.</h3>
+            <button type="button" class="forgot-modal-close">&times;</button>
+        </div>
+        
+        <!-- BODY -->
+        <div class="forgot-modal-body">
+            <!-- STEP 1: Send code -->
+            <div id="fpStep1" class="forgot-step">
+                <p class="forgot-step-title">Forgot Password</p>
+                <p class="forgot-step-desc">Enter your registered email address to receive a verification code.</p>
+                <div class="forgot-input-group">
+                    <i class="fas fa-envelope"></i>
+                    <input type="text" id="fpIdentifier" placeholder="Email Address" autocomplete="off">
+                </div>
+                <button id="sendCodeBtn" class="forgot-btn-primary"> <i class="fas fa-paper-plane"></i> Send Verification Code</button>
+                <div id="fpMessage" class="forgot-message"></div>
+            </div>
+
+            <!-- STEP 2: 6-digit OTP boxes + new password -->
+            <div id="fpStep2" class="forgot-step" style="display: none;">
+                <p class="forgot-step-title">Reset Password</p>
+                <p class="forgot-step-desc">Enter the 6‑digit code sent to your email</p>
+                
+                <!-- 6 DIGIT BOXES -->
+                <div class="verification-code-inputs">
+                    <input type="text" maxlength="1" class="code-digit" id="fpDigit1" autofocus>
+                    <input type="text" maxlength="1" class="code-digit" id="fpDigit2">
+                    <input type="text" maxlength="1" class="code-digit" id="fpDigit3">
+                    <input type="text" maxlength="1" class="code-digit" id="fpDigit4">
+                    <input type="text" maxlength="1" class="code-digit" id="fpDigit5">
+                    <input type="text" maxlength="1" class="code-digit" id="fpDigit6">
+                </div>
+
+                <div class="forgot-input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="fpNewPassword" placeholder="New Password">
+                </div>
+
+                <div class="forgot-input-group">
+                    <i class="fas fa-lock"></i>
+                    <input type="password" id="fpConfirmPassword" placeholder="Confirm New Password">
+                </div>
+
+                <div class="forgot-timer-wrapper">
+                    <span class="forgot-timer-label">Code expires in</span>
+                    <span id="otpTimer" class="forgot-timer">05:00</span>
+                </div>
+
+                <button id="resetPasswordBtn" class="forgot-btn-primary"> <i class="fas fa-key"></i> Reset Password</button>
+                <button id="resendOtpBtn" class="forgot-btn-secondary" disabled> <i class="fas fa-redo"></i> Resend Code</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- GOOGLE AUTHENTICATOR MODAL -->
+<div id="gaVerificationModal" class="modal" style="display: none;">
+    <div class="modal-content">
+        <span class="close ga-modal-close">&times;</span>
+        <h2>Verify with Google Authenticator</h2>
+        <p class="modal-subtitle">Enter the 6-digit code from your authenticator app.</p>
+        <div class="verification-code-inputs">
+            <input type="text" maxlength="1" class="code-digit ga-code-digit" inputmode="numeric" autocomplete="one-time-code">
+            <input type="text" maxlength="1" class="code-digit ga-code-digit" inputmode="numeric" autocomplete="one-time-code">
+            <input type="text" maxlength="1" class="code-digit ga-code-digit" inputmode="numeric" autocomplete="one-time-code">
+            <input type="text" maxlength="1" class="code-digit ga-code-digit" inputmode="numeric" autocomplete="one-time-code">
+            <input type="text" maxlength="1" class="code-digit ga-code-digit" inputmode="numeric" autocomplete="one-time-code">
+            <input type="text" maxlength="1" class="code-digit ga-code-digit" inputmode="numeric" autocomplete="one-time-code">
+        </div>
+        <button type="button" id="gaVerifyBtn" class="login-btn">Verify Code</button>
+        <div id="gaModalError" class="error-message" style="display:none; margin-top:10px;"></div>
+    </div>
+</div>
+
+<!-- JavaScript -->
+<script>
+    // ===============================
+    // 🆔 GENERATE UNIQUE TAB ID
+    // ===============================
+    function getOrCreateTabId() {
+        let tabId = sessionStorage.getItem('tab_id');
+        if (!tabId) {
+            tabId = 'tab_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            sessionStorage.setItem('tab_id', tabId);
+        }
+        return tabId;
+    }
+
+    function showToast(message, type = 'info') {
+        const LABELS = {
+            success: 'Success',
+            error: 'Error',
+            info: 'Notice',
+            loading: 'Please wait'
+        };
+
+        const ICONS = {
+            success: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+            error: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+            info: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+            loading: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="animation: toastSpin 1s linear infinite; display:block;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`
+        };
+
+        let toast = document.querySelector('.custom-toast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.className = 'custom-toast';
+            document.body.appendChild(toast);
+
+            if (!document.getElementById('toast-keyframes')) {
+                const s = document.createElement('style');
+                s.id = 'toast-keyframes';
+                s.textContent = `
+                    @keyframes toastSpin { to { transform: rotate(360deg); } }
+                    @keyframes toastProgress { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+                    @keyframes toastLoading { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+                `;
+                document.head.appendChild(s);
+            }
+        }
+
+        toast.innerHTML = `
+            <div class="custom-toast-body">
+                <span class="custom-toast-icon">${ICONS[type] || ICONS.info}</span>
+                <div class="custom-toast-text">
+                    <span class="custom-toast-title">${LABELS[type] || 'Notice'}</span>
+                    <span class="custom-toast-message">${message}</span>
+                </div>
+            </div>
+            <div class="custom-toast-progress">
+                <div class="custom-toast-progress-bar"></div>
+            </div>
+        `;
+
+        toast.className = `custom-toast ${type}`;
+        void toast.offsetWidth;
+        toast.classList.add('show');
+
+        clearTimeout(toast._hideTimer);
+
+        if (type !== 'loading') {
+            toast._hideTimer = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+    }
+
+    // Set tab_id on page load
+    document.addEventListener('DOMContentLoaded', function() {
+        const tabId = getOrCreateTabId();
+        const tabIdHidden = document.getElementById('tab_id_hidden');
+        if (tabIdHidden) {
+            tabIdHidden.value = tabId;
+        }
+        console.log('🆔 Tab ID:', tabId);
+    });
+
+    // ===============================
+    // 🔑 FORGOT PASSWORD MODAL - UPDATED FOR XAMPP/MYSQL
+    // ===============================
+    const forgotModal = document.getElementById("forgotPasswordModal");
+    const closeModalBtn = forgotModal ? forgotModal.querySelector(".close") : null;
+    const fpStep1 = document.getElementById("fpStep1");
+    const fpStep2 = document.getElementById("fpStep2");
+    const fpMessage = document.getElementById("fpMessage");
+    const otpTimerEl = document.getElementById("otpTimer");
+    const resendOtpBtn = document.getElementById("resendOtpBtn");
+
+    // Digit inputs
+    const fpDigits = [
+        document.getElementById("fpDigit1"),
+        document.getElementById("fpDigit2"),
+        document.getElementById("fpDigit3"),
+        document.getElementById("fpDigit4"),
+        document.getElementById("fpDigit5"),
+        document.getElementById("fpDigit6")
+    ];
+
+    let otpCountdown;
+    const otpDuration = 300; // 5 minutes in seconds
+    let currentUsername = null;
+
+    // Helper: auto-tab between digits
+    function setupFpCodeDigits() {
+        fpDigits.forEach((digit, idx) => {
+            if (!digit) return;
+            digit.addEventListener("input", (e) => {
+                if (digit.value.length === 1 && idx < 5 && fpDigits[idx + 1]) {
+                    fpDigits[idx + 1].focus();
+                }
+            });
+            digit.addEventListener("keydown", (e) => {
+                if (e.key === "Backspace" && digit.value.length === 0 && idx > 0 && fpDigits[idx - 1]) {
+                    fpDigits[idx - 1].focus();
+                }
+            });
+        });
+    }
+
+    // Get the 6-digit code from boxes
+    function getFpCode() {
+        return fpDigits.map(d => d ? d.value : "").join("");
+    }
+
+    // Clear all digit boxes
+    function clearFpDigits() {
+        fpDigits.forEach(d => { if (d) d.value = ""; });
+        if (fpDigits[0]) fpDigits[0].focus();
+    }
+
+    // Countdown timer
+    function startOtpCountdown() {
+        let timeLeft = otpDuration;
+        resendOtpBtn.disabled = true;
+        if (otpCountdown) clearInterval(otpCountdown);
+        otpCountdown = setInterval(() => {
+            const minutes = Math.floor(timeLeft / 60).toString().padStart(2, "0");
+            const seconds = (timeLeft % 60).toString().padStart(2, "0");
+            otpTimerEl.textContent = `${minutes}:${seconds}`;
+            if (timeLeft <= 0) {
+                clearInterval(otpCountdown);
+                resendOtpBtn.disabled = false;
+                otpTimerEl.textContent = "00:00";
+            } else timeLeft--;
+        }, 1000);
+    }
+
+    // Open modal
+    const forgotPasswordLink = document.getElementById("forgotPasswordLink");
+    if (forgotPasswordLink) {
+        forgotPasswordLink.addEventListener("click", (e) => {
+            e.preventDefault();
+            forgotModal.style.display = "flex";
+            fpStep1.style.display = "block";
+            fpStep2.style.display = "none";
+            fpMessage.textContent = "";
+            clearFpDigits();
+            currentUsername = null;
+        });
+    }
+
+    // Close modal
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener("click", () => forgotModal.style.display = "none");
+    }
+
+    // Step 1: Send verification code
+    const sendCodeBtn = document.getElementById("sendCodeBtn");
+    if (sendCodeBtn) {
+        sendCodeBtn.addEventListener("click", async () => {
+            const identifier = document.getElementById("fpIdentifier").value.trim();
+            if (!identifier) {
+                showToast("Please enter your email address.", 'error');
+                return;
+            }
+            
+            // Disable button while sending
+            sendCodeBtn.disabled = true;
+            sendCodeBtn.textContent = "Sending...";
+            showToast("Sending verification code...", 'loading');
+            
+            try {
+                const res = await fetch("/api/user/forgot-password", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ user_email: identifier })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast("Verification code sent!", 'success');
+                    fpStep1.style.display = "none";
+                    fpStep2.style.display = "block";
+                    currentUsername = data.username;
+                    clearFpDigits();
+                    startOtpCountdown();
+                } else {
+                    showToast(data.error || "Failed to send code", 'error');
+                }
+            } catch (err) {
+                console.error(err);
+                showToast("Server error. Please try again.", 'error');
+            } finally {
+                sendCodeBtn.disabled = false;
+                sendCodeBtn.textContent = "Send Verification Code";
+            }
+        });
+    }
+
+    // Step 2: Reset password with 6-digit code
+    const resetPasswordBtn = document.getElementById("resetPasswordBtn");
+    if (resetPasswordBtn) {
+        resetPasswordBtn.addEventListener("click", async () => {
+            const code = getFpCode();
+            const newPassword = document.getElementById("fpNewPassword").value.trim();
+            const confirmPassword = document.getElementById("fpConfirmPassword").value.trim();
+
+            if (code.length !== 6) {
+                showToast("Please enter the complete 6-digit verification code.", 'error');
+                return;
+            }
+            if (!newPassword) {
+                showToast("Please enter a new password.", 'error');
+                return;
+            }
+            if (newPassword.length < 6) {
+                showToast("Password must be at least 6 characters.", 'error');
+                return;
+            }
+            // 👇 BAGONG CHECK: MATCH BA ANG DALAWANG PASSWORD
+            if (newPassword !== confirmPassword) {
+                showToast("Passwords do not match.", 'error');
+                return;
+            }
+
+            resetPasswordBtn.disabled = true;
+            resetPasswordBtn.textContent = "Processing...";
+            showToast("Resetting your password...", 'loading');
+
+            try {
+                const tabId = sessionStorage.getItem('tab_id') || '';
+                const res = await fetch("/api/user/reset-password", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        username: currentUsername,
+                        code: code,
+                        new_password: newPassword,
+                        tab_id: tabId
+                    })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast(data.message || "Password updated successfully.", 'success');
+
+                    // 👇 I-STORE ANG SESSION DATA PARA MAKAPASA SA PAGE GUARD NG DASHBOARD
+                    if (data.tab_id) sessionStorage.setItem('tab_id', data.tab_id);
+                    if (data.username) {
+                        sessionStorage.setItem('username', data.username);
+                        sessionStorage.setItem('userType', 'user');
+                    }
+                    if (data.user_id) sessionStorage.setItem('user_id', data.user_id);
+
+                    const finalRedirect = data.redirect || '/login';
+                    window.location.replace(finalRedirect);
+                    return;
+                } else {
+                    showToast(data.error || "Failed to reset password", 'error');
+                    resetPasswordBtn.disabled = false;
+                    resetPasswordBtn.textContent = "Reset Password";
+                }
+            } catch (err) {
+                console.error(err);
+                showToast("Server error", 'error');
+                resetPasswordBtn.disabled = false;
+                resetPasswordBtn.textContent = "Reset Password";
+            }
+        });
+    }
+
+    // Resend OTP
+    if (resendOtpBtn) {
+        resendOtpBtn.addEventListener("click", async () => {
+            const identifier = document.getElementById("fpIdentifier").value.trim();
+            if (!identifier) return;
+            
+            resendOtpBtn.disabled = true;
+            resendOtpBtn.textContent = "Sending...";
+            
+            try {
+                const res = await fetch("/api/user/forgot-password", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ user_email: identifier })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    fpMessage.style.color = "#059669";
+                    fpMessage.textContent = "New verification code sent!";
+                    clearFpDigits();
+                    startOtpCountdown();
+                } else {
+                    fpMessage.style.color = "#dc2626";
+                    fpMessage.textContent = data.error || "Failed to resend code";
+                }
+            } catch (err) {
+                console.error(err);
+                fpMessage.style.color = "#dc2626";
+                fpMessage.textContent = "Server error";
+            } finally {
+                resendOtpBtn.disabled = false;
+                resendOtpBtn.textContent = "Resend OTP";
+            }
+        });
+    }
+
+    // Initialize digit behaviour
+    setupFpCodeDigits();
+
+    // ================= LOGIN FORM VALIDATION WITH TAB ID =================
+    const loginForm = document.getElementById('loginForm');
+    const errorDiv = document.getElementById('error');
+    const gaModal = document.getElementById('gaVerificationModal');
+    const gaModalClose = gaModal ? gaModal.querySelector('.ga-modal-close') : null;
+    const gaModalError = document.getElementById('gaModalError');
+    const gaVerifyBtn = document.getElementById('gaVerifyBtn');
+    const gaDigits = Array.from(document.querySelectorAll('.ga-code-digit'));
+    const gaHiddenInput = document.getElementById('ga_code_hidden');
+    const tabIdHidden = document.getElementById('tab_id_hidden');
+    let gaPendingUserId = null;
+
+    function syncGaCodeField() {
+        if (gaHiddenInput) {
+            gaHiddenInput.value = gaDigits.map(input => input.value).join('');
+        }
+    }
+
+    function openGaModal(message = '') {
+        if (!gaModal) return;
+        gaModal.style.display = 'flex';
+        gaDigits.forEach((input, index) => {
+            input.value = '';
+            input.disabled = false;
+        });
+        if (gaDigits[0]) gaDigits[0].focus();
+        if (gaModalError) {
+            gaModalError.textContent = message;
+            gaModalError.style.display = message ? 'block' : 'none';
+        }
+    }
+
+    function closeGaModal() {
+        if (!gaModal) return;
+        gaModal.style.display = 'none';
+        if (gaModalError) {
+            gaModalError.textContent = '';
+            gaModalError.style.display = 'none';
+        }
+    }
+
+    if (gaModalClose) {
+        gaModalClose.addEventListener('click', closeGaModal);
+    }
+
+    if (gaModal) {
+        gaModal.addEventListener('click', (e) => {
+            if (e.target === gaModal) closeGaModal();
+        });
+    }
+
+    gaDigits.forEach((digit, index) => {
+        digit.addEventListener('input', () => {
+            const value = digit.value.replace(/\D/g, '').slice(0, 1);
+            digit.value = value;
+            syncGaCodeField();
+            if (value && index < gaDigits.length - 1) {
+                gaDigits[index + 1].focus();
+            }
+        });
+
+        digit.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && !digit.value && index > 0) {
+                e.preventDefault();
+                const previous = gaDigits[index - 1];
+                previous.focus();
+                previous.value = '';
+                syncGaCodeField();
+            }
+        });
+
+        digit.addEventListener('paste', (e) => {
+            e.preventDefault();
+            const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+            pasted.split('').forEach((char, charIndex) => {
+                if (gaDigits[charIndex]) gaDigits[charIndex].value = char;
+            });
+            const nextIndex = Math.min(pasted.length, gaDigits.length - 1);
+            gaDigits[nextIndex].focus();
+            syncGaCodeField();
+        });
+    });
+
+    if (gaVerifyBtn) {
+        gaVerifyBtn.addEventListener('click', () => {
+            syncGaCodeField();
+            if (!gaHiddenInput || gaHiddenInput.value.length !== 6) {
+                if (gaModalError) {
+                    gaModalError.textContent = 'Please enter the complete 6-digit code.';
+                    gaModalError.style.display = 'block';
+                }
+                return;
+            }
+            loginForm.requestSubmit();
+        });
+    }
+
+    // ================= MAIN LOGIN SUBMIT =================
+    if (loginForm) {
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            errorDiv.textContent = '';
+            if (gaModalError) {
+                gaModalError.textContent = '';
+                gaModalError.style.display = 'none';
+            }
+
+            // 👇 KUNIN ANG TAB ID
+            const tabId = getOrCreateTabId();
+            if (tabIdHidden) {
+                tabIdHidden.value = tabId;
+            }
+
+            const formData = new FormData(loginForm);
+            const payload = {
+                user_id: formData.get('user_id').trim(),
+                password: formData.get('password').trim(),
+                ga_code: formData.get('ga_code').trim(),
+                tab_id: tabId  // 👈 ISAMA ANG TAB ID SA PAYLOAD
+            };
+
+            if (!payload.user_id || !payload.password) {
+                errorDiv.textContent = "Please enter both User ID and Password";
+                errorDiv.style.display = "block";
+                return;
+            }
+
+            if (payload.ga_code && !/^\d{6}$/.test(payload.ga_code)) {
+                errorDiv.textContent = "Please enter the 6-digit code from Google Authenticator.";
+                errorDiv.style.display = "block";
+                return;
+            }
+
+            // Show loading state
+            const submitBtn = loginForm.querySelector('.login-btn');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Logging in...";
+
+            try {
+                const res = await fetch("{{ url_for('login') }}", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await res.json();
+
+                // ✅ CHECK KUNG 403 FORBIDDEN (Deactivated/Terminated)
+                if (res.status === 403) {
+                    errorDiv.textContent = data.error || "Your account is deactivated or terminated. Please contact support.";
+                    errorDiv.style.display = "block";
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                    return;
+                }
+
+                // ✅ CHECK KUNG 2FA REQUIRED
+                if (data.requires_2fa) {
+                    gaPendingUserId = data.user_id || null;
+                    // 👇 I-STORE ANG TAB ID PARA SA 2FA
+                    if (data.tab_id) {
+                        sessionStorage.setItem('tab_id', data.tab_id);
+                    }
+                    openGaModal(data.error || "Enter the 6-digit code from Google Authenticator to continue.");
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                    return;
+                }
+
+                // ✅ SUCCESSFUL LOGIN
+                // ✅ SUCCESSFUL LOGIN
+                if (res.ok && data.success) {
+                    // Store session data including tab_id
+                    const tabId = data.tab_id || tabIdFromStorage;
+                    sessionStorage.setItem("username", data.username || payload.user_id);
+                    sessionStorage.setItem("userType", "user");
+                    sessionStorage.setItem("user_id", data.user_id || payload.user_id);
+                    sessionStorage.setItem("tab_id", tabId);
+                    
+                    // 👇 SIGURADUHIN NA TAMA ANG REDIRECT URL
+                    let redirectUrl = data.redirect || "/dashboard";
+                    if (!redirectUrl.includes('tab_id=')) {
+                        const separator = redirectUrl.includes('?') ? '&' : '?';
+                        redirectUrl = redirectUrl + separator + 'tab_id=' + tabId;
+                    }
+                    
+                    console.log('✅ Login successful!');
+                    console.log('  - Redirect URL:', redirectUrl);
+                    console.log('  - Tab ID:', tabId);
+                    console.log('  - User ID:', data.user_id || payload.user_id);
+                    
+                    // 🔔 MARK SESSION START FOR DEVICE MONITOR
+                    sessionStorage.setItem('sessionStart', Date.now().toString());
+                    console.log('  - Session Start:', sessionStorage.getItem('sessionStart'));
+                    
+                    // Use replace() instead of href to prevent back button to login page
+                    window.location.replace(redirectUrl);
+                } else {
+                    errorDiv.textContent = data.error || "Invalid User ID or Password";
+                    errorDiv.style.display = "block";
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+
+            } catch (err) {
+                console.error("Login error:", err);
+                errorDiv.textContent = "Network error. Please try again.";
+                errorDiv.style.display = "block";
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        });
+    }
+
+    // Check if GA modal should open on page load
+    if (gaHiddenInput && gaHiddenInput.value) {
+        openGaModal('Enter the 6-digit code from Google Authenticator to continue.');
+    }
+
+    // ================= TIME SYNC CHECK =================
+    function checkTimeSync() {
+        fetch('/api/server-time')
+            .then(response => response.json())
+            .then(data => {
+                const serverTime = new Date(data.server_time);
+                const clientTime = new Date();
+                const diff = Math.abs(serverTime - clientTime) / 1000;
+                
+                if (diff > 30) {
+                    console.warn(`⏰ Time difference: ${diff} seconds`);
+                    const warningEl = document.getElementById('timeSyncWarning');
+                    if (warningEl) {
+                        warningEl.style.display = 'block';
+                        warningEl.textContent = `⚠️ Your device time is ${Math.round(diff)} seconds off from server time. Please sync your device clock for Google Authenticator to work.`;
+                    }
+                }
+            })
+            .catch(err => console.error('Time sync check failed:', err));
+    }
+
+    // ================= CALL ON PAGE LOAD =================
+    document.addEventListener('DOMContentLoaded', function() {
+        checkTimeSync();
+        
+        // Ensure tab_id is set
+        const tabId = getOrCreateTabId();
+        const tabIdHidden = document.getElementById('tab_id_hidden');
+        if (tabIdHidden) {
+            tabIdHidden.value = tabId;
+        }
+        console.log('🆔 Page loaded with Tab ID:', tabId);
+    });
+
+    // ================= PREVENT DUPLICATE LOGIN IN OTHER TABS =================
+    // Optional: Check if this tab's session is still valid
+    window.addEventListener('storage', function(e) {
+        if (e.key === 'tab_id' && e.newValue) {
+            const currentTabId = sessionStorage.getItem('tab_id');
+            if (currentTabId && currentTabId !== e.newValue) {
+                // Another tab changed the tab_id - this tab might be compromised
+                console.warn('⚠️ Tab ID changed in another tab. This tab may have been overwritten.');
+                // You can optionally show a warning or force re-login
+            }
+        }
+    });
+
+    console.log('🔐 Login page loaded with Tab ID support!');
+
+// ================= FORGOT MODAL CLOSE =================
+const forgotModalEl = document.getElementById('forgotPasswordModal');
+const forgotModalClose = forgotModalEl ? forgotModalEl.querySelector('.forgot-modal-close') : null;
+
+if (forgotModalClose) {
+    forgotModalClose.addEventListener('click', () => {
+        if (forgotModalEl) forgotModalEl.style.display = 'none';
+    });
+}
+
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        if (forgotModalEl && forgotModalEl.style.display === 'flex') {
+            forgotModalEl.style.display = 'none';
+        }
+        if (gaModal && gaModal.style.display === 'flex') {
+            closeGaModal();
+        }
+    }
+});
+</script>
+
+</body>
+</html>

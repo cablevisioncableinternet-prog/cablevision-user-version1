@@ -1,0 +1,1157 @@
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+  <meta charset="UTF-8">
+  <title>Cablevision | Profile</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- Prevent caching -->
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+
+   <link rel="shortcut icon" href="{{ url_for('static', filename='cablevision.jpg') }}?v=123" type="image/jpeg">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/user-profile.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/device-login-alert.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>  
+</head>
+
+  <body>
+
+<!-- ================= PAGE GUARD - WITH TAB ID VALIDATION ================= -->
+<script>
+    (function() {
+        // 👇 KUNIN ANG TAB ID MULA SA URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlTabId = urlParams.get('tab_id');
+        const sessionTabId = sessionStorage.getItem('tab_id');
+        const isLoggedIn = sessionStorage.getItem('username') && sessionStorage.getItem('userType') === 'user';
+        
+        console.log('🔍 Profile Page Guard Check:');
+        console.log('  - Logged in:', isLoggedIn);
+        console.log('  - URL Tab ID:', urlTabId);
+        console.log('  - Session Tab ID:', sessionTabId);
+        
+        // 👇 KUNG WALANG LOGIN, REDIRECT SA LOGIN PAGE
+        if (!isLoggedIn) {
+            console.log('❌ Not logged in, redirecting to login...');
+            window.location.replace('/');
+            return;
+        }
+        
+        // 👇 KUNG WALANG TAB ID SA URL PERO MERON SA SESSION
+        if (!urlTabId && sessionTabId) {
+            console.log('🔄 No tab_id in URL, adding from session...');
+            const newUrl = window.location.pathname + '?tab_id=' + sessionTabId;
+            window.location.replace(newUrl);
+            return;
+        }
+        
+        // 👇 KUNG MAY TAB ID SA URL PERO WALA SA SESSION
+        if (urlTabId && !sessionTabId) {
+            console.log('🔄 Tab ID found in URL, saving to session...');
+            sessionStorage.setItem('tab_id', urlTabId);
+            window.location.reload();
+            return;
+        }
+        
+        // 👇 KUNG MAGKAIBA ANG TAB ID SA URL AT SESSION
+        if (urlTabId && sessionTabId && urlTabId !== sessionTabId) {
+            console.warn('⚠️ Tab ID mismatch! URL:', urlTabId, 'Session:', sessionTabId);
+            sessionStorage.setItem('tab_id', urlTabId);
+            window.location.reload();
+            return;
+        }
+        
+        // ✅ LAHAT NG CHECKS PASSED
+        console.log('✅ Page Guard passed! Tab ID:', urlTabId || sessionTabId);
+        console.log('👤 User:', sessionStorage.getItem('username'));
+        
+        // ===== CHECK USER STATUS AND DISABLE FEATURES =====
+        async function checkUserStatusAndDisableFeatures() {
+            try {
+                const tabId = sessionStorage.getItem('tab_id');
+                const response = await fetch('/api/get-user-status?tab_id=' + tabId);
+                const data = await response.json();
+                const status = data.status || 'Active';
+                
+                console.log(`📊 [PAGE GUARD] User status: ${status}`);
+                
+                if (status === 'Terminated' || status === 'Inactive' || status === 'Deactivated') {
+                    console.log(`⚠️ [PAGE GUARD] User status: ${status} - Disabling sidebar features on profile page`);
+                    
+                    // Disable sidebar links (except Dashboard and Profile)
+                    const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
+                    sidebarLinks.forEach(link => {
+                        if (!link.href.includes('/user/dashboard') && !link.href.includes('/user/profile')) {
+                            link.style.pointerEvents = 'none';
+                            link.style.opacity = '0.5';
+                            link.style.cursor = 'not-allowed';
+                            link.title = 'This feature is disabled for your account status.';
+                            
+                            if (!link.querySelector('.fa-lock')) {
+                                const lockIcon = document.createElement('i');
+                                lockIcon.className = 'fas fa-lock';
+                                lockIcon.style.marginLeft = '8px';
+                                lockIcon.style.fontSize = '12px';
+                                lockIcon.style.color = '#dc2626';
+                                link.appendChild(lockIcon);
+                            }
+                        }
+                    });
+                    
+                    // Show banner
+                    const mainContent = document.querySelector('.main-content');
+                    if (mainContent) {
+                        const existingBanner = document.querySelector('.status-banner');
+                        if (existingBanner) existingBanner.remove();
+                        
+                        const banner = document.createElement('div');
+                        banner.className = 'status-banner';
+                        
+                        let bannerTitle = '', bannerMessage = '', bannerIcon = '', bannerColor = '', bannerBg = '', bannerBorder = '';
+                        
+                        if (status === 'Terminated') {
+                            bannerTitle = 'Account Terminated';
+                            bannerMessage = 'Your account has been terminated. You can view your profile but cannot make changes. Sidebar features are disabled.';
+                            bannerIcon = 'fa-exclamation-circle';
+                            bannerColor = '#dc2626';
+                            bannerBg = '#fef2f2';
+                            bannerBorder = '#fecaca';
+                        } else if (status === 'Inactive' || status === 'Deactivated') {
+                            bannerTitle = 'Account Inactive';
+                            bannerMessage = 'Your account is currently inactive. Please visit our office to settle your outstanding balance. You can view your profile but cannot make changes.';
+                            bannerIcon = 'fa-info-circle';
+                            bannerColor = '#d97706';
+                            bannerBg = '#fffbeb';
+                            bannerBorder = '#fde68a';
+                        }
+                        
+                        banner.style.cssText = `
+                            background: ${bannerBg};
+                            border: 1px solid ${bannerBorder};
+                            border-radius: 12px;
+                            padding: 16px 20px;
+                            margin-bottom: 20px;
+                            display: flex;
+                            align-items: center;
+                            gap: 12px;
+                            color: ${bannerColor};
+                            animation: slideInDown 0.5s ease;
+                        `;
+                        
+                        banner.innerHTML = `
+                            <i class="fas ${bannerIcon}" style="font-size: 24px; flex-shrink: 0; color: ${bannerColor};"></i>
+                            <div style="flex: 1;">
+                                <strong style="font-size: 16px;">${bannerTitle}</strong>
+                                <p style="margin: 4px 0 0 0; font-size: 14px; color: #666;">${bannerMessage}</p>
+                            </div>
+                            <button onclick="this.parentElement.remove()" style="
+                                background: none;
+                                border: none;
+                                font-size: 20px;
+                                cursor: pointer;
+                                color: ${bannerColor};
+                                margin-left: auto;
+                                padding: 0 8px;
+                            ">&times;</button>
+                        `;
+                        
+                        const profileHeaderCard = document.querySelector('.profile-header-card');
+                        if (profileHeaderCard) {
+                            mainContent.insertBefore(banner, profileHeaderCard);
+                        } else {
+                            mainContent.prepend(banner);
+                        }
+                    }
+                    
+                    // Disable Edit button
+                    const editBtn = document.getElementById('editBtn');
+                    if (editBtn) {
+                        editBtn.disabled = true;
+                        editBtn.style.opacity = '0.5';
+                        editBtn.style.cursor = 'not-allowed';
+                        editBtn.title = 'Profile editing is disabled for your account status.';
+                    }
+                    
+                    // Disable password fields
+                    const passwordFields = document.querySelectorAll('input[name="current_password"], input[name="new_password"], input[name="confirm_password"]');
+                    passwordFields.forEach(field => {
+                        field.disabled = true;
+                        field.style.opacity = '0.5';
+                        field.style.cursor = 'not-allowed';
+                    });
+                }
+            } catch (error) {
+                console.error('Error checking user status:', error);
+            }
+        }
+        
+        // Call the function after page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            checkUserStatusAndDisableFeatures();
+        });
+        
+        history.replaceState(null, null, window.location.href);
+        
+        window.addEventListener('popstate', function(event) {
+            const stillLoggedIn = sessionStorage.getItem('username') && sessionStorage.getItem('userType') === 'user';
+            if (!stillLoggedIn) {
+                window.location.replace('/');
+            } else {
+                history.pushState(null, null, window.location.href);
+            }
+        });
+        
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                const stillLoggedIn = sessionStorage.getItem('username') && sessionStorage.getItem('userType') === 'user';
+                if (!stillLoggedIn) {
+                    window.location.replace('/');
+                }
+            }
+        });
+    })();
+</script>
+<!-- ================= END PAGE GUARD ================= -->
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <h2>Cablevision</h2>
+      <p>Customer Portal</p>
+    </div>
+
+<nav class="sidebar-menu">
+  <ul>
+    <li>
+      <a href="/user/dashboard" id="dashboardLink">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <rect x="3" y="3" width="7" height="7" rx="2"/>
+    <rect x="14" y="3" width="7" height="7" rx="2"/>
+    <rect x="3" y="14" width="7" height="7" rx="2"/>
+    <rect x="14" y="14" width="7" height="7" rx="2"/>
+  </svg>
+        <span class="menu-text">Dashboard</span>
+      </a>
+    </li>
+    <li>
+      <a href="/user/change-plan" id="changePlanLink">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M20 11a8.1 8.1 0 0 0-15.5-2m-.5-4v4h4"/>
+          <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/>
+        </svg>
+        <span class="menu-text">Change Plan</span>
+      </a>
+    </li>
+    <li>
+      <a href="/user/request-termination" id="terminationLink">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <path d="M14 2v6h6"/>
+          <path d="M8 15h8"/>
+        </svg>
+        <span class="menu-text">Request Termination</span>
+      </a>
+    </li>
+  </ul>
+  
+  <div class="sidebar-description">
+    <div class="desc-item">
+      <i class="fas fa-wifi"></i>
+      <div>
+        <strong>Connection Details</strong>
+        <span>View your internet status & speed</span>
+      </div>
+    </div>
+    <div class="desc-item">
+      <i class="fas fa-bullhorn"></i>
+      <div>
+        <strong>Announcements</strong>
+        <span>Latest news and promos</span>
+      </div>
+    </div>
+    <div class="desc-item">
+      <i class="fas fa-file-alt"></i>
+      <div>
+        <strong>Application Form</strong>
+        <span>View & download your application</span>
+      </div>
+    </div>
+  </div>
+
+   <!-- FOOTER COPYRIGHT -->
+  <div class="sidebar-footer">
+    <p>© 2026 Cablevision Systems Corp.</p>
+    <p>All rights reserved.</p>
+  </div>
+</nav>
+  </aside>
+
+  <main class="main-content">
+
+    
+   <!-- BACK TO DASHBOARD BUTTON (lumalabas lang sa mobile) -->
+    <a href="/user/dashboard" class="back-to-dashboard">
+      <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+
+
+ <!-- CARD 1: DASHBOARD HEADER + PROFILE INFO (PINAGSAMA) -->
+<div class="profile-header-card">
+  <div class="dashboard-header-left">
+    <h1> Customer Profile</h1>
+    <p> Cablevision Systems Corporation</p>
+  </div>
+  
+  <div class="profile-info-section">
+    <div class="profile-image-wrapper">
+      <img src="{{ profile_photo }}" class="profile-picture-large" alt="Profile Photo">
+    </div>
+    
+    <div class="profile-details">
+      <h2 class="profile-name"> {{ user_name }}</h2>
+      <div class="info-row">
+        <span class="info-label"> Cablevision ID</span>
+        <span class="info-value">{{ user_id }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label"> Role</span>
+        <span class="info-value">{{ role }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CARD 2: FORM CARD -->
+<div class="form-card">
+  <form id="profileForm" action="{{ url_for('update_profile') }}" method="POST">
+    <input type="hidden" name="tab_id" id="profileTabId">
+    
+    <!-- PERSONAL INFORMATION HEADER -->
+    <div class="personal-info-header">
+      <h3>
+        <i class="fas fa-id-card"></i> 
+        Personal Information
+      </h3>
+      <p>Your personal details and account information</p>
+    </div>
+    
+    <div class="form-grid">
+      <!-- Full Name Field -->
+      <div class="form-field">
+        <label><i class="fas fa-user"></i> Full Name</label>
+        <input type="text" name="full_name" value="{{ user_name }}" disabled>
+      </div>
+
+      <!-- Email Address Field -->
+      <div class="form-field">
+        <label><i class="fas fa-envelope"></i> Email Address</label>
+        <input type="email" value="{{ user_email }}" disabled>
+      </div>
+
+      <!-- Contact Number Field -->
+      <div class="form-field">
+        <label><i class="fas fa-phone"></i> Contact Number</label>
+        <input type="text" name="contact_number" value="{{ contact_number }}" disabled>
+      </div>
+
+      <!-- Address Field -->
+      <div class="form-field">
+        <label><i class="fas fa-map-marker-alt"></i> Address</label>
+        <input type="text" name="address" value="{{ address }}" disabled>
+      </div>
+    </div>
+
+    <!-- ACCOUNT SECURITY SECTION (optional) -->
+    <div class="personal-info-header" style="margin-top: 20px;">
+      <h3>
+        <i class="fas fa-shield-alt"></i> 
+        Account Security
+      </h3>
+      <p>Change your password to keep your account secure</p>
+    </div>
+    
+    <div class="form-grid">
+      <!-- PASSWORD FIELDS SIDE BY SIDE -->
+      <div class="password-row">
+        <div class="form-field">
+          <label><i class="fas fa-key"></i> Current Password</label>
+          <input type="password" name="current_password" class="editable" placeholder="Enter current password" disabled>
+        </div>
+
+        <div class="form-field">
+          <label><i class="fas fa-lock"></i> New Password</label>
+          <input type="password" name="new_password" class="editable" placeholder="Enter new password" disabled>
+        </div>
+
+        <div class="form-field">
+          <label><i class="fas fa-check-circle"></i> Confirm Password</label>
+          <input type="password" name="confirm_password" class="editable" placeholder="Confirm new password" disabled>
+        </div>
+      </div>
+
+      <p id="formMessage" class="form-message"></p>
+      <p id="passwordStrength" class="password-strength"></p>
+    </div>
+
+    <!-- ACTION BUTTONS -->
+    <div class="form-actions">
+      <button type="button" id="editBtn"><i class="fas fa-edit"></i> Edit Profile</button>
+      <button type="submit" id="updateBtn" style="display:none;"><i class="fas fa-save"></i> Save Changes</button>
+      <button type="button" id="cancelBtn" style="display:none;"><i class="fas fa-times"></i> Cancel</button>
+      <button type="button" class="view-app-btn" data-bs-toggle="modal" data-bs-target="#applicationModal">
+        <i class="fas fa-file-alt"></i> Application Form
+      </button>
+      
+    </div>
+    
+  </form>
+</div>
+
+<div class="form-card" style="margin-top: 20px;">
+  <div class="personal-info-header">
+    <h3><i class="fas fa-mobile-alt"></i> Google Authenticator</h3>
+    <p>Secure your login with a one-time code from Google Authenticator.</p>
+  </div>
+
+  <div class="security-card">
+    <div class="security-card__content">
+      <div class="security-card__text">
+        <h4>{% if ga_enabled %}Authenticator is active{% else %}Enable Google Authenticator{% endif %}</h4>
+        <p>After you finish setup, the next login will ask for a 6-digit code before access is granted.</p>
+        <ol>
+          <li>Download first the Google Authenticator app on Google Play Store or App Store.</li>
+          <li>Log in your email account that you use in your Cablevision account.</li>
+          <li>Open Google Authenticator on your phone.</li>
+          <li>Scan the QR code below or manually enter the <strong>Backup Key</strong> if you can't scan.</li>
+          <li>Enter the 6-digit code and save changes.</li>
+        </ol>
+      </div>
+      <div class="security-card__actions">
+        {% if ga_enabled %}
+          <div class="status-pill active">Enabled</div>
+          <form method="POST" action="{{ url_for('disable_google_auth') }}" style="margin-top: 12px;">
+            <button type="submit" class="secondary-btn">Disable Google Authenticator</button>
+          </form>
+        {% else %}
+          <div class="status-pill">Not enabled</div>
+          {% if ga_setup_uri %}
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data={{ ga_setup_uri|urlencode }}" alt="Google Authenticator QR" class="qr-code">
+          {% endif %}
+
+          <div class="secret-box">
+            <div class="secret-label">
+              <i class="fas fa-key"></i>
+              <span>Backup Key <small>(if you can't scan QR code)</small></span>
+            </div>
+            <div class="secret-value">
+              <strong>{{ ga_secret }}</strong>
+              <button type="button" class="copy-btn" onclick="copySecret()" title="Copy to clipboard">
+                <i class="fas fa-copy"></i>
+              </button>
+            </div>
+            <div class="secret-hint">
+              <i class="fas fa-info-circle"></i>
+              Save this key somewhere safe. You'll need it if you change phones.
+            </div>
+          </div>
+
+          <form method="POST" action="{{ url_for('enable_google_auth') }}" class="ga-form">
+            <input type="hidden" name="ga_code" id="ga_code_hidden">
+            <div class="ga-otp-group" role="group" aria-label="Google Authenticator code">
+              {% for i in range(6) %}
+                <input type="text" class="ga-otp-input" inputmode="numeric" maxlength="1" autocomplete="one-time-code" pattern="\d*" aria-label="Digit {{ i + 1 }}" data-index="{{ i }}" {% if i == 0 %}autofocus{% endif %} oninput="handleOtpInput(this)" onkeydown="handleOtpKeydown(this, event)" required>
+              {% endfor %}
+            </div>
+            <button type="submit" class="primary-btn"> <i class="fas fa-check"></i> Enable</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ================= APPLICATION FORM MODAL ================= -->
+<div id="applicationModal" class="modal fade" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      
+      <!-- CLOSE BUTTON -->
+      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+
+      <!-- MODAL HEADER - CENTERED -->
+      <header class="app-header">
+        <div class="header-top">
+          <div class="header-title-section">
+            <h1 class="h4">Application Form</h1>
+            <p>Here is your submitted application details</p>
+          </div>
+         <div class="header-actions" style="display: flex; gap: 10px; justify-content: center; align-items: center;">
+          <!-- Download Application PDF - existing -->
+           <a href="{{ url_for('download_pdf', application_number=application_number) }}" 
+               class="btn btn-success" 
+               target="_blank">
+                <i class="fas fa-download"></i> 
+              Download PDF
+            </a>
+          
+          <!-- Download Contract PDF - bago, katulad ng style -->
+          <!-- I-UPDATE ANG DOWNLOAD CONTRACT BUTTON -->
+          <a href="{{ url_for('user_download_contract', contract_number=contract_number) }}?tab_id={{ tab_id }}" 
+            class="btn btn-primary" 
+            target="_blank">
+              <i class="fas fa-download"></i> 
+              Download Contract
+          </a>
+        </div>
+        <div class="app-number">
+          <span class="label">Application Number:</span> 
+          <strong id="app_applicationNumber">{{ application_number }}</strong>
+        </div>
+      </header>
+
+<!-- HIDDEN DATA ELEMENT for JavaScript -->
+<div id="appData" 
+     data-application-number="{{ application_number }}"
+     data-fullname="{{ first_name }} {{ middle_name }} {{ last_name }} {{ suffix }}"
+     data-email="{{ email }}"
+     data-mobile="{{ mobile }}"
+     data-secondary-mobile="{{ secondary_mobile }}"
+     data-phone="{{ phone }}"
+     data-birthdate="{{ birthdate }}"
+     data-place-of-birth="{{ place_of_birth }}"
+     data-mother-maiden-name="{{ mother_maiden_name }}"
+     data-sex="{{ sex }}"
+     data-civil-status="{{ civil_status }}"
+     data-citizenship="{{ citizenship }}"
+     data-occupation="{{ occupation }}"
+     data-home-ownership="{{ home_ownership }}"
+     data-address="{{ installation_address }}"
+     data-billing-address="{{ billing_address }}"
+     data-house-number="{{ house_number}}"
+     data-landmark="{{ landmark }}"
+     data-barangay="{{ barangay }}"
+     data-city="{{ city }}"
+     data-province="{{ province }}"
+     data-zip="{{ zip }}"
+     data-employer="{{ employer }}"
+     data-business-address="{{ business_address }}"
+     data-business-phone="{{ business_phone }}"
+     data-spouse-name="{{ spouse_name }}"
+     data-spouse-occupation="{{ spouse_occupation }}"
+     data-spouse-employer="{{ spouse_employer }}"
+     data-spouse-phone="{{ spouse_phone }}"
+     data-father-name="{{ father_name }}"  
+     data-service-type="{{ service_type }}"
+     data-plan="{{ plan }}"
+     data-installation-address="{{ installation_address }}"
+     data-installation-phone="{{ installation_phone }}"
+     data-installation-fee="{{ installation_fee }}"
+     data-date-submitted="{{ date_submitted }}"
+     data-time-submitted="{{ time_submitted }}"
+     data-profile-photo="{{ profile_photo }}"
+     data-signature="{{ signature }}"
+     data-id-front="{{ id_front }}"
+     data-id-back="{{ id_back }}"
+     data-proof-billing="{{ proof_billing }}"
+     data-tv-brand="{{ tv_brand_str }}"
+     data-tv-qty="{{ tv_qty_str }}"
+     data-tv-type="{{ tv_type_str }}"
+     data-lat="{{ latitude }}"
+     data-lng="{{ longitude }}">
+</div>
+
+      <!-- MODAL BODY -->
+      <div class="modal-body">
+
+        <!-- ================= SECTION: PLAN ================= -->
+        <div class="info-card">
+          <div class="card-header">
+            <h4 class="section-title">Plan</h4>
+          </div>
+          <div class="card-body">
+            <div class="input-group">
+              <label>Plan</label>
+              <input type="text" id="app_plan" class="form-control" value="{{ plan }}" readonly>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= SECTION: PROFILE PHOTO ================= -->
+        <div class="info-card text-center">
+          <div class="card-header">
+            <h4 class="section-title">Profile Photo</h4>
+          </div>
+          <div class="card-body">
+            <img id="app_profilePhoto" src="{{ profile_photo }}" alt="Profile Photo" class="profile-photo-img">
+          </div>
+        </div>
+
+        <!-- ================= SECTION: PERSONAL INFORMATION ================= -->
+        <div class="info-card">
+          <div class="card-header">
+            <h4 class="section-title">Personal Information</h4>
+          </div>
+          <div class="card-body">
+            <div class="input-group">
+              <label>Full Name</label>
+              <input type="text" id="app_fullname" class="form-control" value="{{ first_name }} {{ middle_name }} {{ last_name }} {{ suffix }}" readonly>
+            </div>
+            <div class="input-group">
+              <label>Email</label>
+              <input type="email" id="app_email" class="form-control" value="{{ email }}" readonly>
+            </div>
+            <div class="input-group">
+              <label>Mobile</label>
+              <input type="text" id="app_mobile" class="form-control" value="{{ mobile }}" readonly>
+            </div>
+            <div class="input-group">
+              <label>Secondary Mobile</label>
+              <input type="text" id="app_secondaryMobile" class="form-control" value="{{ secondary_mobile }}" readonly>
+            </div>
+            <div class="input-group">
+              <label>Phone (Landline)</label>
+              <input type="text" id="app_phone" class="form-control" value="{{ phone }}" readonly>
+            </div>
+            <div class="input-group">
+              <label>Birthdate</label>
+              <input type="text" id="app_birthdate" class="form-control" value="{{ birthdate }}" readonly>
+            </div>
+            <div class="input-group">
+              <label>Place of Birth</label>
+              <input type="text" id="app_placeOfBirth" class="form-control" value="{{ place_of_birth }}" readonly>
+            </div>
+            <div class="input-group">
+              <label>Sex</label>
+              <input type="text" id="app_sex" class="form-control" value="{{ sex }}" readonly>
+            </div>
+            <div class="input-group">
+              <label>Civil Status</label>
+              <input type="text" id="app_civilStatus" class="form-control" value="{{ civil_status }}" readonly>
+            </div>
+            <div class="input-group">
+              <label>Citizenship</label>
+              <input type="text" id="app_citizenship" class="form-control" value="{{ citizenship }}" readonly>
+            </div>
+            <div class="input-group">
+              <label>Occupation</label>
+              <input type="text" id="app_occupation" class="form-control" value="{{ occupation }}" readonly>
+            </div>
+            <div class="input-group">
+              <label>Home Ownership</label>
+              <input type="text" id="app_homeOwnership" class="form-control" value="{{ home_ownership }}" readonly>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= SECTION: ADDRESS ================= -->
+        <div class="info-card">
+          <div class="card-header">
+            <h4 class="section-title">Address</h4>
+          </div>
+          <div class="card-body">
+          
+            <div class="input-group">
+              <label>Installation Fee</label>
+              <input type="text" id="app_installationFee" class="form-control" value="{{ installation_fee }}" readonly>
+          </div>  
+           <div class="input-group">
+              <label>Installation Address</label>
+              <input type="text" id="app_address" class="form-control" value="{{ installation_address }}" readonly>
+            </div>
+            <div class="input-group">
+              <label>Billing Address</label>
+              <input type="text" id="app_billingAddress" class="form-control" value="{{ billing_address }}" readonly>
+            </div>
+            <div class="input-group">
+              <label>House No.</label>
+              <input type="text" id="app_houseNumber" class="form-control" value="{{ house_number }}" readonly>
+            </div>
+
+            <div class="input-group">
+              <label>Nearest Landmark</label>
+              <input type="text" id="app_Landmark" class="form-control" value="{{ landmark }}" readonly>
+            </div>
+            <div class="input-group">
+              <label>Barangay</label>
+              <input type="text" id="app_barangay" class="form-control" value="{{ barangay }}" readonly>
+            </div>
+            <div class="input-group">
+              <label>City</label>
+              <input type="text" id="app_city" class="form-control" value="{{ city }}" readonly>
+            </div>
+            <div class="input-group">
+              <label>Province</label>
+              <input type="text" id="app_province" class="form-control" value="{{ province }}" readonly>
+            </div>
+            <div class="input-group">
+              <label>Zip Code</label>
+              <input type="text" id="app_zip" class="form-control" value="{{ zip }}" readonly>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= SECTION: EMPLOYMENT DETAILS ================= -->
+        <div class="info-card">
+          <div class="card-header">
+            <h4 class="section-title">Employment Details</h4>
+          </div>
+          <div class="card-body">
+            <div class="input-group">
+              <label>Employer</label>
+              <input type="text" id="app_employer" class="form-control" value="{{ employer }}" readonly>
+            </div>
+            <div class="input-group">
+              <label>Business Address</label>
+              <input type="text" id="app_businessAddress" class="form-control" value="{{ business_address }}" readonly>
+            </div>
+            <div class="input-group">
+              <label>Business Phone</label>
+              <input type="text" id="app_businessPhone" class="form-control" value="{{ business_phone }}" readonly>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= SECTION: SPOUSE INFORMATION ================= -->
+        <div class="info-card">
+          <div class="card-header">
+            <h4 class="section-title">Spouse Information</h4>
+          </div>
+          <div class="card-body">
+            <div class="input-group">
+              <label>Name</label>
+              <input type="text" id="app_spouseName" class="form-control" value="{{ spouse_name }}" readonly>
+            </div>
+            <div class="input-group">
+              <label>Occupation</label>
+              <input type="text" id="app_spouseOccupation" class="form-control" value="{{ spouse_occupation }}" readonly>
+            </div>
+            <div class="input-group">
+              <label>Employer</label>
+              <input type="text" id="app_spouseEmployer" class="form-control" value="{{ spouse_employer }}" readonly>
+            </div>
+            <div class="input-group">
+              <label>Phone</label>
+              <input type="text" id="app_spousePhone" class="form-control" value="{{ spouse_phone }}" readonly>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= SECTION: FAMILY DETAILS ================= -->
+        <div class="info-card">
+          <div class="card-header">
+            <h4 class="section-title">Family Details</h4>
+          </div>
+          <div class="card-body">
+            <div class="input-group">
+              <label>Mother's Maiden Name</label>
+              <input type="text" id="app_motherMaidenName" class="form-control" value="{{ mother_maiden_name }}" readonly>
+            </div>
+            <div class="input-group">
+              <label>Father's Name</label>
+              <input type="text" id="app_fatherName" class="form-control" value="{{ father_name }}" readonly>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= SECTION: SERVICE CLASSIFICATION ================= -->
+        <div class="info-card">
+          <div class="card-header">
+            <h4 class="section-title">Service Classification</h4>
+          </div>
+          <div class="card-body">
+            <div class="input-group">
+              <label>Service Type</label>
+              <input type="text" id="app_serviceType" class="form-control" value="{{ service_type }}" readonly>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= SECTION: TV SET DETAILS ================= -->
+        <div class="info-card">
+          <div class="card-header">
+            <h4 class="section-title">TV Set Details</h4>
+          </div>
+          <div class="card-body table-responsive">
+            <table class="tv-table" id="app_tvTable">
+              <thead>
+                <tr>
+                  <th>Quantity</th>
+                  <th>Brand / Model</th>
+                  <th>B&W / Colored</th>
+                </tr>
+              </thead>
+              <tbody>
+                <!-- Dynamic content from JavaScript -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ================= SECTION: INSTALLATION DETAILS ================= -->
+        <div class="info-card">
+          <div class="card-header">
+            <h4 class="section-title">Installation Details</h4>
+          </div>
+          <div class="card-body">
+            <div class="input-group">
+              <label>Installation Address</label>
+              <input type="text" id="app_installationAddress" class="form-control" value="{{ installation_address }}" readonly>
+            </div>
+            <div class="input-group">
+              <label>Phone</label>
+              <input type="text" id="app_installationPhone" class="form-control" value="{{ installation_phone }}" readonly>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= SECTION: SIGNATURE ================= -->
+        <div class="info-card">
+          <div class="card-header">
+            <h4 class="section-title">Signature</h4>
+          </div>
+          <div class="card-body text-center">
+            <img id="app_signature" src="{{ signature }}" alt="Signature" class="signature-img" style="max-width:300px; max-height:100px;">
+            {% if not signature %}
+              <p class="text-danger">No signature provided</p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- ================= SECTION: UPLOADED DOCUMENTS ================= -->
+        <div class="info-card">
+          <div class="card-header">
+            <h4 class="section-title">Uploaded Documents</h4>
+          </div>
+          <div class="card-body">
+            <div class="documents-grid">
+              
+              <!-- Valid ID Front -->
+              <div class="doc-card">
+                <p><strong>Valid ID (Front)</strong></p>
+                <img id="app_idFront" src="{{ id_front }}" alt="ID Front" class="doc-img">
+                {% if not id_front %}
+                  <p class="text-danger">No ID Front uploaded</p>
+                {% endif %}
+              </div>
+              
+              <!-- Valid ID Back -->
+              <div class="doc-card">
+                <p><strong>Valid ID (Back)</strong></p>
+                <img id="app_idBack" src="{{ id_back }}" alt="ID Back" class="doc-img">
+                {% if not id_back %}
+                  <p class="text-danger">No ID Back uploaded</p>
+                {% endif %}
+              </div>
+              
+              <!-- Proof of Billing -->
+              <div class="doc-card">
+                <p><strong>Proof of Billing</strong></p>
+                <img id="app_proofBilling" src="{{ proof_billing }}" alt="Proof of Billing" class="doc-img billing">
+                {% if not proof_billing %}
+                  <p class="text-danger">No Proof of Billing uploaded</p>
+                {% endif %}
+              </div>
+              
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= SECTION: SUBMISSION DETAILS ================= -->
+        <div class="info-card">
+          <div class="card-header">
+            <h4 class="section-title">Submission Details</h4>
+          </div>
+          <div class="card-body">
+            <div class="input-group">
+              <label>Date</label>
+              <input type="text" id="app_dateSubmitted" class="form-control" value="{{ date_submitted }}" readonly>
+            </div>
+            <div class="input-group">
+              <label>Time</label>
+              <input type="text" id="app_timeSubmitted" class="form-control" value="{{ time_submitted }}" readonly>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= SECTION: PINNED LOCATION ================= -->
+        <div class="info-card">
+          <div class="card-header">
+            <h4 class="section-title">Pinned Location Preview</h4>
+          </div>
+          <div class="card-body">
+            <div id="map-modal" class="map-container"></div>
+            <div class="coordinates">
+              <div class="input-group">
+                <label>Latitude</label>
+                <input type="text" id="lat-modal" class="form-control" value="{{ latitude }}" readonly>
+              </div>
+              <div class="input-group">
+                <label>Longitude</label>
+                <input type="text" id="lng-modal" class="form-control" value="{{ longitude }}" readonly>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div> <!-- end modal-body -->
+
+    </div> <!-- end modal-content -->
+  </div> <!-- end modal-dialog -->
+</div> <!-- end applicationModal -->
+
+<!-- IMAGE PREVIEW MODAL -->
+<div id="imagePreviewModal" class="image-preview-modal">
+  <div class="preview-content">
+    <img id="previewImage" class="preview-image" src="" alt="Preview">
+  </div>
+</div>
+
+<!-- CONFIRM UPDATE MODAL (CENTERED SA SCREEN) -->
+<div id="confirmModal" class="confirm-modal">
+  <div class="confirm-modal-content">
+    <button class="confirm-close-btn" id="closeModalBtn">&times;</button>
+    <h3 class="confirm-modal-title">Confirm Update</h3>
+    <p class="confirm-modal-message">Are you sure you want to update your password?</p>
+
+    <div class="confirm-modal-actions">
+      <button class="confirm-btn-cancel" id="confirmNo">Cancel</button>
+      <button class="confirm-btn-save" id="confirmYes">Save</button>
+    </div>
+  </div>
+</div>
+  </div>
+  </form>
+  </div>
+  </div>
+  </main>
+  <div id="toast"></div>
+
+ <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const allLinks = document.querySelectorAll('a');
+        allLinks.forEach(link => {
+            const href = link.getAttribute('href');
+            if (href && (href.startsWith('/') || href.startsWith('/user/') || href.startsWith('/dashboard'))) {
+                if (link.id !== 'logoutBtn') {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        window.location.replace(href);
+                    });
+                }
+            }
+        });
+    });
+</script>
+
+<script>
+  function copySecret() {
+    const secretElement = document.querySelector('.secret-value strong');
+    const secret = secretElement ? secretElement.textContent.trim() : '';
+
+    if (!secret) {
+      showToast('No backup key available to copy.', 'error');
+      return;
+    }
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(secret).then(function () {
+        showToast('Backup key copied to clipboard.', 'success');
+      }).catch(function () {
+        showToast('Unable to copy backup key automatically.', 'error');
+      });
+      return;
+    }
+
+    const tempInput = document.createElement('textarea');
+    tempInput.value = secret;
+    tempInput.setAttribute('readonly', '');
+    tempInput.style.position = 'fixed';
+    tempInput.style.left = '-9999px';
+    document.body.appendChild(tempInput);
+    tempInput.select();
+    try {
+      document.execCommand('copy');
+      showToast('Backup key copied to clipboard.', 'success');
+    } catch (error) {
+      showToast('Unable to copy backup key automatically.', 'error');
+    } finally {
+      document.body.removeChild(tempInput);
+    }
+  }
+
+  function showToast(message, type = 'info') {
+    const LABELS = {
+      success: 'Success',
+      error: 'Error',
+      info: 'Notice',
+      loading: 'Please wait'
+    };
+
+    const ICONS = {
+      success: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>`,
+      error: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`,
+      info: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`,
+      loading: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" style="animation: toastSpin 1s linear infinite; display:block;"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>`
+    };
+
+    let toast = document.querySelector('.custom-toast');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.className = 'custom-toast';
+      document.body.appendChild(toast);
+
+      if (!document.getElementById('toast-keyframes')) {
+        const style = document.createElement('style');
+        style.id = 'toast-keyframes';
+        style.textContent = `
+          @keyframes toastSpin { to { transform: rotate(360deg); } }
+          @keyframes toastProgress { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+          @keyframes toastLoading { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+        `;
+        document.head.appendChild(style);
+      }
+    }
+
+    toast.innerHTML = `
+      <div class="custom-toast-body">
+        <span class="custom-toast-icon">${ICONS[type] || ICONS.info}</span>
+        <div class="custom-toast-text">
+          <span class="custom-toast-title">${LABELS[type] || 'Notice'}</span>
+          <span class="custom-toast-message">${message}</span>
+        </div>
+      </div>
+      <div class="custom-toast-progress">
+        <div class="custom-toast-progress-bar"></div>
+      </div>
+    `;
+
+    toast.className = `custom-toast ${type}`;
+    void toast.offsetWidth;
+    toast.classList.add('show');
+
+    clearTimeout(toast._hideTimer);
+
+    if (type !== 'loading') {
+      toast._hideTimer = setTimeout(() => {
+        toast.classList.remove('show');
+      }, 3000);
+    }
+  }
+
+  function syncOtpHiddenInput(form) {
+    const hiddenInput = form.querySelector('#ga_code_hidden');
+    if (!hiddenInput) return;
+
+    const otpInputs = Array.from(form.querySelectorAll('.ga-otp-input'));
+    hiddenInput.value = otpInputs.map((input) => input.value).join('');
+  }
+
+  function handleOtpInput(input) {
+    const value = input.value.replace(/\D/g, '').slice(0, 1);
+    input.value = value;
+
+    const form = input.closest('.ga-form');
+    if (!form) return;
+
+    const otpInputs = Array.from(form.querySelectorAll('.ga-otp-input'));
+    const index = Number(input.dataset.index || 0);
+
+    syncOtpHiddenInput(form);
+
+    if (value && index < otpInputs.length - 1) {
+      otpInputs[index + 1].focus();
+    }
+  }
+
+  function handleOtpKeydown(input, event) {
+    const form = input.closest('.ga-form');
+    if (!form) return;
+
+    const otpInputs = Array.from(form.querySelectorAll('.ga-otp-input'));
+    const index = Number(input.dataset.index || 0);
+
+    if (event.key === 'Backspace' && !input.value && index > 0) {
+      const previousInput = otpInputs[index - 1];
+      previousInput.focus();
+      previousInput.value = '';
+      syncOtpHiddenInput(form);
+    } else if (event.key === 'ArrowLeft' && index > 0) {
+      event.preventDefault();
+      otpInputs[index - 1].focus();
+    } else if (event.key === 'ArrowRight' && index < otpInputs.length - 1) {
+      event.preventDefault();
+      otpInputs[index + 1].focus();
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.querySelector('.ga-form');
+    if (!form) return;
+
+    const otpInputs = Array.from(form.querySelectorAll('.ga-otp-input'));
+
+    otpInputs.forEach((input) => {
+      input.addEventListener('paste', function (event) {
+        event.preventDefault();
+        const pasted = (event.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '').slice(0, 6);
+        pasted.split('').forEach((digit, digitIndex) => {
+          if (otpInputs[digitIndex]) {
+            otpInputs[digitIndex].value = digit;
+          }
+        });
+        const nextIndex = Math.min(pasted.length, otpInputs.length - 1);
+        otpInputs[nextIndex].focus();
+        syncOtpHiddenInput(form);
+      });
+    });
+
+    form.addEventListener('submit', function (event) {
+      syncOtpHiddenInput(form);
+      const hiddenInput = form.querySelector('#ga_code_hidden');
+      const code = hiddenInput ? hiddenInput.value : '';
+      if (code.length !== 6) {
+        event.preventDefault();
+        otpInputs.forEach((input) => input.classList.add('is-invalid'));
+        otpInputs[0].focus();
+      }
+    });
+  });
+</script>
+{% set flash_messages = get_flashed_messages(with_categories=true) %}
+{% if flash_messages %}
+  <div id="flash-messages" data-flash='{{ flash_messages|tojson }}' hidden></div>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const flashContainer = document.getElementById('flash-messages');
+      if (!flashContainer) return;
+
+      try {
+        const flashMessages = JSON.parse(flashContainer.getAttribute('data-flash') || '[]');
+        flashMessages.forEach(function (entry) {
+          const [category, message] = entry;
+          if (category === 'success') {
+            showToast(message, 'success');
+          } else if (category === 'danger' || category === 'error') {
+            showToast(message, 'error');
+          } else {
+            showToast(message, 'info');
+          }
+        });
+      } catch (error) {
+        console.error('Flash toast error:', error);
+      }
+    });
+  </script>
+{% endif %}
+<script src="{{ url_for('static', filename='js/user-profile.js') }}"></script>
+<script src="/static/js/user-notification-system.js"></script>
+<!-- Device Login Monitor -->
+<script src="{{ url_for('static', filename='js/device-login-monitor.js') }}"></script>
+  </body>
+  </html>

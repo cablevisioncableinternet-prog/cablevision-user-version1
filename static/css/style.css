@@ -1,0 +1,24 @@
+/* style.css - NAVY BLUE THEME */
+
+.navbar, .hero, .btn-primary, footer {
+    background-color: #ffffff !important; /* navy blue */
+    color: white;
+}
+
+.hero {
+    text-align: center;
+    padding: 80px 20px;
+}
+
+.hero button {
+    padding: 12px 25px;
+    border: none;
+    background: white;
+    color: #001f3f; /* text color same as navy */
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.features h4 {
+    margin-top: 15px;
+}

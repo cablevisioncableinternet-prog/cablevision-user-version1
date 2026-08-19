@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cablevision | Coverage</title>
+
+<link rel="shortcut icon" href="{{ url_for('static', filename='cablevision.jpg') }}?v=123" type="image/jpeg">
+<link rel="stylesheet" href="/static/css/coverage-mobile.css" media="only screen and (max-width: 768px)">
+
+<!-- Bootstrap CSS -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user-coverage.css') }}">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.awesome-markers/2.0.4/leaflet.awesome-markers.css"/>
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+
+<!-- Leaflet CSS -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" 
+ integrity="sha256-o9N1j+Xvx8+Xwy+30aQ/6MJk0Mq1YfM+v7taA0Ftb3s=" crossorigin=""/>
+</head>
+
+<body>
+
+<!-- ================= NAVBAR FROM HOMEPAGE ================= -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
+<div class="container">
+
+<a class="navbar-brand brand-logo" href="/">
+    <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo">
+    <span>CABLEVISION SYSTEMS CORPORATION</span>
+</a>
+
+<!--  hamburger button  -->
+<button class="hamburger" id="hamburgerBtn" type="button" aria-label="Menu">
+  <span></span>
+  <span></span>
+  <span></span>
+</button>
+
+<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+<span class="navbar-toggler-icon"></span>
+</button>
+
+<div class="collapse navbar-collapse" id="navMenu">
+  <ul class="navbar-nav ms-auto">
+    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+    <li class="nav-item"><a class="nav-link" href="/plans">Plans</a></li>
+    <li class="nav-item"><a class="nav-link" href="/contact-us">Contact</a></li>
+    <li class="nav-item"><a class="nav-link active" href="/coverage">Coverage</a></li>
+
+    <li class="nav-item dropdown">
+      <a class="nav-link dropdown-toggle" href="#" id="moreDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        More
+      </a>
+      <ul class="dropdown-menu" aria-labelledby="moreDropdown">
+        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#aboutUsModal">About Us</a></li>
+        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#missionModal">Mission</a></li>
+        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#visionModal">Vision</a></li>
+      </ul>
+    </li>
+
+<li class="nav-item">
+    <a class="nav-link" href="/login" target="_blank">Login</a>
+</li>
+  </ul>
+</div>
+
+</div>
+</nav>
+
+<section class="coverage-hero">
+    <div class="container text-center">
+        <h2>Cablevision Coverage</h2>
+        <p>Cablevision delivers fast, reliable fiber internet in Magdalena, Pila, Santa Cruz, and Pagsanjan.</p>
+        
+        <!-- Scroll Indicator -->
+        <div class="scroll-indicator" id="scrollToCoverage">
+            <span>View Coverage Areas Below</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                <path d="M12 5V19M12 19L5 12M12 19L19 12" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+        </div>
+    </div>
+</section>
+
+<!-- ================= MAP SECTION ================= -->
+<section class="coverage-map">
+  <div class="container">
+    
+    <!-- Map Title with Decorative Element -->
+    <div class="map-header">
+      <div class="map-icon-wrapper">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <circle cx="12" cy="9" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/>
+        </svg>
+      </div>
+      <h4 class="map-title text-center">
+        Pin Location of Every Cablevision Office
+      </h4>
+      <div class="map-title-underline"></div>
+    </div>
+
+    <div class="map-wrapper">
+      <button id="goToMyLocationBtn" class="map-action-btn" type="button" aria-label="Go to my location">
+        <i class="fas fa-location-arrow"></i>
+        <span>Go to My Location</span>
+      </button>
+      <div id="map"></div>
+    </div>
+  </div>
+</section>
+
+ <!-- ================= COVERAGE NOTE ================= -->
+<div class="coverage-note">
+  <div class="note-icon">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M12 16V12M12 8H12.01" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+  </div>
+  <div class="note-content">
+    <p>These pins represent the locations of Cablevision offices. Each pin indicates coverage for the entire municipality.</p>
+    
+    <div class="note-highlight">
+      <strong>Note:</strong> Pagsanjan does not have a physical office, but it is still covered by Cablevision services.
+    </div>
+  </div>
+</div>
+
+<div class="container custom-section">
+
+  <div class="section-header">
+    <div class="section-icon">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+        <circle cx="12" cy="9" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/>
+      </svg>
+    </div>
+    <h4 class="section-title text-center">
+      Exact Locations of Cablevision Offices:
+    </h4>
+    <div class="section-underline"></div>
+  </div>
+
+  <div class="row custom-cards">
+
+    <div class="col-md-6">
+      <div class="office-card" id="main-office">
+        <div class="office-header">
+          <div class="header-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="white" stroke-width="1.5" fill="none"/>
+            </svg>
+          </div>
+          <span>Cablevision Systems Corporation (Main)</span>
+        </div>
+        <div class="office-body">
+          <div class="location-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="#037be4" stroke-width="1.5" fill="none"/>
+              <circle cx="12" cy="9" r="3" stroke="#037be4" stroke-width="1.5" fill="none"/>
+            </svg>
+          </div>
+          Sitio Maligaya, Brgy. Pagsawitan, Santa Cruz, Laguna
+          <div class="office-schedule">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <strong>Schedule:</strong> Monday - Saturday 8am - 5pm
+          </div>
+        </div>
+        <button class="back-to-map">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M3 12H21M21 12L15 6M21 12L15 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Back to Map
+        </button>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="office-card" id="santacruz-office">
+        <div class="office-header">
+          <div class="header-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="white" stroke-width="1.5" fill="none"/>
+            </svg>
+          </div>
+          <span>Santa Cruz Extension Office</span>
+        </div>
+        <div class="office-body">
+          <div class="location-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="#037be4" stroke-width="1.5" fill="none"/>
+              <circle cx="12" cy="9" r="3" stroke="#037be4" stroke-width="1.5" fill="none"/>
+            </svg>
+          </div>
+          L. Taleon St., Santa Cruz, Laguna
+          <div class="office-schedule">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <strong>Schedule:</strong> Monday - Saturday 8am - 5pm
+          </div>
+        </div>
+        <button class="back-to-map">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M3 12H21M21 12L15 6M21 12L15 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Back to Map
+        </button>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="office-card" id="magdalena-office">
+        <div class="office-header">
+          <div class="header-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="white" stroke-width="1.5" fill="none"/>
+            </svg>
+          </div>
+          <span>Magdalena Extension Office</span>
+        </div>
+        <div class="office-body">
+          <div class="location-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="#037be4" stroke-width="1.5" fill="none"/>
+              <circle cx="12" cy="9" r="3" stroke="#037be4" stroke-width="1.5" fill="none"/>
+            </svg>
+          </div>
+          Tolentino St., Magdalena, Laguna
+          <div class="office-schedule">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <strong>Schedule:</strong> Monday - Saturday 8am - 5pm
+          </div>
+        </div>
+        <button class="back-to-map">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M3 12H21M21 12L15 6M21 12L15 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Back to Map
+        </button>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="office-card" id="pila-office">
+        <div class="office-header">
+          <div class="header-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="white" stroke-width="1.5" fill="none"/>
+            </svg>
+          </div>
+          <span>Pila Extension Office</span>
+        </div>
+        <div class="office-body">
+          <div class="location-icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="#037be4" stroke-width="1.5" fill="none"/>
+              <circle cx="12" cy="9" r="3" stroke="#037be4" stroke-width="1.5" fill="none"/>
+            </svg>
+          </div>
+          <div class="address-group">
+            Brgy. Labuin, Pila, Laguna<br>
+            J. P. Rizal St., cor Ruiz St., Brgy. Bulilan Sur, Pila, Laguna
+          </div>
+          <div class="office-schedule">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M12 6V12L16 14" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <strong>Schedule:</strong> Monday - Saturday 8am - 5pm
+          </div>
+        </div>
+        <button class="back-to-map">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path d="M3 12H21M21 12L15 6M21 12L15 18" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+          Back to Map
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- ================= BARANGAY LISTS SECTION (DYNAMIC) ================= -->
+<div class="barangay-section">
+  <div class="section-header">
+    <div class="section-icon">
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="currentColor" stroke-width="1.5" fill="none"/>
+        <circle cx="12" cy="9" r="3" stroke="currentColor" stroke-width="1.5" fill="none"/>
+      </svg>
+    </div>
+    <h4 class="section-title text-center">List of Barangays per Municipality</h4>
+    <div class="section-underline"></div>
+  </div>
+
+  <div id="barangayGridContainer" class="barangay-grid">
+    <div class="text-center p-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Loading barangays...</span>
+      </div>
+      <p class="mt-3">Loading coverage areas...</p>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- ================= FOOTER FROM HOMEPAGE ================= -->
+<!-- FOOTER -->
+<footer class="footer bg-dark text-white py-5">
+  <div class="container">
+    <div class="row">
+      <!-- Company Info -->
+      <div class="col-md-4 mb-4">
+        <h5 class="footer-heading">Cablevision Systems Corporation</h5>
+        <p class="footer-text">Delivering trusted cable and internet services since 1991. Fast, reliable internet for homes and businesses.</p>
+        <a href="https://www.facebook.com/mycv.cablevision" target="_blank" class="footer-link">
+          <img src="{{ url_for('static', filename='fb.png') }}" alt="Facebook" class="footer-icon">
+          <span>Follow us on Facebook</span>
+        </a>
+      </div>
+
+      <!-- Contact Info -->
+      <div class="col-md-4 mb-4">
+        <h5 class="footer-heading">Contact Us</h5>
+        <p class="footer-text">
+          <img src="{{ url_for('static', filename='contact-us.png') }}" alt="Contact" class="footer-icon-small">
+          <span>0917-838-8447 | 0917-310-7948</span>
+        </p>
+        <p class="footer-text">For inquiries, support, and service requests, please contact us.</p>
+      </div>
+
+      <!-- Service Areas -->
+      <div class="col-md-4 mb-4">
+        <h5 class="footer-heading">Service Areas</h5>
+        <p class="footer-text">
+          <img src="{{ url_for('static', filename='pin.png') }}" alt="Location" class="footer-icon-small">
+          <span>Santa Cruz, Pagsanjan, Magdalena, Pila</span>
+        </p>
+        <p class="footer-text">Providing services in these locations.</p>
+      </div>
+    </div>
+
+    <hr class="footer-divider">
+
+    <!-- Footer Navigation -->
+    <div class="footer-bottom">
+      <ul class="nav justify-content-center">
+        <li class="nav-item"><a class="nav-link text-white" href="/">Home</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="/plans">Plans</a></li>
+        <li class="nav-item"><a class="nav-link text-white" href="/contact-us">Contact</a></li>
+        <li class="nav-item"><a class="nav-link text-white active" href="/coverage">Coverage</a></li>
+      </ul>
+      <p class="text-center mt-3 footer-copyright">&copy; 2026 Cablevision Systems Corporation All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+
+<!-- About Us Modal -->
+<div class="modal fade" id="aboutUsModal" tabindex="-1" aria-labelledby="aboutUsLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content about-modal">
+      
+      <div class="modal-header about-modal-header">
+        <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo" class="about-modal-logo">
+        <h5 class="modal-title" id="aboutUsLabel">About Us</h5>
+        <button type="button" class="btn-close about-modal-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body about-modal-body">
+         Cablevision Systems Corporation was conceptualized by five classmates from Class 1960 of Pedro Guevara Memorial High School. It was founded and registered with the Securities and Exchange Commission on October 10, 1992. The company was established to operate CATV Systems primarily in Sta. Cruz, Laguna and adjacent municipalities.
+
+        The Municipal Board of Sta. Cruz, Laguna granted Cablevision's first CATV franchise on 12/14/91. The National Telecommunications Commission awarded the corresponding Provisional Authority six months later which enabled the company to begin CATV operations and connect subscribers. The company started with 12 television channels feeding regular off-the-air TV signals plus Satellite Television channels from free-to-air transmission all over the world. One television channel is made available for community access in accordance with its CATV mandate.
+
+        Two years later, the municipal board of Pagsanjan, Laguna awarded the company's second CATV franchise in recognition of its ability to fulfill its commitment to the community.
+
+        The first office and CATV center was located at Mabini Street, Sta. Cruz Laguna, where the CATV headend and two Satellite TVRO Systems were installed. Three years later, the whole operation was transferred to Pagsawitan, still in Sta. Cruz, right next to the boundary of two towns it is serving.
+
+        The success of Cablevision throughout the years of each operation enabled us to expand and go beyond cable TV service. In July 2012, MyCV Broadband (Cable Internet) was launched. Since then our cable internet performance has been known as a very good compared to competition. This coming April 2014 the Company will be launching the prepaid cable internet.
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Mission Modal -->
+<div class="modal fade" id="missionModal" tabindex="-1" aria-labelledby="missionLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content about-modal">
+      
+      <div class="modal-header about-modal-header">
+        <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo" class="about-modal-logo">
+        <h5 class="modal-title" id="missionLabel">Mission</h5>
+        <button type="button" class="btn-close about-modal-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body about-modal-body">
+        To make available the benefits of CATV Technology to the largest numbers of subscribers possible.
+
+        To be a model company where shareholders, management, and workers participate in development and share in its benefits.
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Vision Modal -->
+<div class="modal fade" id="visionModal" tabindex="-1" aria-labelledby="visionLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content about-modal">
+      
+      <div class="modal-header about-modal-header">
+        <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo" class="about-modal-logo">
+        <h5 class="modal-title" id="visionLabel">Vision</h5>
+        <button type="button" class="btn-close about-modal-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body about-modal-body">
+        To be a relevant, dynamic telecommunications organization serving the information, entertainment and cultural needs of the community.
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.awesome-markers/2.0.4/leaflet.awesome-markers.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ================= MAP INITIALIZATION =================
+    var map = L.map('map').setView([14.25, 121.42], 11.5);
+
+    // Same tile layer as before (OpenStreetMap)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+        maxZoom: 19
+    }).addTo(map);
+
+    // ================= CUSTOM COLORED MARKERS (Teardrop shape) =================
+    function createColoredMarker(color, iconClass) {
+        return L.divIcon({
+            className: 'custom-marker',
+            html: `<div class="marker-pin" style="background: ${color};">
+                       <i class="fas ${iconClass}"></i>
+                   </div>
+                   <div class="marker-pulse" style="background: ${color};"></div>`,
+            iconSize: [30, 30],
+            iconAnchor: [15, 30],
+            popupAnchor: [0, -24]
+        });
+    }
+
+    // Create different colored markers
+    var markers = {
+        red: createColoredMarker('#dc3545', 'fa-building'),
+        blue: createColoredMarker('#037be4', 'fa-map-marker-alt'),
+        yellow: createColoredMarker('#fd7e14', 'fa-map-marker-alt'),
+        green: createColoredMarker('#28a745', 'fa-map-marker-alt'),
+        purple: createColoredMarker('#6f42c1', 'fa-map-marker-alt'),
+        black: createColoredMarker('#000000', 'fa-user')
+    };
+
+    // Locations data
+    var locations = [
+        {
+            name: " Cablevision Systems Corp (Main)",
+            coords: [14.2658, 121.4265],
+            markerKey: 'red',
+            info: "Sitio Maligaya, Brgy. Pagsawitan, Santa Cruz, Laguna",
+            schedule: "Mon-Sat: 8AM - 5PM",
+            target: "main-office"
+        },
+        {
+            name: " Santa Cruz Extension Office",
+            coords: [14.2833, 121.4167],
+            markerKey: 'blue',
+            info: "L. Taleon St., Santa Cruz, Laguna",
+            schedule: "Mon-Sat: 8AM - 5PM",
+            phone: "(049) 501-1495",
+            target: "santacruz-office"
+        },
+        {
+            name: " Magdalena Extension Office",
+            coords: [14.2000, 121.4333],
+            markerKey: 'yellow',
+            info: "Tolentino St., Magdalena, Laguna",
+            schedule: "Mon-Sat: 8AM - 5PM",
+            phone: "(049) 501-1495",
+            target: "magdalena-office"
+        },
+        {
+            name: " Pila Extension Offices",
+            coords: [14.2333, 121.3675],
+            markerKey: 'green',
+            info: "Brgy. Labuin, Pila, Laguna<br>J. P. Rizal St., cor Ruiz St, Brgy. Bulilan Sur, Pila Laguna",
+            schedule: "Mon-Sat: 8AM - 5PM",
+            phone: "(049) 501-1495",
+            target: "pila-office"
+        },
+        {
+            name: " Pagsanjan (Covered Area)",
+            coords: [14.2725, 121.4558],
+            markerKey: 'purple',
+            info: "No physical office, but fully covered by Cablevision services",
+            schedule: "Mon-Sat: 8AM - 5PM",
+            phone: "0917-838-8447",
+            target: null
+        }
+    ];
+
+    // Helper function to get color code
+    function getColorCode(key) {
+        var colors = {
+            red: '#dc3545',
+            blue: '#037be4',
+            yellow: '#fd7e14',
+            green: '#28a745',
+            purple: '#6f42c1',
+            black: '#000000'
+        };
+        return colors[key] || '#037be4';
+    }
+
+    // Add markers to map
+    locations.forEach(function(loc) {
+        var marker = L.marker(loc.coords, { icon: markers[loc.markerKey] })
+            .addTo(map)
+            .bindPopup(`
+                <div style="font-family: 'IBM Plex Sans', sans-serif; min-width: 220px;">
+                    <div style="font-weight: 700; font-size: 14px; margin-bottom: 8px; color: #001f3f; border-left: 3px solid ${getColorCode(loc.markerKey)}; padding-left: 10px;">
+                        ${loc.name}
+                    </div>
+                    <div style="font-size: 12px; margin-bottom: 6px;">
+                        <i class="fas fa-map-pin" style="color: #6c757d; width: 18px;"></i> ${loc.info}
+                    </div>
+                    <div style="font-size: 12px; margin-bottom: 6px;">
+                        <i class="far fa-clock" style="color: #6c757d; width: 18px;"></i> ${loc.schedule}
+                    </div>
+                </div>
+            `, { maxWidth: 300 });
+
+        if (loc.target) {
+            marker.on('click', function() {
+                document.querySelectorAll('.office-card').forEach(card => {
+                    card.classList.remove('active-card');
+                });
+                var element = document.getElementById(loc.target);
+                if (element) {
+                    element.classList.add('active-card');
+                    element.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                }
+            });
+        }
+    });
+
+    // ================= USER LOCATION (No circle/broken line) =================
+    var userMarker = null;
+    var userCoords = null;
+    var locationButton = document.getElementById('goToMyLocationBtn');
+
+    function focusOnUserLocation() {
+        if (!userCoords) {
+            if (locationButton) {
+                locationButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Locating...</span>';
+            }
+            return;
+        }
+
+        map.setView(userCoords, 15, { animate: true, duration: 1.2 });
+        if (userMarker) {
+            userMarker.openPopup();
+        }
+    }
+
+    if (navigator.geolocation) {
+        navigator.geolocation.watchPosition(function(position) {
+            userCoords = [position.coords.latitude, position.coords.longitude];
+
+            if (userMarker) {
+                map.removeLayer(userMarker);
+            }
+
+            userMarker = L.marker(userCoords, { icon: markers.black })
+                .addTo(map)
+                .bindPopup(`
+                    <div style="font-family: 'IBM Plex Sans', sans-serif; text-align: center; min-width: 110px;">
+                        <strong style="display: block;">You are here</strong>
+                    </div>
+                `);
+
+            if (locationButton) {
+                locationButton.innerHTML = '<i class="fas fa-location-arrow"></i><span>Go to My Location</span>';
+            }
+        }, function(error) {
+            console.log("Geolocation error: " + error.message);
+            if (locationButton) {
+                locationButton.innerHTML = '<i class="fas fa-location-arrow"></i><span>Go to My Location</span>';
+            }
+        }, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 0
+        });
+    }
+
+    if (locationButton) {
+        locationButton.addEventListener('click', function() {
+            focusOnUserLocation();
+        });
+    }
+
+    // ================= FIT MAP TO SHOW ALL MARKERS =================
+    var allCoords = locations.map(loc => loc.coords);
+    var group = new L.featureGroup(allCoords.map(c => L.marker(c)));
+    map.fitBounds(group.getBounds().pad(0.2));
+
+    // ================= ENHANCED LEGEND =================
+    var legend = L.control({position: 'bottomright'});
+    legend.onAdd = function(map) {
+        var div = L.DomUtil.create('div', 'custom-legend');
+        div.innerHTML = `
+            <div class="legend-title">
+                <i class="fas fa-map-marked-alt"></i> Legend
+            </div>
+            <div class="legend-items">
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: #dc3545;"></div>
+                    <span>Main Branch</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: #037be4;"></div>
+                    <span>Santa Cruz</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: #fd7e14;"></div>
+                    <span>Magdalena</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: #28a745;"></div>
+                    <span>Pila</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: #6f42c1;"></div>
+                    <span>Pagsanjan</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-dot" style="background: #000;"></div>
+                    <span>Your Location</span>
+                </div>
+            </div>
+            <div class="legend-note">
+                <i class="fas fa-info-circle"></i> Click markers for details
+            </div>
+        `;
+        return div;
+    };
+    legend.addTo(map);
+});
+
+// ================= BACK TO MAP BUTTON =================
+document.querySelectorAll('.back-to-map').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.getElementById('map').scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+        setTimeout(() => {
+            if (typeof map !== 'undefined') map.invalidateSize();
+        }, 300);
+    });
+});
+
+// ================= SCROLL INDICATOR =================
+document.addEventListener('DOMContentLoaded', function() {
+    const scrollIndicator = document.getElementById('scrollToCoverage');
+    if (scrollIndicator) {
+        scrollIndicator.addEventListener('click', function() {
+            const coverageSection = document.querySelector('.coverage-map');
+            if (coverageSection) {
+                coverageSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+        scrollIndicator.setAttribute('tabindex', '0');
+        scrollIndicator.setAttribute('role', 'button');
+    }
+});
+
+// ================= HAMBURGER MENU =================
+document.addEventListener('DOMContentLoaded', function() {
+    const hamburger = document.getElementById('hamburgerBtn');
+    const navMenu = document.getElementById('navMenu');
+    
+    if (hamburger && navMenu) {
+        hamburger.addEventListener('click', function() {
+            const bsCollapse = bootstrap.Collapse.getInstance(navMenu);
+            if (bsCollapse) {
+                bsCollapse.toggle();
+            } else {
+                new bootstrap.Collapse(navMenu, { toggle: true });
+            }
+        });
+    }
+});
+
+
+// ================= DYNAMIC BARANGAY LIST FROM MYSQL =================
+async function loadBarangaysFromMySQL() {
+    const container = document.getElementById('barangayGridContainer');
+    if (!container) return;
+
+    try {
+        // Use the MySQL endpoint instead of Firebase
+        const response = await fetch('/api/areas');
+        if (!response.ok) throw new Error('Failed to fetch areas');
+        const areas = await response.json();
+
+        console.log('Areas loaded:', areas); // Debug
+
+        // Group by city
+        const citiesMap = new Map(); // key: city name, value: { city, province, barangays: Set }
+        areas.forEach(area => {
+            const city = area.city?.trim().toUpperCase() || 'UNKNOWN';
+            const province = area.province?.trim().toUpperCase() || '';
+            const barangay = area.barangay?.trim() || '';
+            if (!barangay) return;
+
+            if (!citiesMap.has(city)) {
+                citiesMap.set(city, {
+                    city: city,
+                    province: province,
+                    barangays: new Set()
+                });
+            }
+            citiesMap.get(city).barangays.add(barangay);
+        });
+
+        // Convert to array and sort by city name
+        const cities = Array.from(citiesMap.values()).sort((a, b) => a.city.localeCompare(b.city));
+
+        if (cities.length === 0) {
+            container.innerHTML = `<div class="alert alert-info text-center">No coverage areas available at the moment.</div>`;
+            return;
+        }
+
+        // Generate HTML cards
+        let html = '';
+        cities.forEach(cityData => {
+            const barangayList = Array.from(cityData.barangays).sort((a, b) => a.localeCompare(b));
+            const count = barangayList.length;
+
+            // Convert city name to Proper Case for display
+            const displayCity = cityData.city.split(' ').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+            ).join(' ');
+
+            html += `
+                <div class="barangay-card">
+                    <div class="barangay-header">
+                        <h5>${escapeHtml(displayCity)}${cityData.province ? `, ${escapeHtml(cityData.province)}` : ''}</h5>
+                        <span class="barangay-count">${count} ${count === 1 ? 'barangay' : 'barangays'}</span>
+                    </div>
+                    <div class="barangay-body">
+                        <div class="barangay-list">
+                            ${barangayList.map(b => `<span class="barangay-item">${escapeHtml(b)}</span>`).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    } catch (error) {
+        console.error('Error loading barangays:', error);
+        container.innerHTML = `<div class="alert alert-danger text-center">Failed to load coverage data. Please try again later.</div>`;
+    }
+}
+
+// Helper function to prevent XSS
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/[&<>]/g, function(m) {
+        if (m === '&') return '&amp;';
+        if (m === '<') return '&lt;';
+        if (m === '>') return '&gt;';
+        return m;
+    });
+}
+
+// Load when page ready - CHANGE THIS
+document.addEventListener('DOMContentLoaded', function() {
+    loadBarangaysFromMySQL();  // Changed from loadBarangaysFromFirebase
+});
+
+
+</script>
+</body>
+</html>

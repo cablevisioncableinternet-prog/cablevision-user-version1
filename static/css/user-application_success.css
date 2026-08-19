@@ -1,0 +1,1314 @@
+/* ================= ROOT VARIABLES ================= */
+:root {
+  --primary-dark: #001a33;
+  --primary-blue: #0047ab;
+  --accent-blue: #007bff;
+  --light-gray: #f8f9fa;
+  --border-gray: #e0e0e0;
+  --text-dark: #1a1a1a;
+  --text-light: #666666;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
+  --shadow-xl: 0 12px 32px rgba(0, 0, 0, 0.18);
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ================= GLOBAL ================= */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+    background:  #e4e4e4;
+    font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+    color: #1e2a3a;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+}
+
+/* ================= FORMAL HEADER ================= */
+.app-header {
+  position: relative;
+  text-align: center;
+  padding: 80px 20px;
+  background: linear-gradient(135deg, #001a33 0%, #002b5c 100%);
+  color: #ffffff;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 40px;
+  overflow: hidden;
+}
+
+/* Background image overlay (optional) */
+.app-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url("/static/background.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  opacity: 0.15;
+  z-index: 0;
+}
+
+.header-overlay {
+  position: relative;
+  z-index: 2;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.app-header h1 {
+  font-size: 32px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  margin-bottom: 12px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.app-header p {
+  font-size: 15px;
+  opacity: 0.85;
+  margin-bottom: 28px;
+  font-weight: 400;
+}
+
+.app-number {
+  font-size: 15px;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 10px 20px;
+  border-radius: 40px;
+  display: inline-block;
+  margin-bottom: 28px;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.app-number strong {
+  font-weight: 700;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 4px 12px;
+  border-radius: 30px;
+  margin-left: 8px;
+}
+
+.header-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.header-actions .btn {
+  padding: 12px 28px;
+  border-radius: 40px;
+  font-weight: 600;
+  font-size: 14px;
+  border: none;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.btn-success:hover {
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+  text-decoration: none;
+  color: #fff;
+}
+
+.btn-light {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+  backdrop-filter: blur(4px);
+}
+
+.btn-light:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
+  text-decoration: none;
+  color: #fff;
+}
+
+.btn-success:active,
+.btn-light:active {
+  transform: translateY(0);
+}
+
+/* Header Fade Animation */
+.app-header {
+  opacity: 0;
+  transform: translateX(-30px);
+  animation: headerFadeLeft 0.8s ease forwards;
+}
+
+@keyframes headerFadeLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 60px 16px;
+    margin-bottom: 30px;
+  }
+  
+  .app-header h1 {
+    font-size: 24px;
+  }
+  
+  .app-header p {
+    font-size: 13px;
+    margin-bottom: 20px;
+  }
+  
+  .app-number {
+    font-size: 13px;
+    padding: 8px 16px;
+    margin-bottom: 20px;
+  }
+  
+  .header-actions {
+    gap: 12px;
+  }
+  
+  .header-actions .btn {
+    padding: 10px 20px;
+    font-size: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header {
+    padding: 45px 12px;
+  }
+  
+  .app-header h1 {
+    font-size: 20px;
+  }
+  
+  .app-header p {
+    font-size: 12px;
+  }
+  
+  .app-number {
+    font-size: 12px;
+  }
+  
+  .header-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .header-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* ================= CONTAINER ================= */
+.app-container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 20px 50px;
+}
+
+/* ================= CARD SYSTEM ================= */
+.app-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 28px;
+  margin-bottom: 24px;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-gray);
+  transition: var(--transition);
+}
+
+.app-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+/* ================= SECTION TITLE ================= */
+.section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-dark);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--accent-blue);
+  letter-spacing: -0.3px;
+}
+
+.section-title::before {
+  content: "";
+  width: 4px;
+  height: 22px;
+  background: linear-gradient(180deg, var(--primary-blue) 0%, var(--accent-blue) 100%);
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ================= TEXT ================= */
+.app-card p {
+  font-size: 14px;
+  margin: 10px 0;
+  color: var(--text-light);
+  line-height: 1.7;
+}
+
+.app-card p strong {
+  color: var(--text-dark);
+  font-weight: 600;
+}
+
+/* ================= TABLE ================= */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #fff;
+  border: 1px solid var(--border-gray);
+  margin: 0;
+}
+
+.table thead {
+  background: linear-gradient(135deg, var(--primary-blue) 0%, var(--accent-blue) 100%);
+  color: #fff;
+}
+
+.table th {
+  padding: 14px;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.table td {
+  padding: 14px;
+  font-size: 14px;
+  border-top: 1px solid var(--border-gray);
+  color: var(--text-dark);
+}
+
+/* striped effect */
+.table tbody tr:nth-child(even) {
+  background: linear-gradient(90deg, var(--light-gray) 0%, transparent 100%);
+}
+
+/* hover effect */
+.table tbody tr:hover {
+  background: linear-gradient(90deg, #e8f1ff 0%, transparent 100%);
+  transition: var(--transition);
+}
+
+/* ================= PROFILE PHOTO ================= */
+.profile-photo-img {
+  max-width: 200px;
+  height: auto;
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg);
+  border: 2px solid var(--light-gray);
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.profile-photo-img:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-xl);
+}
+
+/* ================= SIGNATURE ================= */
+.signature-img {
+  max-width: 300px;
+  height: auto;
+  border-radius: 10px;
+  border: 2px solid var(--light-gray);
+  padding: 8px;
+  background: var(--light-gray);
+  box-shadow: var(--shadow-md);
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.signature-img:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-lg);
+}
+
+/* ================= MAP ================= */
+#map {
+  height: 420px;
+  width: 100%;
+  border-radius: 12px;
+  margin-top: 16px;
+  border: 1px solid var(--border-gray);
+  box-shadow: var(--shadow-md);
+  transition: var(--transition);
+}
+
+/* ================= DOCUMENT IMAGES ================= */
+.doc-img {
+  width: 200px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 10px;
+  cursor: pointer;
+  margin: 8px auto;
+  box-shadow: var(--shadow-md);
+  border: 1px solid var(--border-gray);
+  transition: var(--transition);
+  display: block;
+}
+
+.doc-img:hover {
+  transform: scale(1.05);
+  box-shadow: var(--shadow-lg);
+}
+
+.doc-img.billing {
+  width: 150px;
+  height: 200px;
+}
+
+/* ================= MODAL ================= */
+.modal-content {
+  background: #fff;
+  border: 1px solid var(--border-gray);
+  border-radius: 14px;
+}
+
+.modal-body {
+  padding: 24px;
+}
+
+.img-fluid {
+  max-height: 80vh;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+/* ================= TEXT UTILITIES ================= */
+.text-danger {
+  color: #ef4444 !important;
+  font-weight: 500;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.mb-3 {
+  margin-bottom: 1rem;
+}
+
+.mt-2 {
+  margin-top: 0.5rem;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 1200px) {
+  .app-header {
+    padding: 70px 20px;
+  }
+
+  .app-header h1 {
+    font-size: 32px;
+  }
+
+  .app-container {
+    max-width: 100%;
+    padding: 0 20px 40px;
+  }
+
+  .app-card {
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+}
+
+@media (max-width: 992px) {
+  .app-header {
+    padding: 60px 20px;
+    margin-bottom: 32px;
+  }
+
+  .app-header h1 {
+    font-size: 28px;
+  }
+
+  .app-header p {
+    font-size: 15px;
+  }
+
+  .header-actions {
+    gap: 10px;
+  }
+
+  .header-actions .btn {
+    padding: 10px 20px;
+    font-size: 13px;
+  }
+
+  .app-card {
+    padding: 20px;
+  }
+
+  .section-title {
+    font-size: 16px;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+  }
+
+  #map {
+    height: 350px;
+  }
+}
+
+@media (max-width: 768px) {
+  .app-header {
+    padding: 50px 15px;
+    margin-bottom: 24px;
+  }
+
+  .app-header h1 {
+    font-size: 24px;
+    margin-bottom: 10px;
+  }
+
+  .app-header p {
+    font-size: 14px;
+    margin-bottom: 18px;
+  }
+
+  .app-number {
+    font-size: 14px;
+    padding: 10px 16px;
+    margin-bottom: 18px;
+  }
+
+  .header-actions {
+    gap: 8px;
+  }
+
+  .header-actions .btn {
+    padding: 10px 18px;
+    font-size: 12px;
+    min-height: auto;
+  }
+
+  .app-container {
+    padding: 0 15px 35px;
+  }
+
+  .app-card {
+    padding: 18px;
+    margin-bottom: 18px;
+  }
+
+  .section-title {
+    font-size: 15px;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+  }
+
+  .table th {
+    padding: 12px 8px;
+    font-size: 12px;
+  }
+
+  .table td {
+    padding: 12px 8px;
+    font-size: 13px;
+  }
+
+  .doc-img {
+    width: 160px;
+    height: 120px;
+  }
+
+  .doc-img.billing {
+    width: 120px;
+    height: 160px;
+  }
+
+  .profile-photo-img {
+    max-width: 150px;
+  }
+
+  .signature-img {
+    max-width: 200px;
+  }
+
+  #map {
+    height: 300px;
+  }
+}
+
+@media (max-width: 576px) {
+  .app-header {
+    padding: 40px 15px;
+    margin-bottom: 20px;
+  }
+
+  .app-header h1 {
+    font-size: 20px;
+  }
+
+  .app-header p {
+    font-size: 13px;
+  }
+
+  .app-number {
+    font-size: 12px;
+  }
+
+  .header-actions {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .header-actions .btn {
+    width: 100%;
+    justify-content: center;
+    font-size: 12px;
+  }
+
+  .app-container {
+    padding: 0 12px 30px;
+  }
+
+  .app-card {
+    padding: 16px;
+    margin-bottom: 16px;
+  }
+
+  .section-title {
+    font-size: 14px;
+    gap: 8px;
+  }
+
+  .section-title::before {
+    height: 18px;
+  }
+
+  .app-card p {
+    font-size: 13px;
+    margin: 8px 0;
+  }
+
+  .table {
+    font-size: 12px;
+  }
+
+  .table th {
+    padding: 10px 6px;
+    font-size: 11px;
+  }
+
+  .table td {
+    padding: 10px 6px;
+    font-size: 12px;
+  }
+
+  .doc-img {
+    width: 140px;
+    height: 105px;
+  }
+
+  .doc-img.billing {
+    width: 105px;
+    height: 140px;
+  }
+
+  .profile-photo-img {
+    max-width: 120px;
+  }
+
+  .signature-img {
+    max-width: 150px;
+  }
+
+  #map {
+    height: 250px;
+  }
+}
+
+@media (max-width: 480px) {
+  .app-header {
+    padding: 35px 12px;
+  }
+
+  .app-header h1 {
+    font-size: 18px;
+  }
+
+  .app-header p {
+    font-size: 12px;
+  }
+
+  .app-card {
+    padding: 14px;
+  }
+
+  .section-title {
+    font-size: 13px;
+  }
+
+  .app-card p {
+    font-size: 12px;
+  }
+}
+
+
+/* ===== MODAL IMAGE ===== */
+#modalImage.signature {
+    width: 400px;       /* larger for modal view */
+    height: 240px;
+    object-fit: contain;
+    display: block;
+    margin: auto;
+    border-radius: 6px;
+}
+
+.profile-photo-img {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 10px; /* square with rounded edges */
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25); /* shadow instead of border */
+    border: none; /* remove the blue border */
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.profile-photo-img:hover {
+    transform: scale(1.05);
+}
+
+/* ================= MODAL ================= */
+.modal {
+    background: rgba(0,0,0,0.75);
+}
+
+.modal-content {
+    background: transparent !important;  /* no white card */
+    border: none !important;             /* remove borders */
+    box-shadow: none !important;         /* remove shadow */
+    padding: 0 !important;               /* no padding */
+}
+
+/* ===== MODAL FIX ===== */
+#modalImage {
+    width: 80%;
+    max-width: 80vw;
+    height: auto;
+    margin: auto;
+}
+
+#modalImage.billing {
+    width: 420px;
+    height: 600px;
+}
+
+
+/* ================= PAGE FADE FROM LEFT ================= */
+
+body:not(.modal-open){
+    opacity: 0;
+    animation: pageFadeLeft 0.7s ease forwards;
+}
+
+@keyframes pageFadeLeft{
+    from{
+        opacity: 0;
+        transform: translateX(-25px);
+    }
+    to{
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ================= HEADER ANIMATION ================= */
+
+.app-header h1,
+.app-header p,
+.app-number{
+    opacity: 0;
+    transform: translateX(-30px);
+    animation: headerFadeLeft 0.8s ease forwards;
+}
+
+.app-header h1{
+    animation-delay: 0.2s;
+}
+
+.app-header p{
+    animation-delay: 0.4s;
+}
+
+.app-number{
+    animation-delay: 0.6s;
+}
+
+@keyframes headerFadeLeft{
+    from{
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to{
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ================= CARDS ANIMATION ================= */
+
+.app-card{
+    opacity: 0;
+    transform: translateX(-30px);
+    animation: cardFadeLeft 0.7s ease forwards;
+}
+
+/* stagger cards */
+.app-card:nth-child(1){ animation-delay: 0.3s; }
+.app-card:nth-child(2){ animation-delay: 0.5s; }
+.app-card:nth-child(3){ animation-delay: 0.7s; }
+.app-card:nth-child(4){ animation-delay: 0.9s; }
+.app-card:nth-child(5){ animation-delay: 1.1s; }
+
+@keyframes cardFadeLeft{
+    from{
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to{
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ================= TABLE ROW ANIMATION ================= */
+
+.table tbody tr{
+    opacity: 0;
+    transform: translateX(-20px);
+    animation: rowFadeLeft 0.6s ease forwards;
+}
+
+.table tbody tr:nth-child(1){ animation-delay: 0.3s; }
+.table tbody tr:nth-child(2){ animation-delay: 0.35s; }
+.table tbody tr:nth-child(3){ animation-delay: 0.4s; }
+.table tbody tr:nth-child(4){ animation-delay: 0.45s; }
+.table tbody tr:nth-child(5){ animation-delay: 0.5s; }
+.table tbody tr:nth-child(n+6){ animation-delay: 0.55s; }
+
+@keyframes rowFadeLeft{
+    from{
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to{
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ================= BUTTON ANIMATION ================= */
+
+.header-actions .btn{
+    opacity: 0;
+    transform: translateX(-20px);
+    animation: btnFadeLeft 0.6s ease forwards;
+}
+
+.header-actions .btn:nth-child(1){ animation-delay: 0.4s; }
+.header-actions .btn:nth-child(2){ animation-delay: 0.6s; }
+.header-actions .btn:nth-child(3){ animation-delay: 0.8s; }
+
+@keyframes btnFadeLeft{
+    from{
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    to{
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* ================= FULL RESPONSIVE FIX ================= */
+
+/* ===== HEADER ===== */
+@media (max-width: 768px) {
+    .app-header {
+        padding: 60px 15px;
+    }
+
+    .app-header h1 {
+        font-size: 22px;
+        line-height: 1.3;
+    }
+
+    .app-header p {
+        font-size: 13px;
+    }
+
+    .app-number {
+        font-size: 14px;
+    }
+}
+
+/* ===== BUTTONS ===== */
+@media (max-width: 576px) {
+    .header-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .header-actions .btn {
+        width: 100%;
+    }
+}
+
+/* ===== CARDS ===== */
+@media (max-width: 768px) {
+    .app-card {
+        padding: 16px;
+    }
+}
+
+/* ===== IMAGES (FIXED MAIN ISSUE) ===== */
+.doc-img,
+.signature-img {
+    width: 100%;
+    max-width: 220px;
+    height: auto;
+    object-fit: cover;
+}
+
+
+
+/* ===== TABLE SCROLL ===== */
+@media (max-width: 768px) {
+    .table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+}
+
+/* ===== MAP ===== */
+@media (max-width: 768px) {
+    #map {
+        height: 250px;
+    }
+}
+
+
+
+/* ===== SMALL DEVICES CLEANUP ===== */
+@media (max-width: 768px) {
+    .row > div {
+        text-align: center;
+    }
+}
+
+/* ================= RESPONSIVE MOBILE FIXES (APPLICATION SUCCESS PAGE) ================= */
+/* Ilagay ito sa dulo ng iyong CSS file */
+
+/* Para maiwasan ang horizontal scroll sa buong page */
+body {
+    overflow-x: hidden;
+    width: 100%;
+}
+
+/* Mobile phones (768px and below) - pangunahing mobile fixes */
+@media (max-width: 768px) {
+    body {
+        font-size: 14px;
+        line-height: 1.5;
+    }
+    
+    /* ===== HEADER ===== */
+    .app-header {
+        background-attachment: scroll;  /* iwas lag sa mobile */
+        padding: 50px 15px;
+        margin-bottom: 24px;
+    }
+    
+    .app-header h1 {
+        font-size: 24px;
+    }
+    
+    .app-header p {
+        font-size: 14px;
+    }
+    
+    .app-number {
+        font-size: 14px;
+        padding: 10px 16px;
+    }
+    
+    /* ===== BUTTONS ===== */
+    .header-actions {
+        gap: 10px;
+    }
+    
+    .header-actions .btn {
+        padding: 10px 18px;
+        font-size: 12px;
+    }
+    
+    /* ===== CONTAINER & CARDS ===== */
+    .app-container {
+        padding: 0 15px 35px;
+    }
+    
+    .app-card {
+        padding: 18px;
+        margin-bottom: 18px;
+    }
+    
+    /* ===== SECTION TITLE ===== */
+    .section-title {
+        font-size: 15px;
+        margin-bottom: 14px;
+        padding-bottom: 8px;
+    }
+    
+    /* ===== TABLE ===== */
+    .table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    
+    .table th {
+        padding: 12px 8px;
+        font-size: 12px;
+    }
+    
+    .table td {
+        padding: 12px 8px;
+        font-size: 13px;
+    }
+    
+    /* ===== IMAGES ===== */
+    .doc-img {
+        width: 160px;
+        height: auto;
+        max-height: 120px;
+        object-fit: cover;
+    }
+    
+    .doc-img.billing {
+        width: 120px;
+        height: auto;
+        max-height: 160px;
+    }
+    
+    .profile-photo-img {
+        max-width: 150px;
+        height: auto;
+    }
+    
+    .signature-img {
+        max-width: 200px;
+        height: auto;
+    }
+    
+    /* ===== MAP ===== */
+    #map {
+        height: 300px;
+    }
+}
+
+/* Maliit na phone (max-width: 576px) */
+@media (max-width: 576px) {
+    .app-header {
+        padding: 40px 15px;
+    }
+    
+    .app-header h1 {
+        font-size: 20px;
+    }
+    
+    .app-header p {
+        font-size: 13px;
+    }
+    
+    .app-number {
+        font-size: 12px;
+    }
+    
+    .header-actions {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .header-actions .btn {
+        width: 100%;
+        justify-content: center;
+        font-size: 12px;
+    }
+    
+    .app-container {
+        padding: 0 12px 30px;
+    }
+    
+    .app-card {
+        padding: 16px;
+        margin-bottom: 16px;
+    }
+    
+    .section-title {
+        font-size: 14px;
+        gap: 8px;
+    }
+    
+    .section-title::before {
+        height: 18px;
+    }
+    
+    .app-card p {
+        font-size: 13px;
+    }
+    
+    .table th {
+        padding: 10px 6px;
+        font-size: 11px;
+    }
+    
+    .table td {
+        padding: 10px 6px;
+        font-size: 12px;
+    }
+    
+    .doc-img {
+        width: 140px;
+        max-height: 105px;
+    }
+    
+    .doc-img.billing {
+        width: 105px;
+        max-height: 140px;
+    }
+    
+    .profile-photo-img {
+        max-width: 120px;
+    }
+    
+    .signature-img {
+        max-width: 150px;
+    }
+    
+    #map {
+        height: 250px;
+    }
+}
+
+/* Sobrang liit na phone (max-width: 480px) */
+@media (max-width: 480px) {
+    .app-header {
+        padding: 35px 12px;
+    }
+    
+    .app-header h1 {
+        font-size: 18px;
+    }
+    
+    .app-header p {
+        font-size: 12px;
+    }
+    
+    .app-card {
+        padding: 14px;
+    }
+    
+    .section-title {
+        font-size: 13px;
+    }
+    
+    .app-card p {
+        font-size: 12px;
+    }
+}
+
+/* Landscape orientation sa mobile */
+@media (orientation: landscape) and (max-height: 600px) {
+    .app-header {
+        padding: 35px 15px;
+    }
+    
+    .app-card {
+        padding: 14px;
+        margin-bottom: 14px;
+    }
+    
+    #map {
+        height: 220px;
+    }
+}
+
+/* Hover effects - para sa desktop lang, hindi sa mobile */
+@media (hover: hover) {
+    .app-card:hover {
+        transform: translateY(-2px);
+    }
+    
+    .btn-success:hover {
+        transform: translateY(-2px);
+    }
+    
+    .btn-light:hover {
+        transform: translateY(-2px);
+    }
+    
+    .table tbody tr:hover {
+        background: linear-gradient(90deg, #e8f1ff 0%, transparent 100%);
+    }
+    
+    .doc-img:hover,
+    .signature-img:hover,
+    .profile-photo-img:hover {
+        transform: scale(1.05);
+    }
+}
+
+/* Para sa touch devices (mobile) - active state imbes na hover */
+@media (hover: none) {
+    .app-card:active {
+        transform: translateY(-1px);
+        transition: transform 0.1s;
+    }
+    
+    .btn-success:active,
+    .btn-light:active {
+        transform: translateY(-1px);
+    }
+    
+    .table tbody tr:active {
+        background: linear-gradient(90deg, #e8f1ff 0%, transparent 100%);
+    }
+    
+    .doc-img:active,
+    .signature-img:active,
+    .profile-photo-img:active {
+        transform: scale(1.02);
+    }
+}
+
+/* Iwasan ang page flicker sa mobile dahil sa body animation */
+@media (max-width: 768px) {
+    body:not(.modal-open) {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+    
+    /* I-disable din ang lahat ng staggered animations sa mobile para smooth */
+    .app-header h1,
+    .app-header p,
+    .app-number,
+    .app-card,
+    .table tbody tr,
+    .header-actions .btn {
+        animation: none !important;
+        opacity: 1 !important;
+        transform: none !important;
+    }
+    
+    /* Para sa desktop lang ang mga fade animations */
+    @media (min-width: 769px) {
+        body:not(.modal-open) {
+            animation: pageFadeLeft 0.7s ease forwards;
+        }
+        
+        .app-header h1,
+        .app-header p,
+        .app-number {
+            animation: headerFadeLeft 0.8s ease forwards;
+        }
+        
+        .app-card {
+            animation: cardFadeLeft 0.7s ease forwards;
+        }
+        
+        .table tbody tr {
+            animation: rowFadeLeft 0.6s ease forwards;
+        }
+        
+        .header-actions .btn {
+            animation: btnFadeLeft 0.6s ease forwards;
+        }
+    }
+}
+
+/* Mobile fix: make modal backdrop tappable and close on tap outside */
+@media (max-width: 768px) {
+    /* Remove custom overlay – let Bootstrap handle it */
+    .modal {
+        background: transparent !important;
+    }
+    /* Ensure the backdrop covers the whole screen */
+    .modal-backdrop.show {
+        background-color: #000;
+        opacity: 0.75;
+    }
+    /* Make sure the modal content is above backdrop */
+    .modal-content {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+}
+
+/* Mobile fix: remove custom modal overlay so Bootstrap's backdrop works */
+@media (max-width: 768px) {
+    .modal {
+        background: transparent !important;
+    }
+    .modal-content {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+}

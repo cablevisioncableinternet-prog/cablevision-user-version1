@@ -1,0 +1,1700 @@
+/* ================= RESET & GLOBAL ENHANCEMENTS ================= */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* ================= BODY / BACKGROUND ================= */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Poppins', 'Inter', sans-serif;
+    background: linear-gradient(135deg, rgba(1, 13, 68, 0.88), rgba(36, 85, 158, 0.88)), url("/static/background1.jpg");
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.02);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ================= LOGIN CONTAINER ================= */
+.login-container {
+    background: rgba(255, 255, 255, 0.98);
+    backdrop-filter: blur(0px);
+    padding: 28px 24px;
+    border-radius: 28px;
+    width: 92%;
+    max-width: 420px;
+    text-align: center;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.2) inset;
+    opacity: 0;
+    transform: translateY(30px) scale(0.98);
+    animation: containerFloatIn 0.7s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    z-index: 2;
+    margin: 20px auto;
+}
+
+.login-container:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 30px 55px -12px rgba(0, 0, 0, 0.4);
+}
+
+/* ================= BRAND ================= */
+.brand-header {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.brand-image {
+    height: 60px;
+    margin-bottom: 10px;
+    max-width: 100%;
+}
+
+.brand-title {
+    font-size: clamp(22px, 5vw, 28px);
+    font-weight: 800;
+    background: linear-gradient(135deg, #001f3f 0%, #003c77 80%);
+    -webkit-background-clip: text;
+    -moz-background-clip: text;
+    -o-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    line-height: 1.2;
+}
+
+.brand-subtitle {
+    font-size: clamp(10px, 2vw, 12px);
+    letter-spacing: 2px;
+    color: #5a6e8a;
+    margin-top: 2px;
+}
+
+/* ================= INPUT GROUP WITH ICON ================= */
+.input-group {
+    position: relative;
+    width: 100%;
+    margin-bottom: 16px;
+    opacity: 0;
+    transform: translateY(18px);
+    animation: slideUpFade 0.5s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
+}
+
+/* ICON */
+.input-group i {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: clamp(13px, 1.5vw, 15px);
+    color: #334155;
+    pointer-events: none;
+    z-index: 3;
+    transition: all 0.2s ease;
+}
+
+/* INPUT FIELD */
+.input-group input {
+    width: 100%;
+    padding: 12px 16px 12px 42px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 60px;
+    font-size: clamp(13px, 1.8vw, 15px);
+    font-weight: 500;
+    color: #0f172a;
+    background: #ffffff;
+    transition: all 0.25s cubic-bezier(0.2, 0.8, 0.4, 1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+    position: relative;
+    z-index: 1;
+    min-height: 48px;
+}
+
+/* INPUT FOCUS EFFECT */
+.input-group input:focus {
+    border-color: #003c77;
+    box-shadow: 0 8px 20px -12px rgba(0, 60, 119, 0.35), 0 0 0 3px rgba(0, 60, 119, 0.1), 0 4px 12px rgba(0, 0, 0, 0.08);
+    transform: translateY(-1px);
+    outline: none;
+}
+
+/* ICON FOCUS EFFECT */
+.input-group:focus-within i {
+    color: #003c77;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.error-message {
+    color: #dc2626;
+    margin-top: 8px;
+    font-size: clamp(12px, 1.5vw, 14px);
+    text-align: center;
+    display: none;
+    padding: 6px 12px;
+    background: #fef2f2;
+    border-radius: 8px;
+    border: 1px solid #fecaca;
+}
+
+/* ================= LOGIN BUTTON ================= */
+.login-btn {
+    width: 100%;
+    padding: clamp(11px, 1.5vh, 14px) clamp(20px, 3vw, 30px);
+    border: none;
+    border-radius: 60px;
+    background: linear-gradient(95deg, #003c77 0%, #0f5b9e 100%);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: clamp(14px, 2vw, 16px);
+    cursor: pointer;
+    box-shadow: 0 6px 14px rgba(0, 60, 119, 0.3);
+    opacity: 0;
+    transform: translateY(18px);
+    animation: slideUpFade 0.5s forwards;
+    animation-delay: 0.7s;
+    transition: all 0.3s ease;
+    min-height: 48px;
+}
+
+.login-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -8px rgba(0, 60, 119, 0.4);
+}
+
+.login-btn:active {
+    transform: scale(0.98);
+}
+
+/* ================= 2FA INPUT ================= */
+.login-container .input-group input[name="ga_code"] {
+    border-color: #f59e0b;
+}
+
+.login-container .input-group input[name="ga_code"]:focus {
+    box-shadow: 0 8px 20px -12px rgba(245, 158, 11, 0.35), 0 0 0 3px rgba(245, 158, 11, 0.15);
+}
+
+/* ================= FORGOT PASSWORD LINK ================= */
+.forgot-password-container {
+    margin-top: 16px;
+}
+
+.forgot-password-link {
+    font-size: clamp(12px, 1.5vw, 14px);
+    color: #5a6e8a;
+    text-decoration: none;
+    transition: color 0.2s ease;
+    display: inline-block;
+}
+
+.forgot-password-link:hover {
+    color: #003c77;
+    text-decoration: underline;
+}
+
+/* ================= FOOTER ================= */
+.footer-text {
+    margin-top: 20px;
+    font-size: clamp(10px, 1.2vw, 12px);
+    color: #6c7a91;
+    opacity: 0;
+    transform: translateY(18px);
+    animation: slideUpFade 0.5s forwards;
+    animation-delay: 1s;
+}
+
+/* ================= RESPONSIVE BREAKPOINTS ================= */
+
+/* ✅ Tablet and smaller (max-width: 768px) */
+@media (max-width: 768px) {
+    .login-container {
+        padding: 24px 20px;
+        border-radius: 24px;
+        max-width: 380px;
+        margin: 15px auto;
+    }
+
+    .brand-image {
+        height: 50px;
+        margin-bottom: 8px;
+    }
+
+    .brand-title {
+        font-size: clamp(20px, 4vw, 24px);
+    }
+
+    .input-group input {
+        min-height: 44px;
+        padding: 10px 14px 10px 38px;
+    }
+
+    .input-group i {
+        left: 14px;
+        font-size: 13px;
+    }
+
+    .login-btn {
+        min-height: 44px;
+        font-size: 14px;
+        padding: 10px 20px;
+    }
+}
+
+/* ✅ Mobile (max-width: 480px) */
+@media (max-width: 480px) {
+    .login-container {
+        padding: 20px 16px;
+        border-radius: 20px;
+        max-width: 100%;
+        margin: 10px 12px;
+        width: calc(100% - 24px);
+    }
+
+    .brand-image {
+        height: 45px;
+        margin-bottom: 6px;
+    }
+
+    .brand-title {
+        font-size: clamp(18px, 5vw, 22px);
+    }
+
+    .brand-subtitle {
+        font-size: 9px;
+        letter-spacing: 1.5px;
+    }
+
+    .input-group {
+        margin-bottom: 14px;
+    }
+
+    .input-group input {
+        min-height: 40px;
+        padding: 8px 12px 8px 36px;
+        font-size: 13px;
+        border-radius: 50px;
+    }
+
+    .input-group i {
+        left: 12px;
+        font-size: 12px;
+    }
+
+    .login-btn {
+        min-height: 40px;
+        font-size: 13px;
+        padding: 8px 16px;
+        border-radius: 50px;
+    }
+
+    .footer-text {
+        font-size: 9px;
+        margin-top: 16px;
+    }
+
+    .error-message {
+        font-size: 12px;
+        padding: 4px 10px;
+    }
+
+    .forgot-password-link {
+        font-size: 12px;
+    }
+}
+
+/* ✅ Extra Small (max-width: 360px) */
+@media (max-width: 360px) {
+    .login-container {
+        padding: 16px 12px;
+        border-radius: 16px;
+        margin: 8px;
+        width: calc(100% - 16px);
+    }
+
+    .brand-image {
+        height: 38px;
+        margin-bottom: 4px;
+    }
+
+    .brand-title {
+        font-size: 17px;
+    }
+
+    .brand-subtitle {
+        font-size: 8px;
+        letter-spacing: 1px;
+    }
+
+    .input-group input {
+        min-height: 36px;
+        padding: 6px 10px 6px 32px;
+        font-size: 12px;
+        border-radius: 40px;
+    }
+
+    .input-group i {
+        left: 10px;
+        font-size: 11px;
+    }
+
+    .login-btn {
+        min-height: 36px;
+        font-size: 12px;
+        padding: 6px 14px;
+        border-radius: 40px;
+    }
+
+    .footer-text {
+        font-size: 8px;
+        margin-top: 12px;
+    }
+}
+
+/* ✅ Landscape orientation on mobile */
+@media (max-height: 600px) and (orientation: landscape) {
+    .login-container {
+        padding: 16px 20px;
+        max-width: 360px;
+        margin: 8px auto;
+    }
+
+    .brand-image {
+        height: 35px;
+        margin-bottom: 4px;
+    }
+
+    .brand-header {
+        margin-bottom: 12px;
+    }
+
+    .brand-title {
+        font-size: 18px;
+    }
+
+    .brand-subtitle {
+        font-size: 9px;
+    }
+
+    .input-group {
+        margin-bottom: 10px;
+    }
+
+    .input-group input {
+        min-height: 34px;
+        padding: 6px 12px 6px 34px;
+        font-size: 12px;
+    }
+
+    .input-group i {
+        font-size: 11px;
+        left: 12px;
+    }
+
+    .login-btn {
+        min-height: 34px;
+        font-size: 12px;
+        padding: 6px 14px;
+    }
+
+    .footer-text {
+        margin-top: 10px;
+        font-size: 9px;
+    }
+
+    .forgot-password-container {
+        margin-top: 10px;
+    }
+}
+
+/* ✅ Large screens (min-width: 1200px) */
+@media (min-width: 1200px) {
+    .login-container {
+        padding: 40px 38px;
+        max-width: 440px;
+        border-radius: 32px;
+    }
+
+    .brand-image {
+        height: 80px;
+        margin-bottom: 16px;
+    }
+
+    .brand-title {
+        font-size: 30px;
+    }
+
+    .input-group input {
+        min-height: 52px;
+        padding: 14px 20px 14px 48px;
+        font-size: 16px;
+    }
+
+    .input-group i {
+        left: 18px;
+        font-size: 16px;
+    }
+
+    .login-btn {
+        min-height: 52px;
+        font-size: 16px;
+        padding: 14px 30px;
+    }
+}
+
+/* ✅ Very large screens (min-width: 1600px) */
+@media (min-width: 1600px) {
+    .login-container {
+        padding: 48px 44px;
+        max-width: 480px;
+        border-radius: 36px;
+    }
+
+    .brand-image {
+        height: 90px;
+    }
+
+    .brand-title {
+        font-size: 34px;
+    }
+
+    .input-group input {
+        min-height: 56px;
+        padding: 16px 22px 16px 52px;
+        font-size: 17px;
+    }
+
+    .login-btn {
+        min-height: 56px;
+        font-size: 18px;
+    }
+}
+
+/* ================= ANIMATIONS ================= */
+@keyframes containerFloatIn {
+    0% {
+        opacity: 0;
+        transform: translateY(30px) scale(0.98);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes slideUpFade {
+    0% {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ✅ Reduced Motion Preference */
+@media (prefers-reduced-motion: reduce) {
+    .login-container {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+
+    .input-group {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+
+    .login-btn {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+
+    .footer-text {
+        animation: none;
+        opacity: 1;
+        transform: none;
+    }
+
+    .login-container:hover {
+        transform: none;
+    }
+
+    .login-btn:hover {
+        transform: none;
+    }
+}
+
+/* ================= MODALS (REDESIGNED) ================= */
+/* Modal Backdrop – centered with flex (same as email verification) */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(6px);
+    align-items: center;
+    justify-content: center;
+}
+
+/* Modal Container – modern card */
+.modal-content {
+    position: relative;
+    background: #ffffff;
+    border-radius: 28px;
+    width: 90%;
+    max-width: 450px;
+    max-height: 85vh;
+    padding: 32px 28px 36px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: modalSlideUp 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+}
+
+@keyframes modalSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(40px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* Close button */
+.close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 28px;
+    font-weight: 400;
+    color: #94a3b8;
+    cursor: pointer;
+    z-index: 10;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.close:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #dc2626;
+    transform: scale(1.1);
+}
+
+/* Modal heading */
+.modal-content h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #002b55;
+    text-align: center;
+    margin: 8px 0 8px 0;
+    letter-spacing: -0.3px;
+}
+
+.modal-subtitle {
+    text-align: center;
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.5;
+    margin: 0 0 18px;
+}
+
+/* Labels */
+.modal-content label {
+    display: block;
+    text-align: left;
+    font-size: 13px;
+    font-weight: 600;
+    color: #334155;
+    margin-bottom: 6px;
+    margin-top: 12px;
+}
+
+/* Input fields */
+.modal input {
+    width: 100%;
+    padding: 14px 16px;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 14px;
+    font-size: 15px;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s ease;
+    background: #ffffff;
+}
+
+.modal input:focus {
+    outline: none;
+    border-color: #0047ab;
+    box-shadow: 0 0 0 3px rgba(0, 71, 171, 0.1);
+}
+
+.modal input:hover {
+    border-color: #b9c8e8;
+}
+
+/* ===== 6-DIGIT CODE INPUTS (same as email verification) ===== */
+.verification-code-inputs {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin: 16px 0 24px 0;
+}
+
+.verification-code-inputs .code-digit {
+    width: 50px;
+    height: 60px;
+    text-align: center;
+    font-size: 28px;
+    font-weight: bold;
+    border: 2px solid #e2e8f0;
+    border-radius: 14px;
+    background: white;
+    transition: all 0.2s;
+    font-family: monospace;
+}
+
+.verification-code-inputs .code-digit:focus {
+    outline: none;
+    border-color: #0047ab;
+    box-shadow: 0 0 0 3px rgba(0, 71, 171, 0.1);
+}
+
+/* Timer display (boxed) */
+.verification-timer {
+    margin: 20px 0 12px;
+    padding: 10px;
+    background: #f3f4f6;
+    border-radius: 16px;
+    text-align: center;
+}
+
+#otpTimer {
+    font-size: 28px;
+    font-weight: bold;
+    font-family: monospace;
+    color: #0047ab;
+}
+
+.timer-label {
+    font-size: 14px;
+    color: #6b7280;
+    margin-left: 8px;
+}
+
+/* Modal buttons – gradient */
+#sendCodeBtn,
+#resetPasswordBtn,
+#gaVerifyBtn {
+    width: 100%;
+    padding: 14px 16px;
+    margin-top: 20px;
+    border: none;
+    border-radius: 40px;
+    background: linear-gradient(105deg, #001f3f 0%, #003870 100%);
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 12px rgba(0, 31, 63, 0.25);
+}
+
+#sendCodeBtn:hover,
+#resetPasswordBtn:hover,
+#gaVerifyBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 31, 63, 0.35);
+}
+
+#sendCodeBtn:active,
+#resetPasswordBtn:active,
+#gaVerifyBtn:active {
+    transform: translateY(0);
+}
+
+#resendOtpBtn {
+    width: 100%;
+    padding: 12px;
+    margin-top: 12px;
+    border: 1px solid #e2e8f0;
+    border-radius: 40px;
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+#resendOtpBtn:hover:not(:disabled) {
+    background: #eef2ff;
+    border-color: #0047ab;
+    color: #0047ab;
+}
+
+#resendOtpBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Message area */
+#fpMessage,
+#gaModalError {
+    margin-top: 16px;
+    padding: 10px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    text-align: center;
+}
+
+#gaModalError {
+    color: #dc2626;
+    background: #fef2f2;
+}
+
+/* Step containers */
+#fpStep1,
+#fpStep2 {
+    transition: opacity 0.3s ease;
+    padding: 0 8px;
+}
+
+/* Forgot password link (refined) */
+.forgot-password-container {
+    text-align: center;
+    margin-top: 18px;
+}
+
+.forgot-password-link {
+    font-size: 14px;
+    color: #475569;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.25s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.forgot-password-link:hover {
+    color: #2563eb;
+    gap: 10px;
+}
+
+/* ================= RESPONSIVE MODAL ================= */
+@media (max-width: 640px) {
+    .modal-content {
+        width: 92%;
+        border-radius: 24px;
+    }
+    .modal-content h2 {
+        font-size: 22px;
+        margin-top: 24px;
+    }
+    .modal input {
+        padding: 12px 14px;
+        font-size: 14px;
+    }
+    #sendCodeBtn,
+    #resetPasswordBtn {
+        padding: 12px;
+        font-size: 14px;
+    }
+    .close {
+        top: 16px;
+        right: 16px;
+    }
+    .verification-code-inputs {
+        gap: 8px;
+    }
+    .verification-code-inputs .code-digit {
+        width: 45px;
+        height: 55px;
+        font-size: 24px;
+    }
+    #otpTimer {
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 480px) {
+    .modal-content {
+        width: 95%;
+        border-radius: 20px;
+    }
+    .modal-content h2 {
+        font-size: 20px;
+    }
+    .verification-code-inputs {
+        gap: 6px;
+    }
+    .verification-code-inputs .code-digit {
+        width: 40px;
+        height: 50px;
+        font-size: 22px;
+    }
+    #otpTimer {
+        font-size: 22px;
+    }
+}
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+    .modal,
+    .modal-content,
+    .close,
+    .modal button {
+        animation: none !important;
+        transition: none !important;
+    }
+    .modal {
+        backdrop-filter: none;
+    }
+}
+
+/* ================= ANIMATIONS ================= */
+@keyframes containerFloatIn {
+    0% {
+        opacity: 0;
+        transform: translateY(30px) scale(0.97);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes slideUpFade {
+    0% {
+        opacity: 0;
+        transform: translateY(18px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ================= GOOGLE AUTHENTICATOR MODAL ================= */
+/* Override modal styles for GA modal */
+#gaVerificationModal.modal {
+    display: none;
+    position: fixed;
+    z-index: 10000;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(8px);
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+#gaVerificationModal.modal.show {
+    display: flex !important;
+}
+
+/* GA Modal Content */
+#gaVerificationModal .modal-content {
+    position: relative;
+    background: #ffffff;
+    border-radius: 28px;
+    width: 100%;
+    max-width: 440px;
+    max-height: 90vh;
+    padding: 32px 28px 36px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+    overflow-y: auto;
+    animation: modalSlideUp 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+}
+
+/* GA Modal Heading */
+#gaVerificationModal .modal-content h2 {
+    font-size: clamp(20px, 4vw, 26px);
+    font-weight: 700;
+    color: #001f3f;
+    text-align: center;
+    margin: 8px 0 8px 0;
+    letter-spacing: -0.3px;
+}
+
+/* GA Modal Subtitle */
+#gaVerificationModal .modal-subtitle {
+    text-align: center;
+    color: #64748b;
+    font-size: clamp(13px, 1.8vw, 15px);
+    line-height: 1.6;
+    margin: 0 0 20px 0;
+}
+
+/* GA Close Button */
+#gaVerificationModal .ga-modal-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    font-size: 28px;
+    font-weight: 400;
+    color: #94a3b8;
+    cursor: pointer;
+    z-index: 10;
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    background: transparent;
+    border: none;
+}
+
+#gaVerificationModal .ga-modal-close:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #dc2626;
+    transform: scale(1.1);
+}
+
+/* GA Code Inputs - 6 Digits */
+#gaVerificationModal .verification-code-inputs {
+    display: flex;
+    gap: clamp(6px, 1.5vw, 12px);
+    justify-content: center;
+    margin: 16px 0 24px 0;
+    flex-wrap: nowrap;
+}
+
+#gaVerificationModal .verification-code-inputs .ga-code-digit {
+    width: clamp(40px, 10vw, 56px);
+    height: clamp(48px, 10vh, 64px);
+    text-align: center;
+    font-size: clamp(22px, 4vw, 30px);
+    font-weight: 700;
+    border: 2px solid #e2e8f0;
+    border-radius: 14px;
+    background: #ffffff;
+    transition: all 0.25s ease;
+    font-family: 'Inter', monospace;
+    color: #0f172a;
+    flex: 0 0 auto;
+    padding: 0;
+}
+
+#gaVerificationModal .verification-code-inputs .ga-code-digit:focus {
+    outline: none;
+    border-color: #0047ab;
+    box-shadow: 0 0 0 3px rgba(0, 71, 171, 0.15);
+    transform: translateY(-2px);
+}
+
+#gaVerificationModal .verification-code-inputs .ga-code-digit:hover {
+    border-color: #94a3b8;
+}
+
+#gaVerificationModal .verification-code-inputs .ga-code-digit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* GA Verify Button */
+#gaVerificationModal #gaVerifyBtn {
+    width: 100%;
+    padding: clamp(12px, 1.8vh, 16px) clamp(20px, 3vw, 30px);
+    margin-top: 8px;
+    border: none;
+    border-radius: 60px;
+    background: linear-gradient(95deg, #001f3f 0%, #003870 100%);
+    color: #ffffff;
+    font-size: clamp(14px, 2vw, 16px);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 14px rgba(0, 31, 63, 0.3);
+    min-height: 48px;
+    letter-spacing: 0.3px;
+}
+
+#gaVerificationModal #gaVerifyBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px -8px rgba(0, 31, 63, 0.4);
+}
+
+#gaVerificationModal #gaVerifyBtn:active {
+    transform: scale(0.98);
+}
+
+#gaVerificationModal #gaVerifyBtn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* GA Error Message */
+#gaVerificationModal #gaModalError {
+    margin-top: 16px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: clamp(12px, 1.5vw, 14px);
+    font-weight: 500;
+    text-align: center;
+    color: #dc2626;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    display: none;
+}
+
+#gaVerificationModal #gaModalError.show {
+    display: block !important;
+}
+
+/* ================= RESPONSIVE BREAKPOINTS FOR GA MODAL ================= */
+
+/* Tablet (max-width: 768px) */
+@media (max-width: 768px) {
+    #gaVerificationModal.modal {
+        padding: 16px;
+    }
+
+    #gaVerificationModal .modal-content {
+        padding: 24px 20px 28px;
+        border-radius: 24px;
+        max-width: 400px;
+    }
+
+    #gaVerificationModal .modal-content h2 {
+        font-size: 22px;
+        margin-top: 4px;
+    }
+
+    #gaVerificationModal .verification-code-inputs {
+        gap: 8px;
+        margin: 12px 0 20px 0;
+    }
+
+    #gaVerificationModal .verification-code-inputs .ga-code-digit {
+        width: 44px;
+        height: 52px;
+        font-size: 24px;
+        border-radius: 12px;
+    }
+
+    #gaVerificationModal .ga-modal-close {
+        top: 12px;
+        right: 12px;
+        width: 32px;
+        height: 32px;
+        font-size: 24px;
+    }
+
+    #gaVerificationModal #gaVerifyBtn {
+        min-height: 44px;
+        font-size: 14px;
+        padding: 10px 20px;
+    }
+}
+
+/* Mobile (max-width: 480px) */
+@media (max-width: 480px) {
+    #gaVerificationModal.modal {
+        padding: 12px;
+        align-items: center;
+    }
+
+    #gaVerificationModal .modal-content {
+        padding: 20px 16px 24px;
+        border-radius: 20px;
+        max-width: 100%;
+        width: 100%;
+        max-height: 85vh;
+    }
+
+    #gaVerificationModal .modal-content h2 {
+        font-size: 19px;
+        margin-top: 2px;
+    }
+
+    #gaVerificationModal .modal-subtitle {
+        font-size: 13px;
+        margin-bottom: 12px;
+    }
+
+    #gaVerificationModal .verification-code-inputs {
+        gap: 6px;
+        margin: 10px 0 16px 0;
+    }
+
+    #gaVerificationModal .verification-code-inputs .ga-code-digit {
+        width: 38px;
+        height: 46px;
+        font-size: 20px;
+        border-radius: 10px;
+        border-width: 1.5px;
+    }
+
+    #gaVerificationModal .ga-modal-close {
+        top: 10px;
+        right: 10px;
+        width: 30px;
+        height: 30px;
+        font-size: 20px;
+    }
+
+    #gaVerificationModal #gaVerifyBtn {
+        min-height: 40px;
+        font-size: 13px;
+        padding: 8px 16px;
+        border-radius: 50px;
+        margin-top: 4px;
+    }
+
+    #gaVerificationModal #gaModalError {
+        font-size: 12px;
+        padding: 8px 12px;
+        margin-top: 12px;
+    }
+}
+
+/* Extra Small (max-width: 360px) */
+@media (max-width: 360px) {
+    #gaVerificationModal .modal-content {
+        padding: 16px 12px 20px;
+        border-radius: 16px;
+    }
+
+    #gaVerificationModal .modal-content h2 {
+        font-size: 17px;
+    }
+
+    #gaVerificationModal .modal-subtitle {
+        font-size: 12px;
+        margin-bottom: 8px;
+    }
+
+    #gaVerificationModal .verification-code-inputs {
+        gap: 4px;
+        margin: 8px 0 12px 0;
+    }
+
+    #gaVerificationModal .verification-code-inputs .ga-code-digit {
+        width: 34px;
+        height: 40px;
+        font-size: 18px;
+        border-radius: 8px;
+    }
+
+    #gaVerificationModal .ga-modal-close {
+        top: 8px;
+        right: 8px;
+        width: 26px;
+        height: 26px;
+        font-size: 18px;
+    }
+
+    #gaVerificationModal #gaVerifyBtn {
+        min-height: 36px;
+        font-size: 12px;
+        padding: 6px 14px;
+    }
+}
+
+/* Landscape orientation on mobile */
+@media (max-height: 600px) and (orientation: landscape) {
+    #gaVerificationModal.modal {
+        padding: 8px;
+        align-items: center;
+    }
+
+    #gaVerificationModal .modal-content {
+        padding: 16px 20px 20px;
+        border-radius: 18px;
+        max-height: 90vh;
+        max-width: 400px;
+        overflow-y: auto;
+    }
+
+    #gaVerificationModal .modal-content h2 {
+        font-size: 18px;
+        margin-top: 0;
+    }
+
+    #gaVerificationModal .modal-subtitle {
+        font-size: 12px;
+        margin-bottom: 8px;
+    }
+
+    #gaVerificationModal .verification-code-inputs {
+        gap: 6px;
+        margin: 8px 0 12px 0;
+    }
+
+    #gaVerificationModal .verification-code-inputs .ga-code-digit {
+        width: 36px;
+        height: 40px;
+        font-size: 18px;
+        border-radius: 8px;
+    }
+
+    #gaVerificationModal .ga-modal-close {
+        top: 8px;
+        right: 8px;
+        width: 28px;
+        height: 28px;
+        font-size: 18px;
+    }
+
+    #gaVerificationModal #gaVerifyBtn {
+        min-height: 34px;
+        font-size: 12px;
+        padding: 6px 14px;
+        margin-top: 4px;
+    }
+}
+
+/* Large screens (min-width: 1200px) */
+@media (min-width: 1200px) {
+    #gaVerificationModal .modal-content {
+        padding: 40px 36px 44px;
+        max-width: 480px;
+        border-radius: 32px;
+    }
+
+    #gaVerificationModal .modal-content h2 {
+        font-size: 28px;
+    }
+
+    #gaVerificationModal .modal-subtitle {
+        font-size: 16px;
+        margin-bottom: 24px;
+    }
+
+    #gaVerificationModal .verification-code-inputs {
+        gap: 14px;
+        margin: 20px 0 28px 0;
+    }
+
+    #gaVerificationModal .verification-code-inputs .ga-code-digit {
+        width: 60px;
+        height: 70px;
+        font-size: 32px;
+        border-radius: 16px;
+    }
+
+    #gaVerificationModal #gaVerifyBtn {
+        min-height: 56px;
+        font-size: 17px;
+        padding: 14px 30px;
+    }
+}
+
+/* ================= ANIMATION FOR GA MODAL ================= */
+@keyframes gaModalSlideUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+#gaVerificationModal .modal-content {
+    animation: gaModalSlideUp 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+}
+
+/* Reduced Motion Preference */
+@media (prefers-reduced-motion: reduce) {
+    #gaVerificationModal .modal-content {
+        animation: none !important;
+    }
+
+    #gaVerificationModal .ga-code-digit:focus {
+        transform: none !important;
+    }
+
+    #gaVerificationModal #gaVerifyBtn:hover {
+        transform: none !important;
+    }
+}
+
+
+/* ================= STAGGER FIX ================= */
+.input-group:nth-of-type(1) {
+    animation-delay: 0.4s;
+}
+
+.input-group:nth-of-type(2) {
+    animation-delay: 0.55s;
+}
+
+/* ================= BRAND ANIMATION ================= */
+.brand-image,
+.brand-title,
+.brand-subtitle {
+    opacity: 0;
+    transform: translateY(18px);
+    animation: slideUpFade 0.5s forwards;
+}
+
+.brand-image { animation-delay: 0.1s; }
+.brand-title { animation-delay: 0.2s; }
+.brand-subtitle { animation-delay: 0.3s; }
+
+
+
+/* ================= FORGOT PASSWORD MODAL (ENHANCED - COMPACT) ================= */
+.forgot-modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    align-items: center;
+    justify-content: center;
+}
+
+.forgot-modal-content {
+    background: #ffffff;
+    width: 90%;
+    max-width: 380px;  /* ✅ PINALIIT: 400px → 380px */
+    border-radius: 24px;  /* ✅ PINALIIT: 28px → 24px */
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+    animation: modalSlideUp 0.35s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    overflow: hidden;
+}
+
+.forgot-modal-header {
+    background: linear-gradient(135deg, #001f3f 0%, #003c77 100%);
+    padding: 14px 20px;  /* ✅ PINALIIT: 18px 24px → 14px 20px */
+    text-align: center;
+    position: relative;
+    color: white;
+}
+
+.forgot-modal-logo {
+    height: 40px;  /* ✅ PINALIIT: 50px → 40px */
+    margin-bottom: 4px;  /* ✅ PINALIIT: 6px → 4px */
+    filter: brightness(0) invert(1);
+}
+
+.forgot-modal-header h3 {
+    font-size: 13px;  /* ✅ PINALIIT: 15px → 13px */
+    font-weight: 600;
+    letter-spacing: 1px;
+    margin: 0;
+    color: rgba(255,255,255,0.95);
+}
+
+.forgot-modal-close {
+    position: absolute;
+    top: 10px;  /* ✅ PINALIIT: 14px → 10px */
+    right: 14px;  /* ✅ PINALIIT: 18px → 14px */
+    background: rgba(255,255,255,0.15);
+    border: none;
+    font-size: 18px;  /* ✅ PINALIIT: 22px → 18px */
+    color: white;
+    cursor: pointer;
+    width: 26px;  /* ✅ PINALIIT: 30px → 26px */
+    height: 26px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.forgot-modal-close:hover {
+    background: rgba(255,255,255,0.3);
+}
+
+.forgot-modal-body {
+    padding: 16px 20px 20px;  /* ✅ PINALIIT: 22px 24px 26px → 16px 20px 20px */
+}
+
+.forgot-step-title {
+    font-size: 17px;  /* ✅ PINALIIT: 20px → 17px */
+    font-weight: 700;
+    color: #0f172a;
+    margin-bottom: 4px;  /* ✅ PINALIIT: 6px → 4px */
+    text-align: center;
+}
+
+.forgot-step-desc {
+    font-size: 11px;  /* ✅ PINALIIT: 12px → 11px */
+    color: #5b6e8c;
+    text-align: center;
+    margin-bottom: 14px;  /* ✅ PINALIIT: 20px → 14px */
+}
+
+.forgot-input-group {
+    position: relative;
+    margin-bottom: 10px;  /* ✅ PINALIIT: 14px → 10px */
+}
+
+.forgot-input-group i {
+    position: absolute;
+    left: 14px;  /* ✅ PINALIIT: 15px → 14px */
+    top: 50%;
+    transform: translateY(-50%);
+    color: #7e8b9e;
+    font-size: 12px;  /* ✅ PINALIIT: 13px → 12px */
+    pointer-events: none;
+}
+
+.forgot-input-group input {
+    width: 100%;
+    padding: 9px 14px 9px 38px;  /* ✅ PINALIIT: 11px 15px 11px 42px → 9px 14px 9px 38px */
+    border: 1.5px solid #e2e8f0;
+    border-radius: 30px;  /* ✅ PINALIIT: 40px → 30px */
+    font-size: 12px;  /* ✅ PINALIIT: 13px → 12px */
+    background: #ffffff;
+    transition: all 0.2s;
+}
+
+.forgot-input-group input:focus {
+    outline: none;
+    border-color: #003c77;
+    box-shadow: 0 0 0 3px rgba(0,60,119,0.1);
+}
+
+/* ===== 6-DIGIT CODE BOXES ===== */
+.verification-code-inputs {
+    display: flex;
+    gap: 8px;  /* ✅ PINALIIT: 10px → 8px */
+    justify-content: center;
+    margin: 10px 0 14px;  /* ✅ PINALIIT: 14px 0 18px → 10px 0 14px */
+}
+
+.verification-code-inputs .code-digit {
+    width: 40px;  /* ✅ PINALIIT: 46px → 40px */
+    height: 46px;  /* ✅ PINALIIT: 52px → 46px */
+    text-align: center;
+    font-size: 20px;  /* ✅ PINALIIT: 24px → 20px */
+    font-weight: bold;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;  /* ✅ PINALIIT: 12px → 10px */
+    background: white;
+    transition: all 0.2s;
+    font-family: monospace;
+}
+
+.verification-code-inputs .code-digit:focus {
+    outline: none;
+    border-color: #0047ab;
+    box-shadow: 0 0 0 3px rgba(0, 71, 171, 0.1);
+}
+
+.forgot-timer-wrapper {
+    text-align: center;
+    margin: 8px 0 10px;  /* ✅ PINALIIT: 12px 0 14px → 8px 0 10px */
+}
+
+.forgot-timer-label {
+    font-size: 10px;  /* ✅ PINALIIT: 11px → 10px */
+    color: #5b6e8c;
+}
+
+.forgot-timer {
+    font-weight: 700;
+    color: #003c77;
+    background: #eef2ff;
+    padding: 2px 8px;  /* ✅ PINALIIT: 3px 10px → 2px 8px */
+    border-radius: 16px;  /* ✅ PINALIIT: 20px → 16px */
+    margin-left: 4px;  /* ✅ PINALIIT: 6px → 4px */
+    font-size: 12px;  /* ✅ PINALIIT: 13px → 12px */
+}
+
+.forgot-btn-primary,
+.forgot-btn-secondary {
+    width: 100%;
+    padding: 9px;  /* ✅ PINALIIT: 11px → 9px */
+    border-radius: 30px;  /* ✅ PINALIIT: 40px → 30px */
+    font-weight: 600;
+    font-size: 12px;  /* ✅ PINALIIT: 13px → 12px */
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    margin-top: 4px;  /* ✅ PINALIIT: 6px → 4px */
+}
+
+.forgot-btn-primary {
+    background: linear-gradient(95deg, #003c77, #0f5b9e);
+    color: white;
+    box-shadow: 0 3px 10px rgba(0,60,119,0.2);
+}
+
+.forgot-btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 15px rgba(0,60,119,0.3);
+}
+
+.forgot-btn-secondary {
+    background: #f1f5f9;
+    color: #334155;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 0;
+}
+
+.forgot-btn-secondary:hover:not(:disabled) {
+    background: #e4e9f0;
+}
+
+.forgot-btn-secondary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.forgot-message {
+    margin-top: 8px;  /* ✅ PINALIIT: 12px → 8px */
+    text-align: center;
+    font-size: 11px;  /* ✅ PINALIIT: 12px → 11px */
+    border-radius: 8px;  /* ✅ PINALIIT: 10px → 8px */
+    padding: 4px 8px;  /* ✅ PINALIIT: 6px → 4px 8px */
+}
+
+/* ================= FORGOT MODAL RESPONSIVE ================= */
+@media (max-width: 640px) {
+    .forgot-modal-content {
+        width: 92%;
+        max-width: 360px;  /* ✅ PINALIIT: 380px → 360px */
+        border-radius: 20px;  /* ✅ PINALIIT: 24px → 20px */
+    }
+    
+    .forgot-modal-body {
+        padding: 14px 16px 18px;  /* ✅ PINALIIT: 18px 20px 22px → 14px 16px 18px */
+    }
+    
+    .verification-code-inputs {
+        gap: 6px;  /* ✅ PINALIIT: 8px → 6px */
+        margin: 8px 0 12px;  /* ✅ PINALIIT: 12px 0 16px → 8px 0 12px */
+    }
+    
+    .verification-code-inputs .code-digit {
+        width: 36px;  /* ✅ PINALIIT: 42px → 36px */
+        height: 42px;  /* ✅ PINALIIT: 48px → 42px */
+        font-size: 18px;  /* ✅ PINALIIT: 22px → 18px */
+        border-radius: 8px;  /* ✅ PINALIIT: 10px → 8px */
+    }
+    
+    .forgot-step-title {
+        font-size: 16px;  /* ✅ PINALIIT: 19px → 16px */
+    }
+}
+
+@media (max-width: 480px) {
+    .forgot-modal-content {
+        width: 95%;
+        max-width: 340px;  /* ✅ PINALIIT: 360px → 340px */
+        border-radius: 18px;  /* ✅ PINALIIT: 20px → 18px */
+    }
+    
+    .forgot-modal-header {
+        padding: 10px 14px;  /* ✅ PINALIIT: 14px 16px → 10px 14px */
+    }
+    
+    .forgot-modal-logo {
+        height: 35px;  /* ✅ PINALIIT: 42px → 35px */
+    }
+    
+    .forgot-modal-header h3 {
+        font-size: 11px;  /* ✅ PINALIIT: 13px → 11px */
+    }
+    
+    .forgot-modal-body {
+        padding: 12px 14px 16px;  /* ✅ PINALIIT: 16px 16px 20px → 12px 14px 16px */
+    }
+    
+    .forgot-step-title {
+        font-size: 15px;  /* ✅ PINALIIT: 18px → 15px */
+    }
+    
+    .forgot-step-desc {
+        font-size: 10px;  /* ✅ PINALIIT: 11px → 10px */
+        margin-bottom: 12px;  /* ✅ PINALIIT: 16px → 12px */
+    }
+    
+    .verification-code-inputs {
+        gap: 5px;  /* ✅ PINALIIT: 6px → 5px */
+        margin: 8px 0 10px;  /* ✅ PINALIIT: 10px 0 14px → 8px 0 10px */
+    }
+    
+    .verification-code-inputs .code-digit {
+        width: 32px;  /* ✅ PINALIIT: 38px → 32px */
+        height: 38px;  /* ✅ PINALIIT: 44px → 38px */
+        font-size: 17px;  /* ✅ PINALIIT: 20px → 17px */
+        border-radius: 8px;
+        border-width: 1.5px;
+    }
+    
+    .forgot-input-group {
+        margin-bottom: 8px;  /* ✅ PINALIIT: 12px → 8px */
+    }
+    
+    .forgot-input-group input {
+        padding: 8px 12px 8px 34px;  /* ✅ PINALIIT: 10px 12px 10px 38px → 8px 12px 8px 34px */
+        font-size: 11px;  /* ✅ PINALIIT: 12px → 11px */
+        border-radius: 25px;  /* ✅ PINALIIT: 30px → 25px */
+    }
+    
+    .forgot-input-group i {
+        font-size: 11px;  /* ✅ PINALIIT: 12px → 11px */
+        left: 10px;  /* ✅ PINALIIT: 12px → 10px */
+    }
+    
+    .forgot-btn-primary,
+    .forgot-btn-secondary {
+        padding: 8px;  /* ✅ PINALIIT: 10px → 8px */
+        font-size: 11px;  /* ✅ PINALIIT: 12px → 11px */
+        margin-top: 4px;
+        border-radius: 25px;  /* ✅ PINALIIT: 30px → 25px */
+    }
+    
+    .forgot-timer-wrapper {
+        margin: 6px 0 8px;  /* ✅ PINALIIT: 10px 0 12px → 6px 0 8px */
+    }
+    
+    .forgot-timer {
+        font-size: 11px;  /* ✅ PINALIIT: 12px → 11px */
+        padding: 1px 6px;  /* ✅ PINALIIT: 2px 8px → 1px 6px */
+    }
+    
+    .forgot-timer-label {
+        font-size: 9px;  /* ✅ PINALIIT: 10px → 9px */
+    }
+}
