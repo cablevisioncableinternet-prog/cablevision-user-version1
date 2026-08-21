@@ -663,7 +663,6 @@ def public_plans():
 @app.route("/api/public/advertisements", methods=["GET"])
 def get_public_advertisements():
     """Public endpoint for homepage to fetch both images and videos from advertisements table"""
-    import mysql.connector
     conn = None
     cursor = None
     try:
