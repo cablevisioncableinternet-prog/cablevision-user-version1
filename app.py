@@ -3338,7 +3338,10 @@ def login():
                     session["user_status"] = user_data.get("status", "Active")
                 
                 # Update connection status
-                execute_query("UPDATE users SET connection_status = 'Connected' WHERE user_id = %s", (user_data.get('user_id'),))
+                execute_query(
+                    "UPDATE users SET connection_status = 'Connected' WHERE user_id = %s AND status != 'Terminated'",
+                    (user_data.get('user_id'),)
+                )
                 record_login_history(user_data.get("user_id"), tab_id)
                 
                 # Sa login route, pagkatapos mag-store ng session:
@@ -3434,7 +3437,10 @@ def login():
                     session.pop("pending_ga_user_id", None)
                     session["ga_verified"] = True
                 
-                execute_query("UPDATE users SET connection_status = 'Connected' WHERE user_id = %s", (user_data.get('user_id'),))
+                execute_query(
+                    "UPDATE users SET connection_status = 'Connected' WHERE user_id = %s AND status != 'Terminated'",
+                    (user_data.get('user_id'),)
+                )
                 record_login_history(user_data.get("user_id"), tab_id)
                 
                 print(f"✅ Login successful: {user_data.get('user_id')}")
