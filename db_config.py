@@ -1,3 +1,4 @@
+import os
 import mysql.connector
 from mysql.connector import Error
 
@@ -5,11 +6,11 @@ from mysql.connector import Error
 # DATABASE CONFIG
 # ===============================
 DB_CONFIG = {
-    'host': 'localhost',
-    'database': 'cablevision_db',
-    'user': 'root',
-    'password': '',
-    'port': 3306  # XAMPP default port (change ONLY if you really use 3307)
+    'host': os.getenv('MYSQLHOST', 'localhost'),
+    'database': os.getenv('MYSQLDATABASE', 'cablevision_db'),
+    'user': os.getenv('MYSQLUSER', 'root'),
+    'password': os.getenv('MYSQLPASSWORD', ''),
+    'port': int(os.getenv('MYSQLPORT', 3306))
 }
 
 # ===============================
@@ -36,10 +37,19 @@ def execute_query(query, params=None, fetch=False, fetch_one=False):
     connection = get_db_connection()
 
     if not connection:
+        print("[DB] Connection failed")
         return None
+
+    cursor = None
 
     try:
         cursor = connection.cursor(dictionary=True)
+
+        print(f"[QUERY] {query}")
+        print(f"[PARAMS] {params}")
+
+        if isinstance(params, list):
+            params = tuple(params)
 
         cursor.execute(query, params or ())
 
@@ -59,6 +69,10 @@ def execute_query(query, params=None, fetch=False, fetch_one=False):
 
     except Error as e:
         print(f"[QUERY ERROR] {e}")
+
+        if connection:
+            connection.rollback()
+
         return None
 
     finally:
