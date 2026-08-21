@@ -1,7 +1,9 @@
 Flask
-flask-cors
+gunicorn
 mysql-connector-python
+flask-cors
 requests
 Pillow
 reportlab
-gunicorn
+openpyxl
+groq
