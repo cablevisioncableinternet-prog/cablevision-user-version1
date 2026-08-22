@@ -974,6 +974,9 @@ def validate_area():
 @app.route("/api/areas/by-city/<city>")
 def get_areas_by_city(city):
     """Get barangays by city name"""
+    cursor = None
+    connection = None
+
     try:
         print(f"🔍 Getting barangays for city: {city}")
 
@@ -984,40 +987,53 @@ def get_areas_by_city(city):
             return jsonify([]), 500
 
         cursor = connection.cursor(dictionary=True)
-        
-        # I-print muna ang lahat ng cities sa database
+
+        # I-print ang lahat ng cities sa database
         cursor.execute("SELECT DISTINCT city FROM areas")
         all_cities = cursor.fetchall()
         print(f"📊 Cities in database: {all_cities}")
-        
+
         # Query para sa specific city
-        query = "SELECT id, barangay, zip FROM areas WHERE city = %s ORDER BY barangay"
+        # Tinatanggal ang extra spaces at trailing comma
+        query = """
+            SELECT id, barangay, zip
+            FROM areas
+            WHERE UPPER(TRIM(TRAILING ',' FROM TRIM(city))) =
+                  UPPER(TRIM(TRAILING ',' FROM TRIM(%s)))
+            ORDER BY barangay
+        """
+
         cursor.execute(query, (city,))
         areas_data = cursor.fetchall()
-        
+
         print(f"📊 Found {len(areas_data)} barangays for {city}")
         print(f"📊 Data: {areas_data}")
-        
+
         result = []
+
         for area in areas_data:
             result.append({
                 "id": area.get("id"),
                 "barangay": area.get("barangay", ""),
                 "zip": area.get("zip", "")
             })
-        
+
         return jsonify(result)
-        
+
     except Exception as e:
         print(f"❌ Error: {e}")
+
         import traceback
         traceback.print_exc()
+
         return jsonify([]), 500
+
     finally:
         if cursor:
             cursor.close()
-        if conn:
-            conn.close()
+
+        if connection:
+            connection.close()
 
 
 # =========================
