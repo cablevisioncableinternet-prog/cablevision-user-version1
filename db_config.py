@@ -33,7 +33,7 @@ def get_db_connection():
 # ===============================
 # UNIVERSAL QUERY EXECUTOR
 # ===============================
-def execute_query(query, params=None, fetch=False, fetch_one=False):
+def execute_query(query, params=None, fetch=False, fetch_one=False, fetch_all=False):
     connection = get_db_connection()
 
     if not connection:
@@ -55,12 +55,15 @@ def execute_query(query, params=None, fetch=False, fetch_one=False):
 
         result = None
 
-        if fetch:
+        # Fetch multiple rows
+        if fetch or fetch_all:
             result = cursor.fetchall()
 
+        # Fetch single row
         elif fetch_one:
             result = cursor.fetchone()
 
+        # INSERT / UPDATE / DELETE
         else:
             connection.commit()
             result = cursor.lastrowid
