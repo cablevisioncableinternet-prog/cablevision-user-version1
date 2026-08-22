@@ -325,13 +325,12 @@ def get_allowed_barangays():
     try:
         print("🔍 DEBUG: Starting get_allowed_barangays()")
         
-        import mysql.connector
-        connection = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="",
-            database="cablevision_db"
-        )
+        connection = get_db_connection()
+
+        if not connection:
+            print("❌ DEBUG: Database connection failed")
+            return get_fallback_barangays()
+
         cursor = connection.cursor(dictionary=True)
         
         query = """
@@ -458,20 +457,10 @@ def serve_shared_uploads(filename):
 def home():
     try:
         # Fetch plans from MySQL using direct connection
-        import mysql.connector
-        conn = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="",
-            database="cablevision_db"
-        )
-        cursor = conn.cursor(dictionary=True)
-        
-        cursor.execute("SELECT id, name, speed, price, image_path FROM plans ORDER BY price ASC")
-        plans_data = cursor.fetchall()
-        
-        cursor.close()
-        conn.close()
+        plans_data = execute_query(
+            "SELECT id, name, speed, price, image_path FROM plans ORDER BY price ASC",
+            fetch=True
+        ) or []
         
         plan_list = []
         for plan in plans_data:
@@ -619,20 +608,10 @@ def get_single_channel_logo(logo_id):
 def public_plans():
     """Public endpoint for plans"""
     try:
-        import mysql.connector
-        conn = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="",
-            database="cablevision_db"
-        )
-        cursor = conn.cursor(dictionary=True)
-        
-        cursor.execute("SELECT id, name, speed, price, image_path FROM plans ORDER BY price ASC")
-        plans = cursor.fetchall()
-        
-        cursor.close()
-        conn.close()
+        plans = execute_query(
+            "SELECT id, name, speed, price, image_path FROM plans ORDER BY price ASC",
+            fetch=True
+        ) or []
         
         # Format the response
         plan_list = []
@@ -663,17 +642,18 @@ def public_plans():
 @app.route("/api/public/advertisements", methods=["GET"])
 def get_public_advertisements():
     """Public endpoint for homepage to fetch both images and videos from advertisements table"""
+
     conn = None
     cursor = None
     try:
         print("🔍 Fetching advertisements for public homepage...")
         
-        conn = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="",
-            database="cablevision_db"
-        )
+        conn = get_db_connection()
+
+        if not conn:
+            print("❌ Database connection failed")
+            return jsonify([])
+
         cursor = conn.cursor(dictionary=True)
         
         # Query to get both images and videos from advertisements table
@@ -758,20 +738,10 @@ def public_announcements():
 def public_channel_logos():
     """Public endpoint for channel logos"""
     try:
-        import mysql.connector
-        conn = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="",
-            database="cablevision_db"
-        )
-        cursor = conn.cursor(dictionary=True)
-        
-        cursor.execute("SELECT id, image_path, date FROM channel_logos ORDER BY timestamp DESC")
-        logos = cursor.fetchall()
-        
-        cursor.close()
-        conn.close()
+        logos = execute_query(
+            "SELECT id, image_path, date FROM channel_logos ORDER BY timestamp DESC",
+            fetch=True
+        ) or []
         
         result = []
         for logo in logos:
@@ -805,20 +775,11 @@ def coverage():
 @app.route("/api/areas")
 def get_public_areas():
     """Public endpoint para kunin ang lahat ng areas"""
-    import mysql.connector
-    conn = None
-    cursor = None
     try:
-        conn = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="",
-            database="cablevision_db"
-        )
-        cursor = conn.cursor(dictionary=True)
-        
-        cursor.execute("SELECT id, province, city, barangay, zip FROM areas ORDER BY city, barangay")
-        areas_data = cursor.fetchall()
+        areas_data = execute_query(
+            "SELECT id, province, city, barangay, zip FROM areas ORDER BY city, barangay",
+            fetch=True
+        ) or []
         
         result = []
         for area in areas_data:
@@ -835,30 +796,16 @@ def get_public_areas():
     except Exception as e:
         print(f"Error getting areas: {e}")
         return jsonify([])
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
+
 
 
 @app.route("/plans")
 def plans():
     try:
-        import mysql.connector
-        conn = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="",
-            database="cablevision_db"
-        )
-        cursor = conn.cursor(dictionary=True)
-        
-        cursor.execute("SELECT id, name, speed, price, image_path FROM plans ORDER BY price ASC")
-        plans_data = cursor.fetchall()
-        
-        cursor.close()
-        conn.close()
+        plans_data = execute_query(
+            "SELECT id, name, speed, price, image_path FROM plans ORDER BY price ASC",
+            fetch=True
+        ) or []
         
         plan_list = []
         for plan in plans_data:
@@ -1027,19 +974,16 @@ def validate_area():
 @app.route("/api/areas/by-city/<city>")
 def get_areas_by_city(city):
     """Get barangays by city name"""
-    import mysql.connector
-    conn = None
-    cursor = None
     try:
         print(f"🔍 Getting barangays for city: {city}")
-        
-        conn = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="",
-            database="cablevision_db"
-        )
-        cursor = conn.cursor(dictionary=True)
+
+        connection = get_db_connection()
+
+        if not connection:
+            print("❌ Database connection failed")
+            return jsonify([]), 500
+
+        cursor = connection.cursor(dictionary=True)
         
         # I-print muna ang lahat ng cities sa database
         cursor.execute("SELECT DISTINCT city FROM areas")
@@ -1949,46 +1893,6 @@ def reapply_application(application_id):
         return redirect('/')
 
 
-def execute_query(query, params=None, fetch_one=False, fetch_all=False, fetch=False):
-    connection = None
-    cursor = None
-    try:
-        connection = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="",
-            database="cablevision_db"
-        )
-        cursor = connection.cursor(dictionary=True)
-        
-        if params:
-            print(f"[DB QUERY] Executing query with {len(params)} params")
-            cursor.execute(query, params)
-        else:
-            print(f"[DB QUERY] Executing query without params")
-            cursor.execute(query)
-        
-        if fetch_one:
-            result = cursor.fetchone()
-            return result
-        elif fetch_all or fetch:
-            result = cursor.fetchall()
-            return result
-        else:
-            connection.commit()
-            print(f"[DB SUCCESS] Query executed, rows affected: {cursor.rowcount}")
-            return cursor.rowcount
-            
-    except Exception as e:
-        print(f"[DB ERROR] Database error: {e}")
-        if connection:
-            connection.rollback()
-        raise e
-    finally:
-        if cursor:
-            cursor.close()
-        if connection:
-            connection.close()
 
 
 # ===============================
@@ -2008,14 +1912,16 @@ def check_email_duplicate():
             return jsonify({"available": False, "message": "Email is required"}), 400
         
         # Direct MySQL connection (para iwas sa execute_query issue)
-        connection = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="",
-            database="cablevision_db"
-        )
+        connection = get_db_connection()
+
+        if not connection:
+            return jsonify({
+                "available": False,
+                "message": "Database connection failed. Please try again."
+            }), 500
+
         cursor = connection.cursor(dictionary=True)
-        
+                
         # Query to check existing applications
         query = """
             SELECT application_number, status FROM applications 
@@ -2312,12 +2218,12 @@ def is_email_duplicate_allowed(email, exclude_application_id=None):
     cursor = None
     try:
         # MySQL connection
-        connection = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="",  # iyong MySQL password
-            database="cablevision_db"  # iyong database name
-        )
+        connection = get_db_connection()
+
+        if not connection:
+            print("❌ Database connection failed")
+            return False, None
+
         cursor = connection.cursor(dictionary=True)
         
         # Base query to find applications with the given email
@@ -6609,13 +6515,12 @@ chat_conversations = {}
 def get_dynamic_barangay_data():
     """Get barangay data dynamically from MySQL areas table (service coverage areas)"""
     try:
-        import mysql.connector
-        conn = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="",
-            database="cablevision_db"
-        )
+        conn = get_db_connection()
+
+        if not conn:
+            print("❌ Database connection failed")
+            return get_fallback_barangays()
+
         cursor = conn.cursor(dictionary=True)
         
         # Get ALL barangays from areas table (service coverage areas)
@@ -7025,19 +6930,13 @@ Would you like the list of barangays in any of these municipalities, Ka-CV?"""
 
 def fetch_current_plans():
     try:
-        import mysql.connector
-        conn = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="",
-            database="cablevision_db"
+        plans = execute_query(
+            "SELECT id, name, speed, price FROM plans ORDER BY price ASC",
+            fetch=True
         )
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute("SELECT id, name, speed, price FROM plans ORDER BY price ASC")
-        plans = cursor.fetchall()
-        cursor.close()
-        conn.close()
+
         return plans or []
+
     except Exception as e:
         print(f"Fetch current plans error: {e}")
         return []
@@ -7441,13 +7340,16 @@ Extension Offices:
 def get_user_napbox_slots():
     """Get all NAP boxes and slots for user application"""
     try:
-        import mysql.connector
-        connection = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="",
-            database="cablevision_db"
-        )
+        connection = get_db_connection()
+
+        if not connection:
+            return jsonify({
+                'success': False,
+                'error': 'Database connection failed',
+                'napboxes': [],
+                'slots': []
+            }), 500
+
         cursor = connection.cursor(dictionary=True)
         
         # Get all napboxes
