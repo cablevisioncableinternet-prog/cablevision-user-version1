@@ -40,6 +40,8 @@ app = Flask(__name__)
 CORS(app)
 
 
+
+
 import cloudinary
 import cloudinary.uploader
 import os
@@ -494,6 +496,11 @@ if IS_RAILWAY:
 else:
     # Local: Use Windows path
     SHARED_UPLOADS_BASE = r"C:\xampp\htdocs\cablevision_uploads"
+
+
+UPLOADS_FOLDER_NAME = "application_uploads"
+
+
 
 @app.route('/shared-uploads/<path:filename>')
 def serve_shared_uploads(filename):
@@ -1356,9 +1363,7 @@ def submit_application():
     print(f"TV Type: {tv_type}")
     print("="*50 + "\n")
     
-    # ========== UPLOAD CONFIGURATION ==========
-    SHARED_UPLOADS_BASE = r"C:\xampp\htdocs\cablevision_uploads"
-    UPLOADS_FOLDER_NAME = "application_uploads"
+    
     
     def save_uploaded_file(file_input, application_number, file_type, max_size=(800, 800), quality=75):
         """Save uploaded file to shared uploads folder and return URL path"""
@@ -2581,7 +2586,7 @@ def download_pdf(application_number):
                 # URL: /shared-uploads/application_uploads/1234567890/profile_photo_1234567890.jpg
                 # Path: C:\xampp\htdocs\cablevision_uploads\application_uploads\1234567890\profile_photo_1234567890.jpg
                 relative_path = image_value.replace('/shared-uploads/', '')
-                full_path = os.path.join(r"C:\xampp\htdocs\cablevision_uploads", relative_path)
+                full_path = os.path.join(SHARED_UPLOADS_BASE, relative_path)
                 
                 if os.path.exists(full_path):
                     return ImageReader(full_path)
@@ -5380,7 +5385,7 @@ def get_signature_image(signature_data, width=180, height=50):
             # Case 1: File path URL (starts with /shared-uploads/)
             if signature_data.startswith('/shared-uploads/'):
                 # Base directory for uploaded files
-                base_dir = r"C:\xampp\htdocs\cablevision_uploads"
+                base_dir = SHARED_UPLOADS_BASE  # Use the global variable
                 # Remove the /shared-uploads/ prefix to get relative path
                 relative_path = signature_data.replace('/shared-uploads/', '')
                 full_path = os.path.join(base_dir, relative_path)
