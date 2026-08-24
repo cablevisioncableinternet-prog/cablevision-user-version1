@@ -50,9 +50,6 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 
-# ============================================================
-# CLOUDINARY HELPER FUNCTION (I-ADD SA TOP OF app.py)
-# ============================================================
 def get_cloudinary_url(image_path):
     """Convert image path to Cloudinary URL"""
     if not image_path:
@@ -64,14 +61,17 @@ def get_cloudinary_url(image_path):
     
     # If path starts with 'cablevision/'
     if image_path.startswith('cablevision/'):
-        # Remove 'cablevision/' prefix
-        cloudinary_path = image_path.replace('cablevision/', '')
-        return f"https://res.cloudinary.com/oa3fcr2b/image/upload/{cloudinary_path}"
+        # ✅ KEEP the 'cablevision/' prefix
+        return f"https://res.cloudinary.com/oa3fcr2b/image/upload/{image_path}"
     
     # If path still has /shared-uploads/ (legacy)
     if image_path.startswith('/shared-uploads/'):
-        cloudinary_path = image_path.replace('/shared-uploads/', '')
+        cloudinary_path = image_path.replace('/shared-uploads/', 'cablevision/')
         return f"https://res.cloudinary.com/oa3fcr2b/image/upload/{cloudinary_path}"
+    
+    # If path starts with just 'plans/' (no cablevision prefix)
+    if image_path.startswith('plans/'):
+        return f"https://res.cloudinary.com/oa3fcr2b/image/upload/cablevision/{image_path}"
     
     # Default: return as is
     return image_path
