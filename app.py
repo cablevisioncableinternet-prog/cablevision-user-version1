@@ -1263,6 +1263,109 @@ def validate_location_barangay(lat, lng):
 
 
 
+# ============================================================
+# CLOUDINARY HELPER FUNCTIONS FOR APPLICATIONS
+# ============================================================
+
+def upload_to_cloudinary_application(file, application_number, file_type):
+    """Upload application document to Cloudinary and return URL"""
+    try:
+        print(f"📤 Uploading {file_type} for application {application_number}")
+        
+        # I-reset ang file pointer
+        file.stream.seek(0)
+        
+        # Generate public_id with application number
+        timestamp = int(time.time())
+        public_id = f"{application_number}/{file_type}_{timestamp}"
+        
+        # Process image with PIL
+        from PIL import Image
+        import io
+        
+        img = Image.open(file.stream)
+        
+        # Convert to RGB if needed
+        if img.mode in ('RGBA', 'P'):
+            img = img.convert('RGB')
+        
+        # Resize to max_size (800x800) while maintaining aspect ratio
+        max_size = (800, 800)
+        img.thumbnail(max_size, Image.Resampling.LANCZOS)
+        
+        # Save to BytesIO
+        img_byte_arr = io.BytesIO()
+        img.save(img_byte_arr, format='JPEG', quality=85, optimize=True)
+        img_byte_arr.seek(0)
+        
+        # Upload to Cloudinary
+        result = cloudinary.uploader.upload(
+            img_byte_arr,
+            folder="cablevision/application_uploads",
+            public_id=public_id,
+            resource_type="image",
+            overwrite=True
+        )
+        
+        url_path = f"/shared-uploads/application_uploads/{application_number}/{file_type}_{timestamp}.jpg"
+        print(f"✅ Uploaded to Cloudinary: {result['secure_url']}")
+        return result['secure_url']
+        
+    except Exception as e:
+        print(f"❌ Cloudinary upload error for {file_type}: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+def upload_base64_to_cloudinary(base64_string, application_number, file_type, max_size=(800, 800), quality=85):
+    """Upload base64 image to Cloudinary and return URL"""
+    if not base64_string:
+        return None
+    
+    try:
+        import io
+        from PIL import Image
+        import base64
+        
+        # Remove data:image prefix if present
+        if base64_string.startswith('data:image'):
+            base64_string = base64_string.split(',', 1)[1]
+        
+        # Decode base64
+        img_data = base64.b64decode(base64_string)
+        img = Image.open(io.BytesIO(img_data))
+        
+        if img.mode in ('RGBA', 'P'):
+            img = img.convert('RGB')
+        
+        img.thumbnail(max_size, Image.Resampling.LANCZOS)
+        
+        # Save to BytesIO
+        img_byte_arr = io.BytesIO()
+        img.save(img_byte_arr, format='JPEG', quality=quality, optimize=True)
+        img_byte_arr.seek(0)
+        
+        # Generate public_id
+        timestamp = int(time.time())
+        public_id = f"{application_number}/{file_type}_{timestamp}"
+        
+        # Upload to Cloudinary
+        result = cloudinary.uploader.upload(
+            img_byte_arr,
+            folder="cablevision/application_uploads",
+            public_id=public_id,
+            resource_type="image",
+            overwrite=True
+        )
+        
+        print(f"✅ Base64 uploaded to Cloudinary: {result['secure_url']}")
+        return result['secure_url']
+        
+    except Exception as e:
+        print(f"❌ Base64 upload error for {file_type}: {e}")
+        return None
+
+    
 # ===============================
 # APPLICATION SUBMIT (XAMPP/MYSQL VERSION WITH FILE UPLOADS)
 # ===============================
@@ -1393,79 +1496,28 @@ def submit_application():
     
     
     def save_uploaded_file(file_input, application_number, file_type, max_size=(800, 800), quality=75):
-        """Save uploaded file to shared uploads folder and return URL path"""
+        """Save uploaded file to Cloudinary and return URL path"""
         if not file_input or file_input.filename == '':
             return None
         
         try:
-            # Open and process image
-            img = Image.open(file_input)
-            
-            if img.mode in ('RGBA', 'P'):
-                img = img.convert('RGB')
-            
-            img.thumbnail(max_size, Image.Resampling.LANCZOS)
-            
-            # Create folder structure: cablevision_uploads/application_uploads/[application_number]/
-            app_folder = os.path.join(SHARED_UPLOADS_BASE, UPLOADS_FOLDER_NAME, application_number)
-            if not os.path.exists(app_folder):
-                os.makedirs(app_folder)
-                print(f"📁 Created folder: {app_folder}")
-            
-            # Generate filename with timestamp
-            timestamp = int(time.time())
-            filename = f"{file_type}_{timestamp}.jpg"
-            file_path = os.path.join(app_folder, filename)
-            
-            # Save image
-            img.save(file_path, format='JPEG', quality=quality, optimize=True)
-            
-            # Return URL path (for database and template)
-            url_path = f"/shared-uploads/{UPLOADS_FOLDER_NAME}/{application_number}/{filename}"
-            print(f"✅ Image saved: {file_path} -> URL: {url_path}")
-            return url_path
+            # ✅ Upload to Cloudinary
+            url = upload_to_cloudinary_application(file_input, application_number, file_type)
+            return url
             
         except Exception as e:
             print(f"❌ Error saving {file_type}: {e}")
             return None
     
     def save_base64_image(base64_string, application_number, file_type, max_size=(800, 800), quality=75):
-        """Save base64 image to shared uploads folder and return URL path"""
+        """Save base64 image to Cloudinary and return URL path"""
         if not base64_string:
             return None
         
         try:
-            # Remove data:image prefix if present
-            if base64_string.startswith('data:image'):
-                base64_string = base64_string.split(',', 1)[1]
-            
-            # Decode base64
-            img_data = base64.b64decode(base64_string)
-            img = Image.open(io.BytesIO(img_data))
-            
-            if img.mode in ('RGBA', 'P'):
-                img = img.convert('RGB')
-            
-            img.thumbnail(max_size, Image.Resampling.LANCZOS)
-            
-            # Create folder structure
-            app_folder = os.path.join(SHARED_UPLOADS_BASE, UPLOADS_FOLDER_NAME, application_number)
-            if not os.path.exists(app_folder):
-                os.makedirs(app_folder)
-                print(f"📁 Created folder: {app_folder}")
-            
-            # Generate filename with timestamp
-            timestamp = int(time.time())
-            filename = f"{file_type}_{timestamp}.jpg"
-            file_path = os.path.join(app_folder, filename)
-            
-            # Save image
-            img.save(file_path, format='JPEG', quality=quality, optimize=True)
-            
-            # Return URL path
-            url_path = f"/shared-uploads/{UPLOADS_FOLDER_NAME}/{application_number}/{filename}"
-            print(f"✅ Base64 image saved: {file_path} -> URL: {url_path}")
-            return url_path
+            # ✅ Upload to Cloudinary
+            url = upload_base64_to_cloudinary(base64_string, application_number, file_type, max_size, quality)
+            return url
             
         except Exception as e:
             print(f"❌ Error saving base64 {file_type}: {e}")
@@ -3486,8 +3538,9 @@ def send_otp_email(to_email, otp_code):
     Sends an OTP email to the given recipient using Gmail SMTP with App Password.
     Returns True if successful, False otherwise.
     """
-    gmail_user = "cablevision.cableinternet@gmail.com"
-    gmail_app_password = "gbkbembhkfmsoxsx"
+    # Sa send_verification_code route, gamitin ang environment variables
+    gmail_user = os.getenv('GMAIL_USER', 'cablevision.cableinternet@gmail.com')
+    gmail_app_password = os.getenv('GMAIL_APP_PASSWORD', 'gbkbembhkfmsoxsx')
 
     subject = "Your OTP Verification Code - CableVision"
 
