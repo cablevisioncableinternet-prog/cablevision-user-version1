@@ -49,6 +49,34 @@ from flask import Flask, request, jsonify
 
 app = Flask(__name__)
 
+
+# ============================================================
+# CLOUDINARY HELPER FUNCTION (I-ADD SA TOP OF app.py)
+# ============================================================
+def get_cloudinary_url(image_path):
+    """Convert image path to Cloudinary URL"""
+    if not image_path:
+        return ''
+    
+    # If already a full URL
+    if image_path.startswith('http'):
+        return image_path
+    
+    # If path starts with 'cablevision/'
+    if image_path.startswith('cablevision/'):
+        # Remove 'cablevision/' prefix
+        cloudinary_path = image_path.replace('cablevision/', '')
+        return f"https://res.cloudinary.com/oa3fcr2b/image/upload/{cloudinary_path}"
+    
+    # If path still has /shared-uploads/ (legacy)
+    if image_path.startswith('/shared-uploads/'):
+        cloudinary_path = image_path.replace('/shared-uploads/', '')
+        return f"https://res.cloudinary.com/oa3fcr2b/image/upload/{cloudinary_path}"
+    
+    # Default: return as is
+    return image_path
+
+
 # Configure Cloudinary (gagamitin nito ang environment variables na na-set mo sa Railway)
 cloudinary.config(
     cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME'),
@@ -84,31 +112,6 @@ def upload_image():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-
-@app.route("/")
-def home():
-    try:
-        # Fetch plans from MySQL
-        plans_data = execute_query(
-            "SELECT id, name, speed, price, image_path FROM plans ORDER BY price ASC",
-            fetch=True
-        ) or []
-        
-        plan_list = []
-        for plan in plans_data:
-            plan_list.append({
-                "id": plan.get("id"),
-                "name": plan.get("name", ""),
-                "speed": plan.get("speed", ""),
-                "price": float(plan.get("price", 0)),
-                "image": get_cloudinary_url(plan.get("image_path", ""))  # ✅ Use helper
-            })
-        
-        return render_template("user-homepage.html", plans=plan_list)
-        
-    except Exception as e:
-        print(f"Home error: {e}")
-        return render_template("user-homepage.html", plans=[])
 
 
 app.secret_key = "my_super_secure_random_key_12345"
@@ -537,9 +540,6 @@ def serve_shared_uploads(filename):
     return send_from_directory(SHARED_UPLOADS_BASE, filename)
 
 
-# ===============================
-# ROUTES
-# ===============================
 @app.route("/")
 def home():
     try:
