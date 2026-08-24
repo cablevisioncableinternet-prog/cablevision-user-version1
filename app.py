@@ -550,7 +550,7 @@ def serve_shared_uploads(filename):
     return send_from_directory(SHARED_UPLOADS_BASE, filename)
 
 
-@@app.route("/")
+@app.route("/")
 def home():
     try:
         # Fetch plans from MySQL
