@@ -2442,7 +2442,7 @@ def is_email_duplicate_allowed_with_reapply_check(email, application_number):
 
 
 
-@@app.route("/send-verification-code", methods=["POST"])
+@app.route("/send-verification-code", methods=["POST"])
 def send_verification_code():
     try:
         data = request.get_json()
