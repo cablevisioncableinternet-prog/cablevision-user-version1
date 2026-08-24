@@ -483,7 +483,17 @@ def is_valid_barangay(city_name, barangay_name):
 import os
 from flask import send_from_directory
 
-SHARED_UPLOADS_BASE = r"C:\xampp\htdocs\cablevision_uploads"
+import os
+
+# Detect if running on Railway
+IS_RAILWAY = os.environ.get('RAILWAY_ENVIRONMENT') is not None
+
+if IS_RAILWAY:
+    # Railway: Use shared volume
+    SHARED_UPLOADS_BASE = '/app/uploads'
+else:
+    # Local: Use Windows path
+    SHARED_UPLOADS_BASE = r"C:\xampp\htdocs\cablevision_uploads"
 
 @app.route('/shared-uploads/<path:filename>')
 def serve_shared_uploads(filename):
