@@ -2475,7 +2475,6 @@ def send_verification_code():
         import smtplib
         from email.mime.multipart import MIMEMultipart
         from email.mime.text import MIMEText
-        import time
         
         gmail_user = os.getenv('GMAIL_USER', 'cablevision.cableinternet@gmail.com')
         gmail_app_password = os.getenv('GMAIL_APP_PASSWORD', 'gbkbembhkfmsoxsx')
