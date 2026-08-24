@@ -50,7 +50,7 @@ from flask import Flask, request, jsonify
 app = Flask(__name__)
 
 
-def get_cloudinary_url(image_path):
+def get_cloudinary_url(image_path, resource_type="image"):
     """Convert image path to Cloudinary URL"""
     print(f"🔍 get_cloudinary_url called with: {image_path}")
     
@@ -63,23 +63,21 @@ def get_cloudinary_url(image_path):
         print(f"✅ Already a full URL: {image_path}")
         return image_path
     
+    # Determine resource type (image or video)
+    is_video = resource_type == "video" or image_path.endswith(('.mp4', '.avi', '.mov', '.mkv'))
+    upload_type = "video" if is_video else "image"
+    
     # If path starts with 'cablevision/'
     if image_path.startswith('cablevision/'):
-        result = f"https://res.cloudinary.com/oa3fcr2b/image/upload/{image_path}"
+        result = f"https://res.cloudinary.com/oa3fcr2b/{upload_type}/upload/{image_path}"
         print(f"✅ Converted cablevision/ to: {result}")
         return result
     
     # If path still has /shared-uploads/ (legacy)
     if image_path.startswith('/shared-uploads/'):
         cloudinary_path = image_path.replace('/shared-uploads/', 'cablevision/')
-        result = f"https://res.cloudinary.com/oa3fcr2b/image/upload/{cloudinary_path}"
+        result = f"https://res.cloudinary.com/oa3fcr2b/{upload_type}/upload/{cloudinary_path}"
         print(f"✅ Converted legacy path to: {result}")
-        return result
-    
-    # If path starts with just 'plans/' (no cablevision prefix)
-    if image_path.startswith('plans/'):
-        result = f"https://res.cloudinary.com/oa3fcr2b/image/upload/cablevision/{image_path}"
-        print(f"✅ Converted plans/ to: {result}")
         return result
     
     # Default: return as is
@@ -743,7 +741,6 @@ def public_plans():
 # ===============================
 @app.route("/api/public/advertisements", methods=["GET"])
 def get_public_advertisements():
-    """Public endpoint for homepage to fetch both images and videos from advertisements table"""
     conn = None
     cursor = None
     try:
@@ -770,14 +767,15 @@ def get_public_advertisements():
         ad_list = []
         for ad in ads:
             file_path = ad.get('file_path', '')
+            file_type = ad.get('file_type', 'image')
             
-            # ✅ Convert to Cloudinary URL
-            formatted_file_path = get_cloudinary_url(file_path)
+            # ✅ Pass resource_type to get_cloudinary_url
+            formatted_file_path = get_cloudinary_url(file_path, resource_type=file_type)
             
             ad_list.append({
                 "id": ad['id'],
-                "filePath": formatted_file_path,  # ✅ Updated
-                "fileType": ad.get('file_type', 'image'),
+                "filePath": formatted_file_path,
+                "fileType": file_type,
                 "fileSize": ad.get('file_size', 0),
                 "date": ad.get('date', ''),
                 "timestamp": ad.get('timestamp', 0)
