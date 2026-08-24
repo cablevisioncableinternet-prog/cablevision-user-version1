@@ -744,21 +744,18 @@ def public_plans():
 @app.route("/api/public/advertisements", methods=["GET"])
 def get_public_advertisements():
     """Public endpoint for homepage to fetch both images and videos from advertisements table"""
-
     conn = None
     cursor = None
     try:
         print("🔍 Fetching advertisements for public homepage...")
         
         conn = get_db_connection()
-
         if not conn:
             print("❌ Database connection failed")
             return jsonify([])
 
         cursor = conn.cursor(dictionary=True)
         
-        # Query to get both images and videos from advertisements table
         query = """
             SELECT id, file_path, file_type, file_size, date, timestamp, created_at
             FROM advertisements 
@@ -772,16 +769,20 @@ def get_public_advertisements():
         
         ad_list = []
         for ad in ads:
+            file_path = ad.get('file_path', '')
+            
+            # ✅ Convert to Cloudinary URL
+            formatted_file_path = get_cloudinary_url(file_path)
+            
             ad_list.append({
                 "id": ad['id'],
-                "filePath": ad.get('file_path', ''),
+                "filePath": formatted_file_path,  # ✅ Updated
                 "fileType": ad.get('file_type', 'image'),
                 "fileSize": ad.get('file_size', 0),
                 "date": ad.get('date', ''),
                 "timestamp": ad.get('timestamp', 0)
             })
         
-        # Count for debugging
         images = [a for a in ad_list if a['fileType'] == 'image']
         videos = [a for a in ad_list if a['fileType'] == 'video']
         print(f"📸 Images: {len(images)}, 🎬 Videos: {len(videos)}")
@@ -816,16 +817,15 @@ def public_announcements():
         result = []
         for ann in announcements:
             image_path = ann.get('image_path', '')
-            if image_path and image_path.startswith('/shared-uploads/'):
-                formatted_image = image_path
-            else:
-                formatted_image = image_path or ''
+            
+            # ✅ Convert to Cloudinary URL
+            formatted_image = get_cloudinary_url(image_path)
             
             result.append({
                 "id": ann['id'],
                 "title": ann.get('title', ''),
                 "message": ann.get('message', ''),
-                "imageBase64": formatted_image,
+                "imageBase64": formatted_image,  # ✅ Updated
                 "date": ann.get('date', ''),
                 "timestamp": ann.get('timestamp', 0),
                 "expirationDate": ann.get('expirationDate', '')
@@ -848,14 +848,13 @@ def public_channel_logos():
         result = []
         for logo in logos:
             image_path = logo.get('image_path', '')
-            if image_path and image_path.startswith('/shared-uploads/'):
-                formatted_image = image_path
-            else:
-                formatted_image = image_path or ''
+            
+            # ✅ Convert to Cloudinary URL
+            formatted_image = get_cloudinary_url(image_path)
             
             result.append({
                 "id": logo['id'],
-                "image": formatted_image,
+                "image": formatted_image,  # ✅ Updated
                 "name": f"logo_{logo['id']}",
                 "date": logo.get('date', '')
             })
