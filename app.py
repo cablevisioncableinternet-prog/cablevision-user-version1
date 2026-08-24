@@ -2453,14 +2453,13 @@ def send_verification_code():
         if not email:
             return jsonify({"success": False, "message": "Email is required"}), 400
         
-        # ========== DUPLICATE EMAIL CHECK (bago magpadala ng code) ==========
+        # ========== DUPLICATE EMAIL CHECK ==========
         blocked, existing = is_email_duplicate_allowed(
             email,
             exclude_application_id=original_application_id if is_reapply else None
         )
         if blocked:
             error_msg = f"This email belongs to another active application (status: {existing.get('status')}). Cannot {'re-apply' if is_reapply else 'apply'} with this email."
-            print(f"❌ {error_msg}")
             return jsonify({"success": False, "message": error_msg}), 400
         
         # Generate 6-digit code
@@ -2469,10 +2468,18 @@ def send_verification_code():
         # Store with timestamp (5 minutes expiry)
         verification_codes[email] = {
             'code': code,
-            'expires_at': time.time() + 300  # 5 minutes
+            'expires_at': time.time() + 300
         }
         
-        # ===== EMAIL SENDER =====
+        # ===== SEND EMAIL WITH RETRY LOGIC =====
+        import smtplib
+        from email.mime.multipart import MIMEMultipart
+        from email.mime.text import MIMEText
+        import time
+        
+        gmail_user = os.getenv('GMAIL_USER', 'cablevision.cableinternet@gmail.com')
+        gmail_app_password = os.getenv('GMAIL_APP_PASSWORD', 'gbkbembhkfmsoxsx')
+        
         subject = "Cablevision Application - Email Verification Code"
         
         html_body = f"""
@@ -2512,35 +2519,49 @@ def send_verification_code():
         
         plain_body = f"CableVision Verification Code: {code}\n\nThis code expires in 5 minutes.\n\nIf you did not request this, please ignore this email."
         
-        gmail_user = os.getenv('GMAIL_USER', 'cablevision.cableinternet@gmail.com')
-        gmail_app_password = os.getenv('GMAIL_APP_PASSWORD', 'gbkbembhkfmsoxsx')
+        # ✅ RETRY LOGIC - 3 attempts
+        max_retries = 3
+        retry_delay = 2  # seconds
         
-        msg = MIMEMultipart('alternative')
-        msg['From'] = gmail_user
-        msg['To'] = email
-        msg['Subject'] = subject
-        msg.attach(MIMEText(plain_body, 'plain'))
-        msg.attach(MIMEText(html_body, 'html'))
-        
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls()
-        server.login(gmail_user, gmail_app_password)
-        server.send_message(msg)
-        server.quit()
-        
-        print(f"✅ Verification code sent to {email}: {code}")
-        
-        return jsonify({
-            "success": True, 
-            "message": "Verification code sent to your email",
-            "expires_in": 300
-        })
+        for attempt in range(max_retries):
+            try:
+                print(f"📧 Attempt {attempt + 1} to send email to {email}...")
+                
+                msg = MIMEMultipart('alternative')
+                msg['From'] = gmail_user
+                msg['To'] = email
+                msg['Subject'] = subject
+                msg.attach(MIMEText(plain_body, 'plain'))
+                msg.attach(MIMEText(html_body, 'html'))
+                
+                # Set timeout para hindi mag-hang
+                server = smtplib.SMTP('smtp.gmail.com', 587, timeout=15)
+                server.starttls()
+                server.login(gmail_user, gmail_app_password)
+                server.send_message(msg)
+                server.quit()
+                
+                print(f"✅ Verification code sent to {email}: {code}")
+                return jsonify({
+                    "success": True, 
+                    "message": "Verification code sent to your email",
+                    "expires_in": 300
+                })
+                
+            except Exception as e:
+                print(f"❌ Email attempt {attempt + 1} failed: {e}")
+                if attempt < max_retries - 1:
+                    print(f"⏳ Retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                else:
+                    print(f"❌ All {max_retries} attempts failed")
+                    raise e
         
     except Exception as e:
         print(f"Error sending verification email: {e}")
         import traceback
         traceback.print_exc()
-        return jsonify({"success": False, "message": str(e)}), 500
+        return jsonify({"success": False, "message": "Failed to send verification email. Please try again later."}), 500
 
 
 @app.route("/verify-email-code", methods=["POST"])
