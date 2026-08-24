@@ -2442,7 +2442,7 @@ def is_email_duplicate_allowed_with_reapply_check(email, application_number):
 
 
 
-@app.route("/send-verification-code", methods=["POST"])
+@@app.route("/send-verification-code", methods=["POST"])
 def send_verification_code():
     try:
         data = request.get_json()
@@ -2471,13 +2471,21 @@ def send_verification_code():
             'expires_at': time.time() + 300
         }
         
-        # ===== SEND EMAIL WITH RETRY LOGIC =====
+        # ===== SEND EMAIL USING BREVO SMTP =====
         import smtplib
         from email.mime.multipart import MIMEMultipart
         from email.mime.text import MIMEText
         
-        gmail_user = os.getenv('GMAIL_USER', 'cablevision.cableinternet@gmail.com')
-        gmail_app_password = os.getenv('GMAIL_APP_PASSWORD', 'gbkbembhkfmsoxsx')
+        # ✅ PALITAN ITO: Gmail → Brevo
+        smtp_host = os.getenv('SMTP_HOST', 'smtp-relay.brevo.com')
+        smtp_port = int(os.getenv('SMTP_PORT', 587))
+        smtp_user = os.getenv('SMTP_USER', '')
+        smtp_password = os.getenv('SMTP_PASSWORD', '')
+        smtp_from = os.getenv('SMTP_FROM', 'cablevision.cableinternet@gmail.com')
+        
+        if not smtp_user or not smtp_password:
+            print("❌ SMTP credentials not configured!")
+            return jsonify({"success": False, "message": "Email service not configured. Please contact support."}), 500
         
         subject = "Cablevision Application - Email Verification Code"
         
@@ -2518,43 +2526,28 @@ def send_verification_code():
         
         plain_body = f"CableVision Verification Code: {code}\n\nThis code expires in 5 minutes.\n\nIf you did not request this, please ignore this email."
         
-        # ✅ RETRY LOGIC - 3 attempts
-        max_retries = 3
-        retry_delay = 2  # seconds
+        msg = MIMEMultipart('alternative')
+        msg['From'] = smtp_from
+        msg['To'] = email
+        msg['Subject'] = subject
+        msg.attach(MIMEText(plain_body, 'plain'))
+        msg.attach(MIMEText(html_body, 'html'))
         
-        for attempt in range(max_retries):
-            try:
-                print(f"📧 Attempt {attempt + 1} to send email to {email}...")
-                
-                msg = MIMEMultipart('alternative')
-                msg['From'] = gmail_user
-                msg['To'] = email
-                msg['Subject'] = subject
-                msg.attach(MIMEText(plain_body, 'plain'))
-                msg.attach(MIMEText(html_body, 'html'))
-                
-                # Set timeout para hindi mag-hang
-                server = smtplib.SMTP('smtp.gmail.com', 587, timeout=15)
-                server.starttls()
-                server.login(gmail_user, gmail_app_password)
-                server.send_message(msg)
-                server.quit()
-                
-                print(f"✅ Verification code sent to {email}: {code}")
-                return jsonify({
-                    "success": True, 
-                    "message": "Verification code sent to your email",
-                    "expires_in": 300
-                })
-                
-            except Exception as e:
-                print(f"❌ Email attempt {attempt + 1} failed: {e}")
-                if attempt < max_retries - 1:
-                    print(f"⏳ Retrying in {retry_delay} seconds...")
-                    time.sleep(retry_delay)
-                else:
-                    print(f"❌ All {max_retries} attempts failed")
-                    raise e
+        print(f"📧 Sending email via Brevo to {email}...")
+        
+        # ✅ Palitan ang Gmail SMTP ng Brevo SMTP
+        server = smtplib.SMTP(smtp_host, smtp_port, timeout=30)
+        server.starttls()
+        server.login(smtp_user, smtp_password)
+        server.send_message(msg)
+        server.quit()
+        
+        print(f"✅ Verification code sent to {email}: {code}")
+        return jsonify({
+            "success": True, 
+            "message": "Verification code sent to your email",
+            "expires_in": 300
+        })
         
     except Exception as e:
         print(f"Error sending verification email: {e}")
