@@ -52,28 +52,38 @@ app = Flask(__name__)
 
 def get_cloudinary_url(image_path):
     """Convert image path to Cloudinary URL"""
+    print(f"🔍 get_cloudinary_url called with: {image_path}")
+    
     if not image_path:
+        print(f"⚠️ image_path is empty")
         return ''
     
     # If already a full URL
     if image_path.startswith('http'):
+        print(f"✅ Already a full URL: {image_path}")
         return image_path
     
     # If path starts with 'cablevision/'
     if image_path.startswith('cablevision/'):
-        # ✅ KEEP the 'cablevision/' prefix
-        return f"https://res.cloudinary.com/oa3fcr2b/image/upload/{image_path}"
+        result = f"https://res.cloudinary.com/oa3fcr2b/image/upload/{image_path}"
+        print(f"✅ Converted cablevision/ to: {result}")
+        return result
     
     # If path still has /shared-uploads/ (legacy)
     if image_path.startswith('/shared-uploads/'):
         cloudinary_path = image_path.replace('/shared-uploads/', 'cablevision/')
-        return f"https://res.cloudinary.com/oa3fcr2b/image/upload/{cloudinary_path}"
+        result = f"https://res.cloudinary.com/oa3fcr2b/image/upload/{cloudinary_path}"
+        print(f"✅ Converted legacy path to: {result}")
+        return result
     
     # If path starts with just 'plans/' (no cablevision prefix)
     if image_path.startswith('plans/'):
-        return f"https://res.cloudinary.com/oa3fcr2b/image/upload/cablevision/{image_path}"
+        result = f"https://res.cloudinary.com/oa3fcr2b/image/upload/cablevision/{image_path}"
+        print(f"✅ Converted plans/ to: {result}")
+        return result
     
     # Default: return as is
+    print(f"⚠️ No matching condition, returning as is: {image_path}")
     return image_path
 
 
@@ -540,7 +550,7 @@ def serve_shared_uploads(filename):
     return send_from_directory(SHARED_UPLOADS_BASE, filename)
 
 
-@app.route("/")
+@@app.route("/")
 def home():
     try:
         # Fetch plans from MySQL
@@ -551,12 +561,22 @@ def home():
         
         plan_list = []
         for plan in plans_data:
+            image_path = plan.get("image_path", "")
+            
+            # ✅ I-PRINT PARA MAKITA SA LOGS
+            print(f"📸 Raw image_path: {image_path}")
+            
+            cloudinary_url = get_cloudinary_url(image_path)
+            
+            # ✅ I-PRINT ANG RESULT
+            print(f"✅ Cloudinary URL: {cloudinary_url}")
+            
             plan_list.append({
                 "id": plan.get("id"),
                 "name": plan.get("name", ""),
                 "speed": plan.get("speed", ""),
                 "price": float(plan.get("price", 0)),
-                "image": get_cloudinary_url(plan.get("image_path", ""))  # ✅ Use helper
+                "image": cloudinary_url
             })
         
         return render_template("user-homepage.html", plans=plan_list)
