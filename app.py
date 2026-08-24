@@ -39,6 +39,51 @@ from reportlab.platypus import Table, TableStyle
 app = Flask(__name__)
 CORS(app)
 
+
+import cloudinary
+import cloudinary.uploader
+import os
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+# Configure Cloudinary (gagamitin nito ang environment variables na na-set mo sa Railway)
+cloudinary.config(
+    cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME'),
+    api_key=os.getenv('CLOUDINARY_API_KEY'),
+    api_secret=os.getenv('CLOUDINARY_API_SECRET')
+)
+
+# ✅ I-ADD ITO: Ang /api/upload route
+@app.route('/api/upload', methods=['POST'])
+def upload_image():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+
+    folder = request.form.get('folder', 'general') 
+
+    try:
+        upload_result = cloudinary.uploader.upload(
+            file, 
+            folder=f"cablevision/{folder}"
+        )
+        image_url = upload_result['secure_url']
+        
+        return jsonify({
+            'message': 'Upload successful!',
+            'url': image_url,
+            'public_id': upload_result['public_id']
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500, pasto ko to sa parehong app.py?
+
+
+
 app.secret_key = "my_super_secure_random_key_12345"
 
 
