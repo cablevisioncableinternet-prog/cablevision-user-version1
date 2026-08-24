@@ -527,10 +527,24 @@ def home():
         plan_list = []
         for plan in plans_data:
             image_path = plan.get("image_path", "")
-            if image_path and image_path.startswith('/shared-uploads/'):
-                formatted_image = image_path
+            
+            # ✅ I-UPDATE ITO: Convert to Cloudinary URL
+            if image_path:
+                # If it starts with 'cablevision/', convert to Cloudinary URL
+                if image_path.startswith('cablevision/'):
+                    # Remove 'cablevision/' prefix and use Cloudinary URL
+                    cloudinary_path = image_path.replace('cablevision/', '')
+                    formatted_image = f"https://res.cloudinary.com/oa3fcr2b/image/upload/{cloudinary_path}"
+                # If it still has /shared-uploads/ (legacy)
+                elif image_path.startswith('/shared-uploads/'):
+                    # Remove /shared-uploads/ and use Cloudinary URL
+                    cloudinary_path = image_path.replace('/shared-uploads/', '')
+                    formatted_image = f"https://res.cloudinary.com/oa3fcr2b/image/upload/{cloudinary_path}"
+                else:
+                    # Direct Cloudinary URL or other
+                    formatted_image = image_path
             else:
-                formatted_image = image_path or ''
+                formatted_image = ''
             
             plan_list.append({
                 "id": plan.get("id"),
