@@ -80,7 +80,7 @@ def upload_image():
         }), 200
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500, pasto ko to sa parehong app.py?
+        return jsonify({'error': str(e)}), 500
 
 
 
