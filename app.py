@@ -2512,8 +2512,8 @@ def send_verification_code():
         
         plain_body = f"CableVision Verification Code: {code}\n\nThis code expires in 5 minutes.\n\nIf you did not request this, please ignore this email."
         
-        gmail_user = "cablevision.cableinternet@gmail.com"
-        gmail_app_password = "gbkbembhkfmsoxsx"
+        gmail_user = os.getenv('GMAIL_USER', 'cablevision.cableinternet@gmail.com')
+        gmail_app_password = os.getenv('GMAIL_APP_PASSWORD', 'gbkbembhkfmsoxsx')
         
         msg = MIMEMultipart('alternative')
         msg['From'] = gmail_user
