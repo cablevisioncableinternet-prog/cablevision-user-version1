@@ -85,6 +85,31 @@ def upload_image():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route("/")
+def home():
+    try:
+        # Fetch plans from MySQL
+        plans_data = execute_query(
+            "SELECT id, name, speed, price, image_path FROM plans ORDER BY price ASC",
+            fetch=True
+        ) or []
+        
+        plan_list = []
+        for plan in plans_data:
+            plan_list.append({
+                "id": plan.get("id"),
+                "name": plan.get("name", ""),
+                "speed": plan.get("speed", ""),
+                "price": float(plan.get("price", 0)),
+                "image": get_cloudinary_url(plan.get("image_path", ""))  # ✅ Use helper
+            })
+        
+        return render_template("user-homepage.html", plans=plan_list)
+        
+    except Exception as e:
+        print(f"Home error: {e}")
+        return render_template("user-homepage.html", plans=[])
+
 
 app.secret_key = "my_super_secure_random_key_12345"
 
@@ -518,7 +543,7 @@ def serve_shared_uploads(filename):
 @app.route("/")
 def home():
     try:
-        # Fetch plans from MySQL using direct connection
+        # Fetch plans from MySQL
         plans_data = execute_query(
             "SELECT id, name, speed, price, image_path FROM plans ORDER BY price ASC",
             fetch=True
@@ -526,35 +551,14 @@ def home():
         
         plan_list = []
         for plan in plans_data:
-            image_path = plan.get("image_path", "")
-            
-            # ✅ I-UPDATE ITO: Convert to Cloudinary URL
-            if image_path:
-                # If it starts with 'cablevision/', convert to Cloudinary URL
-                if image_path.startswith('cablevision/'):
-                    # Remove 'cablevision/' prefix and use Cloudinary URL
-                    cloudinary_path = image_path.replace('cablevision/', '')
-                    formatted_image = f"https://res.cloudinary.com/oa3fcr2b/image/upload/{cloudinary_path}"
-                # If it still has /shared-uploads/ (legacy)
-                elif image_path.startswith('/shared-uploads/'):
-                    # Remove /shared-uploads/ and use Cloudinary URL
-                    cloudinary_path = image_path.replace('/shared-uploads/', '')
-                    formatted_image = f"https://res.cloudinary.com/oa3fcr2b/image/upload/{cloudinary_path}"
-                else:
-                    # Direct Cloudinary URL or other
-                    formatted_image = image_path
-            else:
-                formatted_image = ''
-            
             plan_list.append({
                 "id": plan.get("id"),
                 "name": plan.get("name", ""),
                 "speed": plan.get("speed", ""),
                 "price": float(plan.get("price", 0)),
-                "image": formatted_image
+                "image": get_cloudinary_url(plan.get("image_path", ""))  # ✅ Use helper
             })
         
-        # IMPORTANT: Pass plans to template
         return render_template("user-homepage.html", plans=plan_list)
         
     except Exception as e:
