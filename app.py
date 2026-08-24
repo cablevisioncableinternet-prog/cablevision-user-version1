@@ -553,7 +553,6 @@ def serve_shared_uploads(filename):
 @app.route("/")
 def home():
     try:
-        # Fetch plans from MySQL
         plans_data = execute_query(
             "SELECT id, name, speed, price, image_path FROM plans ORDER BY price ASC",
             fetch=True
@@ -562,14 +561,12 @@ def home():
         plan_list = []
         for plan in plans_data:
             image_path = plan.get("image_path", "")
-            
-            # ✅ I-PRINT PARA MAKITA SA LOGS
-            print(f"📸 Raw image_path: {image_path}")
-            
             cloudinary_url = get_cloudinary_url(image_path)
             
-            # ✅ I-PRINT ANG RESULT
+            # ✅ I-PRINT ANG VALUE NA IPAPASA SA TEMPLATE
+            print(f"📸 Image path: {image_path}")
             print(f"✅ Cloudinary URL: {cloudinary_url}")
+            print(f"📤 Passing to template: {cloudinary_url}")
             
             plan_list.append({
                 "id": plan.get("id"),
@@ -578,6 +575,9 @@ def home():
                 "price": float(plan.get("price", 0)),
                 "image": cloudinary_url
             })
+        
+        # ✅ I-PRINT ANG BUONG plan_list
+        print(f"📤 plan_list: {plan_list}")
         
         return render_template("user-homepage.html", plans=plan_list)
         
