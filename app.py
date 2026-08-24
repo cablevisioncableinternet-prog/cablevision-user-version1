@@ -910,17 +910,8 @@ def plans():
         for plan in plans_data:
             image_path = plan.get("image_path", "")
             
-            # Debug: print para makita ang actual na path
-            print(f"Plan: {plan.get('name')}, Image path: {image_path}")
-            
-            # Format image path correctly
-            if image_path and image_path.startswith('/shared-uploads/'):
-                formatted_image = image_path
-            elif image_path:
-                # If path doesn't start with /shared-uploads, add it
-                formatted_image = f"/shared-uploads/plans/{image_path.split('/')[-1]}"
-            else:
-                formatted_image = ''
+            # ✅ Use Cloudinary URL helper
+            formatted_image = get_cloudinary_url(image_path)
             
             plan_list.append({
                 "id": plan.get("id"),
@@ -930,7 +921,6 @@ def plans():
                 "image": formatted_image
             })
         
-        # Get selected plan from query string
         selected_plan = request.args.get("selected", "")
         
         return render_template("user-plans.html", plans=plan_list, selected_plan=selected_plan)
