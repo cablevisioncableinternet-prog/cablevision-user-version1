@@ -8,3 +8,4 @@ reportlab
 openpyxl
 groq
 python-dotenv
+cloudinary
