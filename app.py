@@ -717,10 +717,12 @@ def public_plans():
         plan_list = []
         for plan in plans:
             image_path = plan.get('image_path', '')
-            if image_path and image_path.startswith('/shared-uploads/'):
-                formatted_image = image_path
-            else:
-                formatted_image = image_path or ''
+            
+            # ✅ Convert to Cloudinary URL
+            formatted_image = get_cloudinary_url(image_path)
+            
+            # ✅ Debug print
+            print(f"📸 Public plans - image_path: {image_path} -> {formatted_image}")
             
             plan_list.append({
                 "id": plan['id'],
