@@ -6250,10 +6250,16 @@ def get_user_profile():
     if not user_data:
         return jsonify({"error": "User not found"}), 404
 
-    # ========== GET PROFILE PHOTO (fallback to application if needed) ==========
+    # ========== GET PROFILE PHOTO ==========
     profile_photo = user_data.get("profile_photo")
     
-    if not profile_photo or profile_photo == 'none':
+    # ✅ KUNG MAY PROFILE_PHOTO, I-CONVERT SA CLOUDINARY URL
+    if profile_photo and profile_photo != 'none' and profile_photo != '':
+        # ✅ KUNG RELATIVE PATH (nagsisimula sa cablevision/ or /shared-uploads/)
+        if not profile_photo.startswith('http'):
+            profile_photo = get_cloudinary_url(profile_photo)
+            print(f"✅ Converted profile photo to Cloudinary: {profile_photo}")
+    else:
         # Try to get from applications table using application_number
         app_number = user_data.get("application_number")
         if app_number:
@@ -6261,8 +6267,12 @@ def get_user_profile():
             app_data = execute_query(app_query, (app_number,), fetch_one=True)
             if app_data and app_data.get('profile_photo'):
                 profile_photo = app_data.get('profile_photo')
+                # ✅ I-CONVERT DIN ANG APP PROFILE PHOTO
+                if not profile_photo.startswith('http'):
+                    profile_photo = get_cloudinary_url(profile_photo)
+                    print(f"✅ Converted app profile photo to Cloudinary: {profile_photo}")
     
-    if not profile_photo or profile_photo == 'none':
+    if not profile_photo or profile_photo == 'none' or profile_photo == '':
         profile_photo = url_for("static", filename="profile.jpg")
     
     # Build full name
@@ -6295,7 +6305,7 @@ def get_user_profile():
         "contact_number": user_data.get("contact_number", ""),
         "address": user_data.get("address", ""),
         "photo_url": profile_photo,
-        "profile_photo": profile_photo,
+        "profile_photo": profile_photo,  # ✅ FULL CLOUDINARY URL
         "role": user_data.get("role", "customer"),
         "contract_number": user_data.get("contract_number", ""),
         "connection_status": user_data.get("connection_status", "Disconnected"),

@@ -103,21 +103,41 @@ async function loadProfile() {
       console.warn('⚠ No user_id found in profile response:', profile);
     }
 
-    // Display profile name
-    const profileNameSpan = document.getElementById("");
+    // ✅ DISPLAY PROFILE NAME
+    const profileNameSpan = document.getElementById("profileName");
     if (profileNameSpan) {
-      const displayName = profile.first_name || profile.username || userId || "User";
+      let displayName = profile.first_name || '';
+      if (profile.last_name) {
+        displayName += ' ' + profile.last_name;
+      }
+      if (!displayName.trim()) {
+        displayName = profile.username || userId || "User";
+      }
       profileNameSpan.textContent = displayName;
+      console.log('✅ Profile name set to:', displayName);
     }
 
+    // ✅ DISPLAY PROFILE PHOTO FROM CLOUDINARY
     const profileImg = document.getElementById("profileIcon");
-    if (profile.profile_photo && profile.profile_photo !== 'none') {
-      profileImg.src = profile.profile_photo;
-    } else {
-      profileImg.src = "/static/profile.jpg";
+    if (profileImg) {
+      if (profile.profile_photo && profile.profile_photo !== 'none' && profile.profile_photo !== '') {
+        // ✅ DAPAT FULL CLOUDINARY URL NA ITO
+        profileImg.src = profile.profile_photo;
+        console.log('✅ Profile photo (Cloudinary):', profile.profile_photo);
+      } else {
+        profileImg.src = "/static/profile.jpg";
+        console.log('ℹ️ Using default profile photo');
+      }
     }
+    
   } catch (err) {
     console.error("Error loading profile:", err);
+    // Fallback: try to get from session
+    const username = sessionStorage.getItem('username');
+    const profileNameSpan = document.getElementById("profileName");
+    if (profileNameSpan && username) {
+      profileNameSpan.textContent = username;
+    }
   }
 }
 
