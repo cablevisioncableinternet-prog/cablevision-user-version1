@@ -103,19 +103,7 @@ async function loadProfile() {
       console.warn('⚠ No user_id found in profile response:', profile);
     }
 
-    // ✅ DISPLAY PROFILE NAME
-    const profileNameSpan = document.getElementById("profileName");
-    if (profileNameSpan) {
-      let displayName = profile.first_name || '';
-      if (profile.last_name) {
-        displayName += ' ' + profile.last_name;
-      }
-      if (!displayName.trim()) {
-        displayName = profile.username || userId || "User";
-      }
-      profileNameSpan.textContent = displayName;
-      console.log('✅ Profile name set to:', displayName);
-    }
+    
 
     // ✅ DISPLAY PROFILE PHOTO FROM CLOUDINARY
     const profileImg = document.getElementById("profileIcon");

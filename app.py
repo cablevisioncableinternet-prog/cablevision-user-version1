@@ -2595,113 +2595,207 @@ def verify_email_code():
 
 @app.route('/download/pdf/<application_number>')
 def download_pdf(application_number):
-    import io, base64
+    import io, base64, os
     from reportlab.pdfgen import canvas
     from reportlab.lib.pagesizes import letter
     from reportlab.lib.utils import ImageReader
     from flask import send_file
     import requests
+    import json
+    import re
+    from PIL import Image
+    import tempfile
 
-    # ========== GET APPLICATION DATA FROM MYSQL ==========
+    # Get application data from MySQL
     query = """
-        SELECT 
-            application_number, plan, plan_speed, plan_price,
-            date_submitted, time_submitted, timestamp,
-            first_name, middle_name, last_name, suffix,
-            email, mobile, secondary_mobile, phone,
-            birthdate, place_of_birth, mother_maiden_name, father_name,
-            sex, civil_status, citizenship, occupation,
-            home_ownership, address, billing_address,
-            barangay, city, province, zip,
-            house_number, landmark, employer, business_address, business_phone,
-            spouse_name, spouse_occupation, spouse_employer, spouse_phone,
-            service_type, tv_qty, tv_brand, tv_type,
-            installation_address, installation_phone, installation_fee,
-            signature, id_front, id_back, proof_billing, profile_photo,
-            latitude, longitude, status, reapplied_count,
-            rejection_reason
-        FROM applications 
+        SELECT * FROM applications 
         WHERE application_number = %s
-        LIMIT 1
     """
-    
     data = execute_query(query, (application_number,), fetch_one=True)
     
     if not data:
         return "Application not found", 404
     
-    # Convert None values to empty strings
-    data = {k: (v if v is not None else '') for k, v in data.items()}
+    # ================= GET APPLICATION NUMBER AS FOLDER NAME =================
+    app_folder = str(application_number)
     
-    # Parse TV details if they are JSON strings
-    import json
-    tv_qty = data.get('tv_qty', '')
-    tv_brand = data.get('tv_brand', '')
-    tv_type = data.get('tv_type', '')
+    # Parse JSON fields
+    if data.get('tv_qty'):
+        try:
+            data['tv_qty'] = json.loads(data['tv_qty'])
+        except:
+            data['tv_qty'] = []
     
-    try:
-        data['tv_qty'] = json.loads(tv_qty) if tv_qty and isinstance(tv_qty, str) else []
-    except:
-        data['tv_qty'] = []
+    if data.get('tv_brand'):
+        try:
+            data['tv_brand'] = json.loads(data['tv_brand'])
+        except:
+            data['tv_brand'] = []
     
-    try:
-        data['tv_brand'] = json.loads(tv_brand) if tv_brand and isinstance(tv_brand, str) else []
-    except:
-        data['tv_brand'] = []
-    
-    try:
-        data['tv_type'] = json.loads(tv_type) if tv_type and isinstance(tv_type, str) else []
-    except:
-        data['tv_type'] = []
+    if data.get('tv_type'):
+        try:
+            data['tv_type'] = json.loads(data['tv_type'])
+        except:
+            data['tv_type'] = []
 
     buffer = io.BytesIO()
     p = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
 
-    # ================= MAX PAGES =================
-    MAX_PAGES = 4
-    current_page = 1
-    y = height - 120
+    print("=" * 80)
+    print("🔍 IMAGE DATA FROM DATABASE:")
+    print(f"Application Number (folder): {app_folder}")
+    print(f"id_front: {data.get('id_front', 'None')}")
+    print(f"id_back: {data.get('id_back', 'None')}")
+    print(f"signature: {data.get('signature', 'None')}")
+    print(f"proof_billing: {data.get('proof_billing', 'None')}")
+    print("=" * 80)
 
-    # Helper function to get image data from URL or base64
-    def get_image_reader(image_value):
-        """Get ImageReader from file path URL or base64 string"""
-        if not image_value or image_value == 'none':
+    # ================= ✅ GET IMAGE FROM CLOUDINARY =================
+    def get_image_from_cloudinary(image_path):
+        """Get image from Cloudinary URL or local path"""
+        if not image_path:
             return None
         
-        try:
-            # Check if it's a file path URL (starts with /shared-uploads/)
-            if image_value.startswith('/shared-uploads/'):
-                # Construct full file path
-                import os
-                # Map URL to file path
-                # URL: /shared-uploads/application_uploads/1234567890/profile_photo_1234567890.jpg
-                # Path: C:\xampp\htdocs\cablevision_uploads\application_uploads\1234567890\profile_photo_1234567890.jpg
-                relative_path = image_value.replace('/shared-uploads/', '')
-                full_path = os.path.join(SHARED_UPLOADS_BASE, relative_path)
-                
-                if os.path.exists(full_path):
-                    return ImageReader(full_path)
+        # ✅ Convert to Cloudinary URL
+        if not image_path.startswith('http'):
+            cloudinary_url = get_cloudinary_url(image_path)
+        else:
+            cloudinary_url = image_path
+        
+        if cloudinary_url and cloudinary_url.startswith('http'):
+            try:
+                print(f"📤 Downloading from Cloudinary: {cloudinary_url[:80]}...")
+                response = requests.get(cloudinary_url, timeout=30)
+                if response.status_code == 200:
+                    print(f"✅ Downloaded {len(response.content)} bytes")
+                    return response.content
                 else:
-                    print(f"Image file not found: {full_path}")
+                    print(f"❌ Cloudinary download failed: {response.status_code}")
                     return None
-                    
-            # Check if it's a base64 string
-            elif 'base64' in image_value or image_value.startswith('data:image'):
-                if 'base64' in image_value or ',' in image_value:
-                    # Extract base64 part
-                    if ',' in image_value:
-                        image_value = image_value.split(',', 1)[1]
-                    img_data = base64.b64decode(image_value)
-                    return ImageReader(io.BytesIO(img_data))
-            else:
-                # Try as direct base64
-                img_data = base64.b64decode(image_value)
-                return ImageReader(io.BytesIO(img_data))
-                
-        except Exception as e:
-            print(f"Error loading image: {e}")
+            except Exception as e:
+                print(f"❌ Error downloading from Cloudinary: {e}")
+                return None
+        
+        # ✅ Fallback: Try local path (for development)
+        SHARED_UPLOADS_BASE = r"C:\xampp\htdocs\cablevision_uploads"
+        
+        # Extract filename from path
+        filename = os.path.basename(image_path)
+        
+        # Try to find in application_uploads folder
+        full_path = os.path.join(SHARED_UPLOADS_BASE, 'application_uploads', app_folder, filename)
+        if os.path.exists(full_path):
+            print(f"✅ Found locally: {full_path}")
+            with open(full_path, 'rb') as f:
+                return f.read()
+        
+        # Try alternative paths
+        alt_paths = [
+            os.path.join(SHARED_UPLOADS_BASE, filename),
+            os.path.join(SHARED_UPLOADS_BASE, image_path.lstrip('/'))
+        ]
+        
+        for alt_path in alt_paths:
+            if os.path.exists(alt_path):
+                print(f"✅ Found locally: {alt_path}")
+                with open(alt_path, 'rb') as f:
+                    return f.read()
+        
+        print(f"❌ Image not found: {image_path}")
+        return None
+
+    # ================= HELPER: Load and convert image =================
+    def load_and_convert_image(image_data):
+        """Load image and convert to RGB format for PDF"""
+        if not image_data:
+            print(f"❌ No image data provided")
             return None
+        
+        img_bytes = None
+        
+        # ✅ Try to get from Cloudinary
+        if isinstance(image_data, str):
+            img_bytes = get_image_from_cloudinary(image_data)
+        
+        # Try base64 decoding if file loading failed
+        if not img_bytes and isinstance(image_data, str):
+            if 'base64,' in image_data or 'data:image' in image_data:
+                try:
+                    if 'base64,' in image_data:
+                        image_data = image_data.split('base64,')[1]
+                    elif 'data:image' in image_data:
+                        match = re.search(r'data:image/(png|jpeg|jpg|gif);base64,(.+)', image_data)
+                        if match:
+                            image_data = match.group(2)
+                    
+                    image_data = image_data.strip()
+                    img_bytes = base64.b64decode(image_data)
+                    print(f"✅ Decoded base64 image ({len(img_bytes)} bytes)")
+                except Exception as e:
+                    print(f"❌ Error decoding base64: {e}")
+        
+        if not img_bytes:
+            print(f"❌ No image bytes loaded")
+            return None
+        
+        # Convert image to RGB format using PIL
+        try:
+            img = Image.open(io.BytesIO(img_bytes))
+            print(f"✅ Image opened: {img.format}, {img.size}, {img.mode}")
+            
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+                print(f"✅ Converted to RGB")
+            
+            output = io.BytesIO()
+            img.save(output, format='JPEG', quality=90)
+            output.seek(0)
+            
+            print(f"✅ Converted to JPEG ({output.getbuffer().nbytes} bytes)")
+            return output.getvalue()
+            
+        except Exception as e:
+            print(f"❌ Error converting image: {e}")
+            return img_bytes
+
+    # ================= HELPER: Draw image safely =================
+    def draw_image_safe(p, image_data, x, y, width, height, label="Image"):
+        """Safely draw an image on the PDF"""
+        try:
+            print(f"🖼️ Drawing {label}...")
+            img_bytes = load_and_convert_image(image_data)
+            if img_bytes:
+                with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
+                    tmp_file.write(img_bytes)
+                    tmp_path = tmp_file.name
+                    print(f"📝 Temp file: {tmp_path}")
+                
+                try:
+                    img = ImageReader(tmp_path)
+                    p.drawImage(img, x, y, width, height, preserveAspectRatio=True, mask='auto')
+                    print(f"✅ Drew {label} successfully")
+                    return True
+                except Exception as e:
+                    print(f"❌ Error in drawImage for {label}: {e}")
+                    return False
+                finally:
+                    try:
+                        os.unlink(tmp_path)
+                        print(f"🗑️ Deleted temp file: {tmp_path}")
+                    except:
+                        pass
+            else:
+                print(f"❌ No image bytes for {label}")
+                return False
+        except Exception as e:
+            print(f"❌ Error drawing {label}: {e}")
+            return False
+
+    # ================= MAX PAGES =================
+    MAX_PAGES = 5
+    current_page = 1
+    y = height - 120
 
     # ================= HEADER =================
     def draw_header():
@@ -2765,7 +2859,6 @@ def download_pdf(application_number):
         p.setFillColorRGB(0, 0, 0)
         y -= 25
 
-    # Two-column field drawer with tighter spacing
     def draw_two_columns(fields):
         nonlocal y
         col1_x = 50
@@ -2775,23 +2868,21 @@ def download_pdf(application_number):
         
         for i in range(0, len(fields), 2):
             ensure_space(20)
-            # Left column
             label1, value1 = fields[i]
             p.setFont("Helvetica-Bold", 9)
             p.drawString(col1_x, y, f"{label1}:")
             p.setFont("Helvetica", 9)
-            val1_str = str(value1) if value1 and value1 not in ['-', 'none', ''] else "___________________"
+            val1_str = str(value1) if value1 and value1 != "-" and value1 != "none" else "___________________"
             if len(val1_str) > 35:
                 val1_str = val1_str[:32] + "..."
             p.drawString(value_x, y, val1_str)
             
-            # Right column
             if i + 1 < len(fields):
                 label2, value2 = fields[i + 1]
                 p.setFont("Helvetica-Bold", 9)
                 p.drawString(col2_x, y, f"{label2}:")
                 p.setFont("Helvetica", 9)
-                val2_str = str(value2) if value2 and value2 not in ['-', 'none', ''] else "___________________"
+                val2_str = str(value2) if value2 and value2 != "-" and value2 != "none" else "___________________"
                 if len(val2_str) > 30:
                     val2_str = val2_str[:27] + "..."
                 p.drawString(col2_x + label_width + 5, y, val2_str)
@@ -2799,79 +2890,58 @@ def download_pdf(application_number):
             y -= 18
         y -= 5
 
-    # Draw images top and bottom (front then back)
-    def draw_images_top_bottom(label1, img1_value, label2, img2_value, img_width=280, img_height=190):
+    def draw_images_top_bottom(label1, img1_data, label2, img2_data, img_width=280, img_height=190):
         nonlocal y
         
-        # Front ID
         ensure_space(img_height + 60)
         p.setFont("Helvetica-Bold", 11)
         p.drawCentredString(width / 2, y, label1)
         y -= 22
         
-        img1 = get_image_reader(img1_value)
-        if img1:
-            try:
-                x_center = (width - img_width) / 2
-                p.drawImage(img1, x_center, y - img_height, img_width, img_height, preserveAspectRatio=True, mask='auto')
-                y -= img_height + 35
-            except:
-                p.drawCentredString(width / 2, y, "[Image error]")
-                y -= 25
+        if draw_image_safe(p, img1_data, (width - img_width) / 2, y - img_height, img_width, img_height, label1):
+            y -= img_height + 35
         else:
-            p.drawCentredString(width / 2, y, "Not provided")
+            p.setFont("Helvetica", 9)
+            p.setFillColorRGB(0.5, 0.5, 0.5)
+            p.drawCentredString(width / 2, y, "No image provided")
+            p.setFillColorRGB(0, 0, 0)
             y -= 25
         
-        # Back ID
         ensure_space(img_height + 60)
         p.setFont("Helvetica-Bold", 11)
         p.drawCentredString(width / 2, y, label2)
         y -= 22
         
-        img2 = get_image_reader(img2_value)
-        if img2:
-            try:
-                x_center = (width - img_width) / 2
-                p.drawImage(img2, x_center, y - img_height, img_width, img_height, preserveAspectRatio=True, mask='auto')
-                y -= img_height + 35
-            except:
-                p.drawCentredString(width / 2, y, "[Image error]")
-                y -= 25
-        else:
-            p.drawCentredString(width / 2, y, "Not provided")
-            y -= 25
-
-    # Signature section
-    def draw_signature_section(signature_value, full_name):
-        nonlocal y
-        
-        # Add space before signature section
-        y -= 15
-        
-        # Signature image (centered, smaller to fit)
-        sig_width = 250
-        sig_height = 85
-        sig_img = get_image_reader(signature_value)
-        
-        if sig_img:
-            try:
-                x_center = (width - sig_width) / 2
-                p.drawImage(sig_img, x_center, y - sig_height, sig_width, sig_height, preserveAspectRatio=True, mask='auto')
-            except:
-                p.setFont("Helvetica", 9)
-                p.drawCentredString(width / 2, y, "[Signature not displayable]")
+        if draw_image_safe(p, img2_data, (width - img_width) / 2, y - img_height, img_width, img_height, label2):
+            y -= img_height + 35
         else:
             p.setFont("Helvetica", 9)
+            p.setFillColorRGB(0.5, 0.5, 0.5)
+            p.drawCentredString(width / 2, y, "No image provided")
+            p.setFillColorRGB(0, 0, 0)
+            y -= 25
+
+    def draw_signature_section(signature_img, full_name):
+        nonlocal y
+        
+        y -= 15
+        
+        sig_width = 250
+        sig_height = 85
+        
+        if draw_image_safe(p, signature_img, (width - sig_width) / 2, y - sig_height, sig_width, sig_height, "Signature"):
+            y -= sig_height + 20
+        else:
+            p.setFont("Helvetica", 9)
+            p.setFillColorRGB(0.5, 0.5, 0.5)
             p.drawCentredString(width / 2, y, "No signature provided")
+            p.setFillColorRGB(0, 0, 0)
+            y -= 25
         
-        y -= sig_height + 20
-        
-        # Printed Name (centered)
         p.setFont("Helvetica", 10)
         p.drawCentredString(width / 2, y, full_name if full_name else "_________________________")
         y -= 20
         
-        # "signature over printed name" text
         p.setFont("Helvetica", 8)
         p.setFillColorRGB(0.4, 0.4, 0.4)
         p.drawCentredString(width / 2, y, "signature over printed name")
@@ -2882,8 +2952,7 @@ def download_pdf(application_number):
     draw_header()
     draw_page_number()
 
-    # ================= PAGE 1: ALL INFORMATION WITH SIGNATURE AT THE BOTTOM =================
-    # SECTION 1: PERSONAL INFORMATION
+    # ================= PAGE 1: PERSONAL INFORMATION =================
     draw_section_title("I. PERSONAL INFORMATION")
     draw_two_columns([
         ("Last Name", data.get("last_name")),
@@ -2898,16 +2967,13 @@ def download_pdf(application_number):
         ("Occupation", data.get("occupation")),
     ])
 
-    # SECTION 2: FAMILY BACKGROUND
     draw_section_title("II. FAMILY DETAILS")
     draw_two_columns([
         ("Mother's Maiden Name", data.get("mother_maiden_name")),
         ("Father's Name", data.get("father_name")),
     ])
 
-    # SECTION 3: CONTACT & ADDRESS
     draw_section_title("III. CONTACT & ADDRESS")
-
     draw_two_columns([
         ("Mobile Number", data.get("mobile")),
         ("Email Address", data.get("email")),
@@ -2917,22 +2983,21 @@ def download_pdf(application_number):
         ("Street/Village", data.get("address")),
     ])
 
-    # ================= BILLING ADDRESS (FULL WIDTH) =================
+    # Billing Address
     p.setFont("Helvetica-Bold", 9)
     p.drawString(50, y, "Billing Address:")
     p.setFont("Helvetica", 9)
-
+    
     billing_address = data.get("billing_address", "")
-    if not billing_address or billing_address in ['-', 'none', '']:
+    if not billing_address or billing_address == "-" or billing_address == "none":
         billing_address = "_________________________"
-
+    
     from reportlab.pdfbase.pdfmetrics import stringWidth
-
     max_width = 400
     words = billing_address.split()
     lines = []
     current_line = ""
-
+    
     for word in words:
         test_line = current_line + (" " if current_line else "") + word
         if stringWidth(test_line, "Helvetica", 9) <= max_width:
@@ -2940,25 +3005,25 @@ def download_pdf(application_number):
         else:
             lines.append(current_line)
             current_line = word
-
+    
     if current_line:
         lines.append(current_line)
-
+    
     for line in lines:
         p.drawString(170, y, line)
         y -= 14
     y -= 5
 
-    # SECTION 4: EMPLOYMENT DETAILS
     draw_section_title("IV. EMPLOYMENT DETAILS")
     draw_two_columns([
         ("Employer / Company", data.get("employer")),
         ("Business Phone", data.get("business_phone")),
         ("Business Address", data.get("business_address")),
+        ("", ""),
     ])
 
-    # SECTION 5: SPOUSE INFORMATION
-    if data.get("civil_status") in ["Married", "married"]:
+    civil_status = data.get("civil_status", "")
+    if civil_status and civil_status.lower() in ["married", "Married"]:
         draw_section_title("V. SPOUSE INFORMATION")
         draw_two_columns([
             ("Spouse Full Name", data.get("spouse_name")),
@@ -2967,40 +3032,36 @@ def download_pdf(application_number):
             ("Spouse Phone", data.get("spouse_phone")),
         ])
 
-    # SECTION 6: SERVICE PLAN
     draw_section_title("VI. SERVICE PLAN")
-
     draw_two_columns([
         ("Service Type / Plan", data.get("service_type")),
         ("Installation Fee", data.get("installation_fee")),
     ])
 
-    # ================= INSTALLATION PHONE (FULL WIDTH) =================
+    # Installation Phone
     p.setFont("Helvetica-Bold", 9)
     p.drawString(50, y, "Installation Phone:")
     p.setFont("Helvetica", 9)
-
     installation_phone = data.get("installation_phone", "")
-    if not installation_phone or installation_phone in ['-', 'none', '']:
+    if not installation_phone or installation_phone == "-" or installation_phone == "none":
         installation_phone = "_________________________"
-
     p.drawString(170, y, installation_phone)
     y -= 18
     y -= 5
 
-    # ================= INSTALLATION ADDRESS (FULL WIDTH) =================
+    # Installation Address
     p.setFont("Helvetica-Bold", 9)
     p.drawString(50, y, "Installation Address:")
     p.setFont("Helvetica", 9)
-
+    
     installation_address = data.get("installation_address", "")
-    if not installation_address or installation_address in ['-', 'none', '']:
+    if not installation_address or installation_address == "-" or installation_address == "none":
         installation_address = "_________________________"
-
+    
     words = installation_address.split()
     lines = []
     current_line = ""
-
+    
     for word in words:
         test_line = current_line + (" " if current_line else "") + word
         if stringWidth(test_line, "Helvetica", 9) <= max_width:
@@ -3008,42 +3069,39 @@ def download_pdf(application_number):
         else:
             lines.append(current_line)
             current_line = word
-
+    
     if current_line:
         lines.append(current_line)
-
+    
     for line in lines:
         p.drawString(170, y, line)
         y -= 14
     y -= 5
 
-    # SECTION 7: TV SET DETAILS
-    tv_qty_list = data.get("tv_qty", [])
-    tv_brand_list = data.get("tv_brand", [])
-    tv_type_list = data.get("tv_type", [])
+    # TV SET DETAILS
+    tv_qty = data.get("tv_qty", [])
+    tv_brand = data.get("tv_brand", [])
+    tv_type = data.get("tv_type", [])
     
-    if tv_qty_list and any(tv_qty_list):
+    if tv_qty and any(tv_qty):
         draw_section_title("VII. TV SET DETAILS")
         ensure_space(40)
         
-        # Table header
         p.setFont("Helvetica-Bold", 9)
         p.drawString(50, y, "QTY")
         p.drawString(120, y, "BRAND / MODEL")
         p.drawString(320, y, "TYPE (HD/REGULAR)")
         y -= 15
         
-        # Table data
         p.setFont("Helvetica", 9)
-        max_rows = min(len(tv_qty_list), 3)
-        for i in range(max_rows):
+        for i in range(min(len(tv_qty), 5)):
             if y < 120:
                 break
-            qty = str(tv_qty_list[i]) if i < len(tv_qty_list) and tv_qty_list[i] not in ['none', ''] else "-"
-            brand = tv_brand_list[i] if i < len(tv_brand_list) and tv_brand_list[i] not in ['none', ''] else "-"
+            qty = str(tv_qty[i]) if i < len(tv_qty) else "-"
+            brand = tv_brand[i] if i < len(tv_brand) else "-"
             if len(brand) > 25:
                 brand = brand[:22] + "..."
-            tv_t = tv_type_list[i] if i < len(tv_type_list) and tv_type_list[i] not in ['none', ''] else "-"
+            tv_t = tv_type[i] if i < len(tv_type) else "-"
             
             p.drawString(50, y, qty)
             p.drawString(120, y, brand)
@@ -3051,18 +3109,16 @@ def download_pdf(application_number):
             y -= 16
         y -= 5
 
-    # SECTION 8: SUBMISSION DETAILS
     draw_section_title("VIII. SUBMISSION DETAILS")
     draw_two_columns([
         ("Date Submitted", data.get("date_submitted")),
         ("Time Submitted", data.get("time_submitted")),
     ])
 
-    # SIGNATURE SECTION AT THE BOTTOM OF PAGE 1
     full_name = f"{data.get('first_name', '')} {data.get('last_name', '')}".strip()
     draw_signature_section(data.get("signature"), full_name)
 
-    # ================= PAGE 2: LOCATION MAP =================
+    # ================= PAGE 2: MAP =================
     new_page()
     draw_section_title_centered("INSTALLATION LOCATION MAP")
 
@@ -3073,31 +3129,27 @@ def download_pdf(application_number):
     map_img = None
 
     try:
-        lat = float(lat) if lat else None
-        lng = float(lng) if lng else None
-        
         if lat and lng:
-            # Regular map URL
+            lat = float(lat)
+            lng = float(lng)
+            
             google_maps_url = f"https://www.google.com/maps?q={lat},{lng}"
-            # Directions URL
             google_maps_direction_url = f"https://www.google.com/maps/dir//{lat},{lng}"
             
             map_url = f"https://maps.locationiq.com/v3/staticmap?key=pk.0fdad07272d959e4de881139988b0883&center={lat},{lng}&zoom=17&size=600x400&markers=icon:large-red-cutout|{lat},{lng}"
-            response = requests.get(map_url)
+            response = requests.get(map_url, timeout=10)
             if response.status_code == 200:
                 map_img = ImageReader(io.BytesIO(response.content))
     except Exception as e:
         print("Map error:", e)
 
-    # Location details
     draw_two_columns([
         ("Street/Village", data.get("address")),
         ("Barangay/City", f"{data.get('barangay', '-')}, {data.get('city', '-')}"),
-        ("Latitude", str(lat) if lat else "-"),
-        ("Longitude", str(lng) if lng else "-"),
+        ("Latitude", lat if lat else "-"),
+        ("Longitude", lng if lng else "-"),
     ])
 
-    # Google Maps Direction Link
     if google_maps_direction_url:
         ensure_space(25)
         p.setFont("Helvetica-Bold", 12)
@@ -3108,14 +3160,12 @@ def download_pdf(application_number):
         p.setFillColorRGB(0, 0, 0)
         y -= 20
         
-        # Subtext instruction
         p.setFont("Helvetica", 8)
         p.setFillColorRGB(0.5, 0.5, 0.5)
         p.drawCentredString(width / 2, y, "👉 Click above to see distance from YOUR location, travel time, and turn-by-turn directions")
         p.setFillColorRGB(0, 0, 0)
         y -= 20
 
-    # Regular Google Maps link
     if google_maps_url:
         p.setFont("Helvetica", 9)
         p.setFillColorRGB(0, 0, 1)
@@ -3125,7 +3175,6 @@ def download_pdf(application_number):
         p.setFillColorRGB(0, 0, 0)
         y -= 30
 
-    # Static map image
     if map_img:
         ensure_space(380)
         img_width = 500
@@ -3156,25 +3205,19 @@ def download_pdf(application_number):
     new_page()
     draw_section_title_centered("PROOF OF BILLING")
     
-    proof_img = get_image_reader(data.get("proof_billing"))
-    if proof_img:
-        try:
-            img_width = 500
-            img_height = 580
-            x_center = (width - img_width) / 2
-            p.drawImage(proof_img, x_center, y - img_height, img_width, img_height, preserveAspectRatio=True, mask='auto')
-            y -= img_height + 30
-        except:
-            p.drawCentredString(width / 2, y, "Image not renderable")
-            y -= 30
+    proof = data.get("proof_billing")
+    if draw_image_safe(p, proof, (width - 500) / 2, y - 580, 500, 580, "Proof of Billing"):
+        y -= 580 + 30
     else:
+        p.setFont("Helvetica", 9)
+        p.setFillColorRGB(0.5, 0.5, 0.5)
         p.drawCentredString(width / 2, y, "No proof of billing provided")
+        p.setFillColorRGB(0, 0, 0)
         y -= 30
 
-    # ================= SAVE PDF =================
     p.save()
     buffer.seek(0)
-    return send_file(buffer, mimetype='application/pdf', as_attachment=True, download_name=f"Application_{application_number}.pdf")
+    return send_file(buffer, mimetype='application/pdf', as_attachment=True, download_name="Application_Form.pdf")
 
 
 # ===============================
@@ -5029,12 +5072,41 @@ def user_profile():
     address = application_data.get("installation_address", "") if application_data else user_data.get("address", "")
     role = user_data.get("role", "customer")
 
-    # Profile photo
+    # ========== ✅ PROFILE PHOTO - CONVERT TO CLOUDINARY ==========
     profile_photo = user_data.get("profile_photo")
-    if not profile_photo and application_data:
-        profile_photo = application_data.get("profile_photo")
-    if not profile_photo:
+    
+    # I-convert ang profile_photo sa Cloudinary URL
+    if profile_photo and profile_photo != 'none' and profile_photo != '':
+        if not profile_photo.startswith('http'):
+            profile_photo = get_cloudinary_url(profile_photo)
+            print(f"✅ Converted profile photo to Cloudinary: {profile_photo}")
+    
+    # Kung wala sa users table, try sa applications
+    if not profile_photo or profile_photo == 'none' or profile_photo == '':
+        if application_data and application_data.get('profile_photo'):
+            app_photo = application_data.get('profile_photo')
+            if app_photo and app_photo != 'none' and app_photo != '':
+                if not app_photo.startswith('http'):
+                    profile_photo = get_cloudinary_url(app_photo)
+                else:
+                    profile_photo = app_photo
+                print(f"✅ Profile photo from application: {profile_photo}")
+    
+    # Default photo
+    if not profile_photo or profile_photo == 'none' or profile_photo == '':
         profile_photo = url_for("static", filename="profile.jpg")
+
+    # ========== ✅ CONVERT APPLICATION IMAGES TO CLOUDINARY ==========
+    # I-convert ang lahat ng image fields sa application_data
+    if application_data:
+        image_fields = ['signature', 'id_front', 'id_back', 'proof_billing', 'profile_photo']
+        for field in image_fields:
+            if application_data.get(field):
+                value = application_data.get(field)
+                if value and value != 'none' and value != '':
+                    if not value.startswith('http'):
+                        application_data[field] = get_cloudinary_url(value)
+                        print(f"✅ Converted {field} to Cloudinary")
 
     # TV sets (parse JSON if stored as string)
     import json
@@ -5098,10 +5170,10 @@ def user_profile():
         user_id=user_id,
         customer_id=customer_id,
         role=role,
-        profile_photo=profile_photo,
+        profile_photo=profile_photo,  # ✅ Cloudinary URL na ito
         contract_number=user_data.get("contract_number", ""),
 
-        # ========== APPLICATION DATA ==========
+        # ========== APPLICATION DATA (with Cloudinary URLs) ==========
         first_name=application_data.get("first_name", "") if application_data else "",
         middle_name=application_data.get("middle_name", "") if application_data else "",
         last_name=application_data.get("last_name", "") if application_data else "",
@@ -5141,10 +5213,10 @@ def user_profile():
         tv_qty_str=tv_qtys_str,
         tv_type_str=tv_types_str,
         installation_phone=installation_phone_value,
-        signature=application_data.get("signature", "") if application_data else "",
-        id_front=application_data.get("id_front", "") if application_data else "",
-        id_back=application_data.get("id_back", "") if application_data else "",
-        proof_billing=application_data.get("proof_billing", "") if application_data else "",
+        signature=application_data.get("signature", "") if application_data else "",  # ✅ Cloudinary URL
+        id_front=application_data.get("id_front", "") if application_data else "",  # ✅ Cloudinary URL
+        id_back=application_data.get("id_back", "") if application_data else "",    # ✅ Cloudinary URL
+        proof_billing=application_data.get("proof_billing", "") if application_data else "",  # ✅ Cloudinary URL
         date_submitted=application_data.get("date_submitted", "") if application_data else "",
         time_submitted=application_data.get("time_submitted", "") if application_data else "",
         application_number=application_id if application_id else "",
@@ -5460,7 +5532,7 @@ def get_user_contract_details(contract_number):
 # GET SIGNATURE IMAGE FUNCTION (MOVE THIS OUTSIDE, BEFORE THE ROUTE)
 # ===============================
 def get_signature_image(signature_data, width=180, height=50):
-    """Get signature image from file path or base64"""
+    """Get signature image from Cloudinary URL or file path"""
     import os
     import io
     import base64
@@ -5475,27 +5547,49 @@ def get_signature_image(signature_data, width=180, height=50):
         if isinstance(signature_data, str):
             print(f"🔍 Processing signature: {signature_data[:100]}...")
             
-            # Case 1: File path URL (starts with /shared-uploads/)
-            if signature_data.startswith('/shared-uploads/'):
-                # Base directory for uploaded files
-                base_dir = SHARED_UPLOADS_BASE  # Use the global variable
-                # Remove the /shared-uploads/ prefix to get relative path
+            # ✅ CASE 1: Cloudinary URL
+            if signature_data.startswith('http') and 'cloudinary.com' in signature_data:
+                print(f"📤 Downloading signature from Cloudinary: {signature_data}")
+                try:
+                    response = requests.get(signature_data, timeout=30)
+                    if response.status_code == 200:
+                        img = Image(io.BytesIO(response.content), width=width, height=height)
+                        img.drawWidth = width
+                        img.drawHeight = height
+                        print(f"✅ Signature loaded from Cloudinary")
+                        return img
+                except Exception as e:
+                    print(f"❌ Error downloading from Cloudinary: {e}")
+            
+            # ✅ CASE 2: Convert relative path to Cloudinary first
+            if signature_data.startswith('/shared-uploads/') or signature_data.startswith('cablevision/'):
+                cloudinary_url = get_cloudinary_url(signature_data)
+                if cloudinary_url and cloudinary_url.startswith('http'):
+                    try:
+                        print(f"📤 Downloading signature from Cloudinary: {cloudinary_url}")
+                        response = requests.get(cloudinary_url, timeout=30)
+                        if response.status_code == 200:
+                            img = Image(io.BytesIO(response.content), width=width, height=height)
+                            img.drawWidth = width
+                            img.drawHeight = height
+                            print(f"✅ Signature loaded from Cloudinary")
+                            return img
+                    except Exception as e:
+                        print(f"❌ Error downloading from Cloudinary: {e}")
+                
+                # Fallback to local path
+                base_dir = SHARED_UPLOADS_BASE
                 relative_path = signature_data.replace('/shared-uploads/', '')
                 full_path = os.path.join(base_dir, relative_path)
-                
                 print(f"🔍 Looking for signature at: {full_path}")
                 
-                # Check also alternative paths
                 alt_paths = [
                     full_path,
                     full_path.replace('\\application\\', '\\application_uploads\\'),
                     full_path.replace('\\application_uploads\\', '\\application\\'),
-                    full_path.replace('application_uploads', 'application'),
-                    full_path.replace('application', 'application_uploads'),
                 ]
                 
                 for path in alt_paths:
-                    print(f"🔍 Checking alternative path: {path}")
                     if os.path.exists(path):
                         print(f"✅ Found signature at: {path}")
                         img = Image(path, width=width, height=height)
@@ -5503,10 +5597,10 @@ def get_signature_image(signature_data, width=180, height=50):
                         img.drawHeight = height
                         return img
                 
-                print(f"❌ Signature file not found in any path")
+                print(f"❌ Signature file not found")
                 return None
             
-            # Case 2: Base64 string
+            # CASE 3: Base64 string
             elif 'base64,' in signature_data or ('data:image' in signature_data[:50] if len(signature_data) > 50 else False):
                 print("🔍 Processing base64 signature...")
                 if 'base64,' in signature_data:
@@ -5521,7 +5615,7 @@ def get_signature_image(signature_data, width=180, height=50):
                 print(f"✅ Signature loaded from base64")
                 return img
             
-            # Case 3: HTTP/HTTPS URL
+            # CASE 4: HTTP/HTTPS URL (non-Cloudinary)
             elif signature_data.startswith(('http://', 'https://')):
                 print(f"🔍 Loading signature from URL: {signature_data}")
                 resp = requests.get(signature_data, timeout=10)
@@ -5532,7 +5626,7 @@ def get_signature_image(signature_data, width=180, height=50):
                     print(f"✅ Signature loaded from URL")
                     return img
             else:
-                # Case 4: Direct file path (without /shared-uploads/)
+                # CASE 5: Direct file path (without /shared-uploads/)
                 print(f"🔍 Trying direct file path: {signature_data}")
                 if os.path.exists(signature_data):
                     img = Image(signature_data, width=width, height=height)
@@ -5557,22 +5651,18 @@ def user_download_contract(contract_number):
     """Generate and download contract PDF - with Addendum and Installment on second page (FULL VERSION)"""
     try:
         # ========== 1. CHECK AUTHENTICATION - WITH TAB ID SUPPORT ==========
-        # 👇 KUNIN ANG TAB ID MULA SA URL
         tab_id = request.args.get("tab_id")
         
         user_id = None
         
-        # 👇 KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER
         if tab_id:
             user_session = session.get(f"user_{tab_id}")
             if user_session:
                 user_id = user_session.get("user_id")
         
-        # 👇 FALLBACK: CHECK REGULAR SESSION
         if not user_id and 'user_id' in session:
             user_id = session.get('user_id')
         
-        # 👇 KUNG WALANG USER_ID, UNAUTHORIZED
         if not user_id:
             print(f"❌ Unauthorized: No user_id found in session")
             return "Unauthorized - Please login again", 401
@@ -5596,7 +5686,6 @@ def user_download_contract(contract_number):
         user_email = user_data.get('email')
         
         if not app_id:
-            # Try to find application by email
             app_query = """
                 SELECT application_number FROM applications 
                 WHERE email = %s
@@ -5630,11 +5719,15 @@ def user_download_contract(contract_number):
         """
         contract_data = execute_query(contract_query, (contract_number,), fetch_one=True)
         
-        # ========== 6. GET SIGNATURE FROM APPLICATION ==========
+        # ========== 6. GET SIGNATURE FROM APPLICATION AND CONVERT TO CLOUDINARY ==========
         signature_data = application_data.get('signature')
         
-        # Debug: Print the signature data to see what's stored
-        print(f"📸 SIGNATURE DATA from DB: {signature_data}")
+        # ✅ CONVERT TO CLOUDINARY URL
+        if signature_data and not signature_data.startswith('http'):
+            signature_data = get_cloudinary_url(signature_data)
+            print(f"📸 Signature converted to Cloudinary: {signature_data}")
+        
+        print(f"📸 SIGNATURE DATA: {signature_data}")
         
         # ========== 7. BUILD CONTRACT DATA (with fallbacks) ==========
         plan_name = application_data.get('plan', '')
@@ -5739,7 +5832,7 @@ def user_download_contract(contract_number):
             fontName='Helvetica', textColor=colors.grey
         )
         
-        # Use the external get_signature_image function (not the internal one)
+        # ✅ Use the external get_signature_image function with Cloudinary URL
         signature_img = get_signature_image(signature_data, 180, 50)
         
         # ========== 11. PAGE 1: HEADER AND MAIN CONTRACT ==========
@@ -6062,21 +6155,6 @@ def user_download_contract(contract_number):
         import traceback
         traceback.print_exc()
         return f"Error generating PDF: {str(e)}", 500
-
-
-def calculate_age(birthdate):
-    if not birthdate:
-        return ''
-    try:
-        from datetime import datetime
-        birth = datetime.strptime(birthdate, "%Y-%m-%d")
-        today = datetime.now()
-        age = today.year - birth.year
-        if (today.month, today.day) < (birth.month, birth.day):
-            age -= 1
-        return str(age)
-    except:
-        return ''
      
 
 
@@ -6190,30 +6268,7 @@ def check_user_session():
         })
 
 
-@app.route("/my-application")
-def my_application():
-    if "user_id" not in session:
-        flash("Please login first.", "warning")
-        return redirect(url_for("login"))
 
-    user_id = session.get("user_id")
-
-    # kunin user
-    user_ref = db.reference(f"users/{user_id}")
-    user_data = user_ref.get()
-
-    if not user_data:
-        return "User not found", 404
-
-    customer_id = user_data.get("customer_id")
-
-    # kunin application gamit application_number
-    app_data = db.reference("applications").child(customer_id).get()
-
-    if not app_data:
-        return "Application not found", 404
-
-    return render_template("user-my-application.html", **app_data) 
 
 
 # ===============================
