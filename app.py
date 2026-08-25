@@ -6155,6 +6155,21 @@ def user_download_contract(contract_number):
         import traceback
         traceback.print_exc()
         return f"Error generating PDF: {str(e)}", 500
+
+
+def calculate_age(birthdate):
+    if not birthdate:
+        return ''
+    try:
+        from datetime import datetime
+        birth = datetime.strptime(birthdate, "%Y-%m-%d")
+        today = datetime.now()
+        age = today.year - birth.year
+        if (today.month, today.day) < (birth.month, birth.day):
+            age -= 1
+        return str(age)
+    except:
+        return ''
      
 
 
