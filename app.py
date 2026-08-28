@@ -1162,6 +1162,29 @@ MAINTENANCE_LOCATION_MESSAGE = "We are currently under maintenance. You cannot a
 def validate_location_barangay(lat, lng):
     import requests
     import json
+
+    def normalize_barangay(value, city):
+        normalized = " ".join(str(value or "").upper().replace(".", "").split())
+        normalized = normalized.replace("(POB)", "(POBLACION)")
+        normalized = normalized.replace(" (POBLACION)", "")
+        normalized = normalized.replace("BARANGAY ", "", 1).strip()
+
+        aliases = {
+            "1": "I", "I": "I", "UNO": "I",
+            "2": "II", "II": "II", "DOS": "II",
+            "3": "III", "III": "III", "TRES": "III",
+            "4": "IV", "IV": "IV", "KUWATRO": "IV",
+            "5": "V", "V": "V", "SINKO": "V"
+        }
+        if city == "SANTA CRUZ":
+            normalized = normalized.replace("POBLACION ", "", 1).strip()
+            return aliases.get(normalized, normalized)
+        if city == "PAGSANJAN":
+            return aliases.get(normalized, normalized)
+        return normalized
+
+    def matches_barangay(detected, candidate, city):
+        return normalize_barangay(detected, city) == normalize_barangay(candidate, city)
     
     try:
         georisk_url = "https://portal.georisk.gov.ph/arcgis/rest/services/PSA/Barangay/MapServer/4/query"
@@ -1213,12 +1236,17 @@ def validate_location_barangay(lat, lng):
                     if detected_city not in allowed_barangays:
                         return False, f"'{detected_city}' is not found in our database."
                     
-                    # Check if converted barangay is in allowed list
-                    if converted_barangay not in allowed_barangays[detected_city]:
+                    # Accept equivalent API labels while preserving the database label.
+                    matched_barangay = next(
+                        (candidate for candidate in allowed_barangays[detected_city]
+                         if matches_barangay(converted_barangay, candidate, detected_city)),
+                        None
+                    )
+                    if not matched_barangay:
                         return False, f"Barangay '{detected_barangay}' is not within our coverage area for {detected_city}."
                     
-                    print(f"✅ Location validated: {detected_city}, {converted_barangay}")
-                    return True, converted_barangay
+                    print(f"✅ Location validated: {detected_city}, {matched_barangay}")
+                    return True, matched_barangay
             
             # Fallback to OSM
             print("⚠️ GeoRisk returned no data, trying OSM fallback...")
@@ -1243,10 +1271,15 @@ def validate_location_barangay(lat, lng):
                 if fallback_city not in allowed_barangays:
                     return False, f"'{fallback_city}' is not found in our database."
                 
-                if fallback_barangay not in allowed_barangays[fallback_city]:
+                matched_barangay = next(
+                    (candidate for candidate in allowed_barangays[fallback_city]
+                     if matches_barangay(fallback_barangay, candidate, fallback_city)),
+                    None
+                )
+                if not matched_barangay:
                     return False, f"Barangay '{fallback_barangay}' is not within our coverage area for {fallback_city}."
                 
-                return True, fallback_barangay
+                return True, matched_barangay
             
             return False, MAINTENANCE_LOCATION_MESSAGE
         

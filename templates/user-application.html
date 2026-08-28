@@ -2233,45 +2233,41 @@ async function validateLocation(lat, lng, selectedBarangay) {
                     .trim();
             };
             
-            const normSelected = normalize(selectedBarangay);
-            const normActual = normalize(actualBarangay);
+            const normalizeForCity = (value, cityName) => {
+                let normalized = (value || '').toLowerCase()
+                    .replace(/\./g, '')
+                    .replace(/\s+/g, ' ')
+                    .trim()
+                    .replace(/^barangay\s+/, '')
+                    .replace(/\s*\(pob(?:lacion)?\)\s*$/i, '')
+                    .trim();
+
+                const aliases = {
+                    '1': 'i', 'i': 'i', 'uno': 'i',
+                    '2': 'ii', 'ii': 'ii', 'dos': 'ii',
+                    '3': 'iii', 'iii': 'iii', 'tres': 'iii',
+                    '4': 'iv', 'iv': 'iv', 'kuwatro': 'iv',
+                    '5': 'v', 'v': 'v', 'sinko': 'v'
+                };
+
+                if (cityName.toLowerCase() === 'santa cruz') {
+                    normalized = normalized.replace(/^poblacion\s+/, '').trim();
+                    return aliases[normalized] || normalized;
+                }
+                if (cityName.toLowerCase() === 'pagsanjan') {
+                    return aliases[normalized] || normalized;
+                }
+                return normalized;
+            };
+
+            const normSelected = normalizeForCity(selectedBarangay, selectedCity);
+            const normActual = normalizeForCity(actualBarangay, selectedCity);
             
             console.log(` Detection Source: ${detectionSource}`);
             console.log(` Selected: "${selectedBarangay}" -> "${normSelected}"`);
             console.log(` Actual: "${actualBarangay}" -> "${normActual}"`);
             
-            // Special handling para sa Pagsanjan (Uno/Dos vs I/II)
-            if (selectedCity === "Pagsanjan") {
-                const unoMap = ["uno", "i", "1"];
-                const dosMap = ["dos", "ii", "2"];
-                
-                const isUnoMatch = unoMap.includes(normSelected) && unoMap.includes(normActual);
-                const isDosMatch = dosMap.includes(normSelected) && dosMap.includes(normActual);
-                
-                if (!isUnoMatch && !isDosMatch && normSelected !== normActual) {
-                    return {
-                        isValid: false,
-                        message: `You don't select "${selectedBarangay}".`
-                    };
-                }
-            } 
-            // Special handling para sa Santa Cruz
-            else if (selectedCity === "Santa Cruz") {
-                const iMap = ["i", "uno", "1"];
-                const iiMap = ["ii", "dos", "2"];
-                
-                const isIMatch = iMap.includes(normSelected) && iMap.includes(normActual);
-                const isIIMatch = iiMap.includes(normSelected) && iiMap.includes(normActual);
-                
-                if (!isIMatch && !isIIMatch && normSelected !== normActual) {
-                    return {
-                        isValid: false,
-                        message: `You don't select "${selectedBarangay}".`
-                    };
-                }
-            }
-            // Regular barangay (exact match) - para sa Bulilan Norte/Sur at Santa Clara Norte/Sur
-            else if (normSelected !== normActual) {
+            if (normSelected !== normActual) {
                 return {
                     isValid: false,
                     message: `You don't select "${selectedBarangay}".`
@@ -3281,14 +3277,36 @@ async function validateBarangayMatch() {
         
         let actualBarangay = addr.village || addr.suburb || addr.neighbourhood || addr.hamlet || "";
         
-        // Simple normalize function - exact match lang
-        const normalize = (s) => {
-            if (!s) return "";
-            return s.toLowerCase().trim();
+        const city = (document.getElementById("city").value || "").trim();
+        const normalizeForCity = (value) => {
+            let normalized = (value || '').toLowerCase()
+                .replace(/\./g, '')
+                .replace(/\s+/g, ' ')
+                .trim()
+                .replace(/^barangay\s+/, '')
+                .replace(/\s*\(pob(?:lacion)?\)\s*$/i, '')
+                .trim();
+
+            const aliases = {
+                '1': 'i', 'i': 'i', 'uno': 'i',
+                '2': 'ii', 'ii': 'ii', 'dos': 'ii',
+                '3': 'iii', 'iii': 'iii', 'tres': 'iii',
+                '4': 'iv', 'iv': 'iv', 'kuwatro': 'iv',
+                '5': 'v', 'v': 'v', 'sinko': 'v'
+            };
+
+            if (city.toLowerCase() === 'santa cruz') {
+                normalized = normalized.replace(/^poblacion\s+/, '').trim();
+                return aliases[normalized] || normalized;
+            }
+            if (city.toLowerCase() === 'pagsanjan') {
+                return aliases[normalized] || normalized;
+            }
+            return normalized;
         };
         
-        const normalizedSelected = normalize(selectedBarangay);
-        const normalizedActual = normalize(actualBarangay);
+        const normalizedSelected = normalizeForCity(selectedBarangay);
+        const normalizedActual = normalizeForCity(actualBarangay);
         
         console.log("=== BARANGAY VALIDATION ===");
         console.log("Selected:", selectedBarangay, "->", normalizedSelected);
