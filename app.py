@@ -2442,6 +2442,7 @@ def is_email_duplicate_allowed_with_reapply_check(email, application_number):
 
 
 
+
 @app.route("/send-verification-code", methods=["POST"])
 def send_verification_code():
     try:
@@ -2449,46 +2450,62 @@ def send_verification_code():
         email = data.get('email')
         is_reapply = data.get('is_reapply', False)
         original_application_id = data.get('original_application_id', None)
-        
+
         if not email:
-            return jsonify({"success": False, "message": "Email is required"}), 400
-        
+            return jsonify({
+                "success": False,
+                "message": "Email is required"
+            }), 400
+
         # ========== DUPLICATE EMAIL CHECK ==========
         blocked, existing = is_email_duplicate_allowed(
             email,
             exclude_application_id=original_application_id if is_reapply else None
         )
+
         if blocked:
-            error_msg = f"This email belongs to another active application (status: {existing.get('status')}). Cannot {'re-apply' if is_reapply else 'apply'} with this email."
-            return jsonify({"success": False, "message": error_msg}), 400
-        
-        # Generate 6-digit code
+            error_msg = (
+                f"This email belongs to another active application "
+                f"(status: {existing.get('status')}). Cannot "
+                f"{'re-apply' if is_reapply else 'apply'} with this email."
+            )
+
+            return jsonify({
+                "success": False,
+                "message": error_msg
+            }), 400
+
+        # ========== GENERATE 6-DIGIT OTP ==========
         code = str(random.randint(100000, 999999))
-        
-        # Store with timestamp (5 minutes expiry)
+
+        # ========== STORE OTP - 5 MINUTES ==========
         verification_codes[email] = {
             'code': code,
             'expires_at': time.time() + 300
         }
-        
-        # ===== SEND EMAIL USING BREVO SMTP =====
-        import smtplib
-        from email.mime.multipart import MIMEMultipart
-        from email.mime.text import MIMEText
-        
-        # ✅ PALITAN ITO: Gmail → Brevo
-        smtp_host = os.getenv('SMTP_HOST', 'smtp-relay.brevo.com')
-        smtp_port = int(os.getenv('SMTP_PORT', 587))
-        smtp_user = os.getenv('SMTP_USER', '')
-        smtp_password = os.getenv('SMTP_PASSWORD', '')
-        smtp_from = os.getenv('SMTP_FROM', 'cablevision.cableinternet@gmail.com')
-        
-        if not smtp_user or not smtp_password:
-            print("❌ SMTP credentials not configured!")
-            return jsonify({"success": False, "message": "Email service not configured. Please contact support."}), 500
-        
+
+        # ============================================================
+        # SEND EMAIL USING BREVO HTTP API
+        # ============================================================
+
+        import requests
+
+        brevo_api_key = os.getenv('BREVO_API_KEY')
+        smtp_from = os.getenv(
+            'SMTP_FROM',
+            'cablevision.cableinternet@gmail.com'
+        )
+
+        if not brevo_api_key:
+            print("❌ BREVO_API_KEY is not configured!")
+
+            return jsonify({
+                "success": False,
+                "message": "Email service not configured. Please contact support."
+            }), 500
+
         subject = "Cablevision Application - Email Verification Code"
-        
+
         html_body = f"""
         <!DOCTYPE html>
         <html>
@@ -2497,63 +2514,209 @@ def send_verification_code():
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Email Verification</title>
         </head>
+
         <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px;">
-            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                <div style="background-color: #0047ab; padding: 20px; text-align: center;">
-                    <img src="https://cablevision.com/static/logo.png" alt="Cablevision Logo" style="max-width: 150px;" onerror="this.style.display='none'">
-                    <h2 style="color: #ffffff; margin: 10px 0 0 0;">Email Verification</h2>
+
+            <div style="
+                max-width: 600px;
+                margin: 0 auto;
+                background-color: #ffffff;
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            ">
+
+                <div style="
+                    background-color: #0047ab;
+                    padding: 20px;
+                    text-align: center;
+                ">
+
+                    <img
+                        src="https://cablevision.com/static/logo.png"
+                        alt="Cablevision Logo"
+                        style="max-width: 150px;"
+                        onerror="this.style.display='none'"
+                    >
+
+                    <h2 style="
+                        color: #ffffff;
+                        margin: 10px 0 0 0;
+                    ">
+                        Email Verification
+                    </h2>
+
                 </div>
+
                 <div style="padding: 30px;">
-                    <p style="font-size: 16px; color: #333;">Hello,</p>
-                    <p style="font-size: 16px; color: #333;">Thank you for applying for Cablevision internet service. Please use the verification code below to complete your application:</p>
-                    
-                    <div style="text-align: center; margin: 30px 0;">
-                        <div style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #0047ab; background: #f0f7ff; padding: 20px; border-radius: 8px; display: inline-block; font-family: monospace;">
+
+                    <p style="font-size: 16px; color: #333;">
+                        Hello,
+                    </p>
+
+                    <p style="font-size: 16px; color: #333;">
+                        Thank you for applying for Cablevision internet service.
+                        Please use the verification code below to complete
+                        your application:
+                    </p>
+
+                    <div style="
+                        text-align: center;
+                        margin: 30px 0;
+                    ">
+
+                        <div style="
+                            font-size: 36px;
+                            font-weight: bold;
+                            letter-spacing: 8px;
+                            color: #0047ab;
+                            background: #f0f7ff;
+                            padding: 20px;
+                            border-radius: 8px;
+                            display: inline-block;
+                            font-family: monospace;
+                        ">
                             {code}
                         </div>
+
                     </div>
-                    
-                    <p style="font-size: 14px; color: #666;">This code will expire in <strong>5 minutes</strong>.</p>
-                    <p style="font-size: 14px; color: #666;">If you did not request this verification, please ignore this email.</p>
-                    
-                    <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
-                    <p style="font-size: 12px; color: #999; text-align: center;">Cablevision Systems Corporation<br>Sta. Cruz, Laguna, Philippines</p>
+
+                    <p style="font-size: 14px; color: #666;">
+                        This code will expire in
+                        <strong>5 minutes</strong>.
+                    </p>
+
+                    <p style="font-size: 14px; color: #666;">
+                        If you did not request this verification,
+                        please ignore this email.
+                    </p>
+
+                    <hr style="
+                        margin: 30px 0;
+                        border: none;
+                        border-top: 1px solid #eee;
+                    ">
+
+                    <p style="
+                        font-size: 12px;
+                        color: #999;
+                        text-align: center;
+                    ">
+                        Cablevision Systems Corporation<br>
+                        Sta. Cruz, Laguna, Philippines
+                    </p>
+
                 </div>
+
             </div>
+
         </body>
         </html>
         """
-        
-        plain_body = f"CableVision Verification Code: {code}\n\nThis code expires in 5 minutes.\n\nIf you did not request this, please ignore this email."
-        
-        msg = MIMEMultipart('alternative')
-        msg['From'] = smtp_from
-        msg['To'] = email
-        msg['Subject'] = subject
-        msg.attach(MIMEText(plain_body, 'plain'))
-        msg.attach(MIMEText(html_body, 'html'))
-        
-        print(f"📧 Sending email via Brevo to {email}...")
-        
-        # ✅ Palitan ang Gmail SMTP ng Brevo SMTP
-        server = smtplib.SMTP(smtp_host, smtp_port, timeout=30)
-        server.starttls()
-        server.login(smtp_user, smtp_password)
-        server.send_message(msg)
-        server.quit()
-        
-        print(f"✅ Verification code sent to {email}: {code}")
+
+        plain_body = (
+            f"CableVision Verification Code: {code}\n\n"
+            f"This code expires in 5 minutes.\n\n"
+            f"If you did not request this, please ignore this email."
+        )
+
+        # ============================================================
+        # BREVO API REQUEST
+        # ============================================================
+
+        payload = {
+            "sender": {
+                "name": "Cablevision Systems Corporation",
+                "email": smtp_from
+            },
+            "to": [
+                {
+                    "email": email
+                }
+            ],
+            "subject": subject,
+            "htmlContent": html_body,
+            "textContent": plain_body
+        }
+
+        headers = {
+            "accept": "application/json",
+            "api-key": brevo_api_key,
+            "content-type": "application/json"
+        }
+
+        print(f"📧 Sending email via Brevo API to {email}...")
+
+        response = requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            headers=headers,
+            json=payload,
+            timeout=30
+        )
+
+        # ============================================================
+        # CHECK BREVO RESPONSE
+        # ============================================================
+
+        if response.status_code not in (200, 201):
+            print(
+                f"❌ Brevo API error "
+                f"({response.status_code}): {response.text}"
+            )
+
+            return jsonify({
+                "success": False,
+                "message": "Failed to send verification email. Please try again later."
+            }), 500
+
+        # Try to get Brevo message ID for logging
+        try:
+            brevo_response = response.json()
+            message_id = brevo_response.get("messageId")
+        except Exception:
+            message_id = None
+
+        print(f"✅ Verification code sent to {email}")
+
+        if message_id:
+            print(f"📨 Brevo Message ID: {message_id}")
+
+        # IMPORTANT:
+        # Huwag i-print ang actual OTP code sa production logs.
+
         return jsonify({
-            "success": True, 
+            "success": True,
             "message": "Verification code sent to your email",
             "expires_in": 300
         })
-        
+
+    except requests.exceptions.Timeout:
+        print("❌ Brevo API request timed out")
+
+        return jsonify({
+            "success": False,
+            "message": "Email service timed out. Please try again later."
+        }), 500
+
+    except requests.exceptions.RequestException as e:
+        print(f"❌ Brevo API request error: {e}")
+
+        return jsonify({
+            "success": False,
+            "message": "Failed to connect to email service. Please try again later."
+        }), 500
+
     except Exception as e:
-        print(f"Error sending verification email: {e}")
+        print(f"❌ Error sending verification email: {e}")
+
         import traceback
         traceback.print_exc()
-        return jsonify({"success": False, "message": "Failed to send verification email. Please try again later."}), 500
+
+        return jsonify({
+            "success": False,
+            "message": "Failed to send verification email. Please try again later."
+        }), 500
+
 
 
 @app.route("/verify-email-code", methods=["POST"])
