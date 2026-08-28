@@ -1776,6 +1776,11 @@ def submit_application():
             print(f"📌 Preferred NAP Box saved: {preferred_napbox_name} (ID: {preferred_napbox_id})")
 
         result = execute_query(insert_query, params)
+
+        if result is None:
+            print(f"❌ INSERT FAILED for application #{application_number}")
+            return "Failed to save application. Please check the server logs.", 500
+
         print(f"✅ Insert result: {result}")
         print(f"✅ New application {application_number} saved with preferred NAP Box")
 
