@@ -3959,59 +3959,261 @@ def login():
 
     
 # ===============================
-# OTP EMAIL SENDER (KEEP AS IS - gumagana naman)
+# OTP EMAIL SENDER - BREVO API
 # ===============================
 
 def send_otp_email(to_email, otp_code):
     """
-    Sends an OTP email to the given recipient using Gmail SMTP with App Password.
+    Sends an OTP email using Brevo HTTP API.
     Returns True if successful, False otherwise.
     """
-    # Sa send_verification_code route, gamitin ang environment variables
-    gmail_user = os.getenv('GMAIL_USER', 'cablevision.cableinternet@gmail.com')
-    gmail_app_password = os.getenv('GMAIL_APP_PASSWORD', 'gbkbembhkfmsoxsx')
+
+    import requests
+
+    # ===============================
+    # BREVO CONFIGURATION
+    # ===============================
+
+    brevo_api_key = os.getenv("BREVO_API_KEY")
+
+    sender_email = os.getenv(
+        "SMTP_FROM",
+        "noreply@cablevisioncableinternet.com"
+    )
+
+    sender_name = "Cablevision Systems Corporation"
+
+    # ===============================
+    # CHECK BREVO API KEY
+    # ===============================
+
+    if not brevo_api_key:
+        print("❌ BREVO_API_KEY is not configured!")
+
+        return False
+
+    # ===============================
+    # EMAIL CONTENT
+    # ===============================
 
     subject = "Your OTP Verification Code - CableVision"
 
     html_body = f"""
+    <!DOCTYPE html>
     <html>
-        <body style="font-family: Arial, sans-serif; background-color: #f0f4f8; padding: 20px;">
-            <div style="background-color: #ffffff; padding: 20px; border-radius: 12px; max-width: 500px; margin: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                <h2 style="color: #003d73;">CableVision OTP Verification</h2>
-                <p>Hello,</p>
-                <p>Your One-Time Password (OTP) is:</p>
-                <p style="font-size: 28px; font-weight: bold; letter-spacing: 4px; color: #001f3f;">{otp_code}</p>
-                <p>This code expires in 5 minutes.</p>
-                <p>If you did not request this, please ignore this email.</p>
-                <hr>
-                <p style="font-size: 12px; color: #666;">&copy; 2026 CableVision Systems Corp. All rights reserved.</p>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport"
+              content="width=device-width, initial-scale=1.0">
+        <title>CableVision OTP Verification</title>
+    </head>
+
+    <body style="
+        font-family: Arial, sans-serif;
+        background-color: #f0f4f8;
+        padding: 20px;
+        margin: 0;
+    ">
+
+        <div style="
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            margin: auto;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        ">
+
+            <h2 style="
+                color: #003d73;
+                margin-top: 0;
+            ">
+                CableVision OTP Verification
+            </h2>
+
+            <p>
+                Hello,
+            </p>
+
+            <p>
+                You requested to reset your CableVision account password.
+                Please use the One-Time Password (OTP) below:
+            </p>
+
+            <div style="
+                text-align: center;
+                margin: 30px 0;
+            ">
+
+                <div style="
+                    display: inline-block;
+                    font-size: 32px;
+                    font-weight: bold;
+                    letter-spacing: 6px;
+                    color: #001f3f;
+                    background-color: #f0f7ff;
+                    padding: 18px 25px;
+                    border-radius: 8px;
+                    font-family: monospace;
+                ">
+                    {otp_code}
+                </div>
+
             </div>
-        </body>
+
+            <p style="
+                color: #555;
+                font-size: 14px;
+            ">
+                This verification code will expire in
+                <strong>5 minutes</strong>.
+            </p>
+
+            <p style="
+                color: #555;
+                font-size: 14px;
+            ">
+                If you did not request a password reset,
+                please ignore this email.
+            </p>
+
+            <hr style="
+                margin: 30px 0;
+                border: none;
+                border-top: 1px solid #eeeeee;
+            ">
+
+            <p style="
+                font-size: 12px;
+                color: #666;
+                text-align: center;
+                margin-bottom: 0;
+            ">
+                Cablevision Systems Corporation<br>
+                Sta. Cruz, Laguna, Philippines
+            </p>
+
+        </div>
+
+    </body>
     </html>
     """
 
-    plain_body = f"CableVision OTP Verification\n\nYour OTP is: {otp_code}\nExpires in 5 minutes.\nIgnore if you didn't request this."
+    plain_body = (
+        f"CableVision OTP Verification\n\n"
+        f"Your OTP is: {otp_code}\n\n"
+        f"This code expires in 5 minutes.\n\n"
+        f"If you did not request a password reset, "
+        f"please ignore this email."
+    )
 
-    msg = MIMEMultipart('alternative')
-    msg['From'] = gmail_user
-    msg['To'] = to_email
-    msg['Subject'] = subject
-    msg.attach(MIMEText(plain_body, 'plain'))
-    msg.attach(MIMEText(html_body, 'html'))
+    # ===============================
+    # BREVO API PAYLOAD
+    # ===============================
+
+    payload = {
+        "sender": {
+            "name": sender_name,
+            "email": sender_email
+        },
+        "to": [
+            {
+                "email": to_email
+            }
+        ],
+        "subject": subject,
+        "htmlContent": html_body,
+        "textContent": plain_body
+    }
+
+    # ===============================
+    # BREVO API HEADERS
+    # ===============================
+
+    headers = {
+        "accept": "application/json",
+        "api-key": brevo_api_key,
+        "content-type": "application/json"
+    }
+
+    # ===============================
+    # SEND EMAIL
+    # ===============================
 
     try:
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.ehlo()
-        server.starttls()
-        server.ehlo()
-        server.login(gmail_user, gmail_app_password)
-        server.send_message(msg)
-        server.quit()
-        print(f"✅ OTP sent successfully to {to_email}")
+
+        print(
+            f"📧 Sending password reset OTP via Brevo "
+            f"to {to_email}..."
+        )
+
+        response = requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            headers=headers,
+            json=payload,
+            timeout=30
+        )
+
+        # ===============================
+        # CHECK BREVO RESPONSE
+        # ===============================
+
+        if response.status_code not in (200, 201):
+
+            print(
+                f"❌ Brevo API error "
+                f"({response.status_code}): "
+                f"{response.text}"
+            )
+
+            return False
+
+        # ===============================
+        # GET MESSAGE ID
+        # ===============================
+
+        try:
+            brevo_response = response.json()
+            message_id = brevo_response.get("messageId")
+
+            if message_id:
+                print(
+                    f"📨 Brevo Message ID: {message_id}"
+                )
+
+        except Exception:
+            pass
+
+        print(
+            f"✅ Password reset OTP sent successfully "
+            f"to {to_email}"
+        )
+
         return True
+
+    except requests.exceptions.Timeout:
+
+        print("❌ Brevo API request timed out")
+
+        return False
+
+    except requests.exceptions.RequestException as e:
+
+        print(
+            f"❌ Brevo API request error: {e}"
+        )
+
+        return False
+
     except Exception as e:
-        print(f"❌ Error sending OTP email: {e}")
+
+        print(
+            f"❌ Error sending password reset OTP: {e}"
+        )
+
+        import traceback
         traceback.print_exc()
+
         return False
     
 # ===============================
