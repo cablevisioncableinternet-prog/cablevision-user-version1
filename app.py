@@ -4569,7 +4569,6 @@ def get_user_status():
 # USER DASHBOARD (XAMPP/MYSQL VERSION) - WITH PROPER TAB ID SUPPORT
 # ===============================
 @app.route("/user/dashboard")
-@login_required
 def dashboard():
     # 👇 KUNIN ANG TAB ID MULA SA URL PARAMETER
     tab_id = request.args.get("tab_id")
