@@ -4269,11 +4269,12 @@ def user_forgot_password():
     })
 
 # ===============================
-# USER RESET PASSWORD - XAMPP/MYSQL VERSION
+# USER RESET PASSWORD - RAILWAY/MYSQL
 # ===============================
 @app.route("/api/user/reset-password", methods=["POST"])
 def user_reset_password():
     data = request.json
+
     username = data.get("username")
     code = data.get("code")
     new_password = data.get("new_password")
@@ -4283,82 +4284,217 @@ def user_reset_password():
     print(f"Username: {username}")
     print(f"Code: {code}")
     print(f"Tab ID: {tab_id}")
-    print("====================================")
+    print("=========================================")
 
+    # ===============================
+    # VALIDATION
+    # ===============================
     if not username or not code or not new_password:
-        return jsonify({"error": "All fields are required"}), 400
+        return jsonify({
+            "error": "All fields are required"
+        }), 400
 
     if len(new_password) < 8:
-        return jsonify({"error": "Password must be at least 8 characters"}), 400
+        return jsonify({
+            "error": "Password must be at least 8 characters"
+        }), 400
 
-    # ========== FIND OTP IN temp_reset ==========
+    # ===============================
+    # FIND OTP IN temp_reset
+    # ===============================
     temp_query = """
-        SELECT * FROM temp_reset
-        WHERE (username = %s OR email = %s) AND otp = %s
-        ORDER BY id DESC LIMIT 1
+        SELECT *
+        FROM temp_reset
+        WHERE (username = %s OR email = %s)
+        AND otp = %s
+        ORDER BY id DESC
+        LIMIT 1
     """
-    temp_data = execute_query(temp_query, (username, username, code), fetch_one=True)
+
+    temp_data = execute_query(
+        temp_query,
+        (username, username, code),
+        fetch_one=True
+    )
 
     if not temp_data:
-        return jsonify({"error": "Invalid verification code"}), 400
+        return jsonify({
+            "error": "Invalid verification code"
+        }), 400
 
     print(f"✅ Found temp_data: {temp_data}")
 
+    # ===============================
+    # CHECK OTP EXPIRATION
+    # ===============================
     current_time = datetime.now().timestamp()
-    expiry_time = temp_data.get('expiry', 0)
+    expiry_time = temp_data.get("expiry", 0)
 
     if current_time > expiry_time:
-        execute_query("DELETE FROM temp_reset WHERE id = %s", (temp_data.get('id'),))
-        return jsonify({"error": "Verification code expired"}), 400
 
-    user_type = temp_data.get('user_type')
-    actual_username = temp_data.get('username')
-    user_email = temp_data.get('email')
+        execute_query(
+            "DELETE FROM temp_reset WHERE id = %s",
+            (temp_data.get("id"),)
+        )
 
+        return jsonify({
+            "error": "Verification code expired"
+        }), 400
+
+    # ===============================
+    # GET USER INFORMATION
+    # ===============================
+    actual_username = temp_data.get("username")
+    user_email = temp_data.get("email")
+
+    if not actual_username and not user_email:
+        return jsonify({
+            "error": "User information not found"
+        }), 400
+
+    # ===============================
+    # HASH NEW PASSWORD
+    # ===============================
     hashed_new_password = generate_password_hash(new_password)
-    
-    # ✅ STEP 1: SAVE new_password TO temp_reset
+
+    # ===============================
+    # STEP 1
+    # SAVE NEW PASSWORD TO temp_reset
+    # ===============================
     update_temp_query = """
-        UPDATE temp_reset 
-        SET new_password = %s 
+        UPDATE temp_reset
+        SET new_password = %s
         WHERE id = %s
     """
-    update_result = execute_query(update_temp_query, (hashed_new_password, temp_data.get('id')))
-    print(f"✅ new_password saved to temp_reset: {update_result}")
 
-    # 🔍 I-VERIFY KUNG NA-SAVE ANG new_password
-    verify_temp = execute_query("SELECT new_password FROM temp_reset WHERE id = %s", (temp_data.get('id'),), fetch_one=True)
-    print(f"🔍 Verified new_password: {verify_temp.get('new_password') if verify_temp else 'NULL'}")
+    update_result = execute_query(
+        update_temp_query,
+        (
+            hashed_new_password,
+            temp_data.get("id")
+        )
+    )
 
-    # ✅ STEP 2: UPDATE USER PASSWORD
+    print(
+        f"✅ new_password saved to temp_reset: "
+        f"{update_result} rows affected"
+    )
+
+    # ===============================
+    # VERIFY temp_reset
+    # ===============================
+    verify_temp = execute_query(
+        """
+        SELECT new_password
+        FROM temp_reset
+        WHERE id = %s
+        """,
+        (temp_data.get("id"),),
+        fetch_one=True
+    )
+
+    print(
+        f"🔍 Verified new_password: "
+        f"{'SAVED' if verify_temp and verify_temp.get('new_password') else 'NULL'}"
+    )
+
+    # ===============================
+    # STEP 2
+    # UPDATE USER PASSWORD
+    # ===============================
     update_query = """
-        UPDATE users 
-        SET password = %s, reset_code = NULL 
-        WHERE user_id = %s OR username = %s OR email = %s
+        UPDATE users
+        SET password = %s,
+            reset_code = NULL
+        WHERE user_id = %s
+           OR username = %s
+           OR email = %s
     """
-    update_rows = execute_query(update_query, (hashed_new_password, actual_username, actual_username, user_email))
-    print(f"✅ User password updated: {update_rows} rows affected")
+
+    update_rows = execute_query(
+        update_query,
+        (
+            hashed_new_password,
+            actual_username,
+            actual_username,
+            user_email
+        )
+    )
+
+    print(
+        f"✅ User password updated: "
+        f"{update_rows} rows affected"
+    )
 
     if update_rows is None or update_rows == 0:
-        return jsonify({"error": "Failed to update password. Please try again."}), 400
+        return jsonify({
+            "error": "Failed to update password. Please try again."
+        }), 400
 
-    # ✅ STEP 3: KUNIN ANG USER DATA
+    # ===============================
+    # STEP 3
+    # GET UPDATED USER DATA
+    # ===============================
     user_query = """
-        SELECT user_id, customer_id, application_number, email, username,
-               role, contract_number, status, first_name, last_name
-        FROM users 
-        WHERE user_id = %s OR username = %s OR email = %s
+        SELECT
+            user_id,
+            customer_id,
+            application_number,
+            email,
+            username,
+            role,
+            contract_number,
+            status,
+            first_name,
+            last_name
+        FROM users
+        WHERE user_id = %s
+           OR username = %s
+           OR email = %s
         LIMIT 1
     """
-    user_data = execute_query(user_query, (actual_username, actual_username, user_email), fetch_one=True)
-    
+
+    user_data = execute_query(
+        user_query,
+        (
+            actual_username,
+            actual_username,
+            user_email
+        ),
+        fetch_one=True
+    )
+
     if not user_data:
-        return jsonify({"error": "User not found"}), 404
-    
-    # ✅ STEP 4: CLEAR OLD SESSION, THEN AUTO-LOGIN THE USER WITH THE NEW PASSWORD
+        return jsonify({
+            "error": "User not found"
+        }), 404
+
+    print(f"✅ User data retrieved: {user_data.get('user_id')}")
+
+    # ===============================
+    # STEP 4
+    # CLEAR OLD SESSION
+    # ===============================
     session.clear()
 
+    # ===============================
+    # STEP 5
+    # CREATE NORMAL LOGIN SESSION
+    # ===============================
+    session["user_id"] = user_data.get("user_id")
+    session["customer_id"] = user_data.get("customer_id")
+    session["role"] = user_data.get("role")
+    session["email"] = user_data.get("email")
+    session["userType"] = "user"
+    session["contract_number"] = user_data.get("contract_number")
+    session["ga_verified"] = True
+
+    # ===============================
+    # STEP 6
+    # CREATE TAB SESSION
+    # ===============================
     if tab_id:
+
         session[f"user_{tab_id}"] = {
             "user_id": user_data.get("user_id"),
             "customer_id": user_data.get("customer_id"),
@@ -4368,25 +4504,44 @@ def user_reset_password():
             "contract_number": user_data.get("contract_number"),
             "status": user_data.get("status", "Active")
         }
+
         session["active_tab"] = tab_id
-    else:
-        session["user_id"] = user_data.get("user_id")
-        session["customer_id"] = user_data.get("customer_id")
-        session["role"] = user_data.get("role")
-        session["email"] = user_data.get("email")
-        session["userType"] = "user"
-        session["contract_number"] = user_data.get("contract_number")
-        session["ga_verified"] = True
 
-    print(f"✅ Reset password successful. Auto-login for user: {user_data.get('user_id')}, tab_id: {tab_id}")
+        print(f"✅ Tab session created: user_{tab_id}")
+        print(f"✅ Active tab set: {tab_id}")
 
-    redirect_url = url_for("dashboard") + ("?tab_id=" + tab_id if tab_id else "")
+    # ===============================
+    # STEP 7
+    # AUTO LOGIN CONFIRMATION
+    # ===============================
+    print("=========================================")
+    print("✅ PASSWORD RESET SUCCESSFUL")
+    print("✅ AUTO-LOGIN SESSION CREATED")
+    print(f"✅ User ID: {user_data.get('user_id')}")
+    print(f"✅ Username: {user_data.get('username')}")
+    print(f"✅ Email: {user_data.get('email')}")
+    print(f"✅ Tab ID: {tab_id}")
+    print(f"✅ GA Verified: {session.get('ga_verified')}")
+    print("=========================================")
 
+    # ===============================
+    # STEP 8
+    # CREATE DASHBOARD REDIRECT
+    # ===============================
+    redirect_url = url_for("dashboard")
+
+    if tab_id:
+        redirect_url += "?tab_id=" + tab_id
+
+    # ===============================
+    # RETURN SUCCESS
+    # ===============================
     return jsonify({
+        "success": True,
         "message": "Password updated successfully! Redirecting to your dashboard...",
         "redirect": redirect_url,
         "tab_id": tab_id,
-        "username": actual_username,
+        "username": user_data.get("username"),
         "user_id": user_data.get("user_id")
     }), 200
 
