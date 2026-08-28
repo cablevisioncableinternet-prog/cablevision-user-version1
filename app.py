@@ -8510,6 +8510,7 @@ def get_user_current_plan():
         
     except Exception as e:
         print(f"Error in get_user_current_plan: {e}")
+        rint(f"Error in get_user_current_plan: {e}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -9164,7 +9165,7 @@ def submit_termination_request():
             cursor.close()
         if conn:
             conn.close()
-#########
+
 
 # ===============================
 # RUN APP
