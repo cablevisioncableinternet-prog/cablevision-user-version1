@@ -4494,7 +4494,6 @@ def user_reset_password():
     # CREATE TAB SESSION
     # ===============================
     if tab_id:
-
         session[f"user_{tab_id}"] = {
             "user_id": user_data.get("user_id"),
             "customer_id": user_data.get("customer_id"),
@@ -4509,6 +4508,9 @@ def user_reset_password():
 
         print(f"✅ Tab session created: user_{tab_id}")
         print(f"✅ Active tab set: {tab_id}")
+
+    # FORCE SESSION SAVE
+    session.modified = True
 
     # ===============================
     # STEP 7
