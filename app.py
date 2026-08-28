@@ -1162,38 +1162,6 @@ MAINTENANCE_LOCATION_MESSAGE = "We are currently under maintenance. You cannot a
 def validate_location_barangay(lat, lng):
     import requests
     import json
-
-    def normalize_barangay_name(value, city):
-        normalized = " ".join((value or "").upper().replace(".", "").split())
-        normalized = normalized.replace("(POB)", "(POBLACION)")
-        normalized = normalized.replace(" (POBLACION)", "")
-        normalized = normalized.replace("BARANGAY ", "", 1).strip()
-
-        if city == "SANTA CRUZ":
-            aliases = {
-                "1": "POBLACION I", "I": "POBLACION I", "UNO": "POBLACION I",
-                "2": "POBLACION II", "II": "POBLACION II", "DOS": "POBLACION II",
-                "3": "POBLACION III", "III": "POBLACION III", "TRES": "POBLACION III",
-                "4": "POBLACION IV", "IV": "POBLACION IV", "KUWATRO": "POBLACION IV",
-                "5": "POBLACION V", "V": "POBLACION V", "SINKO": "POBLACION V",
-                "POBLACION 1": "POBLACION I", "POBLACION 2": "POBLACION II",
-                "POBLACION 3": "POBLACION III", "POBLACION 4": "POBLACION IV",
-                "POBLACION 5": "POBLACION V"
-            }
-            return aliases.get(normalized, normalized)
-
-        if city == "PAGSANJAN":
-            aliases = {"1": "I", "I": "I", "UNO": "I", "2": "II", "II": "II", "DOS": "II"}
-            return aliases.get(normalized.replace(" (POBLACION)", ""), normalized)
-
-        return normalized
-
-    def find_allowed_barangay(city, detected, allowed):
-        detected_key = normalize_barangay_name(detected, city)
-        for candidate in allowed:
-            if normalize_barangay_name(candidate, city) == detected_key:
-                return candidate
-        return None
     
     try:
         georisk_url = "https://portal.georisk.gov.ph/arcgis/rest/services/PSA/Barangay/MapServer/4/query"
@@ -1245,15 +1213,12 @@ def validate_location_barangay(lat, lng):
                     if detected_city not in allowed_barangays:
                         return False, f"'{detected_city}' is not found in our database."
                     
-                    # Match API aliases to the database spelling for this city.
-                    matched_barangay = find_allowed_barangay(
-                        detected_city, converted_barangay, allowed_barangays[detected_city]
-                    )
-                    if not matched_barangay:
+                    # Check if converted barangay is in allowed list
+                    if converted_barangay not in allowed_barangays[detected_city]:
                         return False, f"Barangay '{detected_barangay}' is not within our coverage area for {detected_city}."
                     
-                    print(f"✅ Location validated: {detected_city}, {matched_barangay}")
-                    return True, matched_barangay
+                    print(f"✅ Location validated: {detected_city}, {converted_barangay}")
+                    return True, converted_barangay
             
             # Fallback to OSM
             print("⚠️ GeoRisk returned no data, trying OSM fallback...")
@@ -1278,13 +1243,10 @@ def validate_location_barangay(lat, lng):
                 if fallback_city not in allowed_barangays:
                     return False, f"'{fallback_city}' is not found in our database."
                 
-                matched_barangay = find_allowed_barangay(
-                    fallback_city, fallback_barangay, allowed_barangays[fallback_city]
-                )
-                if not matched_barangay:
+                if fallback_barangay not in allowed_barangays[fallback_city]:
                     return False, f"Barangay '{fallback_barangay}' is not within our coverage area for {fallback_city}."
                 
-                return True, matched_barangay
+                return True, fallback_barangay
             
             return False, MAINTENANCE_LOCATION_MESSAGE
         
@@ -1298,7 +1260,6 @@ def validate_location_barangay(lat, lng):
         import traceback
         traceback.print_exc()
         return False, MAINTENANCE_LOCATION_MESSAGE
-
 
 
 
