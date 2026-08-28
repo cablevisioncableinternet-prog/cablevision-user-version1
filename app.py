@@ -39,6 +39,89 @@ from reportlab.platypus import Table, TableStyle
 app = Flask(__name__)
 CORS(app)
 
+
+
+
+import cloudinary
+import cloudinary.uploader
+import os
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+
+def get_cloudinary_url(image_path, resource_type="image"):
+    """Convert image path to Cloudinary URL"""
+    print(f"🔍 get_cloudinary_url called with: {image_path}")
+    
+    if not image_path:
+        print(f"⚠️ image_path is empty")
+        return ''
+    
+    # If already a full URL
+    if image_path.startswith('http'):
+        print(f"✅ Already a full URL: {image_path}")
+        return image_path
+    
+    # Determine resource type (image or video)
+    is_video = resource_type == "video" or image_path.endswith(('.mp4', '.avi', '.mov', '.mkv'))
+    upload_type = "video" if is_video else "image"
+    
+    # If path starts with 'cablevision/'
+    if image_path.startswith('cablevision/'):
+        result = f"https://res.cloudinary.com/oa3fcr2b/{upload_type}/upload/{image_path}"
+        print(f"✅ Converted cablevision/ to: {result}")
+        return result
+    
+    # If path still has /shared-uploads/ (legacy)
+    if image_path.startswith('/shared-uploads/'):
+        cloudinary_path = image_path.replace('/shared-uploads/', 'cablevision/')
+        result = f"https://res.cloudinary.com/oa3fcr2b/{upload_type}/upload/{cloudinary_path}"
+        print(f"✅ Converted legacy path to: {result}")
+        return result
+    
+    # Default: return as is
+    print(f"⚠️ No matching condition, returning as is: {image_path}")
+    return image_path
+
+
+# Configure Cloudinary (gagamitin nito ang environment variables na na-set mo sa Railway)
+cloudinary.config(
+    cloud_name=os.getenv('CLOUDINARY_CLOUD_NAME'),
+    api_key=os.getenv('CLOUDINARY_API_KEY'),
+    api_secret=os.getenv('CLOUDINARY_API_SECRET')
+)
+
+# ✅ I-ADD ITO: Ang /api/upload route
+@app.route('/api/upload', methods=['POST'])
+def upload_image():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file provided'}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No file selected'}), 400
+
+    folder = request.form.get('folder', 'general') 
+
+    try:
+        upload_result = cloudinary.uploader.upload(
+            file, 
+            folder=f"cablevision/{folder}"
+        )
+        image_url = upload_result['secure_url']
+        
+        return jsonify({
+            'message': 'Upload successful!',
+            'url': image_url,
+            'public_id': upload_result['public_id']
+        }), 200
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+
 app.secret_key = "my_super_secure_random_key_12345"
 
 
@@ -438,7 +521,22 @@ def is_valid_barangay(city_name, barangay_name):
 import os
 from flask import send_from_directory
 
-SHARED_UPLOADS_BASE = r"C:\xampp\htdocs\cablevision_uploads"
+import os
+
+# Detect if running on Railway
+IS_RAILWAY = os.environ.get('RAILWAY_ENVIRONMENT') is not None
+
+if IS_RAILWAY:
+    # Railway: Use shared volume
+    SHARED_UPLOADS_BASE = '/app/uploads'
+else:
+    # Local: Use Windows path
+    SHARED_UPLOADS_BASE = r"C:\xampp\htdocs\cablevision_uploads"
+
+
+UPLOADS_FOLDER_NAME = "application_uploads"
+
+
 
 @app.route('/shared-uploads/<path:filename>')
 def serve_shared_uploads(filename):
@@ -450,13 +548,9 @@ def serve_shared_uploads(filename):
     return send_from_directory(SHARED_UPLOADS_BASE, filename)
 
 
-# ===============================
-# ROUTES
-# ===============================
 @app.route("/")
 def home():
     try:
-        # Fetch plans from MySQL using direct connection
         plans_data = execute_query(
             "SELECT id, name, speed, price, image_path FROM plans ORDER BY price ASC",
             fetch=True
@@ -465,20 +559,24 @@ def home():
         plan_list = []
         for plan in plans_data:
             image_path = plan.get("image_path", "")
-            if image_path and image_path.startswith('/shared-uploads/'):
-                formatted_image = image_path
-            else:
-                formatted_image = image_path or ''
+            cloudinary_url = get_cloudinary_url(image_path)
+            
+            # ✅ I-PRINT ANG VALUE NA IPAPASA SA TEMPLATE
+            print(f"📸 Image path: {image_path}")
+            print(f"✅ Cloudinary URL: {cloudinary_url}")
+            print(f"📤 Passing to template: {cloudinary_url}")
             
             plan_list.append({
                 "id": plan.get("id"),
                 "name": plan.get("name", ""),
                 "speed": plan.get("speed", ""),
                 "price": float(plan.get("price", 0)),
-                "image": formatted_image
+                "image": cloudinary_url
             })
         
-        # IMPORTANT: Pass plans to template
+        # ✅ I-PRINT ANG BUONG plan_list
+        print(f"📤 plan_list: {plan_list}")
+        
         return render_template("user-homepage.html", plans=plan_list)
         
     except Exception as e:
@@ -617,10 +715,12 @@ def public_plans():
         plan_list = []
         for plan in plans:
             image_path = plan.get('image_path', '')
-            if image_path and image_path.startswith('/shared-uploads/'):
-                formatted_image = image_path
-            else:
-                formatted_image = image_path or ''
+            
+            # ✅ Convert to Cloudinary URL
+            formatted_image = get_cloudinary_url(image_path)
+            
+            # ✅ Debug print
+            print(f"📸 Public plans - image_path: {image_path} -> {formatted_image}")
             
             plan_list.append({
                 "id": plan['id'],
@@ -641,22 +741,18 @@ def public_plans():
 # ===============================
 @app.route("/api/public/advertisements", methods=["GET"])
 def get_public_advertisements():
-    """Public endpoint for homepage to fetch both images and videos from advertisements table"""
-
     conn = None
     cursor = None
     try:
         print("🔍 Fetching advertisements for public homepage...")
         
         conn = get_db_connection()
-
         if not conn:
             print("❌ Database connection failed")
             return jsonify([])
 
         cursor = conn.cursor(dictionary=True)
         
-        # Query to get both images and videos from advertisements table
         query = """
             SELECT id, file_path, file_type, file_size, date, timestamp, created_at
             FROM advertisements 
@@ -670,16 +766,21 @@ def get_public_advertisements():
         
         ad_list = []
         for ad in ads:
+            file_path = ad.get('file_path', '')
+            file_type = ad.get('file_type', 'image')
+            
+            # ✅ Pass resource_type to get_cloudinary_url
+            formatted_file_path = get_cloudinary_url(file_path, resource_type=file_type)
+            
             ad_list.append({
                 "id": ad['id'],
-                "filePath": ad.get('file_path', ''),
-                "fileType": ad.get('file_type', 'image'),
+                "filePath": formatted_file_path,
+                "fileType": file_type,
                 "fileSize": ad.get('file_size', 0),
                 "date": ad.get('date', ''),
                 "timestamp": ad.get('timestamp', 0)
             })
         
-        # Count for debugging
         images = [a for a in ad_list if a['fileType'] == 'image']
         videos = [a for a in ad_list if a['fileType'] == 'video']
         print(f"📸 Images: {len(images)}, 🎬 Videos: {len(videos)}")
@@ -714,16 +815,15 @@ def public_announcements():
         result = []
         for ann in announcements:
             image_path = ann.get('image_path', '')
-            if image_path and image_path.startswith('/shared-uploads/'):
-                formatted_image = image_path
-            else:
-                formatted_image = image_path or ''
+            
+            # ✅ Convert to Cloudinary URL
+            formatted_image = get_cloudinary_url(image_path)
             
             result.append({
                 "id": ann['id'],
                 "title": ann.get('title', ''),
                 "message": ann.get('message', ''),
-                "imageBase64": formatted_image,
+                "imageBase64": formatted_image,  # ✅ Updated
                 "date": ann.get('date', ''),
                 "timestamp": ann.get('timestamp', 0),
                 "expirationDate": ann.get('expirationDate', '')
@@ -746,14 +846,13 @@ def public_channel_logos():
         result = []
         for logo in logos:
             image_path = logo.get('image_path', '')
-            if image_path and image_path.startswith('/shared-uploads/'):
-                formatted_image = image_path
-            else:
-                formatted_image = image_path or ''
+            
+            # ✅ Convert to Cloudinary URL
+            formatted_image = get_cloudinary_url(image_path)
             
             result.append({
                 "id": logo['id'],
-                "image": formatted_image,
+                "image": formatted_image,  # ✅ Updated
                 "name": f"logo_{logo['id']}",
                 "date": logo.get('date', '')
             })
@@ -811,17 +910,8 @@ def plans():
         for plan in plans_data:
             image_path = plan.get("image_path", "")
             
-            # Debug: print para makita ang actual na path
-            print(f"Plan: {plan.get('name')}, Image path: {image_path}")
-            
-            # Format image path correctly
-            if image_path and image_path.startswith('/shared-uploads/'):
-                formatted_image = image_path
-            elif image_path:
-                # If path doesn't start with /shared-uploads, add it
-                formatted_image = f"/shared-uploads/plans/{image_path.split('/')[-1]}"
-            else:
-                formatted_image = ''
+            # ✅ Use Cloudinary URL helper
+            formatted_image = get_cloudinary_url(image_path)
             
             plan_list.append({
                 "id": plan.get("id"),
@@ -831,7 +921,6 @@ def plans():
                 "image": formatted_image
             })
         
-        # Get selected plan from query string
         selected_plan = request.args.get("selected", "")
         
         return render_template("user-plans.html", plans=plan_list, selected_plan=selected_plan)
@@ -1174,6 +1263,109 @@ def validate_location_barangay(lat, lng):
 
 
 
+# ============================================================
+# CLOUDINARY HELPER FUNCTIONS FOR APPLICATIONS
+# ============================================================
+
+def upload_to_cloudinary_application(file, application_number, file_type):
+    """Upload application document to Cloudinary and return URL"""
+    try:
+        print(f"📤 Uploading {file_type} for application {application_number}")
+        
+        # I-reset ang file pointer
+        file.stream.seek(0)
+        
+        # Generate public_id with application number
+        timestamp = int(time.time())
+        public_id = f"{application_number}/{file_type}_{timestamp}"
+        
+        # Process image with PIL
+        from PIL import Image
+        import io
+        
+        img = Image.open(file.stream)
+        
+        # Convert to RGB if needed
+        if img.mode in ('RGBA', 'P'):
+            img = img.convert('RGB')
+        
+        # Resize to max_size (800x800) while maintaining aspect ratio
+        max_size = (800, 800)
+        img.thumbnail(max_size, Image.Resampling.LANCZOS)
+        
+        # Save to BytesIO
+        img_byte_arr = io.BytesIO()
+        img.save(img_byte_arr, format='JPEG', quality=85, optimize=True)
+        img_byte_arr.seek(0)
+        
+        # Upload to Cloudinary
+        result = cloudinary.uploader.upload(
+            img_byte_arr,
+            folder="cablevision/application_uploads",
+            public_id=public_id,
+            resource_type="image",
+            overwrite=True
+        )
+        
+        url_path = f"/shared-uploads/application_uploads/{application_number}/{file_type}_{timestamp}.jpg"
+        print(f"✅ Uploaded to Cloudinary: {result['secure_url']}")
+        return result['secure_url']
+        
+    except Exception as e:
+        print(f"❌ Cloudinary upload error for {file_type}: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+def upload_base64_to_cloudinary(base64_string, application_number, file_type, max_size=(800, 800), quality=85):
+    """Upload base64 image to Cloudinary and return URL"""
+    if not base64_string:
+        return None
+    
+    try:
+        import io
+        from PIL import Image
+        import base64
+        
+        # Remove data:image prefix if present
+        if base64_string.startswith('data:image'):
+            base64_string = base64_string.split(',', 1)[1]
+        
+        # Decode base64
+        img_data = base64.b64decode(base64_string)
+        img = Image.open(io.BytesIO(img_data))
+        
+        if img.mode in ('RGBA', 'P'):
+            img = img.convert('RGB')
+        
+        img.thumbnail(max_size, Image.Resampling.LANCZOS)
+        
+        # Save to BytesIO
+        img_byte_arr = io.BytesIO()
+        img.save(img_byte_arr, format='JPEG', quality=quality, optimize=True)
+        img_byte_arr.seek(0)
+        
+        # Generate public_id
+        timestamp = int(time.time())
+        public_id = f"{application_number}/{file_type}_{timestamp}"
+        
+        # Upload to Cloudinary
+        result = cloudinary.uploader.upload(
+            img_byte_arr,
+            folder="cablevision/application_uploads",
+            public_id=public_id,
+            resource_type="image",
+            overwrite=True
+        )
+        
+        print(f"✅ Base64 uploaded to Cloudinary: {result['secure_url']}")
+        return result['secure_url']
+        
+    except Exception as e:
+        print(f"❌ Base64 upload error for {file_type}: {e}")
+        return None
+
+    
 # ===============================
 # APPLICATION SUBMIT (XAMPP/MYSQL VERSION WITH FILE UPLOADS)
 # ===============================
@@ -1301,84 +1493,31 @@ def submit_application():
     print(f"TV Type: {tv_type}")
     print("="*50 + "\n")
     
-    # ========== UPLOAD CONFIGURATION ==========
-    SHARED_UPLOADS_BASE = r"C:\xampp\htdocs\cablevision_uploads"
-    UPLOADS_FOLDER_NAME = "application_uploads"
+    
     
     def save_uploaded_file(file_input, application_number, file_type, max_size=(800, 800), quality=75):
-        """Save uploaded file to shared uploads folder and return URL path"""
+        """Save uploaded file to Cloudinary and return URL path"""
         if not file_input or file_input.filename == '':
             return None
         
         try:
-            # Open and process image
-            img = Image.open(file_input)
-            
-            if img.mode in ('RGBA', 'P'):
-                img = img.convert('RGB')
-            
-            img.thumbnail(max_size, Image.Resampling.LANCZOS)
-            
-            # Create folder structure: cablevision_uploads/application_uploads/[application_number]/
-            app_folder = os.path.join(SHARED_UPLOADS_BASE, UPLOADS_FOLDER_NAME, application_number)
-            if not os.path.exists(app_folder):
-                os.makedirs(app_folder)
-                print(f"📁 Created folder: {app_folder}")
-            
-            # Generate filename with timestamp
-            timestamp = int(time.time())
-            filename = f"{file_type}_{timestamp}.jpg"
-            file_path = os.path.join(app_folder, filename)
-            
-            # Save image
-            img.save(file_path, format='JPEG', quality=quality, optimize=True)
-            
-            # Return URL path (for database and template)
-            url_path = f"/shared-uploads/{UPLOADS_FOLDER_NAME}/{application_number}/{filename}"
-            print(f"✅ Image saved: {file_path} -> URL: {url_path}")
-            return url_path
+            # ✅ Upload to Cloudinary
+            url = upload_to_cloudinary_application(file_input, application_number, file_type)
+            return url
             
         except Exception as e:
             print(f"❌ Error saving {file_type}: {e}")
             return None
     
     def save_base64_image(base64_string, application_number, file_type, max_size=(800, 800), quality=75):
-        """Save base64 image to shared uploads folder and return URL path"""
+        """Save base64 image to Cloudinary and return URL path"""
         if not base64_string:
             return None
         
         try:
-            # Remove data:image prefix if present
-            if base64_string.startswith('data:image'):
-                base64_string = base64_string.split(',', 1)[1]
-            
-            # Decode base64
-            img_data = base64.b64decode(base64_string)
-            img = Image.open(io.BytesIO(img_data))
-            
-            if img.mode in ('RGBA', 'P'):
-                img = img.convert('RGB')
-            
-            img.thumbnail(max_size, Image.Resampling.LANCZOS)
-            
-            # Create folder structure
-            app_folder = os.path.join(SHARED_UPLOADS_BASE, UPLOADS_FOLDER_NAME, application_number)
-            if not os.path.exists(app_folder):
-                os.makedirs(app_folder)
-                print(f"📁 Created folder: {app_folder}")
-            
-            # Generate filename with timestamp
-            timestamp = int(time.time())
-            filename = f"{file_type}_{timestamp}.jpg"
-            file_path = os.path.join(app_folder, filename)
-            
-            # Save image
-            img.save(file_path, format='JPEG', quality=quality, optimize=True)
-            
-            # Return URL path
-            url_path = f"/shared-uploads/{UPLOADS_FOLDER_NAME}/{application_number}/{filename}"
-            print(f"✅ Base64 image saved: {file_path} -> URL: {url_path}")
-            return url_path
+            # ✅ Upload to Cloudinary
+            url = upload_base64_to_cloudinary(base64_string, application_number, file_type, max_size, quality)
+            return url
             
         except Exception as e:
             print(f"❌ Error saving base64 {file_type}: {e}")
@@ -2303,105 +2442,491 @@ def is_email_duplicate_allowed_with_reapply_check(email, application_number):
 
 
 
+
 @app.route("/send-verification-code", methods=["POST"])
 def send_verification_code():
+    import requests
+    import random
+    import time
+    import os
+    import traceback
+
     try:
-        data = request.get_json()
-        email = data.get('email')
-        is_reapply = data.get('is_reapply', False)
-        original_application_id = data.get('original_application_id', None)
-        
+        # ============================================================
+        # GET REQUEST DATA
+        # ============================================================
+
+        data = request.get_json(silent=True) or {}
+
+        email = data.get("email")
+        is_reapply = data.get("is_reapply", False)
+        original_application_id = data.get(
+            "original_application_id",
+            None
+        )
+
+        # ============================================================
+        # VALIDATE EMAIL
+        # ============================================================
+
         if not email:
-            return jsonify({"success": False, "message": "Email is required"}), 400
-        
-        # ========== DUPLICATE EMAIL CHECK (bago magpadala ng code) ==========
+            return jsonify({
+                "success": False,
+                "message": "Email is required"
+            }), 400
+
+        email = email.strip().lower()
+
+        # ============================================================
+        # DUPLICATE EMAIL CHECK
+        # ============================================================
+
         blocked, existing = is_email_duplicate_allowed(
             email,
-            exclude_application_id=original_application_id if is_reapply else None
+            exclude_application_id=(
+                original_application_id
+                if is_reapply
+                else None
+            )
         )
+
         if blocked:
-            error_msg = f"This email belongs to another active application (status: {existing.get('status')}). Cannot {'re-apply' if is_reapply else 'apply'} with this email."
-            print(f"❌ {error_msg}")
-            return jsonify({"success": False, "message": error_msg}), 400
-        
-        # Generate 6-digit code
+            error_msg = (
+                f"This email belongs to another active application "
+                f"(status: {existing.get('status')}). Cannot "
+                f"{'re-apply' if is_reapply else 'apply'} "
+                f"with this email."
+            )
+
+            return jsonify({
+                "success": False,
+                "message": error_msg
+            }), 400
+
+        # ============================================================
+        # BREVO API KEY
+        # ============================================================
+
+        brevo_api_key = os.getenv("BREVO_API_KEY")
+
+        if not brevo_api_key:
+            print("❌ BREVO_API_KEY is not configured!")
+
+            return jsonify({
+                "success": False,
+                "message": (
+                    "Email service is not configured. "
+                    "Please contact support."
+                )
+            }), 500
+
+        # ============================================================
+        # BREVO VERIFIED SENDER
+        # ============================================================
+        #
+        # Your Brevo sender is now:
+        #
+        # Cablevision Systems Corporation
+        # noreply@cablevisioncableinternet.com
+        #
+        # This domain has already been authenticated and branded.
+        #
+        # ============================================================
+
+        smtp_from = os.getenv(
+            "SMTP_FROM",
+            "noreply@cablevisioncableinternet.com"
+        )
+
+        sender_name = os.getenv(
+            "SMTP_FROM_NAME",
+            "Cablevision Systems Corporation"
+        )
+
+        # ============================================================
+        # GENERATE 6-DIGIT OTP
+        # ============================================================
+
         code = str(random.randint(100000, 999999))
-        
-        # Store with timestamp (5 minutes expiry)
+
+        # ============================================================
+        # STORE OTP
+        # OTP VALID FOR 5 MINUTES
+        # ============================================================
+
         verification_codes[email] = {
-            'code': code,
-            'expires_at': time.time() + 300  # 5 minutes
+            "code": code,
+            "expires_at": time.time() + 300
         }
-        
-        # ===== EMAIL SENDER =====
-        subject = "Cablevision Application - Email Verification Code"
-        
+
+        # ============================================================
+        # EMAIL SUBJECT
+        # ============================================================
+
+        subject = (
+            "Cablevision Application - "
+            "Email Verification Code"
+        )
+
+        # ============================================================
+        # EMAIL HTML
+        # ============================================================
+
         html_body = f"""
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Email Verification</title>
-        </head>
-        <body style="font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 0; padding: 20px;">
-            <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                <div style="background-color: #0047ab; padding: 20px; text-align: center;">
-                    <img src="https://cablevision.com/static/logo.png" alt="Cablevision Logo" style="max-width: 150px;" onerror="this.style.display='none'">
-                    <h2 style="color: #ffffff; margin: 10px 0 0 0;">Email Verification</h2>
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Email Verification</title>
+</head>
+
+<body style="
+    margin:0;
+    padding:20px;
+    background-color:#f4f4f4;
+    font-family:Arial, Helvetica, sans-serif;
+">
+
+    <div style="
+        max-width:600px;
+        margin:0 auto;
+        background-color:#ffffff;
+        border-radius:12px;
+        overflow:hidden;
+        box-shadow:0 4px 12px rgba(0,0,0,0.10);
+    ">
+
+        <!-- HEADER -->
+
+        <div style="
+            background-color:#0047ab;
+            padding:25px 20px;
+            text-align:center;
+        ">
+
+            <h1 style="
+                color:#ffffff;
+                margin:0;
+                font-size:24px;
+            ">
+                Cablevision
+            </h1>
+
+            <p style="
+                color:#ffffff;
+                margin:8px 0 0 0;
+                font-size:14px;
+            ">
+                Systems Corporation
+            </p>
+
+        </div>
+
+        <!-- CONTENT -->
+
+        <div style="
+            padding:30px;
+        ">
+
+            <p style="
+                font-size:16px;
+                color:#333333;
+                margin-top:0;
+            ">
+                Hello,
+            </p>
+
+            <p style="
+                font-size:16px;
+                line-height:1.6;
+                color:#333333;
+            ">
+                Thank you for applying for Cablevision
+                internet service.
+            </p>
+
+            <p style="
+                font-size:16px;
+                line-height:1.6;
+                color:#333333;
+            ">
+                Please use the verification code below
+                to verify your email address and continue
+                with your application.
+            </p>
+
+            <!-- OTP -->
+
+            <div style="
+                text-align:center;
+                margin:30px 0;
+            ">
+
+                <div style="
+                    display:inline-block;
+                    padding:20px 30px;
+                    background-color:#f0f7ff;
+                    border-radius:8px;
+                    border:1px solid #d6e9ff;
+                ">
+
+                    <span style="
+                        font-size:36px;
+                        font-weight:bold;
+                        letter-spacing:8px;
+                        color:#0047ab;
+                        font-family:monospace;
+                    ">
+                        {code}
+                    </span>
+
                 </div>
-                <div style="padding: 30px;">
-                    <p style="font-size: 16px; color: #333;">Hello,</p>
-                    <p style="font-size: 16px; color: #333;">Thank you for applying for Cablevision internet service. Please use the verification code below to complete your application:</p>
-                    
-                    <div style="text-align: center; margin: 30px 0;">
-                        <div style="font-size: 36px; font-weight: bold; letter-spacing: 8px; color: #0047ab; background: #f0f7ff; padding: 20px; border-radius: 8px; display: inline-block; font-family: monospace;">
-                            {code}
-                        </div>
-                    </div>
-                    
-                    <p style="font-size: 14px; color: #666;">This code will expire in <strong>5 minutes</strong>.</p>
-                    <p style="font-size: 14px; color: #666;">If you did not request this verification, please ignore this email.</p>
-                    
-                    <hr style="margin: 30px 0; border: none; border-top: 1px solid #eee;">
-                    <p style="font-size: 12px; color: #999; text-align: center;">Cablevision Systems Corporation<br>Sta. Cruz, Laguna, Philippines</p>
-                </div>
+
             </div>
-        </body>
-        </html>
-        """
-        
-        plain_body = f"CableVision Verification Code: {code}\n\nThis code expires in 5 minutes.\n\nIf you did not request this, please ignore this email."
-        
-        gmail_user = "cablevision.cableinternet@gmail.com"
-        gmail_app_password = "gbkbembhkfmsoxsx"
-        
-        msg = MIMEMultipart('alternative')
-        msg['From'] = gmail_user
-        msg['To'] = email
-        msg['Subject'] = subject
-        msg.attach(MIMEText(plain_body, 'plain'))
-        msg.attach(MIMEText(html_body, 'html'))
-        
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.starttls()
-        server.login(gmail_user, gmail_app_password)
-        server.send_message(msg)
-        server.quit()
-        
-        print(f"✅ Verification code sent to {email}: {code}")
-        
+
+            <p style="
+                font-size:14px;
+                color:#666666;
+                line-height:1.5;
+            ">
+                This verification code will expire in
+                <strong>5 minutes</strong>.
+            </p>
+
+            <p style="
+                font-size:14px;
+                color:#666666;
+                line-height:1.5;
+            ">
+                If you did not request this verification code,
+                please ignore this email.
+            </p>
+
+            <hr style="
+                margin:30px 0;
+                border:none;
+                border-top:1px solid #eeeeee;
+            ">
+
+            <p style="
+                font-size:12px;
+                color:#999999;
+                text-align:center;
+                line-height:1.5;
+                margin-bottom:0;
+            ">
+                Cablevision Systems Corporation<br>
+                Sta. Cruz, Laguna, Philippines
+            </p>
+
+        </div>
+
+    </div>
+
+</body>
+</html>
+"""
+
+        # ============================================================
+        # PLAIN TEXT VERSION
+        # ============================================================
+
+        plain_body = (
+            "Cablevision Systems Corporation\n\n"
+            "Email Verification Code\n\n"
+            f"Your verification code is: {code}\n\n"
+            "This code will expire in 5 minutes.\n\n"
+            "If you did not request this verification code, "
+            "please ignore this email.\n\n"
+            "Cablevision Systems Corporation\n"
+            "Sta. Cruz, Laguna, Philippines"
+        )
+
+        # ============================================================
+        # BREVO API PAYLOAD
+        # ============================================================
+
+        payload = {
+            "sender": {
+                "name": sender_name,
+                "email": smtp_from
+            },
+            "to": [
+                {
+                    "email": email
+                }
+            ],
+            "subject": subject,
+            "htmlContent": html_body,
+            "textContent": plain_body
+        }
+
+        # ============================================================
+        # BREVO API HEADERS
+        # ============================================================
+
+        headers = {
+            "accept": "application/json",
+            "api-key": brevo_api_key,
+            "content-type": "application/json"
+        }
+
+        # ============================================================
+        # SEND EMAIL
+        # ============================================================
+
+        print(
+            f"📧 Sending verification email via Brevo API "
+            f"to {email}..."
+        )
+
+        response = requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            headers=headers,
+            json=payload,
+            timeout=30
+        )
+
+        # ============================================================
+        # CHECK BREVO RESPONSE
+        # ============================================================
+
+        if response.status_code not in (200, 201):
+
+            print(
+                f"❌ Brevo API error "
+                f"({response.status_code}): "
+                f"{response.text}"
+            )
+
+            # Remove stored OTP if email failed
+            verification_codes.pop(email, None)
+
+            return jsonify({
+                "success": False,
+                "message": (
+                    "Failed to send verification email. "
+                    "Please try again later."
+                )
+            }), 500
+
+        # ============================================================
+        # GET MESSAGE ID
+        # ============================================================
+
+        message_id = None
+
+        try:
+            brevo_response = response.json()
+            message_id = brevo_response.get("messageId")
+
+        except Exception:
+            pass
+
+        # ============================================================
+        # SUCCESS LOG
+        # ============================================================
+
+        print(
+            f"✅ Verification email successfully "
+            f"submitted to Brevo for {email}"
+        )
+
+        if message_id:
+            print(
+                f"📨 Brevo Message ID: {message_id}"
+            )
+
+        # IMPORTANT:
+        # Never print the actual OTP in production logs.
+
+        # ============================================================
+        # RETURN SUCCESS
+        # ============================================================
+
         return jsonify({
-            "success": True, 
+            "success": True,
             "message": "Verification code sent to your email",
             "expires_in": 300
-        })
-        
+        }), 200
+
+    # ================================================================
+    # REQUEST TIMEOUT
+    # ================================================================
+
+    except requests.exceptions.Timeout:
+
+        print(
+            "❌ Brevo API request timed out"
+        )
+
+        verification_codes.pop(
+            email,
+            None
+        )
+
+        return jsonify({
+            "success": False,
+            "message": (
+                "Email service timed out. "
+                "Please try again later."
+            )
+        }), 500
+
+    # ================================================================
+    # REQUEST ERROR
+    # ================================================================
+
+    except requests.exceptions.RequestException as e:
+
+        print(
+            f"❌ Brevo API request error: {e}"
+        )
+
+        verification_codes.pop(
+            email,
+            None
+        )
+
+        return jsonify({
+            "success": False,
+            "message": (
+                "Failed to connect to email service. "
+                "Please try again later."
+            )
+        }), 500
+
+    # ================================================================
+    # GENERAL ERROR
+    # ================================================================
+
     except Exception as e:
-        print(f"Error sending verification email: {e}")
-        import traceback
+
+        print(
+            f"❌ Error sending verification email: {e}"
+        )
+
         traceback.print_exc()
-        return jsonify({"success": False, "message": str(e)}), 500
+
+        try:
+            verification_codes.pop(
+                email,
+                None
+            )
+        except Exception:
+            pass
+
+        return jsonify({
+            "success": False,
+            "message": (
+                "Failed to send verification email. "
+                "Please try again later."
+            )
+        }), 500
+
 
 
 @app.route("/verify-email-code", methods=["POST"])
@@ -2443,113 +2968,207 @@ def verify_email_code():
 
 @app.route('/download/pdf/<application_number>')
 def download_pdf(application_number):
-    import io, base64
+    import io, base64, os
     from reportlab.pdfgen import canvas
     from reportlab.lib.pagesizes import letter
     from reportlab.lib.utils import ImageReader
     from flask import send_file
     import requests
+    import json
+    import re
+    from PIL import Image
+    import tempfile
 
-    # ========== GET APPLICATION DATA FROM MYSQL ==========
+    # Get application data from MySQL
     query = """
-        SELECT 
-            application_number, plan, plan_speed, plan_price,
-            date_submitted, time_submitted, timestamp,
-            first_name, middle_name, last_name, suffix,
-            email, mobile, secondary_mobile, phone,
-            birthdate, place_of_birth, mother_maiden_name, father_name,
-            sex, civil_status, citizenship, occupation,
-            home_ownership, address, billing_address,
-            barangay, city, province, zip,
-            house_number, landmark, employer, business_address, business_phone,
-            spouse_name, spouse_occupation, spouse_employer, spouse_phone,
-            service_type, tv_qty, tv_brand, tv_type,
-            installation_address, installation_phone, installation_fee,
-            signature, id_front, id_back, proof_billing, profile_photo,
-            latitude, longitude, status, reapplied_count,
-            rejection_reason
-        FROM applications 
+        SELECT * FROM applications 
         WHERE application_number = %s
-        LIMIT 1
     """
-    
     data = execute_query(query, (application_number,), fetch_one=True)
     
     if not data:
         return "Application not found", 404
     
-    # Convert None values to empty strings
-    data = {k: (v if v is not None else '') for k, v in data.items()}
+    # ================= GET APPLICATION NUMBER AS FOLDER NAME =================
+    app_folder = str(application_number)
     
-    # Parse TV details if they are JSON strings
-    import json
-    tv_qty = data.get('tv_qty', '')
-    tv_brand = data.get('tv_brand', '')
-    tv_type = data.get('tv_type', '')
+    # Parse JSON fields
+    if data.get('tv_qty'):
+        try:
+            data['tv_qty'] = json.loads(data['tv_qty'])
+        except:
+            data['tv_qty'] = []
     
-    try:
-        data['tv_qty'] = json.loads(tv_qty) if tv_qty and isinstance(tv_qty, str) else []
-    except:
-        data['tv_qty'] = []
+    if data.get('tv_brand'):
+        try:
+            data['tv_brand'] = json.loads(data['tv_brand'])
+        except:
+            data['tv_brand'] = []
     
-    try:
-        data['tv_brand'] = json.loads(tv_brand) if tv_brand and isinstance(tv_brand, str) else []
-    except:
-        data['tv_brand'] = []
-    
-    try:
-        data['tv_type'] = json.loads(tv_type) if tv_type and isinstance(tv_type, str) else []
-    except:
-        data['tv_type'] = []
+    if data.get('tv_type'):
+        try:
+            data['tv_type'] = json.loads(data['tv_type'])
+        except:
+            data['tv_type'] = []
 
     buffer = io.BytesIO()
     p = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
 
-    # ================= MAX PAGES =================
-    MAX_PAGES = 4
-    current_page = 1
-    y = height - 120
+    print("=" * 80)
+    print("🔍 IMAGE DATA FROM DATABASE:")
+    print(f"Application Number (folder): {app_folder}")
+    print(f"id_front: {data.get('id_front', 'None')}")
+    print(f"id_back: {data.get('id_back', 'None')}")
+    print(f"signature: {data.get('signature', 'None')}")
+    print(f"proof_billing: {data.get('proof_billing', 'None')}")
+    print("=" * 80)
 
-    # Helper function to get image data from URL or base64
-    def get_image_reader(image_value):
-        """Get ImageReader from file path URL or base64 string"""
-        if not image_value or image_value == 'none':
+    # ================= ✅ GET IMAGE FROM CLOUDINARY =================
+    def get_image_from_cloudinary(image_path):
+        """Get image from Cloudinary URL or local path"""
+        if not image_path:
             return None
         
-        try:
-            # Check if it's a file path URL (starts with /shared-uploads/)
-            if image_value.startswith('/shared-uploads/'):
-                # Construct full file path
-                import os
-                # Map URL to file path
-                # URL: /shared-uploads/application_uploads/1234567890/profile_photo_1234567890.jpg
-                # Path: C:\xampp\htdocs\cablevision_uploads\application_uploads\1234567890\profile_photo_1234567890.jpg
-                relative_path = image_value.replace('/shared-uploads/', '')
-                full_path = os.path.join(r"C:\xampp\htdocs\cablevision_uploads", relative_path)
-                
-                if os.path.exists(full_path):
-                    return ImageReader(full_path)
+        # ✅ Convert to Cloudinary URL
+        if not image_path.startswith('http'):
+            cloudinary_url = get_cloudinary_url(image_path)
+        else:
+            cloudinary_url = image_path
+        
+        if cloudinary_url and cloudinary_url.startswith('http'):
+            try:
+                print(f"📤 Downloading from Cloudinary: {cloudinary_url[:80]}...")
+                response = requests.get(cloudinary_url, timeout=30)
+                if response.status_code == 200:
+                    print(f"✅ Downloaded {len(response.content)} bytes")
+                    return response.content
                 else:
-                    print(f"Image file not found: {full_path}")
+                    print(f"❌ Cloudinary download failed: {response.status_code}")
                     return None
-                    
-            # Check if it's a base64 string
-            elif 'base64' in image_value or image_value.startswith('data:image'):
-                if 'base64' in image_value or ',' in image_value:
-                    # Extract base64 part
-                    if ',' in image_value:
-                        image_value = image_value.split(',', 1)[1]
-                    img_data = base64.b64decode(image_value)
-                    return ImageReader(io.BytesIO(img_data))
-            else:
-                # Try as direct base64
-                img_data = base64.b64decode(image_value)
-                return ImageReader(io.BytesIO(img_data))
-                
-        except Exception as e:
-            print(f"Error loading image: {e}")
+            except Exception as e:
+                print(f"❌ Error downloading from Cloudinary: {e}")
+                return None
+        
+        # ✅ Fallback: Try local path (for development)
+        SHARED_UPLOADS_BASE = r"C:\xampp\htdocs\cablevision_uploads"
+        
+        # Extract filename from path
+        filename = os.path.basename(image_path)
+        
+        # Try to find in application_uploads folder
+        full_path = os.path.join(SHARED_UPLOADS_BASE, 'application_uploads', app_folder, filename)
+        if os.path.exists(full_path):
+            print(f"✅ Found locally: {full_path}")
+            with open(full_path, 'rb') as f:
+                return f.read()
+        
+        # Try alternative paths
+        alt_paths = [
+            os.path.join(SHARED_UPLOADS_BASE, filename),
+            os.path.join(SHARED_UPLOADS_BASE, image_path.lstrip('/'))
+        ]
+        
+        for alt_path in alt_paths:
+            if os.path.exists(alt_path):
+                print(f"✅ Found locally: {alt_path}")
+                with open(alt_path, 'rb') as f:
+                    return f.read()
+        
+        print(f"❌ Image not found: {image_path}")
+        return None
+
+    # ================= HELPER: Load and convert image =================
+    def load_and_convert_image(image_data):
+        """Load image and convert to RGB format for PDF"""
+        if not image_data:
+            print(f"❌ No image data provided")
             return None
+        
+        img_bytes = None
+        
+        # ✅ Try to get from Cloudinary
+        if isinstance(image_data, str):
+            img_bytes = get_image_from_cloudinary(image_data)
+        
+        # Try base64 decoding if file loading failed
+        if not img_bytes and isinstance(image_data, str):
+            if 'base64,' in image_data or 'data:image' in image_data:
+                try:
+                    if 'base64,' in image_data:
+                        image_data = image_data.split('base64,')[1]
+                    elif 'data:image' in image_data:
+                        match = re.search(r'data:image/(png|jpeg|jpg|gif);base64,(.+)', image_data)
+                        if match:
+                            image_data = match.group(2)
+                    
+                    image_data = image_data.strip()
+                    img_bytes = base64.b64decode(image_data)
+                    print(f"✅ Decoded base64 image ({len(img_bytes)} bytes)")
+                except Exception as e:
+                    print(f"❌ Error decoding base64: {e}")
+        
+        if not img_bytes:
+            print(f"❌ No image bytes loaded")
+            return None
+        
+        # Convert image to RGB format using PIL
+        try:
+            img = Image.open(io.BytesIO(img_bytes))
+            print(f"✅ Image opened: {img.format}, {img.size}, {img.mode}")
+            
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+                print(f"✅ Converted to RGB")
+            
+            output = io.BytesIO()
+            img.save(output, format='JPEG', quality=90)
+            output.seek(0)
+            
+            print(f"✅ Converted to JPEG ({output.getbuffer().nbytes} bytes)")
+            return output.getvalue()
+            
+        except Exception as e:
+            print(f"❌ Error converting image: {e}")
+            return img_bytes
+
+    # ================= HELPER: Draw image safely =================
+    def draw_image_safe(p, image_data, x, y, width, height, label="Image"):
+        """Safely draw an image on the PDF"""
+        try:
+            print(f"🖼️ Drawing {label}...")
+            img_bytes = load_and_convert_image(image_data)
+            if img_bytes:
+                with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
+                    tmp_file.write(img_bytes)
+                    tmp_path = tmp_file.name
+                    print(f"📝 Temp file: {tmp_path}")
+                
+                try:
+                    img = ImageReader(tmp_path)
+                    p.drawImage(img, x, y, width, height, preserveAspectRatio=True, mask='auto')
+                    print(f"✅ Drew {label} successfully")
+                    return True
+                except Exception as e:
+                    print(f"❌ Error in drawImage for {label}: {e}")
+                    return False
+                finally:
+                    try:
+                        os.unlink(tmp_path)
+                        print(f"🗑️ Deleted temp file: {tmp_path}")
+                    except:
+                        pass
+            else:
+                print(f"❌ No image bytes for {label}")
+                return False
+        except Exception as e:
+            print(f"❌ Error drawing {label}: {e}")
+            return False
+
+    # ================= MAX PAGES =================
+    MAX_PAGES = 5
+    current_page = 1
+    y = height - 120
 
     # ================= HEADER =================
     def draw_header():
@@ -2613,7 +3232,6 @@ def download_pdf(application_number):
         p.setFillColorRGB(0, 0, 0)
         y -= 25
 
-    # Two-column field drawer with tighter spacing
     def draw_two_columns(fields):
         nonlocal y
         col1_x = 50
@@ -2623,23 +3241,21 @@ def download_pdf(application_number):
         
         for i in range(0, len(fields), 2):
             ensure_space(20)
-            # Left column
             label1, value1 = fields[i]
             p.setFont("Helvetica-Bold", 9)
             p.drawString(col1_x, y, f"{label1}:")
             p.setFont("Helvetica", 9)
-            val1_str = str(value1) if value1 and value1 not in ['-', 'none', ''] else "___________________"
+            val1_str = str(value1) if value1 and value1 != "-" and value1 != "none" else "___________________"
             if len(val1_str) > 35:
                 val1_str = val1_str[:32] + "..."
             p.drawString(value_x, y, val1_str)
             
-            # Right column
             if i + 1 < len(fields):
                 label2, value2 = fields[i + 1]
                 p.setFont("Helvetica-Bold", 9)
                 p.drawString(col2_x, y, f"{label2}:")
                 p.setFont("Helvetica", 9)
-                val2_str = str(value2) if value2 and value2 not in ['-', 'none', ''] else "___________________"
+                val2_str = str(value2) if value2 and value2 != "-" and value2 != "none" else "___________________"
                 if len(val2_str) > 30:
                     val2_str = val2_str[:27] + "..."
                 p.drawString(col2_x + label_width + 5, y, val2_str)
@@ -2647,79 +3263,58 @@ def download_pdf(application_number):
             y -= 18
         y -= 5
 
-    # Draw images top and bottom (front then back)
-    def draw_images_top_bottom(label1, img1_value, label2, img2_value, img_width=280, img_height=190):
+    def draw_images_top_bottom(label1, img1_data, label2, img2_data, img_width=280, img_height=190):
         nonlocal y
         
-        # Front ID
         ensure_space(img_height + 60)
         p.setFont("Helvetica-Bold", 11)
         p.drawCentredString(width / 2, y, label1)
         y -= 22
         
-        img1 = get_image_reader(img1_value)
-        if img1:
-            try:
-                x_center = (width - img_width) / 2
-                p.drawImage(img1, x_center, y - img_height, img_width, img_height, preserveAspectRatio=True, mask='auto')
-                y -= img_height + 35
-            except:
-                p.drawCentredString(width / 2, y, "[Image error]")
-                y -= 25
+        if draw_image_safe(p, img1_data, (width - img_width) / 2, y - img_height, img_width, img_height, label1):
+            y -= img_height + 35
         else:
-            p.drawCentredString(width / 2, y, "Not provided")
+            p.setFont("Helvetica", 9)
+            p.setFillColorRGB(0.5, 0.5, 0.5)
+            p.drawCentredString(width / 2, y, "No image provided")
+            p.setFillColorRGB(0, 0, 0)
             y -= 25
         
-        # Back ID
         ensure_space(img_height + 60)
         p.setFont("Helvetica-Bold", 11)
         p.drawCentredString(width / 2, y, label2)
         y -= 22
         
-        img2 = get_image_reader(img2_value)
-        if img2:
-            try:
-                x_center = (width - img_width) / 2
-                p.drawImage(img2, x_center, y - img_height, img_width, img_height, preserveAspectRatio=True, mask='auto')
-                y -= img_height + 35
-            except:
-                p.drawCentredString(width / 2, y, "[Image error]")
-                y -= 25
-        else:
-            p.drawCentredString(width / 2, y, "Not provided")
-            y -= 25
-
-    # Signature section
-    def draw_signature_section(signature_value, full_name):
-        nonlocal y
-        
-        # Add space before signature section
-        y -= 15
-        
-        # Signature image (centered, smaller to fit)
-        sig_width = 250
-        sig_height = 85
-        sig_img = get_image_reader(signature_value)
-        
-        if sig_img:
-            try:
-                x_center = (width - sig_width) / 2
-                p.drawImage(sig_img, x_center, y - sig_height, sig_width, sig_height, preserveAspectRatio=True, mask='auto')
-            except:
-                p.setFont("Helvetica", 9)
-                p.drawCentredString(width / 2, y, "[Signature not displayable]")
+        if draw_image_safe(p, img2_data, (width - img_width) / 2, y - img_height, img_width, img_height, label2):
+            y -= img_height + 35
         else:
             p.setFont("Helvetica", 9)
+            p.setFillColorRGB(0.5, 0.5, 0.5)
+            p.drawCentredString(width / 2, y, "No image provided")
+            p.setFillColorRGB(0, 0, 0)
+            y -= 25
+
+    def draw_signature_section(signature_img, full_name):
+        nonlocal y
+        
+        y -= 15
+        
+        sig_width = 250
+        sig_height = 85
+        
+        if draw_image_safe(p, signature_img, (width - sig_width) / 2, y - sig_height, sig_width, sig_height, "Signature"):
+            y -= sig_height + 20
+        else:
+            p.setFont("Helvetica", 9)
+            p.setFillColorRGB(0.5, 0.5, 0.5)
             p.drawCentredString(width / 2, y, "No signature provided")
+            p.setFillColorRGB(0, 0, 0)
+            y -= 25
         
-        y -= sig_height + 20
-        
-        # Printed Name (centered)
         p.setFont("Helvetica", 10)
         p.drawCentredString(width / 2, y, full_name if full_name else "_________________________")
         y -= 20
         
-        # "signature over printed name" text
         p.setFont("Helvetica", 8)
         p.setFillColorRGB(0.4, 0.4, 0.4)
         p.drawCentredString(width / 2, y, "signature over printed name")
@@ -2730,8 +3325,7 @@ def download_pdf(application_number):
     draw_header()
     draw_page_number()
 
-    # ================= PAGE 1: ALL INFORMATION WITH SIGNATURE AT THE BOTTOM =================
-    # SECTION 1: PERSONAL INFORMATION
+    # ================= PAGE 1: PERSONAL INFORMATION =================
     draw_section_title("I. PERSONAL INFORMATION")
     draw_two_columns([
         ("Last Name", data.get("last_name")),
@@ -2746,16 +3340,13 @@ def download_pdf(application_number):
         ("Occupation", data.get("occupation")),
     ])
 
-    # SECTION 2: FAMILY BACKGROUND
     draw_section_title("II. FAMILY DETAILS")
     draw_two_columns([
         ("Mother's Maiden Name", data.get("mother_maiden_name")),
         ("Father's Name", data.get("father_name")),
     ])
 
-    # SECTION 3: CONTACT & ADDRESS
     draw_section_title("III. CONTACT & ADDRESS")
-
     draw_two_columns([
         ("Mobile Number", data.get("mobile")),
         ("Email Address", data.get("email")),
@@ -2765,22 +3356,21 @@ def download_pdf(application_number):
         ("Street/Village", data.get("address")),
     ])
 
-    # ================= BILLING ADDRESS (FULL WIDTH) =================
+    # Billing Address
     p.setFont("Helvetica-Bold", 9)
     p.drawString(50, y, "Billing Address:")
     p.setFont("Helvetica", 9)
-
+    
     billing_address = data.get("billing_address", "")
-    if not billing_address or billing_address in ['-', 'none', '']:
+    if not billing_address or billing_address == "-" or billing_address == "none":
         billing_address = "_________________________"
-
+    
     from reportlab.pdfbase.pdfmetrics import stringWidth
-
     max_width = 400
     words = billing_address.split()
     lines = []
     current_line = ""
-
+    
     for word in words:
         test_line = current_line + (" " if current_line else "") + word
         if stringWidth(test_line, "Helvetica", 9) <= max_width:
@@ -2788,25 +3378,25 @@ def download_pdf(application_number):
         else:
             lines.append(current_line)
             current_line = word
-
+    
     if current_line:
         lines.append(current_line)
-
+    
     for line in lines:
         p.drawString(170, y, line)
         y -= 14
     y -= 5
 
-    # SECTION 4: EMPLOYMENT DETAILS
     draw_section_title("IV. EMPLOYMENT DETAILS")
     draw_two_columns([
         ("Employer / Company", data.get("employer")),
         ("Business Phone", data.get("business_phone")),
         ("Business Address", data.get("business_address")),
+        ("", ""),
     ])
 
-    # SECTION 5: SPOUSE INFORMATION
-    if data.get("civil_status") in ["Married", "married"]:
+    civil_status = data.get("civil_status", "")
+    if civil_status and civil_status.lower() in ["married", "Married"]:
         draw_section_title("V. SPOUSE INFORMATION")
         draw_two_columns([
             ("Spouse Full Name", data.get("spouse_name")),
@@ -2815,40 +3405,36 @@ def download_pdf(application_number):
             ("Spouse Phone", data.get("spouse_phone")),
         ])
 
-    # SECTION 6: SERVICE PLAN
     draw_section_title("VI. SERVICE PLAN")
-
     draw_two_columns([
         ("Service Type / Plan", data.get("service_type")),
         ("Installation Fee", data.get("installation_fee")),
     ])
 
-    # ================= INSTALLATION PHONE (FULL WIDTH) =================
+    # Installation Phone
     p.setFont("Helvetica-Bold", 9)
     p.drawString(50, y, "Installation Phone:")
     p.setFont("Helvetica", 9)
-
     installation_phone = data.get("installation_phone", "")
-    if not installation_phone or installation_phone in ['-', 'none', '']:
+    if not installation_phone or installation_phone == "-" or installation_phone == "none":
         installation_phone = "_________________________"
-
     p.drawString(170, y, installation_phone)
     y -= 18
     y -= 5
 
-    # ================= INSTALLATION ADDRESS (FULL WIDTH) =================
+    # Installation Address
     p.setFont("Helvetica-Bold", 9)
     p.drawString(50, y, "Installation Address:")
     p.setFont("Helvetica", 9)
-
+    
     installation_address = data.get("installation_address", "")
-    if not installation_address or installation_address in ['-', 'none', '']:
+    if not installation_address or installation_address == "-" or installation_address == "none":
         installation_address = "_________________________"
-
+    
     words = installation_address.split()
     lines = []
     current_line = ""
-
+    
     for word in words:
         test_line = current_line + (" " if current_line else "") + word
         if stringWidth(test_line, "Helvetica", 9) <= max_width:
@@ -2856,42 +3442,39 @@ def download_pdf(application_number):
         else:
             lines.append(current_line)
             current_line = word
-
+    
     if current_line:
         lines.append(current_line)
-
+    
     for line in lines:
         p.drawString(170, y, line)
         y -= 14
     y -= 5
 
-    # SECTION 7: TV SET DETAILS
-    tv_qty_list = data.get("tv_qty", [])
-    tv_brand_list = data.get("tv_brand", [])
-    tv_type_list = data.get("tv_type", [])
+    # TV SET DETAILS
+    tv_qty = data.get("tv_qty", [])
+    tv_brand = data.get("tv_brand", [])
+    tv_type = data.get("tv_type", [])
     
-    if tv_qty_list and any(tv_qty_list):
+    if tv_qty and any(tv_qty):
         draw_section_title("VII. TV SET DETAILS")
         ensure_space(40)
         
-        # Table header
         p.setFont("Helvetica-Bold", 9)
         p.drawString(50, y, "QTY")
         p.drawString(120, y, "BRAND / MODEL")
         p.drawString(320, y, "TYPE (HD/REGULAR)")
         y -= 15
         
-        # Table data
         p.setFont("Helvetica", 9)
-        max_rows = min(len(tv_qty_list), 3)
-        for i in range(max_rows):
+        for i in range(min(len(tv_qty), 5)):
             if y < 120:
                 break
-            qty = str(tv_qty_list[i]) if i < len(tv_qty_list) and tv_qty_list[i] not in ['none', ''] else "-"
-            brand = tv_brand_list[i] if i < len(tv_brand_list) and tv_brand_list[i] not in ['none', ''] else "-"
+            qty = str(tv_qty[i]) if i < len(tv_qty) else "-"
+            brand = tv_brand[i] if i < len(tv_brand) else "-"
             if len(brand) > 25:
                 brand = brand[:22] + "..."
-            tv_t = tv_type_list[i] if i < len(tv_type_list) and tv_type_list[i] not in ['none', ''] else "-"
+            tv_t = tv_type[i] if i < len(tv_type) else "-"
             
             p.drawString(50, y, qty)
             p.drawString(120, y, brand)
@@ -2899,18 +3482,16 @@ def download_pdf(application_number):
             y -= 16
         y -= 5
 
-    # SECTION 8: SUBMISSION DETAILS
     draw_section_title("VIII. SUBMISSION DETAILS")
     draw_two_columns([
         ("Date Submitted", data.get("date_submitted")),
         ("Time Submitted", data.get("time_submitted")),
     ])
 
-    # SIGNATURE SECTION AT THE BOTTOM OF PAGE 1
     full_name = f"{data.get('first_name', '')} {data.get('last_name', '')}".strip()
     draw_signature_section(data.get("signature"), full_name)
 
-    # ================= PAGE 2: LOCATION MAP =================
+    # ================= PAGE 2: MAP =================
     new_page()
     draw_section_title_centered("INSTALLATION LOCATION MAP")
 
@@ -2921,31 +3502,27 @@ def download_pdf(application_number):
     map_img = None
 
     try:
-        lat = float(lat) if lat else None
-        lng = float(lng) if lng else None
-        
         if lat and lng:
-            # Regular map URL
+            lat = float(lat)
+            lng = float(lng)
+            
             google_maps_url = f"https://www.google.com/maps?q={lat},{lng}"
-            # Directions URL
             google_maps_direction_url = f"https://www.google.com/maps/dir//{lat},{lng}"
             
             map_url = f"https://maps.locationiq.com/v3/staticmap?key=pk.0fdad07272d959e4de881139988b0883&center={lat},{lng}&zoom=17&size=600x400&markers=icon:large-red-cutout|{lat},{lng}"
-            response = requests.get(map_url)
+            response = requests.get(map_url, timeout=10)
             if response.status_code == 200:
                 map_img = ImageReader(io.BytesIO(response.content))
     except Exception as e:
         print("Map error:", e)
 
-    # Location details
     draw_two_columns([
         ("Street/Village", data.get("address")),
         ("Barangay/City", f"{data.get('barangay', '-')}, {data.get('city', '-')}"),
-        ("Latitude", str(lat) if lat else "-"),
-        ("Longitude", str(lng) if lng else "-"),
+        ("Latitude", lat if lat else "-"),
+        ("Longitude", lng if lng else "-"),
     ])
 
-    # Google Maps Direction Link
     if google_maps_direction_url:
         ensure_space(25)
         p.setFont("Helvetica-Bold", 12)
@@ -2956,14 +3533,12 @@ def download_pdf(application_number):
         p.setFillColorRGB(0, 0, 0)
         y -= 20
         
-        # Subtext instruction
         p.setFont("Helvetica", 8)
         p.setFillColorRGB(0.5, 0.5, 0.5)
         p.drawCentredString(width / 2, y, "👉 Click above to see distance from YOUR location, travel time, and turn-by-turn directions")
         p.setFillColorRGB(0, 0, 0)
         y -= 20
 
-    # Regular Google Maps link
     if google_maps_url:
         p.setFont("Helvetica", 9)
         p.setFillColorRGB(0, 0, 1)
@@ -2973,7 +3548,6 @@ def download_pdf(application_number):
         p.setFillColorRGB(0, 0, 0)
         y -= 30
 
-    # Static map image
     if map_img:
         ensure_space(380)
         img_width = 500
@@ -3004,25 +3578,19 @@ def download_pdf(application_number):
     new_page()
     draw_section_title_centered("PROOF OF BILLING")
     
-    proof_img = get_image_reader(data.get("proof_billing"))
-    if proof_img:
-        try:
-            img_width = 500
-            img_height = 580
-            x_center = (width - img_width) / 2
-            p.drawImage(proof_img, x_center, y - img_height, img_width, img_height, preserveAspectRatio=True, mask='auto')
-            y -= img_height + 30
-        except:
-            p.drawCentredString(width / 2, y, "Image not renderable")
-            y -= 30
+    proof = data.get("proof_billing")
+    if draw_image_safe(p, proof, (width - 500) / 2, y - 580, 500, 580, "Proof of Billing"):
+        y -= 580 + 30
     else:
+        p.setFont("Helvetica", 9)
+        p.setFillColorRGB(0.5, 0.5, 0.5)
         p.drawCentredString(width / 2, y, "No proof of billing provided")
+        p.setFillColorRGB(0, 0, 0)
         y -= 30
 
-    # ================= SAVE PDF =================
     p.save()
     buffer.seek(0)
-    return send_file(buffer, mimetype='application/pdf', as_attachment=True, download_name=f"Application_{application_number}.pdf")
+    return send_file(buffer, mimetype='application/pdf', as_attachment=True, download_name="Application_Form.pdf")
 
 
 # ===============================
@@ -3391,58 +3959,261 @@ def login():
 
     
 # ===============================
-# OTP EMAIL SENDER (KEEP AS IS - gumagana naman)
+# OTP EMAIL SENDER - BREVO API
 # ===============================
 
 def send_otp_email(to_email, otp_code):
     """
-    Sends an OTP email to the given recipient using Gmail SMTP with App Password.
+    Sends an OTP email using Brevo HTTP API.
     Returns True if successful, False otherwise.
     """
-    gmail_user = "cablevision.cableinternet@gmail.com"
-    gmail_app_password = "gbkbembhkfmsoxsx"
+
+    import requests
+
+    # ===============================
+    # BREVO CONFIGURATION
+    # ===============================
+
+    brevo_api_key = os.getenv("BREVO_API_KEY")
+
+    sender_email = os.getenv(
+        "SMTP_FROM",
+        "noreply@cablevisioncableinternet.com"
+    )
+
+    sender_name = "Cablevision Systems Corporation"
+
+    # ===============================
+    # CHECK BREVO API KEY
+    # ===============================
+
+    if not brevo_api_key:
+        print("❌ BREVO_API_KEY is not configured!")
+
+        return False
+
+    # ===============================
+    # EMAIL CONTENT
+    # ===============================
 
     subject = "Your OTP Verification Code - CableVision"
 
     html_body = f"""
+    <!DOCTYPE html>
     <html>
-        <body style="font-family: Arial, sans-serif; background-color: #f0f4f8; padding: 20px;">
-            <div style="background-color: #ffffff; padding: 20px; border-radius: 12px; max-width: 500px; margin: auto; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                <h2 style="color: #003d73;">CableVision OTP Verification</h2>
-                <p>Hello,</p>
-                <p>Your One-Time Password (OTP) is:</p>
-                <p style="font-size: 28px; font-weight: bold; letter-spacing: 4px; color: #001f3f;">{otp_code}</p>
-                <p>This code expires in 5 minutes.</p>
-                <p>If you did not request this, please ignore this email.</p>
-                <hr>
-                <p style="font-size: 12px; color: #666;">&copy; 2026 CableVision Systems Corp. All rights reserved.</p>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport"
+              content="width=device-width, initial-scale=1.0">
+        <title>CableVision OTP Verification</title>
+    </head>
+
+    <body style="
+        font-family: Arial, sans-serif;
+        background-color: #f0f4f8;
+        padding: 20px;
+        margin: 0;
+    ">
+
+        <div style="
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 12px;
+            max-width: 500px;
+            margin: auto;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        ">
+
+            <h2 style="
+                color: #003d73;
+                margin-top: 0;
+            ">
+                CableVision OTP Verification
+            </h2>
+
+            <p>
+                Hello,
+            </p>
+
+            <p>
+                You requested to reset your CableVision account password.
+                Please use the One-Time Password (OTP) below:
+            </p>
+
+            <div style="
+                text-align: center;
+                margin: 30px 0;
+            ">
+
+                <div style="
+                    display: inline-block;
+                    font-size: 32px;
+                    font-weight: bold;
+                    letter-spacing: 6px;
+                    color: #001f3f;
+                    background-color: #f0f7ff;
+                    padding: 18px 25px;
+                    border-radius: 8px;
+                    font-family: monospace;
+                ">
+                    {otp_code}
+                </div>
+
             </div>
-        </body>
+
+            <p style="
+                color: #555;
+                font-size: 14px;
+            ">
+                This verification code will expire in
+                <strong>5 minutes</strong>.
+            </p>
+
+            <p style="
+                color: #555;
+                font-size: 14px;
+            ">
+                If you did not request a password reset,
+                please ignore this email.
+            </p>
+
+            <hr style="
+                margin: 30px 0;
+                border: none;
+                border-top: 1px solid #eeeeee;
+            ">
+
+            <p style="
+                font-size: 12px;
+                color: #666;
+                text-align: center;
+                margin-bottom: 0;
+            ">
+                Cablevision Systems Corporation<br>
+                Sta. Cruz, Laguna, Philippines
+            </p>
+
+        </div>
+
+    </body>
     </html>
     """
 
-    plain_body = f"CableVision OTP Verification\n\nYour OTP is: {otp_code}\nExpires in 5 minutes.\nIgnore if you didn't request this."
+    plain_body = (
+        f"CableVision OTP Verification\n\n"
+        f"Your OTP is: {otp_code}\n\n"
+        f"This code expires in 5 minutes.\n\n"
+        f"If you did not request a password reset, "
+        f"please ignore this email."
+    )
 
-    msg = MIMEMultipart('alternative')
-    msg['From'] = gmail_user
-    msg['To'] = to_email
-    msg['Subject'] = subject
-    msg.attach(MIMEText(plain_body, 'plain'))
-    msg.attach(MIMEText(html_body, 'html'))
+    # ===============================
+    # BREVO API PAYLOAD
+    # ===============================
+
+    payload = {
+        "sender": {
+            "name": sender_name,
+            "email": sender_email
+        },
+        "to": [
+            {
+                "email": to_email
+            }
+        ],
+        "subject": subject,
+        "htmlContent": html_body,
+        "textContent": plain_body
+    }
+
+    # ===============================
+    # BREVO API HEADERS
+    # ===============================
+
+    headers = {
+        "accept": "application/json",
+        "api-key": brevo_api_key,
+        "content-type": "application/json"
+    }
+
+    # ===============================
+    # SEND EMAIL
+    # ===============================
 
     try:
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.ehlo()
-        server.starttls()
-        server.ehlo()
-        server.login(gmail_user, gmail_app_password)
-        server.send_message(msg)
-        server.quit()
-        print(f"✅ OTP sent successfully to {to_email}")
+
+        print(
+            f"📧 Sending password reset OTP via Brevo "
+            f"to {to_email}..."
+        )
+
+        response = requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            headers=headers,
+            json=payload,
+            timeout=30
+        )
+
+        # ===============================
+        # CHECK BREVO RESPONSE
+        # ===============================
+
+        if response.status_code not in (200, 201):
+
+            print(
+                f"❌ Brevo API error "
+                f"({response.status_code}): "
+                f"{response.text}"
+            )
+
+            return False
+
+        # ===============================
+        # GET MESSAGE ID
+        # ===============================
+
+        try:
+            brevo_response = response.json()
+            message_id = brevo_response.get("messageId")
+
+            if message_id:
+                print(
+                    f"📨 Brevo Message ID: {message_id}"
+                )
+
+        except Exception:
+            pass
+
+        print(
+            f"✅ Password reset OTP sent successfully "
+            f"to {to_email}"
+        )
+
         return True
+
+    except requests.exceptions.Timeout:
+
+        print("❌ Brevo API request timed out")
+
+        return False
+
+    except requests.exceptions.RequestException as e:
+
+        print(
+            f"❌ Brevo API request error: {e}"
+        )
+
+        return False
+
     except Exception as e:
-        print(f"❌ Error sending OTP email: {e}")
+
+        print(
+            f"❌ Error sending password reset OTP: {e}"
+        )
+
+        import traceback
         traceback.print_exc()
+
         return False
     
 # ===============================
@@ -3498,11 +4269,12 @@ def user_forgot_password():
     })
 
 # ===============================
-# USER RESET PASSWORD - XAMPP/MYSQL VERSION
+# USER RESET PASSWORD - RAILWAY/MYSQL
 # ===============================
 @app.route("/api/user/reset-password", methods=["POST"])
 def user_reset_password():
     data = request.json
+
     username = data.get("username")
     code = data.get("code")
     new_password = data.get("new_password")
@@ -3512,81 +4284,215 @@ def user_reset_password():
     print(f"Username: {username}")
     print(f"Code: {code}")
     print(f"Tab ID: {tab_id}")
-    print("====================================")
+    print("=========================================")
 
+    # ===============================
+    # VALIDATION
+    # ===============================
     if not username or not code or not new_password:
-        return jsonify({"error": "All fields are required"}), 400
+        return jsonify({
+            "error": "All fields are required"
+        }), 400
 
     if len(new_password) < 8:
-        return jsonify({"error": "Password must be at least 8 characters"}), 400
+        return jsonify({
+            "error": "Password must be at least 8 characters"
+        }), 400
 
-    # ========== FIND OTP IN temp_reset ==========
+    # ===============================
+    # FIND OTP IN temp_reset
+    # ===============================
     temp_query = """
-        SELECT * FROM temp_reset
-        WHERE (username = %s OR email = %s) AND otp = %s
-        ORDER BY id DESC LIMIT 1
+        SELECT *
+        FROM temp_reset
+        WHERE (username = %s OR email = %s)
+        AND otp = %s
+        ORDER BY id DESC
+        LIMIT 1
     """
-    temp_data = execute_query(temp_query, (username, username, code), fetch_one=True)
+
+    temp_data = execute_query(
+        temp_query,
+        (username, username, code),
+        fetch_one=True
+    )
 
     if not temp_data:
-        return jsonify({"error": "Invalid verification code"}), 400
+        return jsonify({
+            "error": "Invalid verification code"
+        }), 400
 
     print(f"✅ Found temp_data: {temp_data}")
 
+    # ===============================
+    # CHECK OTP EXPIRATION
+    # ===============================
     current_time = datetime.now().timestamp()
-    expiry_time = temp_data.get('expiry', 0)
+    expiry_time = temp_data.get("expiry", 0)
 
     if current_time > expiry_time:
-        execute_query("DELETE FROM temp_reset WHERE id = %s", (temp_data.get('id'),))
-        return jsonify({"error": "Verification code expired"}), 400
 
-    user_type = temp_data.get('user_type')
-    actual_username = temp_data.get('username')
-    user_email = temp_data.get('email')
+        execute_query(
+            "DELETE FROM temp_reset WHERE id = %s",
+            (temp_data.get("id"),)
+        )
 
+        return jsonify({
+            "error": "Verification code expired"
+        }), 400
+
+    # ===============================
+    # GET USER INFORMATION
+    # ===============================
+    actual_username = temp_data.get("username")
+    user_email = temp_data.get("email")
+
+    if not actual_username and not user_email:
+        return jsonify({
+            "error": "User information not found"
+        }), 400
+
+    # ===============================
+    # HASH NEW PASSWORD
+    # ===============================
     hashed_new_password = generate_password_hash(new_password)
-    
-    # ✅ STEP 1: SAVE new_password TO temp_reset
+
+    # ===============================
+    # STEP 1
+    # SAVE NEW PASSWORD TO temp_reset
+    # ===============================
     update_temp_query = """
-        UPDATE temp_reset 
-        SET new_password = %s 
+        UPDATE temp_reset
+        SET new_password = %s
         WHERE id = %s
     """
-    update_result = execute_query(update_temp_query, (hashed_new_password, temp_data.get('id')))
-    print(f"✅ new_password saved to temp_reset: {update_result}")
 
-    # 🔍 I-VERIFY KUNG NA-SAVE ANG new_password
-    verify_temp = execute_query("SELECT new_password FROM temp_reset WHERE id = %s", (temp_data.get('id'),), fetch_one=True)
-    print(f"🔍 Verified new_password: {verify_temp.get('new_password') if verify_temp else 'NULL'}")
+    update_result = execute_query(
+        update_temp_query,
+        (
+            hashed_new_password,
+            temp_data.get("id")
+        )
+    )
 
-    # ✅ STEP 2: UPDATE USER PASSWORD
+    print(
+        f"✅ new_password saved to temp_reset: "
+        f"{update_result} rows affected"
+    )
+
+    # ===============================
+    # VERIFY temp_reset
+    # ===============================
+    verify_temp = execute_query(
+        """
+        SELECT new_password
+        FROM temp_reset
+        WHERE id = %s
+        """,
+        (temp_data.get("id"),),
+        fetch_one=True
+    )
+
+    print(
+        f"🔍 Verified new_password: "
+        f"{'SAVED' if verify_temp and verify_temp.get('new_password') else 'NULL'}"
+    )
+
+    # ===============================
+    # STEP 2
+    # UPDATE USER PASSWORD
+    # ===============================
     update_query = """
-        UPDATE users 
-        SET password = %s, reset_code = NULL 
-        WHERE user_id = %s OR username = %s OR email = %s
+        UPDATE users
+        SET password = %s,
+            reset_code = NULL
+        WHERE user_id = %s
+           OR username = %s
+           OR email = %s
     """
-    update_rows = execute_query(update_query, (hashed_new_password, actual_username, actual_username, user_email))
-    print(f"✅ User password updated: {update_rows} rows affected")
+
+    update_rows = execute_query(
+        update_query,
+        (
+            hashed_new_password,
+            actual_username,
+            actual_username,
+            user_email
+        )
+    )
+
+    print(
+        f"✅ User password updated: "
+        f"{update_rows} rows affected"
+    )
 
     if update_rows is None or update_rows == 0:
-        return jsonify({"error": "Failed to update password. Please try again."}), 400
+        return jsonify({
+            "error": "Failed to update password. Please try again."
+        }), 400
 
-    # ✅ STEP 3: KUNIN ANG USER DATA
+    # ===============================
+    # STEP 3
+    # GET UPDATED USER DATA
+    # ===============================
     user_query = """
-        SELECT user_id, customer_id, application_number, email, username,
-               role, contract_number, status, first_name, last_name
-        FROM users 
-        WHERE user_id = %s OR username = %s OR email = %s
+        SELECT
+            user_id,
+            customer_id,
+            application_number,
+            email,
+            username,
+            role,
+            contract_number,
+            status,
+            first_name,
+            last_name
+        FROM users
+        WHERE user_id = %s
+           OR username = %s
+           OR email = %s
         LIMIT 1
     """
-    user_data = execute_query(user_query, (actual_username, actual_username, user_email), fetch_one=True)
-    
+
+    user_data = execute_query(
+        user_query,
+        (
+            actual_username,
+            actual_username,
+            user_email
+        ),
+        fetch_one=True
+    )
+
     if not user_data:
-        return jsonify({"error": "User not found"}), 404
-    
-    # ✅ STEP 4: CLEAR OLD SESSION, THEN AUTO-LOGIN THE USER WITH THE NEW PASSWORD
+        return jsonify({
+            "error": "User not found"
+        }), 404
+
+    print(f"✅ User data retrieved: {user_data.get('user_id')}")
+
+    # ===============================
+    # STEP 4
+    # CLEAR OLD SESSION
+    # ===============================
     session.clear()
 
+    # ===============================
+    # STEP 5
+    # CREATE NORMAL LOGIN SESSION
+    # ===============================
+    session["user_id"] = user_data.get("user_id")
+    session["customer_id"] = user_data.get("customer_id")
+    session["role"] = user_data.get("role")
+    session["email"] = user_data.get("email")
+    session["userType"] = "user"
+    session["contract_number"] = user_data.get("contract_number")
+    session["ga_verified"] = True
+
+    # ===============================
+    # STEP 6
+    # CREATE TAB SESSION
+    # ===============================
     if tab_id:
         session[f"user_{tab_id}"] = {
             "user_id": user_data.get("user_id"),
@@ -3597,25 +4503,47 @@ def user_reset_password():
             "contract_number": user_data.get("contract_number"),
             "status": user_data.get("status", "Active")
         }
+
         session["active_tab"] = tab_id
-    else:
-        session["user_id"] = user_data.get("user_id")
-        session["customer_id"] = user_data.get("customer_id")
-        session["role"] = user_data.get("role")
-        session["email"] = user_data.get("email")
-        session["userType"] = "user"
-        session["contract_number"] = user_data.get("contract_number")
-        session["ga_verified"] = True
 
-    print(f"✅ Reset password successful. Auto-login for user: {user_data.get('user_id')}, tab_id: {tab_id}")
+        print(f"✅ Tab session created: user_{tab_id}")
+        print(f"✅ Active tab set: {tab_id}")
 
-    redirect_url = url_for("dashboard") + ("?tab_id=" + tab_id if tab_id else "")
+    # FORCE SESSION SAVE
+    session.modified = True
 
+    # ===============================
+    # STEP 7
+    # AUTO LOGIN CONFIRMATION
+    # ===============================
+    print("=========================================")
+    print("✅ PASSWORD RESET SUCCESSFUL")
+    print("✅ AUTO-LOGIN SESSION CREATED")
+    print(f"✅ User ID: {user_data.get('user_id')}")
+    print(f"✅ Username: {user_data.get('username')}")
+    print(f"✅ Email: {user_data.get('email')}")
+    print(f"✅ Tab ID: {tab_id}")
+    print(f"✅ GA Verified: {session.get('ga_verified')}")
+    print("=========================================")
+
+    # ===============================
+    # STEP 8
+    # CREATE DASHBOARD REDIRECT
+    # ===============================
+    redirect_url = url_for("dashboard")
+
+    if tab_id:
+        redirect_url += "?tab_id=" + tab_id
+
+    # ===============================
+    # RETURN SUCCESS
+    # ===============================
     return jsonify({
+        "success": True,
         "message": "Password updated successfully! Redirecting to your dashboard...",
         "redirect": redirect_url,
         "tab_id": tab_id,
-        "username": actual_username,
+        "username": user_data.get("username"),
         "user_id": user_data.get("user_id")
     }), 200
 
@@ -3643,7 +4571,6 @@ def get_user_status():
 # USER DASHBOARD (XAMPP/MYSQL VERSION) - WITH PROPER TAB ID SUPPORT
 # ===============================
 @app.route("/user/dashboard")
-@login_required
 def dashboard():
     # 👇 KUNIN ANG TAB ID MULA SA URL PARAMETER
     tab_id = request.args.get("tab_id")
@@ -4876,12 +5803,41 @@ def user_profile():
     address = application_data.get("installation_address", "") if application_data else user_data.get("address", "")
     role = user_data.get("role", "customer")
 
-    # Profile photo
+    # ========== ✅ PROFILE PHOTO - CONVERT TO CLOUDINARY ==========
     profile_photo = user_data.get("profile_photo")
-    if not profile_photo and application_data:
-        profile_photo = application_data.get("profile_photo")
-    if not profile_photo:
+    
+    # I-convert ang profile_photo sa Cloudinary URL
+    if profile_photo and profile_photo != 'none' and profile_photo != '':
+        if not profile_photo.startswith('http'):
+            profile_photo = get_cloudinary_url(profile_photo)
+            print(f"✅ Converted profile photo to Cloudinary: {profile_photo}")
+    
+    # Kung wala sa users table, try sa applications
+    if not profile_photo or profile_photo == 'none' or profile_photo == '':
+        if application_data and application_data.get('profile_photo'):
+            app_photo = application_data.get('profile_photo')
+            if app_photo and app_photo != 'none' and app_photo != '':
+                if not app_photo.startswith('http'):
+                    profile_photo = get_cloudinary_url(app_photo)
+                else:
+                    profile_photo = app_photo
+                print(f"✅ Profile photo from application: {profile_photo}")
+    
+    # Default photo
+    if not profile_photo or profile_photo == 'none' or profile_photo == '':
         profile_photo = url_for("static", filename="profile.jpg")
+
+    # ========== ✅ CONVERT APPLICATION IMAGES TO CLOUDINARY ==========
+    # I-convert ang lahat ng image fields sa application_data
+    if application_data:
+        image_fields = ['signature', 'id_front', 'id_back', 'proof_billing', 'profile_photo']
+        for field in image_fields:
+            if application_data.get(field):
+                value = application_data.get(field)
+                if value and value != 'none' and value != '':
+                    if not value.startswith('http'):
+                        application_data[field] = get_cloudinary_url(value)
+                        print(f"✅ Converted {field} to Cloudinary")
 
     # TV sets (parse JSON if stored as string)
     import json
@@ -4945,10 +5901,10 @@ def user_profile():
         user_id=user_id,
         customer_id=customer_id,
         role=role,
-        profile_photo=profile_photo,
+        profile_photo=profile_photo,  # ✅ Cloudinary URL na ito
         contract_number=user_data.get("contract_number", ""),
 
-        # ========== APPLICATION DATA ==========
+        # ========== APPLICATION DATA (with Cloudinary URLs) ==========
         first_name=application_data.get("first_name", "") if application_data else "",
         middle_name=application_data.get("middle_name", "") if application_data else "",
         last_name=application_data.get("last_name", "") if application_data else "",
@@ -4988,10 +5944,10 @@ def user_profile():
         tv_qty_str=tv_qtys_str,
         tv_type_str=tv_types_str,
         installation_phone=installation_phone_value,
-        signature=application_data.get("signature", "") if application_data else "",
-        id_front=application_data.get("id_front", "") if application_data else "",
-        id_back=application_data.get("id_back", "") if application_data else "",
-        proof_billing=application_data.get("proof_billing", "") if application_data else "",
+        signature=application_data.get("signature", "") if application_data else "",  # ✅ Cloudinary URL
+        id_front=application_data.get("id_front", "") if application_data else "",  # ✅ Cloudinary URL
+        id_back=application_data.get("id_back", "") if application_data else "",    # ✅ Cloudinary URL
+        proof_billing=application_data.get("proof_billing", "") if application_data else "",  # ✅ Cloudinary URL
         date_submitted=application_data.get("date_submitted", "") if application_data else "",
         time_submitted=application_data.get("time_submitted", "") if application_data else "",
         application_number=application_id if application_id else "",
@@ -5307,7 +6263,7 @@ def get_user_contract_details(contract_number):
 # GET SIGNATURE IMAGE FUNCTION (MOVE THIS OUTSIDE, BEFORE THE ROUTE)
 # ===============================
 def get_signature_image(signature_data, width=180, height=50):
-    """Get signature image from file path or base64"""
+    """Get signature image from Cloudinary URL or file path"""
     import os
     import io
     import base64
@@ -5322,27 +6278,49 @@ def get_signature_image(signature_data, width=180, height=50):
         if isinstance(signature_data, str):
             print(f"🔍 Processing signature: {signature_data[:100]}...")
             
-            # Case 1: File path URL (starts with /shared-uploads/)
-            if signature_data.startswith('/shared-uploads/'):
-                # Base directory for uploaded files
-                base_dir = r"C:\xampp\htdocs\cablevision_uploads"
-                # Remove the /shared-uploads/ prefix to get relative path
+            # ✅ CASE 1: Cloudinary URL
+            if signature_data.startswith('http') and 'cloudinary.com' in signature_data:
+                print(f"📤 Downloading signature from Cloudinary: {signature_data}")
+                try:
+                    response = requests.get(signature_data, timeout=30)
+                    if response.status_code == 200:
+                        img = Image(io.BytesIO(response.content), width=width, height=height)
+                        img.drawWidth = width
+                        img.drawHeight = height
+                        print(f"✅ Signature loaded from Cloudinary")
+                        return img
+                except Exception as e:
+                    print(f"❌ Error downloading from Cloudinary: {e}")
+            
+            # ✅ CASE 2: Convert relative path to Cloudinary first
+            if signature_data.startswith('/shared-uploads/') or signature_data.startswith('cablevision/'):
+                cloudinary_url = get_cloudinary_url(signature_data)
+                if cloudinary_url and cloudinary_url.startswith('http'):
+                    try:
+                        print(f"📤 Downloading signature from Cloudinary: {cloudinary_url}")
+                        response = requests.get(cloudinary_url, timeout=30)
+                        if response.status_code == 200:
+                            img = Image(io.BytesIO(response.content), width=width, height=height)
+                            img.drawWidth = width
+                            img.drawHeight = height
+                            print(f"✅ Signature loaded from Cloudinary")
+                            return img
+                    except Exception as e:
+                        print(f"❌ Error downloading from Cloudinary: {e}")
+                
+                # Fallback to local path
+                base_dir = SHARED_UPLOADS_BASE
                 relative_path = signature_data.replace('/shared-uploads/', '')
                 full_path = os.path.join(base_dir, relative_path)
-                
                 print(f"🔍 Looking for signature at: {full_path}")
                 
-                # Check also alternative paths
                 alt_paths = [
                     full_path,
                     full_path.replace('\\application\\', '\\application_uploads\\'),
                     full_path.replace('\\application_uploads\\', '\\application\\'),
-                    full_path.replace('application_uploads', 'application'),
-                    full_path.replace('application', 'application_uploads'),
                 ]
                 
                 for path in alt_paths:
-                    print(f"🔍 Checking alternative path: {path}")
                     if os.path.exists(path):
                         print(f"✅ Found signature at: {path}")
                         img = Image(path, width=width, height=height)
@@ -5350,10 +6328,10 @@ def get_signature_image(signature_data, width=180, height=50):
                         img.drawHeight = height
                         return img
                 
-                print(f"❌ Signature file not found in any path")
+                print(f"❌ Signature file not found")
                 return None
             
-            # Case 2: Base64 string
+            # CASE 3: Base64 string
             elif 'base64,' in signature_data or ('data:image' in signature_data[:50] if len(signature_data) > 50 else False):
                 print("🔍 Processing base64 signature...")
                 if 'base64,' in signature_data:
@@ -5368,7 +6346,7 @@ def get_signature_image(signature_data, width=180, height=50):
                 print(f"✅ Signature loaded from base64")
                 return img
             
-            # Case 3: HTTP/HTTPS URL
+            # CASE 4: HTTP/HTTPS URL (non-Cloudinary)
             elif signature_data.startswith(('http://', 'https://')):
                 print(f"🔍 Loading signature from URL: {signature_data}")
                 resp = requests.get(signature_data, timeout=10)
@@ -5379,7 +6357,7 @@ def get_signature_image(signature_data, width=180, height=50):
                     print(f"✅ Signature loaded from URL")
                     return img
             else:
-                # Case 4: Direct file path (without /shared-uploads/)
+                # CASE 5: Direct file path (without /shared-uploads/)
                 print(f"🔍 Trying direct file path: {signature_data}")
                 if os.path.exists(signature_data):
                     img = Image(signature_data, width=width, height=height)
@@ -5404,22 +6382,18 @@ def user_download_contract(contract_number):
     """Generate and download contract PDF - with Addendum and Installment on second page (FULL VERSION)"""
     try:
         # ========== 1. CHECK AUTHENTICATION - WITH TAB ID SUPPORT ==========
-        # 👇 KUNIN ANG TAB ID MULA SA URL
         tab_id = request.args.get("tab_id")
         
         user_id = None
         
-        # 👇 KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER
         if tab_id:
             user_session = session.get(f"user_{tab_id}")
             if user_session:
                 user_id = user_session.get("user_id")
         
-        # 👇 FALLBACK: CHECK REGULAR SESSION
         if not user_id and 'user_id' in session:
             user_id = session.get('user_id')
         
-        # 👇 KUNG WALANG USER_ID, UNAUTHORIZED
         if not user_id:
             print(f"❌ Unauthorized: No user_id found in session")
             return "Unauthorized - Please login again", 401
@@ -5443,7 +6417,6 @@ def user_download_contract(contract_number):
         user_email = user_data.get('email')
         
         if not app_id:
-            # Try to find application by email
             app_query = """
                 SELECT application_number FROM applications 
                 WHERE email = %s
@@ -5477,11 +6450,15 @@ def user_download_contract(contract_number):
         """
         contract_data = execute_query(contract_query, (contract_number,), fetch_one=True)
         
-        # ========== 6. GET SIGNATURE FROM APPLICATION ==========
+        # ========== 6. GET SIGNATURE FROM APPLICATION AND CONVERT TO CLOUDINARY ==========
         signature_data = application_data.get('signature')
         
-        # Debug: Print the signature data to see what's stored
-        print(f"📸 SIGNATURE DATA from DB: {signature_data}")
+        # ✅ CONVERT TO CLOUDINARY URL
+        if signature_data and not signature_data.startswith('http'):
+            signature_data = get_cloudinary_url(signature_data)
+            print(f"📸 Signature converted to Cloudinary: {signature_data}")
+        
+        print(f"📸 SIGNATURE DATA: {signature_data}")
         
         # ========== 7. BUILD CONTRACT DATA (with fallbacks) ==========
         plan_name = application_data.get('plan', '')
@@ -5586,7 +6563,7 @@ def user_download_contract(contract_number):
             fontName='Helvetica', textColor=colors.grey
         )
         
-        # Use the external get_signature_image function (not the internal one)
+        # ✅ Use the external get_signature_image function with Cloudinary URL
         signature_img = get_signature_image(signature_data, 180, 50)
         
         # ========== 11. PAGE 1: HEADER AND MAIN CONTRACT ==========
@@ -6037,30 +7014,7 @@ def check_user_session():
         })
 
 
-@app.route("/my-application")
-def my_application():
-    if "user_id" not in session:
-        flash("Please login first.", "warning")
-        return redirect(url_for("login"))
 
-    user_id = session.get("user_id")
-
-    # kunin user
-    user_ref = db.reference(f"users/{user_id}")
-    user_data = user_ref.get()
-
-    if not user_data:
-        return "User not found", 404
-
-    customer_id = user_data.get("customer_id")
-
-    # kunin application gamit application_number
-    app_data = db.reference("applications").child(customer_id).get()
-
-    if not app_data:
-        return "Application not found", 404
-
-    return render_template("user-my-application.html", **app_data) 
 
 
 # ===============================
@@ -6097,10 +7051,16 @@ def get_user_profile():
     if not user_data:
         return jsonify({"error": "User not found"}), 404
 
-    # ========== GET PROFILE PHOTO (fallback to application if needed) ==========
+    # ========== GET PROFILE PHOTO ==========
     profile_photo = user_data.get("profile_photo")
     
-    if not profile_photo or profile_photo == 'none':
+    # ✅ KUNG MAY PROFILE_PHOTO, I-CONVERT SA CLOUDINARY URL
+    if profile_photo and profile_photo != 'none' and profile_photo != '':
+        # ✅ KUNG RELATIVE PATH (nagsisimula sa cablevision/ or /shared-uploads/)
+        if not profile_photo.startswith('http'):
+            profile_photo = get_cloudinary_url(profile_photo)
+            print(f"✅ Converted profile photo to Cloudinary: {profile_photo}")
+    else:
         # Try to get from applications table using application_number
         app_number = user_data.get("application_number")
         if app_number:
@@ -6108,8 +7068,12 @@ def get_user_profile():
             app_data = execute_query(app_query, (app_number,), fetch_one=True)
             if app_data and app_data.get('profile_photo'):
                 profile_photo = app_data.get('profile_photo')
+                # ✅ I-CONVERT DIN ANG APP PROFILE PHOTO
+                if not profile_photo.startswith('http'):
+                    profile_photo = get_cloudinary_url(profile_photo)
+                    print(f"✅ Converted app profile photo to Cloudinary: {profile_photo}")
     
-    if not profile_photo or profile_photo == 'none':
+    if not profile_photo or profile_photo == 'none' or profile_photo == '':
         profile_photo = url_for("static", filename="profile.jpg")
     
     # Build full name
@@ -6142,7 +7106,7 @@ def get_user_profile():
         "contact_number": user_data.get("contact_number", ""),
         "address": user_data.get("address", ""),
         "photo_url": profile_photo,
-        "profile_photo": profile_photo,
+        "profile_photo": profile_photo,  # ✅ FULL CLOUDINARY URL
         "role": user_data.get("role", "customer"),
         "contract_number": user_data.get("contract_number", ""),
         "connection_status": user_data.get("connection_status", "Disconnected"),
