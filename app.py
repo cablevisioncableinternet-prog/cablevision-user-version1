@@ -4543,7 +4543,7 @@ def user_reset_password():
         "message": "Password updated successfully! Redirecting to your dashboard...",
         "redirect": redirect_url,
         "tab_id": tab_id,
-        "username": user_data.get("username"),
+        "username": user_data.get("username") or user_data.get("user_id"),   # 👈 fallback dito
         "user_id": user_data.get("user_id")
     }), 200
 

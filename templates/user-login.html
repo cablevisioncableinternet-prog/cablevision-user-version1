@@ -544,18 +544,25 @@
                     })
                 });
                 const data = await res.json();
-                if (res.ok) {
+                if (res.ok && data.success) {
                     showToast(data.message || "Password updated successfully.", 'success');
 
-                    // 👇 I-STORE ANG SESSION DATA PARA MAKAPASA SA PAGE GUARD NG DASHBOARD
-                    if (data.tab_id) sessionStorage.setItem('tab_id', data.tab_id);
-                    if (data.username) {
-                        sessionStorage.setItem('username', data.username);
-                        sessionStorage.setItem('userType', 'user');
-                    }
-                    if (data.user_id) sessionStorage.setItem('user_id', data.user_id);
+                    // 👇 UNCONDITIONAL na, may fallback — kagaya ng ginagawa sa normal login
+                    const finalTabId = data.tab_id || sessionStorage.getItem('tab_id') || '';
+                    const finalUsername = data.username || data.user_id || currentUsername || '';
 
-                    const finalRedirect = data.redirect || '/login';
+                    sessionStorage.setItem('tab_id', finalTabId);
+                    sessionStorage.setItem('username', finalUsername);
+                    sessionStorage.setItem('userType', 'user');
+                    if (data.user_id) sessionStorage.setItem('user_id', data.user_id);
+                    sessionStorage.setItem('sessionStart', Date.now().toString());
+
+                    let finalRedirect = data.redirect || '/user/dashboard';
+                    if (!finalRedirect.includes('tab_id=')) {
+                        const sep = finalRedirect.includes('?') ? '&' : '?';
+                        finalRedirect += sep + 'tab_id=' + finalTabId;
+                    }
+
                     window.location.replace(finalRedirect);
                     return;
                 } else {
