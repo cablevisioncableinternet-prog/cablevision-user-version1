@@ -9,4 +9,3 @@ openpyxl
 groq
 python-dotenv
 cloudinary
-Flask-Session
