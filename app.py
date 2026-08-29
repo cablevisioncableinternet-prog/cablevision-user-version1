@@ -8996,6 +8996,25 @@ def get_pending_termination():
         print(f"Error checking pending termination: {e}")
         return jsonify({"error": str(e)}), 500
 
+
+
+
+
+import re
+
+def clean_price_to_decimal(price_raw):
+    """Extract clean numeric decimal value from a price string like '₱999/month'."""
+    if price_raw is None:
+        return 0.00
+    cleaned = re.sub(r'[^\d.]', '', str(price_raw))
+    if not cleaned:
+        return 0.00
+    try:
+        return float(cleaned)
+    except ValueError:
+        return 0.00
+
+
 # ===============================
 # USER SUBMIT TERMINATION REQUEST
 # ===============================
@@ -9050,6 +9069,11 @@ def submit_termination_request():
         
         application_number = user.get("application_number")
         
+        # 👇 IDAGDAG ITO — I-CLEAN ANG PRICE BAGO GAMITIN
+        clean_price = clean_price_to_decimal(user.get("plan_price"))
+        print(f"🔍 DEBUG - Raw plan_price: {repr(user.get('plan_price'))}")
+        print(f"🔍 DEBUG - Cleaned price: {clean_price}")
+        
         # Check if there's already a pending termination request
         pending_check = """
             SELECT id FROM termination_requests 
@@ -9095,7 +9119,7 @@ def submit_termination_request():
             user.get("contract_number"),
             user.get("plan"),
             user.get("plan_speed"),
-            user.get("plan_price"),
+            clean_price,   # 👈 NA-CLEAN NA
             termination_reason,
             termination_date,
             'Pending'
