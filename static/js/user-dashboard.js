@@ -285,10 +285,27 @@ async function loadCustomerTable() {
   tbody.innerHTML = `<tr><td colspan="6" class="no-data">Loading...</td></tr>`;
 
   try {
-    const res = await fetch("/api/get-user-connection");
-    if (!res.ok) throw new Error("Failed to fetch data");
+    // 👇 KUNIN ANG TAB ID MULA SA URL O SESSION STORAGE
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabId = urlParams.get('tab_id') || sessionStorage.getItem('tab_id');
+    
+    console.log('🔍 loadCustomerTable - tab_id:', tabId);
+    
+    // 👇 ISAMA ANG TAB ID SA API CALL
+    const url = tabId ? `/api/get-user-connection?tab_id=${tabId}` : "/api/get-user-connection";
+    console.log('🔍 Fetching:', url);
+    
+    const res = await fetch(url);
+    console.log('🔍 Response status:', res.status);
+    
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error('❌ API Error:', res.status, errorText);
+      throw new Error(`API returned ${res.status}: ${errorText}`);
+    }
 
     const data = await res.json();
+    console.log('🔍 Data received:', data);
 
     // 🔥 I-CHECK KUNG MAY BALANCE AT INACTIVE ANG STATUS
     if (data && data.length > 0) {
@@ -299,7 +316,6 @@ async function loadCustomerTable() {
       if ((status.toLowerCase() === "inactive" || status.toLowerCase() === "terminated") && balance > 0) {
             showBalanceCard(balance, status);
         } else {
-            // I-HIDE ANG CARD KUNG WALANG BALANCE O ACTIVE
             hideBalanceCard();
         }
     }

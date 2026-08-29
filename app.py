@@ -33,11 +33,53 @@ from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from reportlab.platypus import Table, TableStyle
 
+
+from datetime import timedelta  
+
+
 # ===============================
 # Initialize Flask
 # ===============================
 app = Flask(__name__)
 CORS(app)
+
+# ===== SESSION CONFIGURATION PARA SA PRODUCTION (RAILWAY) =====
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'my_super_secure_random_key_12345')
+
+# ✅ IMPORTANTE: GAMITIN ANG FILESYSTEM NA MAY /TMP FOLDER
+app.config['SESSION_TYPE'] = 'filesystem'
+app.config['SESSION_PERMANENT'] = False
+app.config['SESSION_USE_SIGNER'] = True
+app.config['SESSION_COOKIE_SECURE'] = True  # ✅ SA HTTPS (RAILWAY)
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=24)
+
+# ✅ IMPORTANTE: GAMITIN ANG /TMP FOLDER SA RAILWAY
+app.config['SESSION_FILE_DIR'] = '/tmp/flask_session'
+
+# ✅ I-CREATE ANG SESSION FOLDER KUNG WALA PA
+if not os.path.exists('/tmp/flask_session'):
+    os.makedirs('/tmp/flask_session')
+
+# ✅ I-INITIALIZE ANG FLASK-SESSION
+from flask_session import Session
+Session(app)
+
+# ✅ I-CLEANUP ANG SESSION FOLDER SA STARTUP
+import shutil
+import atexit
+
+def cleanup_session_files():
+    try:
+        if os.path.exists('/tmp/flask_session'):
+            shutil.rmtree('/tmp/flask_session')
+            print("✅ Cleaned session files on exit")
+    except:
+        pass
+
+# I-register ang cleanup sa exit
+atexit.register(cleanup_session_files)
 
 
 
@@ -3802,7 +3844,7 @@ def login():
                 # ✅ GA CODE IS CORRECT - LOGIN THE USER
                 session.pop("pending_ga_user_id", None)
                 
-                # 👇 STORE SESSION WITH TAB ID AS KEY - DITO ANG IMPORTANTE!
+                # 👇 STORE SESSION WITH TAB ID AS KEY
                 if tab_id:
                     session[f"user_{tab_id}"] = {
                         "user_id": user_data.get("user_id"),
@@ -3813,10 +3855,11 @@ def login():
                         "contract_number": user_data.get("contract_number"),
                         "status": user_data.get("status", "Active")
                     }
-                    # 👇 I-STORE DIN ANG ACTIVE TAB ID
                     session["active_tab"] = tab_id
+                    # ✅ FORCE SESSION SAVE
+                    session.modified = True
+                    print(f"✅ Session saved for tab_id: {tab_id}")
                 else:
-                    # Fallback: use regular session if no tab_id
                     session["user_id"] = user_data.get("user_id")
                     session["customer_id"] = user_data.get("customer_id")
                     session["role"] = user_data.get("role")
@@ -3825,33 +3868,37 @@ def login():
                     session["contract_number"] = user_data.get("contract_number")
                     session["ga_verified"] = True
                     session["user_status"] = user_data.get("status", "Active")
+                    session.modified = True
                 
-                # Update connection status
                 execute_query(
                     "UPDATE users SET connection_status = 'Connected' WHERE user_id = %s AND status != 'Terminated'",
                     (user_data.get('user_id'),)
                 )
                 record_login_history(user_data.get("user_id"), tab_id)
                 
-                # Sa login route, pagkatapos mag-store ng session:
                 print(f"✅ Login successful: {user_data.get('user_id')}")
                 print(f"   Tab ID: {tab_id}")
                 print(f"   Session key: user_{tab_id}")
-                print(f"   Session data: {session.get(f'user_{tab_id}')}")  # 👈 I-PRINT ANG SESSION DATA
-                print(f"   All session keys: {list(session.keys())}")  # 👈 I-PRINT LAHAT NG SESSION KEYS
+                print(f"   Session data: {session.get(f'user_{tab_id}')}")
+                print(f"   All session keys: {list(session.keys())}")
                 
                 if request.is_json:
+                    redirect_url = url_for("dashboard")
+                    if tab_id:
+                        redirect_url = redirect_url + "?tab_id=" + tab_id
                     return jsonify({
                         "success": True, 
-                        "redirect": url_for("dashboard") + "?tab_id=" + tab_id if tab_id else url_for("dashboard"), 
+                        "redirect": redirect_url, 
                         "username": user_data.get("username"), 
                         "user_id": user_data.get("user_id"),
                         "user_status": session.get("user_status"),
                         "tab_id": tab_id
                     })
-                return redirect(url_for("dashboard") + "?tab_id=" + tab_id if tab_id else url_for("dashboard"))
+                redirect_url = url_for("dashboard")
+                if tab_id:
+                    redirect_url = redirect_url + "?tab_id=" + tab_id
+                return redirect(redirect_url)
             else:
-                # ❌ GA CODE IS INVALID
                 print(f"❌ Invalid GA code for user: {pending_user_id}")
                 
                 if request.is_json:
@@ -3877,15 +3924,12 @@ def login():
 
         if user_data:
             stored_password = user_data.get("password")
-            # Support plain and hashed passwords
             if stored_password == password or check_password_hash(stored_password, password):
                 
                 user_status = user_data.get("status", "Active")
                 session["user_status"] = user_status
 
-                # ========== CHECK IF 2FA IS ENABLED ==========
                 if user_data.get("ga_enabled"):
-                    # Store user ID in session for 2FA verification
                     session["pending_ga_user_id"] = user_data.get("user_id")
                     print(f"🔐 2FA required for user: {user_data.get('user_id')}")
                     
@@ -3901,8 +3945,6 @@ def login():
                     return render_template("user-login.html", require_ga_code=True, pending_ga_user_id=user_data.get("user_id"))
                 
                 # ========== NO 2FA - LOGIN DIRECTLY ==========
-                
-                # 👇 STORE SESSION WITH TAB ID AS KEY - DITO ANG IMPORTANTE!
                 if tab_id:
                     session[f"user_{tab_id}"] = {
                         "user_id": user_data.get("user_id"),
@@ -3913,10 +3955,10 @@ def login():
                         "contract_number": user_data.get("contract_number"),
                         "status": user_data.get("status", "Active")
                     }
-                    # 👇 I-STORE DIN ANG ACTIVE TAB ID
                     session["active_tab"] = tab_id
+                    session.modified = True
+                    print(f"✅ Session saved for tab_id: {tab_id}")
                 else:
-                    # Fallback: use regular session if no tab_id
                     session["user_id"] = user_data.get("user_id")
                     session["customer_id"] = user_data.get("customer_id")
                     session["role"] = user_data.get("role")
@@ -3925,6 +3967,7 @@ def login():
                     session["contract_number"] = user_data.get("contract_number")
                     session.pop("pending_ga_user_id", None)
                     session["ga_verified"] = True
+                    session.modified = True
                 
                 execute_query(
                     "UPDATE users SET connection_status = 'Connected' WHERE user_id = %s AND status != 'Terminated'",
@@ -3935,19 +3978,25 @@ def login():
                 print(f"✅ Login successful: {user_data.get('user_id')}")
                 print(f"   Tab ID: {tab_id}")
                 print(f"   Session key: user_{tab_id}")
+                print(f"   All session keys: {list(session.keys())}")
                 
                 if request.is_json:
+                    redirect_url = url_for("dashboard")
+                    if tab_id:
+                        redirect_url = redirect_url + "?tab_id=" + tab_id
                     return jsonify({
                         "success": True, 
-                        "redirect": url_for("dashboard") + "?tab_id=" + tab_id if tab_id else url_for("dashboard"),
+                        "redirect": redirect_url,
                         "username": user_data.get("username"),
                         "user_id": user_data.get("user_id"),
                         "user_status": user_status,
                         "tab_id": tab_id
                     })
-                return redirect(url_for("dashboard") + "?tab_id=" + tab_id if tab_id else url_for("dashboard"))
+                redirect_url = url_for("dashboard")
+                if tab_id:
+                    redirect_url = redirect_url + "?tab_id=" + tab_id
+                return redirect(redirect_url)
 
-        # Invalid credentials
         print(f"❌ Login failed: Invalid credentials for {user_id}")
         if request.is_json:
             return jsonify({"success": False, "error": "Invalid User ID or Password"}), 401
@@ -4567,17 +4616,18 @@ def get_user_status():
 
 
 
-# ===============================
-# USER DASHBOARD (XAMPP/MYSQL VERSION) - WITH PROPER TAB ID SUPPORT
-# ===============================
 @app.route("/user/dashboard")
 def dashboard():
     # 👇 KUNIN ANG TAB ID MULA SA URL PARAMETER
     tab_id = request.args.get("tab_id")
     
+    print(f"🔍 Dashboard - tab_id from URL: {tab_id}")
+    print(f"🔍 Dashboard - session keys: {list(session.keys())}")
+    
     # 👇 KUNG WALANG TAB ID SA URL, TINGNAN KUNG NASA SESSION
     if not tab_id:
         tab_id = session.get("active_tab")
+        print(f"🔍 Dashboard - active_tab from session: {tab_id}")
     
     # 👇 KUNG WALANG TAB ID, REDIRECT SA LOGIN
     if not tab_id:
@@ -4589,18 +4639,19 @@ def dashboard():
     
     if user_session:
         user_id = user_session.get("user_id")
+        print(f"🔍 Dashboard - User ID from tab session: {user_id}")
     else:
         # FALLBACK: USE REGULAR SESSION
         user_id = session.get("user_id")
+        print(f"🔍 Dashboard - User ID from regular session: {user_id}")
     
     # 👇 KUNG WALANG USER_ID, REDIRECT SA LOGIN
     if not user_id:
         flash("Session expired. Please login again.", "warning")
         return redirect(url_for("login"))
     
-    print(f"DEBUG: Dashboard - User ID: {user_id}")
-    print(f"DEBUG: Dashboard - Tab ID: {tab_id}")
-    print(f"DEBUG: Session keys: {list(session.keys())}")
+    print(f"✅ Dashboard - User ID: {user_id}")
+    print(f"✅ Dashboard - Tab ID: {tab_id}")
 
     # ========== GET USER DATA FIRST ==========
     user_query = "SELECT application_number, ga_enabled, ga_secret FROM users WHERE user_id = %s"
@@ -4687,10 +4738,30 @@ def get_announcements():
 
 @app.route("/api/get-user-connection")
 def get_user_connection():
-    if "user_id" not in session:
-        return jsonify([])
+    # 👇 KUHAIN ANG TAB ID MULA SA URL PARAMETER
+    tab_id = request.args.get("tab_id")
+    
+    # 👇 I-PRINT PARA SA DEBUGGING
+    print(f"🔍 get_user_connection - tab_id from URL: {tab_id}")
+    print(f"🔍 get_user_connection - session keys: {list(session.keys())}")
+    
+    # 👇 KUNG MAY TAB ID, KUNIN ANG USER DATA MULA SA SESSION
+    if tab_id:
+        user_session = session.get(f"user_{tab_id}")
+        if user_session:
+            user_id = user_session.get("user_id")
+            print(f"🔍 User ID from tab session: {user_id}")
+        else:
+            user_id = session.get("user_id")
+            print(f"🔍 User ID from regular session: {user_id}")
+    else:
+        user_id = session.get("user_id")
+        print(f"🔍 User ID from regular session (no tab_id): {user_id}")
 
-    user_id = session["user_id"]
+    # 👇 KUNG WALANG USER_ID, MAG-ERROR
+    if not user_id:
+        print("❌ No user_id found in session")
+        return jsonify({"error": "Not logged in"}), 401
 
     try:
         # ===== GET USER FROM MYSQL - KASAMA ANG BALANCE =====
@@ -4698,7 +4769,7 @@ def get_user_connection():
             SELECT user_id, application_number, email, username,
                    connection_status, contract_number, first_name, last_name, 
                    middle_name, suffix, contact_number, address, 
-                   status as user_status, balance  # ← IDAGDAG ANG BALANCE
+                   status as user_status, balance
             FROM users 
             WHERE user_id = %s
             LIMIT 1
@@ -4706,14 +4777,14 @@ def get_user_connection():
         user = execute_query(user_query, (user_id,), fetch_one=True)
 
         if not user:
-            return jsonify([])
+            return jsonify({"error": "User not found"}), 404
 
         connection_status = user.get("connection_status", "Disconnected")
         contract_number = user.get("contract_number", "No Contract")
         application_number = user.get("application_number")
         email = user.get("email")
         user_status = user.get("user_status", "Active")
-        balance = user.get("balance", 0)  # 🔥 KUNIN ANG BALANCE
+        balance = user.get("balance", 0)
 
         if not application_number:
             return jsonify([{
@@ -4726,7 +4797,7 @@ def get_user_connection():
                 "status": user_status,
                 "connection_status": connection_status,
                 "contract_number": contract_number,
-                "balance": float(balance) if balance else 0  # ← IDAGDAG
+                "balance": float(balance) if balance else 0
             }])
 
         # ===== GET CUSTOMER DATA =====
@@ -4747,13 +4818,11 @@ def get_user_connection():
             installation_status = customer.get("installation_status", "Pending")
             contract_number = customer.get("contract_number", contract_number)
             
-            # 🔥 CRITICAL: Kung ang user_status ay "Active", gamitin yun
             if user_status == "Active":
                 display_status = "Active"
             elif user_status in ["Terminated", "Inactive"]:
                 display_status = user_status
             else:
-                # Fallback: gamitin ang app_status logic
                 if app_status == "Pending":
                     display_status = "Pending Approval"
                 elif app_status == "Approved" and installation_status == "Pending":
@@ -4767,7 +4836,6 @@ def get_user_connection():
                 else:
                     display_status = app_status
             
-            # Extract mbps from plan_speed
             mbps = "0"
             import re
             if plan_speed:
@@ -4781,7 +4849,6 @@ def get_user_connection():
             suffix = customer.get("suffix")
             
         else:
-            # Fallback: gamitin ang applications table
             app_query = """
                 SELECT plan, plan_speed, status, installation_status, plan_price
                 FROM applications 
@@ -4801,7 +4868,7 @@ def get_user_connection():
                     "status": user_status,
                     "connection_status": connection_status,
                     "contract_number": contract_number,
-                    "balance": float(balance) if balance else 0  # ← IDAGDAG
+                    "balance": float(balance) if balance else 0
                 }])
             
             plan_name = application.get("plan", "Basic Package")
@@ -4809,7 +4876,6 @@ def get_user_connection():
             app_status = application.get("status", "Pending")
             installation_status = application.get("installation_status", "Pending")
             
-            # 🔥 CRITICAL: Same logic para sa applications table
             if user_status == "Active":
                 display_status = "Active"
             elif user_status in ["Terminated", "Inactive"]:
@@ -4828,7 +4894,6 @@ def get_user_connection():
                 else:
                     display_status = app_status
             
-            # Extract mbps from plan_speed
             mbps = "0"
             import re
             if plan_speed:
@@ -4841,7 +4906,6 @@ def get_user_connection():
             middle_name = user.get("middle_name")
             suffix = user.get("suffix")
 
-        # ===== FINAL RESULT - KASAMA ANG BALANCE =====
         result = [{
             "firstname": first_name or "",
             "middlename": middle_name or "",
@@ -4852,7 +4916,7 @@ def get_user_connection():
             "status": display_status,
             "connection_status": connection_status,
             "contract_number": contract_number,
-            "balance": float(balance) if balance else 0  # ← IDAGDAG ANG BALANCE
+            "balance": float(balance) if balance else 0
         }]
 
         return jsonify(result)
@@ -4861,7 +4925,7 @@ def get_user_connection():
         print(f"ERROR in get_user_connection: {e}")
         import traceback
         traceback.print_exc()
-        return jsonify([])
+        return jsonify({"error": str(e)}), 500
 
 
 

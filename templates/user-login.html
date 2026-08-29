@@ -730,7 +730,7 @@
                 user_id: formData.get('user_id').trim(),
                 password: formData.get('password').trim(),
                 ga_code: formData.get('ga_code').trim(),
-                tab_id: tabId  // 👈 ISAMA ANG TAB ID SA PAYLOAD
+                tab_id: tabId
             };
 
             if (!payload.user_id || !payload.password) {
@@ -745,7 +745,6 @@
                 return;
             }
 
-            // Show loading state
             const submitBtn = loginForm.querySelector('.login-btn');
             const originalText = submitBtn.textContent;
             submitBtn.disabled = true;
@@ -760,7 +759,6 @@
 
                 const data = await res.json();
 
-                // ✅ CHECK KUNG 403 FORBIDDEN (Deactivated/Terminated)
                 if (res.status === 403) {
                     errorDiv.textContent = data.error || "Your account is deactivated or terminated. Please contact support.";
                     errorDiv.style.display = "block";
@@ -769,10 +767,8 @@
                     return;
                 }
 
-                // ✅ CHECK KUNG 2FA REQUIRED
                 if (data.requires_2fa) {
                     gaPendingUserId = data.user_id || null;
-                    // 👇 I-STORE ANG TAB ID PARA SA 2FA
                     if (data.tab_id) {
                         sessionStorage.setItem('tab_id', data.tab_id);
                     }
@@ -782,17 +778,13 @@
                     return;
                 }
 
-                // ✅ SUCCESSFUL LOGIN
-                // ✅ SUCCESSFUL LOGIN
                 if (res.ok && data.success) {
-                    // Store session data including tab_id
                     const tabId = data.tab_id || tabIdFromStorage;
                     sessionStorage.setItem("username", data.username || payload.user_id);
                     sessionStorage.setItem("userType", "user");
                     sessionStorage.setItem("user_id", data.user_id || payload.user_id);
                     sessionStorage.setItem("tab_id", tabId);
                     
-                    // 👇 SIGURADUHIN NA TAMA ANG REDIRECT URL
                     let redirectUrl = data.redirect || "/dashboard";
                     if (!redirectUrl.includes('tab_id=')) {
                         const separator = redirectUrl.includes('?') ? '&' : '?';
@@ -804,11 +796,9 @@
                     console.log('  - Tab ID:', tabId);
                     console.log('  - User ID:', data.user_id || payload.user_id);
                     
-                    // 🔔 MARK SESSION START FOR DEVICE MONITOR
                     sessionStorage.setItem('sessionStart', Date.now().toString());
                     console.log('  - Session Start:', sessionStorage.getItem('sessionStart'));
                     
-                    // Use replace() instead of href to prevent back button to login page
                     window.location.replace(redirectUrl);
                 } else {
                     errorDiv.textContent = data.error || "Invalid User ID or Password";
