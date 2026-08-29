@@ -4509,6 +4509,14 @@ def user_reset_password():
         print(f"✅ Tab session created: user_{tab_id}")
         print(f"✅ Active tab set: {tab_id}")
 
+    # 👇 IDAGDAG MO ITO — GAYA NG GINAGAWA SA /login ROUTE
+    execute_query(
+        "UPDATE users SET connection_status = 'Connected' WHERE user_id = %s AND status != 'Terminated'",
+        (user_data.get('user_id'),)
+    )
+    record_login_history(user_data.get("user_id"), tab_id)
+    print(f"✅ Login history recorded for reset-password auto-login: {user_data.get('user_id')} / {tab_id}")
+
     # FORCE SESSION SAVE
     session.modified = True
 
