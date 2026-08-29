@@ -965,7 +965,12 @@ async function loadReconnectPrefillData() {
     }
     document.getElementById('currentPlanSpeed').textContent = speedDisplay;
 
-    const priceNum = parseFloat(plan.price) || 0;
+    // 👇 I-CLEAN MUNA ANG STRING BAGO I-PARSE (tanggalin ₱, commas, at "/month")
+    const cleanPriceStr = String(plan.price || '0')
+        .replace(/[₱,]/g, '')
+        .replace(/\/month.*$/i, '')
+        .trim();
+    const priceNum = parseFloat(cleanPriceStr) || 0;
     document.getElementById('currentPlanPrice').textContent = priceNum.toFixed(2);
     
     // ✅ SAVE CURRENT PLAN NAME
