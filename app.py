@@ -4921,7 +4921,6 @@ def get_reconnect_info():
     full_address = ""
 
     if application_number:
-        # Get current plan and address from customers table
         customer_query = """
             SELECT plan, plan_speed, plan_price, address, barangay, city, province, zip
             FROM customers
@@ -4935,7 +4934,23 @@ def get_reconnect_info():
             plan_speed = customer.get("plan_speed") or plan_speed
             plan_price = customer.get("plan_price") or plan_price
             
-            # ✅ KUNIN ANG ADDRESS
+            # 👇 IDAGDAG ITO — KUNG BLANGKO/ZERO ANG PRICE, HANAPIN SA plans TABLE
+            price_is_empty = (
+                plan_price is None or 
+                str(plan_price).strip() in ("", "0", "0.00", "0.0")
+            )
+            if price_is_empty and plan_name:
+                fallback_plan = execute_query(
+                    "SELECT price, speed FROM plans WHERE name = %s LIMIT 1",
+                    (plan_name,), fetch_one=True
+                )
+                if fallback_plan:
+                    plan_price = fallback_plan.get("price") or plan_price
+                    # Optional: i-sync din speed kung blangko
+                    if not plan_speed or str(plan_speed).strip() in ("", "0"):
+                        plan_speed = fallback_plan.get("speed") or plan_speed
+                    print(f"✅ Reconnect fallback price gamit ang plans table: {plan_price}")
+            
             address = customer.get("address") or ""
             barangay = customer.get("barangay") or ""
             city = customer.get("city") or ""
