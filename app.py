@@ -4921,6 +4921,7 @@ def get_reconnect_info():
     full_address = ""
 
     if application_number:
+        # Get current plan and address from customers table
         customer_query = """
             SELECT plan, plan_speed, plan_price, address, barangay, city, province, zip
             FROM customers
@@ -4929,28 +4930,15 @@ def get_reconnect_info():
         """
         customer = execute_query(customer_query, (application_number,), fetch_one=True)
 
+        # 👇 IDINAGDAG NA DEBUG PRINT
+        print(f"🔍 DEBUG RECONNECT - raw customer row: {customer}")
+
         if customer and customer.get("plan"):
             plan_name = customer.get("plan") or plan_name
             plan_speed = customer.get("plan_speed") or plan_speed
             plan_price = customer.get("plan_price") or plan_price
             
-            # 👇 IDAGDAG ITO — KUNG BLANGKO/ZERO ANG PRICE, HANAPIN SA plans TABLE
-            price_is_empty = (
-                plan_price is None or 
-                str(plan_price).strip() in ("", "0", "0.00", "0.0")
-            )
-            if price_is_empty and plan_name:
-                fallback_plan = execute_query(
-                    "SELECT price, speed FROM plans WHERE name = %s LIMIT 1",
-                    (plan_name,), fetch_one=True
-                )
-                if fallback_plan:
-                    plan_price = fallback_plan.get("price") or plan_price
-                    # Optional: i-sync din speed kung blangko
-                    if not plan_speed or str(plan_speed).strip() in ("", "0"):
-                        plan_speed = fallback_plan.get("speed") or plan_speed
-                    print(f"✅ Reconnect fallback price gamit ang plans table: {plan_price}")
-            
+            # ✅ KUNIN ANG ADDRESS
             address = customer.get("address") or ""
             barangay = customer.get("barangay") or ""
             city = customer.get("city") or ""
@@ -4974,6 +4962,10 @@ def get_reconnect_info():
                 LIMIT 1
             """
             application = execute_query(app_query, (application_number,), fetch_one=True)
+
+            # 👇 DEBUG PRINT DIN DITO PARA SA FALLBACK CASE
+            print(f"🔍 DEBUG RECONNECT - raw application row (fallback): {application}")
+
             if application and application.get("plan"):
                 plan_name = application.get("plan") or plan_name
                 plan_speed = application.get("plan_speed") or plan_speed
@@ -4993,6 +4985,9 @@ def get_reconnect_info():
                     province, 
                     zip_code
                 ]))
+
+    # 👇 FINAL DEBUG PRINT — ITO ANG MAKIKITA NATIN BAGO IPADALA SA FRONTEND
+    print(f"🔍 DEBUG RECONNECT - FINAL: plan_name={plan_name!r}, plan_speed={plan_speed!r}, plan_price={plan_price!r}")
 
     return jsonify({
         "full_name": full_name,  # ✅ ITO ANG GAGAMITIN SA FRONTEND
