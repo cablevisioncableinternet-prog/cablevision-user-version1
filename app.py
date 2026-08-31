@@ -1224,6 +1224,20 @@ def validate_location_barangay(lat, lng):
                         elif "SANTA CLARA SUR" in converted_barangay:
                             converted_barangay = "SANTA CLARA SUR (POBLACION)"
                     
+                    # Special handling for Santa Cruz (BARANGAY I/II/III/IV/V -> POBLACION I/II/III/IV/V)
+                    elif detected_city == "SANTA CRUZ":
+                        cleaned = converted_barangay.replace('(POBLACION)', '').replace('(POB.)', '').strip()
+                        if cleaned == "BARANGAY I":
+                            converted_barangay = "POBLACION I"
+                        elif cleaned == "BARANGAY II":
+                            converted_barangay = "POBLACION II"
+                        elif cleaned == "BARANGAY III":
+                            converted_barangay = "POBLACION III"
+                        elif cleaned == "BARANGAY IV":
+                            converted_barangay = "POBLACION IV"
+                        elif cleaned == "BARANGAY V":
+                            converted_barangay = "POBLACION V"
+                    
                     allowed_barangays = get_cached_allowed_barangays()
                     
                     if detected_city not in allowed_barangays:
@@ -1253,6 +1267,31 @@ def validate_location_barangay(lat, lng):
                 
                 if fallback_city not in ALLOWED_CITIES:
                     return False, f"'{fallback_city}' is not within our coverage area."
+                
+                # Apply same Poblacion/Barangay conversions as GeoRisk path
+                fallback_barangay = fallback_barangay.replace('(POB.)', '(POBLACION)')
+                
+                if fallback_city == "PILA":
+                    if "BULILAN NORTE" in fallback_barangay:
+                        fallback_barangay = "BULILAN NORTE (POBLACION)"
+                    elif "BULILAN SUR" in fallback_barangay:
+                        fallback_barangay = "BULILAN SUR (POBLACION)"
+                    elif "SANTA CLARA NORTE" in fallback_barangay:
+                        fallback_barangay = "SANTA CLARA NORTE (POBLACION)"
+                    elif "SANTA CLARA SUR" in fallback_barangay:
+                        fallback_barangay = "SANTA CLARA SUR (POBLACION)"
+                elif fallback_city == "SANTA CRUZ":
+                    cleaned = fallback_barangay.replace('(POBLACION)', '').replace('(POB.)', '').strip()
+                    if cleaned == "BARANGAY I":
+                        fallback_barangay = "POBLACION I"
+                    elif cleaned == "BARANGAY II":
+                        fallback_barangay = "POBLACION II"
+                    elif cleaned == "BARANGAY III":
+                        fallback_barangay = "POBLACION III"
+                    elif cleaned == "BARANGAY IV":
+                        fallback_barangay = "POBLACION IV"
+                    elif cleaned == "BARANGAY V":
+                        fallback_barangay = "POBLACION V"
                 
                 allowed_barangays = get_cached_allowed_barangays()
                 
