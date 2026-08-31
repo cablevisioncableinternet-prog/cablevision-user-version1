@@ -6920,7 +6920,7 @@ def user_download_contract(contract_number):
         traceback.print_exc()
         return f"Error generating PDF: {str(e)}", 500
 
-#######
+
 def calculate_age(birthdate):
     if not birthdate:
         return ''
