@@ -1641,12 +1641,28 @@ def submit_application():
     if selected_napbox_info:
         try:
             napbox_data = json.loads(selected_napbox_info)
-            preferred_napbox_id = napbox_data.get('napbox_id')
-            preferred_napbox_name = napbox_data.get('napbox_name')
-            if preferred_napbox_id:
-                print(f"📌 User selected NAP Box: {preferred_napbox_name} (ID: {preferred_napbox_id}) - SAVING TO DATABASE")
+            candidate_id = napbox_data.get('napbox_id')
+            candidate_name = napbox_data.get('napbox_name')
+
+            # ✅ I-VERIFY na existing talaga ang napbox_id sa DB bago gamitin
+            if candidate_id:
+                check_napbox = execute_query(
+                    "SELECT id FROM napboxes WHERE id = %s LIMIT 1",
+                    (candidate_id,),
+                    fetch_one=True
+                )
+                if check_napbox:
+                    preferred_napbox_id = candidate_id
+                    preferred_napbox_name = candidate_name
+                    print(f"📌 User selected valid NAP Box: {preferred_napbox_name} (ID: {preferred_napbox_id})")
+                else:
+                    print(f"⚠️ NAP Box ID {candidate_id} does not exist in DB — proceeding with NULL")
+            else:
+                print("ℹ️ No NAP box in coverage (out of radius) — proceeding with NULL, application allowed")
         except Exception as e:
-            print(f"⚠️ Error parsing napbox info: {e}")
+            print(f"⚠️ Error parsing napbox info (non-blocking): {e}")
+    else:
+        print("ℹ️ No selected_napbox_info sent from form — proceeding with NULL")
 
     # ========== CHECK IF APPLICATION ALREADY EXISTS (for re-apply) ==========
     if is_reapply and original_application_id:
@@ -1698,8 +1714,16 @@ def submit_application():
             application_number
         )
 
-        execute_query(update_query, params)
-        print(f"✅ Application {application_number} updated (re-apply) with preferred NAP Box: {preferred_napbox_name}")
+        try:
+            execute_query(update_query, params)
+            print(f"✅ Application {application_number} updated (re-apply) with preferred NAP Box: {preferred_napbox_name}")
+        except Exception as e:
+            print(f"❌ CRITICAL: Failed to UPDATE application {application_number}")
+            print(f"❌ Error type: {type(e).__name__}")
+            print(f"❌ Error message: {e}")
+            import traceback
+            traceback.print_exc()
+            return f"We couldn't save your application. Please try again or contact support. (Ref: {application_number})", 500
         
     else:
         insert_query = """
@@ -1744,7 +1768,7 @@ def submit_application():
             data.get('installation_address'), data.get('installation_phone'), data.get('installation_fee'),
             signature_value, id_front_value, id_back_value, billing_value, profile_value,
             data.get('latitude'), data.get('longitude'), 'Pending', 0,
-            data.get('preferred_napbox_id'), data.get('preferred_napbox_name')
+            preferred_napbox_id, preferred_napbox_name
         )
 
         print(f"📊 Number of params: {len(params)}")
@@ -1755,9 +1779,19 @@ def submit_application():
         if preferred_napbox_id:
             print(f"📌 Preferred NAP Box saved: {preferred_napbox_name} (ID: {preferred_napbox_id})")
 
-        result = execute_query(insert_query, params)
-        print(f"✅ Insert result: {result}")
-        print(f"✅ New application {application_number} saved with preferred NAP Box")
+        try:
+            result = execute_query(insert_query, params)
+            print(f"✅ Insert result: {result}")
+            if result is None:
+                raise Exception("execute_query returned None — insert likely failed (check DB constraint errors above)")
+            print(f"✅ New application {application_number} saved with preferred NAP Box")
+        except Exception as e:
+            print(f"❌ CRITICAL: Failed to INSERT application {application_number}")
+            print(f"❌ Error type: {type(e).__name__}")
+            print(f"❌ Error message: {e}")
+            import traceback
+            traceback.print_exc()
+            return f"We couldn't save your application. Please try again or contact support. (Ref: {application_number})", 500
 
     # ========== CREATE NOTIFICATIONS ==========
     try:
