@@ -22,13 +22,7 @@ def get_db_connection():
         connection = mysql.connector.connect(**DB_CONFIG)
 
         if connection.is_connected():
-            # ✅ I-SET ANG SESSION TIMEZONE SA PHILIPPINE TIME
-            # Para tama ang lahat ng CURRENT_TIMESTAMP, NOW(), at DEFAULT timestamps
-            cursor = connection.cursor()
-            cursor.execute("SET time_zone = '+08:00'")
-            cursor.close()
-            
-            print("[DB] Connected successfully (timezone set to +08:00)")
+            print("[DB] Connected successfully")
             return connection
 
     except Error as e:
