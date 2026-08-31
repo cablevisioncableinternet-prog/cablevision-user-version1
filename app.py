@@ -8668,7 +8668,6 @@ def submit_plan_change():
         # ========== GENERATE REQUEST ID ==========
         import random
         import string
-        from datetime import datetime
         
         date_part = datetime.now().strftime("%Y%m%d")
         random_part = ''.join(random.choices(string.digits, k=5))
@@ -9111,7 +9110,6 @@ def submit_termination_request():
         # Generate Request ID
         import random
         import string
-        from datetime import datetime
         
         date_part = datetime.now().strftime("%Y%m%d")
         random_part = ''.join(random.choices(string.digits, k=5))
