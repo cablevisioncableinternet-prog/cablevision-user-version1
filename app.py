@@ -63,7 +63,7 @@ import cloudinary.uploader
 import os
 from flask import Flask, request, jsonify
 
-app = Flask(__name__)
+
 
 
 def get_cloudinary_url(image_path, resource_type="image"):
