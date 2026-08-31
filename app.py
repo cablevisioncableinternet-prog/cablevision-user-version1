@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
 from functools import wraps
 import random
-from datetime import datetime as _real_datetime
+from datetime import datetime
 import re
 import time
 import hashlib
@@ -38,16 +38,8 @@ from zoneinfo import ZoneInfo  # Python 3.9+ built-in na
 
 PH_TZ = ZoneInfo("Asia/Manila")
 
-class datetime(_real_datetime):
-    """Override: datetime.now() ay palaging Asia/Manila time na, kahit walang tz argument."""
-    @classmethod
-    def now(cls, tz=None):
-        if tz is None:
-            tz = PH_TZ
-        return _real_datetime.now(tz)
-
 def ph_now_str():
-    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    return datetime.now(PH_TZ).strftime("%Y-%m-%d %H:%M:%S")
 
 # ===============================
 # Initialize Flask
@@ -323,7 +315,7 @@ def record_login_history(user_id, tab_id=None):
         location = resolve_device_location(ip_addr)
 
         session_token = tab_id if tab_id else f"sess_{user_id}_{int(time.time())}"
-        now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        now_str = ph_now_str()
 
         # Determine user_type/role from users table (server-side source of truth)
         user_type = 'user'
@@ -1391,6 +1383,7 @@ def submit_application():
     from PIL import Image
     import json
     import os
+    from datetime import datetime
     from zoneinfo import ZoneInfo  # Python 3.9+
 
     PH_TZ = ZoneInfo("Asia/Manila")
@@ -4669,6 +4662,7 @@ def dashboard():
 # ===============================
 @app.route("/api/server-time")
 def server_time():
+    from datetime import datetime
     return jsonify({
         "server_time": datetime.now().isoformat()
     })
@@ -5049,6 +5043,7 @@ def get_plans_for_reconnect():
 def generate_request_number():
     import random
     import string
+    from datetime import datetime
     
     date_str = datetime.now().strftime("%Y%m%d")
     random_part = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
@@ -5229,6 +5224,7 @@ def submit_reconnect_request():
 
     # ✅ INSERT NOTIFICATION - GAYA NG TERMINATION REQUEST
     try:
+        from datetime import datetime
         
         full_name = " ".join(filter(None, [first_name, middle_name, last_name, suffix]))
         
@@ -6926,6 +6922,7 @@ def calculate_age(birthdate):
     if not birthdate:
         return ''
     try:
+        from datetime import datetime
         birth = datetime.strptime(birthdate, "%Y-%m-%d")
         today = datetime.now()
         age = today.year - birth.year
@@ -8671,6 +8668,7 @@ def submit_plan_change():
         # ========== GENERATE REQUEST ID ==========
         import random
         import string
+        from datetime import datetime
         
         date_part = datetime.now().strftime("%Y%m%d")
         random_part = ''.join(random.choices(string.digits, k=5))
@@ -8682,8 +8680,8 @@ def submit_plan_change():
                 request_id, application_number, 
                 current_plan, current_speed, current_price,
                 requested_plan, requested_speed, requested_price, 
-                status, requested_at
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                status
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         cursor.execute(insert_request, (
             generated_request_id,
@@ -8694,8 +8692,7 @@ def submit_plan_change():
             new_plan_name,
             new_plan_speed,
             new_plan_price,
-            'Pending',
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            'Pending'
         ))
         conn.commit()
         
@@ -9114,6 +9111,7 @@ def submit_termination_request():
         # Generate Request ID
         import random
         import string
+        from datetime import datetime
         
         date_part = datetime.now().strftime("%Y%m%d")
         random_part = ''.join(random.choices(string.digits, k=5))
@@ -9127,8 +9125,8 @@ def submit_termination_request():
                 city, contract_number,
                 current_plan, current_speed, current_price,
                 termination_reason, termination_date,
-                status, created_at
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                status
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         cursor.execute(insert_request, (
             generated_request_id,
@@ -9142,11 +9140,10 @@ def submit_termination_request():
             user.get("contract_number"),
             user.get("plan"),
             user.get("plan_speed"),
-            clean_price,
+            clean_price,   # 👈 NA-CLEAN NA
             termination_reason,
             termination_date,
-            'Pending',
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            'Pending'
         ))
         conn.commit()
         
