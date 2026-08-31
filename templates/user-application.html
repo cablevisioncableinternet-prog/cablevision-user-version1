@@ -1324,7 +1324,77 @@ document.getElementById("barangay").addEventListener("change", function () {
         maxZoom: 19
     }).addTo(map);
 
-    let marker;
+      let marker;
+
+    // ================= WATER DETECTION VIA GEORISK API =================
+    let lastCursorState = null;
+    let waterCheckCache = new Map(); // cache para hindi paulit-ulit mag-query sa parehong lugar
+    let waterCheckInFlight = false;
+
+    function roundCoord(lat, lng) {
+        // I-round sa ~4 decimal places (~11 meters) para sa caching
+        return `${lat.toFixed(4)},${lng.toFixed(4)}`;
+    }
+
+    async function checkIsWaterViaGeoRisk(lat, lng) {
+        const key = roundCoord(lat, lng);
+
+        if (waterCheckCache.has(key)) {
+            return waterCheckCache.get(key);
+        }
+
+        try {
+            const georiskUrl = `https://portal.georisk.gov.ph/arcgis/rest/services/PSA/Barangay/MapServer/4/query`;
+            const queryParams = new URLSearchParams({
+                geometry: `${lng},${lat}`,
+                geometryType: 'esriGeometryPoint',
+                inSR: '4326',
+                outFields: 'brgy_name,city_name',
+                returnGeometry: 'false',
+                f: 'geojson'
+            });
+
+            const response = await fetch(`${georiskUrl}?${queryParams.toString()}`);
+
+            if (!response.ok) {
+                // Kung nag-fail ang API, huwag i-block (fail-safe: hayaan mag-pin)
+                waterCheckCache.set(key, false);
+                return false;
+            }
+
+            const data = await response.json();
+
+            // Walang features = wala sa loob ng anumang barangay = malamang tubig
+            const isWater = !data.features || data.features.length === 0;
+
+            waterCheckCache.set(key, isWater);
+            return isWater;
+
+        } catch (err) {
+            console.warn("Water check via GeoRisk failed:", err.message);
+            waterCheckCache.set(key, false);
+            return false;
+        }
+    }
+
+    // Real-time cursor check habang gumagalaw ang mouse (heavily throttled para hindi sobrang dami ng API calls)
+    let mouseMoveTimeout = null;
+    map.on('mousemove', function(e) {
+        clearTimeout(mouseMoveTimeout);
+        mouseMoveTimeout = setTimeout(async () => {
+            if (waterCheckInFlight) return;
+            waterCheckInFlight = true;
+
+            const isWater = await checkIsWaterViaGeoRisk(e.latlng.lat, e.latlng.lng);
+            const newState = isWater ? 'not-allowed' : '';
+            if (newState !== lastCursorState) {
+                map.getContainer().style.cursor = newState;
+                lastCursorState = newState;
+            }
+
+            waterCheckInFlight = false;
+        }, 400); // 400ms debounce para hindi mabilang ng rate limit ang GeoRisk
+    });
 
     var SatelliteControl = L.Control.extend({
     options: {
@@ -1690,8 +1760,14 @@ async function isAllowed(lat, lng) {
 let isCustomLocationPinned = false;
 
 // ================= SIMPLE MAP CLICK HANDLER =================
-// Pwede mag-pin kahit saan sa napiling barangay, kahit outside NAP Box coverage
 map.on('click', async function (e) {
+    // ✅ BLOCK PINNING SA TUBIG (via GeoRisk API)
+    const isWaterLocation = await checkIsWaterViaGeoRisk(e.latlng.lat, e.latlng.lng);
+    if (isWaterLocation) {
+        showToast("You cannot pin a location in water.", "error");
+        return;
+    }
+
     // Check if barangay is selected
     const selectedBarangay = document.getElementById("barangay").value;
     if (!selectedBarangay || selectedBarangay === 'Select Barangay' || selectedBarangay === 'No barangays available') {
