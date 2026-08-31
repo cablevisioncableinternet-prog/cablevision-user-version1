@@ -2041,16 +2041,17 @@ async function validateLocation(lat, lng, selectedBarangay) {
         let detected = false;
         let detectionSource = "";
         
-        // HELPER: Convert detected barangay to proper format
+        // HELPER: Convert detected barangay to the selected city's format
         function convertDetectedBarangay(detected, cityName) {
             if (!detected) return detected;
             
-            const lower = detected.toLowerCase();
+            const lower = detected.toLowerCase().replace(/\./g, '').replace(/\s+/g, ' ').trim();
+            const withoutPrefix = lower.replace(/^barangay\s+/i, '').replace(/\s*\(poblacion\)\s*$/i, '').trim();
             
             // Pagsanjan
             if (cityName === "Pagsanjan") {
-                if (lower === 'barangay i' || lower.includes('uno') || lower === 'i' || lower === '1') return "Barangay I (Poblacion)";
-                if (lower === 'barangay ii' || lower.includes('dos') || lower === 'ii' || lower === '2') return "Barangay II (Poblacion)";
+                if (withoutPrefix === 'uno' || withoutPrefix === 'i' || withoutPrefix === '1') return "Barangay I (Poblacion)";
+                if (withoutPrefix === 'dos' || withoutPrefix === 'ii' || withoutPrefix === '2') return "Barangay II (Poblacion)";
                 if (lower.includes('tres') || lower === 'iii' || lower === '3') return "Barangay III";
                 if (lower.includes('kuwatro') || lower === 'iv' || lower === '4') return "Barangay IV";
                 if (lower.includes('sinko') || lower === 'v' || lower === '5') return "Barangay V";
@@ -2058,11 +2059,15 @@ async function validateLocation(lat, lng, selectedBarangay) {
             
             // Santa Cruz
             if (cityName === "Santa Cruz") {
-                if (lower.includes('uno') || lower === 'i' || lower === '1') return "Poblacion I";
-                if (lower.includes('dos') || lower === 'ii' || lower === '2') return "Poblacion II";
-                if (lower.includes('tres') || lower === 'iii' || lower === '3') return "Poblacion III";
-                if (lower.includes('kuwatro') || lower === 'iv' || lower === '4') return "Poblacion IV";
-                if (lower.includes('sinko') || lower === 'v' || lower === '5') return "Poblacion V";
+                const poblacionAliases = {
+                    '1': 'Poblacion I', 'i': 'Poblacion I', 'uno': 'Poblacion I', 'poblacion 1': 'Poblacion I', 'poblacion i': 'Poblacion I',
+                    '2': 'Poblacion II', 'ii': 'Poblacion II', 'dos': 'Poblacion II', 'poblacion 2': 'Poblacion II', 'poblacion ii': 'Poblacion II',
+                    '3': 'Poblacion III', 'iii': 'Poblacion III', 'tres': 'Poblacion III', 'poblacion 3': 'Poblacion III', 'poblacion iii': 'Poblacion III',
+                    '4': 'Poblacion IV', 'iv': 'Poblacion IV', 'kuwatro': 'Poblacion IV', 'poblacion 4': 'Poblacion IV', 'poblacion iv': 'Poblacion IV',
+                    '5': 'Poblacion V', 'v': 'Poblacion V', 'sinko': 'Poblacion V', 'poblacion 5': 'Poblacion V', 'poblacion v': 'Poblacion V'
+                };
+                const canonical = poblacionAliases[withoutPrefix] || poblacionAliases[lower];
+                if (canonical) return canonical;
             }
             
             // Pila - para sa Bulilan at Santa Clara (may Norte/Sur)
@@ -2308,6 +2313,8 @@ async function validateLocation(lat, lng, selectedBarangay) {
         };
     }
 }
+
+
 // ==============================================
 // UPDATED BOUNDARY VALIDATION FUNCTION
 // ==============================================
@@ -3281,14 +3288,28 @@ async function validateBarangayMatch() {
         
         let actualBarangay = addr.village || addr.suburb || addr.neighbourhood || addr.hamlet || "";
         
-        // Simple normalize function - exact match lang
+        const city = (document.getElementById("city").value || "").trim().toLowerCase();
         const normalize = (s) => {
             if (!s) return "";
-            return s.toLowerCase().trim();
+            return s.toLowerCase().replace(/\./g, '').replace(/\s+/g, ' ').trim();
+        };
+        const normalizeForComparison = (s) => {
+            let value = normalize(s).replace(/^barangay\s+/, '').replace(/\s*\(poblacion\)\s*$/, '').trim();
+            if (city === 'santa cruz') {
+                const aliases = {
+                    '1': 'i', 'i': 'i', 'uno': 'i', 'poblacion 1': 'i', 'poblacion i': 'i',
+                    '2': 'ii', 'ii': 'ii', 'dos': 'ii', 'poblacion 2': 'ii', 'poblacion ii': 'ii',
+                    '3': 'iii', 'iii': 'iii', 'tres': 'iii', 'poblacion 3': 'iii', 'poblacion iii': 'iii',
+                    '4': 'iv', 'iv': 'iv', 'kuwatro': 'iv', 'poblacion 4': 'iv', 'poblacion iv': 'iv',
+                    '5': 'v', 'v': 'v', 'sinko': 'v', 'poblacion 5': 'v', 'poblacion v': 'v'
+                };
+                return aliases[value] || value;
+            }
+            return value;
         };
         
-        const normalizedSelected = normalize(selectedBarangay);
-        const normalizedActual = normalize(actualBarangay);
+        const normalizedSelected = normalizeForComparison(selectedBarangay);
+        const normalizedActual = normalizeForComparison(actualBarangay);
         
         console.log("=== BARANGAY VALIDATION ===");
         console.log("Selected:", selectedBarangay, "->", normalizedSelected);
