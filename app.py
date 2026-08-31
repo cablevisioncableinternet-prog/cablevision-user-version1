@@ -33,6 +33,14 @@ from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 from reportlab.platypus import Table, TableStyle
 
+
+from zoneinfo import ZoneInfo  # Python 3.9+ built-in na
+
+PH_TZ = ZoneInfo("Asia/Manila")
+
+def ph_now_str():
+    return datetime.now(PH_TZ).strftime("%Y-%m-%d %H:%M:%S")
+
 # ===============================
 # Initialize Flask
 # ===============================
@@ -307,7 +315,7 @@ def record_login_history(user_id, tab_id=None):
         location = resolve_device_location(ip_addr)
 
         session_token = tab_id if tab_id else f"sess_{user_id}_{int(time.time())}"
-        now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        now_str = ph_now_str()
 
         # Determine user_type/role from users table (server-side source of truth)
         user_type = 'user'
