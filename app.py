@@ -8682,8 +8682,8 @@ def submit_plan_change():
                 request_id, application_number, 
                 current_plan, current_speed, current_price,
                 requested_plan, requested_speed, requested_price, 
-                status
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
+                status, requested_at
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         cursor.execute(insert_request, (
             generated_request_id,
@@ -8694,7 +8694,8 @@ def submit_plan_change():
             new_plan_name,
             new_plan_speed,
             new_plan_price,
-            'Pending'
+            'Pending',
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         ))
         conn.commit()
         
@@ -9126,8 +9127,8 @@ def submit_termination_request():
                 city, contract_number,
                 current_plan, current_speed, current_price,
                 termination_reason, termination_date,
-                status
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                status, created_at
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         cursor.execute(insert_request, (
             generated_request_id,
@@ -9141,10 +9142,11 @@ def submit_termination_request():
             user.get("contract_number"),
             user.get("plan"),
             user.get("plan_speed"),
-            clean_price,   # 👈 NA-CLEAN NA
+            clean_price,
             termination_reason,
             termination_date,
-            'Pending'
+            'Pending',
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         ))
         conn.commit()
         
