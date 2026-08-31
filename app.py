@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
 from functools import wraps
 import random
-from datetime import datetime
+from datetime import datetime as _real_datetime
 import re
 import time
 import hashlib
@@ -38,8 +38,16 @@ from zoneinfo import ZoneInfo  # Python 3.9+ built-in na
 
 PH_TZ = ZoneInfo("Asia/Manila")
 
+class datetime(_real_datetime):
+    """Override: datetime.now() ay palaging Asia/Manila time na, kahit walang tz argument."""
+    @classmethod
+    def now(cls, tz=None):
+        if tz is None:
+            tz = PH_TZ
+        return _real_datetime.now(tz)
+
 def ph_now_str():
-    return datetime.now(PH_TZ).strftime("%Y-%m-%d %H:%M:%S")
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 # ===============================
 # Initialize Flask
@@ -315,7 +323,7 @@ def record_login_history(user_id, tab_id=None):
         location = resolve_device_location(ip_addr)
 
         session_token = tab_id if tab_id else f"sess_{user_id}_{int(time.time())}"
-        now_str = ph_now_str()
+        now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         # Determine user_type/role from users table (server-side source of truth)
         user_type = 'user'
@@ -1383,10 +1391,12 @@ def submit_application():
     from PIL import Image
     import json
     import os
-    from datetime import datetime
+    from zoneinfo import ZoneInfo  # Python 3.9+
+
+    PH_TZ = ZoneInfo("Asia/Manila")
 
     data = request.form
-    now = datetime.now()
+    now = datetime.now(PH_TZ)
     
     # ========== HELPER: CONVERT BIRTHDATE FORMAT ==========
     def convert_birthdate_format(birthdate_str):
@@ -1750,7 +1760,7 @@ def submit_application():
 
     # ========== CREATE NOTIFICATIONS ==========
     try:
-        notification_id = int(datetime.now().timestamp() * 1000)
+        notification_id = int(datetime.now(PH_TZ).timestamp() * 1000)
         applicant_name = f"{data.get('first_name', '')} {data.get('last_name', '')}".strip()
         application_city = data.get('city', 'Unknown')
         reapply_text = " (RE-APPLICATION)" if is_reapply else ""
@@ -1765,7 +1775,7 @@ def submit_application():
             f"New {data.get('plan')} Plan from {applicant_name}, Application No.({application_number}) in {application_city}",
             "new_application",
             application_number,
-            datetime.now().isoformat(),
+            datetime.now(PH_TZ).isoformat(),
             0
         ))
         print(f"🔔 Superadmin notification created")
@@ -1783,7 +1793,7 @@ def submit_application():
             f"New {data.get('plan')} Plan application from {applicant_name} (Application No. {application_number}) in {application_city}",
             "new_application",
             application_number,
-            datetime.now().isoformat(),
+            datetime.now(PH_TZ).isoformat(),
             0,
             application_city,
             application_city,
@@ -4659,7 +4669,6 @@ def dashboard():
 # ===============================
 @app.route("/api/server-time")
 def server_time():
-    from datetime import datetime
     return jsonify({
         "server_time": datetime.now().isoformat()
     })
@@ -5040,7 +5049,6 @@ def get_plans_for_reconnect():
 def generate_request_number():
     import random
     import string
-    from datetime import datetime
     
     date_str = datetime.now().strftime("%Y%m%d")
     random_part = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
@@ -5221,7 +5229,6 @@ def submit_reconnect_request():
 
     # ✅ INSERT NOTIFICATION - GAYA NG TERMINATION REQUEST
     try:
-        from datetime import datetime
         
         full_name = " ".join(filter(None, [first_name, middle_name, last_name, suffix]))
         
@@ -6919,7 +6926,6 @@ def calculate_age(birthdate):
     if not birthdate:
         return ''
     try:
-        from datetime import datetime
         birth = datetime.strptime(birthdate, "%Y-%m-%d")
         today = datetime.now()
         age = today.year - birth.year
@@ -8665,7 +8671,6 @@ def submit_plan_change():
         # ========== GENERATE REQUEST ID ==========
         import random
         import string
-        from datetime import datetime
         
         date_part = datetime.now().strftime("%Y%m%d")
         random_part = ''.join(random.choices(string.digits, k=5))
@@ -9108,7 +9113,6 @@ def submit_termination_request():
         # Generate Request ID
         import random
         import string
-        from datetime import datetime
         
         date_part = datetime.now().strftime("%Y%m%d")
         random_part = ''.join(random.choices(string.digits, k=5))
