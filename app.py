@@ -947,57 +947,7 @@ def plans():
         traceback.print_exc()
         return render_template("user-plans.html", plans=[], selected_plan="")
 
-# =========================
-# APPLY PLAN PAGE (ALREADY CONVERTED - OK NA)
-# =========================
-@app.route("/apply/<plan_name>")
-def apply_plan(plan_name):
-    # Check if this is a re-apply
-    form_data = request.args.get('form_data')
-    is_reapply = request.args.get('reapply') == 'true'
-    original_id = request.args.get('app_id')
-    
-    # Fetch plan details from MySQL
-    try:
-        query = """
-            SELECT id, name, speed, price, image_path 
-            FROM plans 
-            WHERE name = %s OR id = %s
-            ORDER BY price ASC
-            LIMIT 1
-        """
-        plan_data = execute_query(query, (plan_name, plan_name), fetch_one=True)
-        
-        if plan_data:
-            plan_speed = plan_data.get('speed', 'N/A')
-            plan_price = f"₱{float(plan_data.get('price', 0)):.2f}/month"
-            plan_display_name = plan_data.get('name', plan_name)
-        else:
-            plan_speed = 'N/A'
-            plan_price = 'Contact us'
-            plan_display_name = plan_name
-        
-        return render_template(
-            "user-application.html", 
-            plan_name=plan_display_name,
-            plan_speed=plan_speed,
-            plan_price=plan_price,
-            form_data=form_data if form_data else None,
-            is_reapply=is_reapply,
-            original_application_id=original_id
-        )
-        
-    except Exception as e:
-        print(f"Error fetching plan details: {e}")
-        return render_template(
-            "user-application.html", 
-            plan_name=plan_name,
-            plan_speed='N/A',
-            plan_price='Contact us',
-            form_data=None,
-            is_reapply=False,
-            original_application_id=None
-        )
+
 
 
 # =========================
