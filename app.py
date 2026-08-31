@@ -1,7 +1,19 @@
 from flask import Flask, render_template, request, jsonify, redirect, url_for, session, flash
 from functools import wraps
 import random
-from datetime import datetime
+from datetime import datetime as _real_datetime
+from zoneinfo import ZoneInfo
+
+PH_TZ = ZoneInfo("Asia/Manila")
+
+class datetime(_real_datetime):
+    """Override: datetime.now() ay palaging Asia/Manila time na, kahit walang tz argument."""
+    @classmethod
+    def now(cls, tz=None):
+        if tz is None:
+            tz = PH_TZ
+        return _real_datetime.now(tz)
+
 import re
 import time
 import hashlib
@@ -34,12 +46,8 @@ from reportlab.lib import colors
 from reportlab.platypus import Table, TableStyle
 
 
-from zoneinfo import ZoneInfo  # Python 3.9+ built-in na
-
-PH_TZ = ZoneInfo("Asia/Manila")
-
 def ph_now_str():
-    return datetime.now(PH_TZ).strftime("%Y-%m-%d %H:%M:%S")
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 # ===============================
 # Initialize Flask
@@ -2364,7 +2372,6 @@ import smtplib
 import mysql.connector
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from datetime import datetime
 
 # Store verification codes temporarily (in production, use Redis or database)
 verification_codes = {}
@@ -4662,7 +4669,6 @@ def dashboard():
 # ===============================
 @app.route("/api/server-time")
 def server_time():
-    from datetime import datetime
     return jsonify({
         "server_time": datetime.now().isoformat()
     })
@@ -5043,7 +5049,6 @@ def get_plans_for_reconnect():
 def generate_request_number():
     import random
     import string
-    from datetime import datetime
     
     date_str = datetime.now().strftime("%Y%m%d")
     random_part = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
@@ -5224,8 +5229,6 @@ def submit_reconnect_request():
 
     # ✅ INSERT NOTIFICATION - GAYA NG TERMINATION REQUEST
     try:
-        from datetime import datetime
-        
         full_name = " ".join(filter(None, [first_name, middle_name, last_name, suffix]))
         
         # ✅ GUMAMIT NG CUSTOM ID (timestamp * 1000) tulad ng termination
@@ -6922,7 +6925,6 @@ def calculate_age(birthdate):
     if not birthdate:
         return ''
     try:
-        from datetime import datetime
         birth = datetime.strptime(birthdate, "%Y-%m-%d")
         today = datetime.now()
         age = today.year - birth.year
