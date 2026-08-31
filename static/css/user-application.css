@@ -3395,3 +3395,38 @@ select.form-control {
     margin-left: 4px;
 }
 
+/* Return to Pin Location Button */
+#returnToPinBtn {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+#returnToPinBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+#returnToPinBtn:not(:disabled):hover {
+    background: #e8f0fe;
+    border-color: #0047ab;
+    transform: translateY(-1px);
+}
+
+/* Return to Current Location Button */
+#returnToLocationBtn {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+#returnToLocationBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+#returnToLocationBtn:not(:disabled):hover {
+    background: #e8f0fe;
+    border-color: #0047ab;
+    transform: translateY(-1px);
+}
