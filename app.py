@@ -1634,19 +1634,30 @@ def submit_application():
         reapplied_count_value = existing_app.get('reapplied_count', 0) + 1
 
     # ========== GET SELECTED NAP BOX FROM FORM ==========
-    selected_napbox_info = data.get('selected_napbox_info')
-    preferred_napbox_id = None
-    preferred_napbox_name = None
-    
-    if selected_napbox_info:
-        try:
-            napbox_data = json.loads(selected_napbox_info)
-            preferred_napbox_id = napbox_data.get('napbox_id')
-            preferred_napbox_name = napbox_data.get('napbox_name')
-            if preferred_napbox_id:
-                print(f"📌 User selected NAP Box: {preferred_napbox_name} (ID: {preferred_napbox_id}) - SAVING TO DATABASE")
-        except Exception as e:
-            print(f"⚠️ Error parsing napbox info: {e}")
+    def clean_optional_int(value):
+        """Convert empty string / 'none' / 'null' to None, else return the value as-is"""
+        if value is None:
+            return None
+        value_str = str(value).strip()
+        if value_str == '' or value_str.lower() in ('none', 'null', 'undefined'):
+            return None
+        return value_str
+
+    def clean_optional_str(value):
+        if value is None:
+            return None
+        value_str = str(value).strip()
+        if value_str == '' or value_str.lower() in ('none', 'null', 'undefined'):
+            return None
+        return value_str
+
+    preferred_napbox_id = clean_optional_int(data.get('preferred_napbox_id'))
+    preferred_napbox_name = clean_optional_str(data.get('preferred_napbox_name'))
+
+    if preferred_napbox_id:
+        print(f"📌 User's NAP Box: {preferred_napbox_name} (ID: {preferred_napbox_id}) - SAVING TO DATABASE")
+    else:
+        print("📌 No NAP Box nearby (pin is outside all coverage radii) - saving as NULL for manual review")
 
     # ========== CHECK IF APPLICATION ALREADY EXISTS (for re-apply) ==========
     if is_reapply and original_application_id:
