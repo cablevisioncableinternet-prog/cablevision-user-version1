@@ -1552,69 +1552,24 @@ async function fetchUploadedLogos() {
     }
 }
 
-function buildImageGallery2Rows() {
-    const track = document.getElementById('imageGalleryTrack');
-    if (!track) return;
-
-    track.innerHTML = '';
+function createGalleryCard(img) {
+    const card = document.createElement('div');
+    card.className = 'gallery-card';
     
-    // Combine uploaded and static images
-    let allImages = [];
-    
-    // Add uploaded channel logos (from advertisements table)
-    uploadedLogos.forEach((logo) => {
-        const imgSrc = logo.filePath;  // Changed from logo.image to logo.filePath
-        if (imgSrc) {
-            allImages.push({
-                src: imgSrc,
-                type: 'uploaded',
-                id: logo.id
-            });
-        }
-    });
-    
-    // Add static images (1.png to 79.png) - fallback
-    for (let i = 1; i <= 79; i++) {
-        allImages.push({
-            src: `/static/channel/${i}.png`,
-            type: 'static',
-            index: i
-        });
+    if (img.type === 'uploaded') {
+        card.setAttribute('data-id', img.id);
+        card.setAttribute('data-type', 'uploaded');
     }
     
-    // Shuffle or keep order? Keep original order for now
+    card.onclick = () => {
+        window.open(img.src, '_blank');
+    };
     
-    // Split into 2 rows (half each row)
-    const midPoint = Math.ceil(allImages.length / 2);
-    const row1Images = allImages.slice(0, midPoint);
-    const row2Images = allImages.slice(midPoint);
+    // ✅ WALA NANG FALLBACK NA "LOGO" TEXT - direct image na lang
+    // At may error handling para hindi magpakita ng broken image
+    card.innerHTML = `<img src="${img.src}" alt="Channel Logo" loading="lazy" onerror="this.style.display='none'">`;
     
-    // Create Row 1
-    const row1 = document.createElement('div');
-    row1.className = 'gallery-row';
-    
-    row1Images.forEach(img => {
-        const card = createGalleryCard(img);
-        row1.appendChild(card);
-    });
-    
-    // Create Row 2
-    const row2 = document.createElement('div');
-    row2.className = 'gallery-row';
-    
-    row2Images.forEach(img => {
-        const card = createGalleryCard(img);
-        row2.appendChild(card);
-    });
-    
-    // Add rows to track
-    track.appendChild(row1);
-    track.appendChild(row2);
-    
-    console.log(`Gallery built: Row1: ${row1Images.length}, Row2: ${row2Images.length} = ${allImages.length} total`);
-    
-    // Initialize infinite scroll after building
-    initInfiniteGallery();
+    return card;
 }
 
 // Create gallery card - LOGO ONLY, walang text
@@ -1625,17 +1580,15 @@ function createGalleryCard(img) {
     if (img.type === 'uploaded') {
         card.setAttribute('data-id', img.id);
         card.setAttribute('data-type', 'uploaded');
-    } else {
-        card.setAttribute('data-index', img.index);
-        card.setAttribute('data-type', 'static');
     }
     
     card.onclick = () => {
         window.open(img.src, '_blank');
     };
     
-    // Logo lang, walang label/text
-    card.innerHTML = `<img src="${img.src}" alt="Channel Logo" loading="lazy" onerror="this.src='https://placehold.co/140x140?text=Logo'">`;
+    // ✅ WALA NANG FALLBACK NA "LOGO" TEXT - direct image na lang
+    // At may error handling para hindi magpakita ng broken image
+    card.innerHTML = `<img src="${img.src}" alt="Channel Logo" loading="lazy" onerror="this.style.display='none'">`;
     
     return card;
 }
