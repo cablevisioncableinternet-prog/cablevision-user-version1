@@ -1552,24 +1552,73 @@ async function fetchUploadedLogos() {
     }
 }
 
-function createGalleryCard(img) {
-    const card = document.createElement('div');
-    card.className = 'gallery-card';
+function buildImageGallery2Rows() {
+    const track = document.getElementById('imageGalleryTrack');
+    if (!track) return;
+
+    track.innerHTML = '';
     
-    if (img.type === 'uploaded') {
-        card.setAttribute('data-id', img.id);
-        card.setAttribute('data-type', 'uploaded');
+    // Combine uploaded and static images
+    let allImages = [];
+    
+    // Add uploaded channel logos (from advertisements table) - ITO LANG ANG GAMITIN
+    uploadedLogos.forEach((logo) => {
+        const imgSrc = logo.filePath;
+        if (imgSrc) {
+            allImages.push({
+                src: imgSrc,
+                type: 'uploaded',
+                id: logo.id
+            });
+        }
+    });
+    
+    // ✅ TANGGALIN NA ANG STATIC IMAGES (1.png to 79.png)
+    // Wala nang fallback sa static folder
+    
+    // ✅ KUNG WALANG UPLOADED IMAGES, MAG-DISPLAY NG MESSAGE
+    if (allImages.length === 0) {
+        track.innerHTML = `
+            <div class="no-channels-message" style="text-align:center;padding:40px;color:#94a3b8;width:100%;">
+                <i class="fas fa-tv" style="font-size:48px;margin-bottom:16px;display:block;"></i>
+                <p>No channel logos uploaded yet</p>
+                <small>Please upload channel logos in the admin panel</small>
+            </div>
+        `;
+        return;
     }
     
-    card.onclick = () => {
-        window.open(img.src, '_blank');
-    };
+    // Split into 2 rows
+    const midPoint = Math.ceil(allImages.length / 2);
+    const row1Images = allImages.slice(0, midPoint);
+    const row2Images = allImages.slice(midPoint);
     
-    // ✅ WALA NANG FALLBACK NA "LOGO" TEXT - direct image na lang
-    // At may error handling para hindi magpakita ng broken image
-    card.innerHTML = `<img src="${img.src}" alt="Channel Logo" loading="lazy" onerror="this.style.display='none'">`;
+    // Create Row 1
+    const row1 = document.createElement('div');
+    row1.className = 'gallery-row';
     
-    return card;
+    row1Images.forEach(img => {
+        const card = createGalleryCard(img);
+        row1.appendChild(card);
+    });
+    
+    // Create Row 2
+    const row2 = document.createElement('div');
+    row2.className = 'gallery-row';
+    
+    row2Images.forEach(img => {
+        const card = createGalleryCard(img);
+        row2.appendChild(card);
+    });
+    
+    // Add rows to track
+    track.appendChild(row1);
+    track.appendChild(row2);
+    
+    console.log(`Gallery built: Row1: ${row1Images.length}, Row2: ${row2Images.length} = ${allImages.length} total`);
+    
+    // Initialize infinite scroll after building
+    initInfiniteGallery();
 }
 
 // Create gallery card - LOGO ONLY, walang text
