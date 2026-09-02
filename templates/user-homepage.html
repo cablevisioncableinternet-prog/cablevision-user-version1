@@ -1542,7 +1542,22 @@ async function fetchUploadedLogos() {
         const data = await response.json();
         // Filter images only (fileType === 'image')
         uploadedLogos = Array.isArray(data) ? data.filter(item => item.fileType === 'image') : [];
-        console.log('Uploaded logos fetched:', uploadedLogos.length);
+        
+        // ✅ SORT BY ID OR TIMESTAMP - PINAKAUNA INUPLOAD ANG UNA
+        // Kung may timestamp field, gamitin yun. Kung wala, gamitin ang id (mas maliit = mas nauna)
+        uploadedLogos.sort((a, b) => {
+            // Option 1: Kung may createdAt timestamp
+            if (a.createdAt && b.createdAt) {
+                return new Date(a.createdAt) - new Date(b.createdAt);
+            }
+            // Option 2: Kung may id (autoincrement) - mas maliit = mas nauna
+            if (a.id && b.id) {
+                return a.id - b.id;
+            }
+            return 0;
+        });
+        
+        console.log('Uploaded logos fetched and sorted:', uploadedLogos.length);
         
         buildImageGallery2Rows();
         
