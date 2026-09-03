@@ -26,53 +26,53 @@
 <!-- ================= PAGE GUARD - WITH TAB ID VALIDATION ================= -->
 <script>
     (function() {
-        // 👇 KUNIN ANG TAB ID MULA SA URL
+        // KUNIN ANG TAB ID MULA SA URL
         const urlParams = new URLSearchParams(window.location.search);
         const urlTabId = urlParams.get('tab_id');
         const sessionTabId = sessionStorage.getItem('tab_id');
         const isLoggedIn = sessionStorage.getItem('username') && sessionStorage.getItem('userType') === 'user';
         
-        console.log('🔍 Page Guard Check:');
+        console.log(' Page Guard Check:');
         console.log('  - Logged in:', isLoggedIn);
         console.log('  - URL Tab ID:', urlTabId);
         console.log('  - Session Tab ID:', sessionTabId);
         
-        // 👇 KUNG WALANG LOGIN, REDIRECT SA LOGIN PAGE
+        // KUNG WALANG LOGIN, REDIRECT SA LOGIN PAGE
         if (!isLoggedIn) {
-            console.log('❌ Not logged in, redirecting to login...');
+            console.log(' Not logged in, redirecting to login...');
             window.location.replace('/');
             return;
         }
         
-        // 👇 KUNG WALANG TAB ID SA URL PERO MERON SA SESSION
+        // KUNG WALANG TAB ID SA URL PERO MERON SA SESSION
         if (!urlTabId && sessionTabId) {
-            console.log('🔄 No tab_id in URL, adding from session...');
+            console.log(' No tab_id in URL, adding from session...');
             const newUrl = window.location.pathname + '?tab_id=' + sessionTabId;
             window.location.replace(newUrl);
             return;
         }
         
-        // 👇 KUNG MAY TAB ID SA URL PERO WALA SA SESSION
+        // KUNG MAY TAB ID SA URL PERO WALA SA SESSION
         if (urlTabId && !sessionTabId) {
-            console.log('🔄 Tab ID found in URL, saving to session...');
+            console.log(' Tab ID found in URL, saving to session...');
             sessionStorage.setItem('tab_id', urlTabId);
             // I-reload ang page para mag-sync
             window.location.reload();
             return;
         }
         
-        // 👇 KUNG MAGKAIBA ANG TAB ID SA URL AT SESSION
+        // KUNG MAGKAIBA ANG TAB ID SA URL AT SESSION
         if (urlTabId && sessionTabId && urlTabId !== sessionTabId) {
-            console.warn('⚠️ Tab ID mismatch! URL:', urlTabId, 'Session:', sessionTabId);
+            console.warn(' Tab ID mismatch! URL:', urlTabId, 'Session:', sessionTabId);
             // Gamitin ang URL tab_id
             sessionStorage.setItem('tab_id', urlTabId);
             window.location.reload();
             return;
         }
         
-        // 👇 KUNG WALANG TAB ID SA KAHIT SAAN, MAG-GENERATE NG BAGO
+        // KUNG WALANG TAB ID SA KAHIT SAAN, MAG-GENERATE NG BAGO
         if (!urlTabId && !sessionTabId) {
-            console.log('🆔 No tab_id found, generating new...');
+            console.log(' No tab_id found, generating new...');
             const newTabId = 'tab_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
             sessionStorage.setItem('tab_id', newTabId);
             const newUrl = window.location.pathname + '?tab_id=' + newTabId;
@@ -80,9 +80,9 @@
             return;
         }
         
-        // ✅ LAHAT NG CHECKS PASSED - CONTINUE SA PAGE
-        console.log('✅ Page Guard passed! Tab ID:', urlTabId || sessionTabId);
-        console.log('👤 User:', sessionStorage.getItem('username'));
+        // LAHAT NG CHECKS PASSED - CONTINUE SA PAGE
+        console.log(' Page Guard passed! Tab ID:', urlTabId || sessionTabId);
+        console.log(' User:', sessionStorage.getItem('username'));
         
         // Replace the current history state to prevent back navigation
         history.replaceState(null, null, window.location.href);
@@ -238,7 +238,7 @@
 <!-- RECONNECT REQUEST MODAL -->
 <div id="reconnectModal" class="modal reconnect-modal">
   <div class="modal-content reconnect-modal-content">
-    <!-- ✅ CLOSE BUTTON - UPPER RIGHT CORNER -->
+    <!-- CLOSE BUTTON - UPPER RIGHT CORNER -->
     <span class="modal-close-btn" id="closeReconnectModal">&times;</span>
     
     <h2>Request Reconnection</h2>
@@ -327,7 +327,7 @@
 
     <!-- SUCCESS VIEW (lalabas pagkatapos ng successful submit) -->
     <div id="reconnectSuccessView" class="reconnect-success-view" style="display:none;">
-        <!-- ✅ CLOSE BUTTON PARA SA SUCCESS VIEW -->
+        <!-- CLOSE BUTTON PARA SA SUCCESS VIEW -->
         
         <div class="reconnect-success-icon">
             <i class="fas fa-check-circle"></i>

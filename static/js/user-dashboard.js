@@ -91,7 +91,7 @@ async function loadProfile() {
     if (userId) {
       localStorage.setItem('user_id', userId);
       sessionStorage.setItem('user_id', userId);
-      console.log('✅ User ID stored:', userId);
+      console.log(' User ID stored:', userId);
       
       if (window.UserNotificationSystem) {
         console.log('Initializing UserNotificationSystem...');
@@ -100,21 +100,21 @@ async function loadProfile() {
         console.error('UserNotificationSystem not found!');
       }
     } else {
-      console.warn('⚠ No user_id found in profile response:', profile);
+      console.warn(' No user_id found in profile response:', profile);
     }
 
     
 
-    // ✅ DISPLAY PROFILE PHOTO FROM CLOUDINARY
+    // DISPLAY PROFILE PHOTO FROM CLOUDINARY
     const profileImg = document.getElementById("profileIcon");
     if (profileImg) {
       if (profile.profile_photo && profile.profile_photo !== 'none' && profile.profile_photo !== '') {
-        // ✅ DAPAT FULL CLOUDINARY URL NA ITO
+        // DAPAT FULL CLOUDINARY URL NA ITO
         profileImg.src = profile.profile_photo;
-        console.log('✅ Profile photo (Cloudinary):', profile.profile_photo);
+        console.log(' Profile photo (Cloudinary):', profile.profile_photo);
       } else {
         profileImg.src = "/static/profile.jpg";
-        console.log('ℹ️ Using default profile photo');
+        console.log(' Using default profile photo');
       }
     }
     
@@ -156,10 +156,10 @@ if (logoutBtn && logoutModal) {
   if (confirmBtn) {
     confirmBtn.addEventListener("click", async () => {
       try {
-        // 👇 KUHAIN ANG TAB ID BAGO MAG-LOGOUT
+        // KUHAIN ANG TAB ID BAGO MAG-LOGOUT
         const tabId = sessionStorage.getItem('tab_id');
         
-        // 👇 SEND LOGOUT REQUEST WITH TAB ID
+        // SEND LOGOUT REQUEST WITH TAB ID
         await fetch('/api/logout', { 
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -167,11 +167,11 @@ if (logoutBtn && logoutModal) {
         }).catch(() => {});
       } catch(e) {}
       
-      // 👇 I-CLEAR ANG STORAGE
+      // I-CLEAR ANG STORAGE
       localStorage.removeItem('user_id');
       sessionStorage.clear();
       
-      // 👇 REDIRECT SA LOGIN PAGE
+      // REDIRECT SA LOGIN PAGE
       window.location.replace('/');
     });
   }
@@ -290,7 +290,7 @@ async function loadCustomerTable() {
 
     const data = await res.json();
 
-    // 🔥 I-CHECK KUNG MAY BALANCE AT INACTIVE ANG STATUS
+    // I-CHECK KUNG MAY BALANCE AT INACTIVE ANG STATUS
     if (data && data.length > 0) {
       const user = data[0];
       const balance = user.balance || 0;
@@ -365,7 +365,7 @@ function showBalanceCard(balance, status = 'Inactive') {
   card.id = 'balanceCard';
   card.className = 'balance-card';
   
-  // 🔥 IBAHIN ANG KULAY BATAY SA STATUS
+  // IBAHIN ANG KULAY BATAY SA STATUS
   const isTerminated = status.toLowerCase() === 'terminated';
   const bgColor = isTerminated ? 'linear-gradient(135deg, #fef2f2, #fee2e2)' : 'linear-gradient(135deg, #fef2f2, #fee2e2)';
   const borderColor = isTerminated ? '#fecaca' : '#fecaca';
@@ -388,7 +388,7 @@ function showBalanceCard(balance, status = 'Inactive') {
     animation: slideInDown 0.5s ease;
   `;
   
-  // 🔥 IBAHIN ANG MESSAGE BATAY SA STATUS
+  // IBAHIN ANG MESSAGE BATAY SA STATUS
   let statusMessage = '';
   if (isTerminated) {
     statusMessage = `Your account is currently <strong>Terminated</strong>. Please visit our office to settle your outstanding balance or you may pay via GCash. Once payment is confirmed, your account will be reactivated.`;
@@ -660,11 +660,11 @@ async function checkUserStatusAndDisableFeatures() {
         const data = await response.json();
         const status = data.status || 'Active';
         
-        // 🔥 IBAHIN ANG MESSAHE PARA SA INACTIVE AT TERMINATED
+        // IBAHIN ANG MESSAHE PARA SA INACTIVE AT TERMINATED
         if (status === 'Terminated' || status === 'Inactive' || status === 'Deactivated') {
-            console.log(`⚠️ User status: ${status} - Disabling sidebar features only`);
+            console.log(` User status: ${status} - Disabling sidebar features only`);
             
-            // ✅ 1. DISABLE SIDEBAR LINKS ONLY (Except Dashboard)
+            // 1. DISABLE SIDEBAR LINKS ONLY (Except Dashboard)
             const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
             sidebarLinks.forEach(link => {
                 if (!link.href.includes('/user/dashboard')) {
@@ -684,7 +684,7 @@ async function checkUserStatusAndDisableFeatures() {
                 }
             });
             
-            // ✅ 2. DO NOT DISABLE PROFILE LINK (Keep it clickable)
+            // 2. DO NOT DISABLE PROFILE LINK (Keep it clickable)
             const profileLink = document.getElementById('profileLink');
             if (profileLink) {
                 profileLink.style.pointerEvents = 'auto';
@@ -693,7 +693,7 @@ async function checkUserStatusAndDisableFeatures() {
                 profileLink.title = '';
             }
             
-            // ✅ 3. DO NOT DISABLE NOTIFICATION BUTTON (Keep it clickable)
+            // 3. DO NOT DISABLE NOTIFICATION BUTTON (Keep it clickable)
             const notifBtn = document.getElementById('userNotificationBtn');
             if (notifBtn) {
                 notifBtn.style.pointerEvents = 'auto';
@@ -701,8 +701,8 @@ async function checkUserStatusAndDisableFeatures() {
                 notifBtn.style.cursor = 'pointer';
             }
             
-            // ✅ 4. Show a banner/alert at the top - IBA ANG MESSAHE
-            // 🔥 ILAGAY SA TAAS NG SECURITY SECTION (GOOGLE AUTHENTICATOR CARD)
+            // 4. Show a banner/alert at the top - IBA ANG MESSAHE
+            // ILAGAY SA TAAS NG SECURITY SECTION (GOOGLE AUTHENTICATOR CARD)
             const securitySection = document.querySelector('.security-section');
             
             if (securitySection) {
@@ -715,7 +715,7 @@ async function checkUserStatusAndDisableFeatures() {
                 const banner = document.createElement('div');
                 banner.className = 'status-banner';
                 
-                // 🔥 IBAHIN ANG MESSAHE BATAY SA STATUS
+                // IBAHIN ANG MESSAHE BATAY SA STATUS
                 let bannerTitle = '';
                 let bannerMessage = '';
                 let bannerIcon = '';
@@ -772,10 +772,10 @@ async function checkUserStatusAndDisableFeatures() {
                     ">&times;</button>
                 `;
                 
-                // 🔥 I-INSERT ANG BANNER BAGO ANG SECURITY SECTION (Google Authenticator card)
+                // I-INSERT ANG BANNER BAGO ANG SECURITY SECTION (Google Authenticator card)
                 securitySection.parentNode.insertBefore(banner, securitySection);
 
-                // ✅ WIRE UP RECONNECT BUTTON
+                // WIRE UP RECONNECT BUTTON
                 const reconnectBtn = document.getElementById('requestReconnectBtn');
                 if (reconnectBtn) {
                   reconnectBtn.addEventListener('click', openReconnectModal);
@@ -792,7 +792,7 @@ async function checkUserStatusAndDisableFeatures() {
                 }
             }
             
-            // ✅ 5. Show toast notification - IBA ANG MESSAHE
+            // 5. Show toast notification - IBA ANG MESSAHE
             if (typeof showToast === 'function') {
                 if (status === 'Terminated') {
                     showToast('Your account has been terminated. Please contact support.', 'error');
@@ -822,7 +822,7 @@ function openReconnectModal() {
   modal.classList.add('show');
   document.body.style.overflow = 'hidden';
   
-  // ✅ I-AWAIT MUNA ANG loadReconnectPrefillData() BAGO I-LOAD ANG PLANS
+  // I-AWAIT MUNA ANG loadReconnectPrefillData() BAGO I-LOAD ANG PLANS
   loadReconnectPrefillData().then(() => {
     loadPlansIntoSelect();
   }).catch((err) => {
@@ -841,7 +841,7 @@ function closeReconnectModal() {
   if (form) form.style.display = '';
   if (successView) successView.style.display = 'none';
   
-  // ✅ RESET EDIT MODE
+  // RESET EDIT MODE
   const toggleBtn = document.getElementById('toggleEditBtn');
   const cancelBtn = document.getElementById('cancelEditBtn');
   if (toggleBtn) {
@@ -850,7 +850,7 @@ function closeReconnectModal() {
   }
   if (cancelBtn) cancelBtn.style.display = 'none';
   
-  // ✅ RESET PLAN SELECTION
+  // RESET PLAN SELECTION
   const planSelect = document.getElementById('newPlanSelect');
   const noRadio = document.querySelector('input[name="changePlan"][value="no"]');
   if (planSelect && noRadio) {
@@ -861,7 +861,7 @@ function closeReconnectModal() {
       noRadio.checked = true;
   }
   
-  // ✅ RESET TO ORIGINAL DATA
+  // RESET TO ORIGINAL DATA
   disableEditing();
   resetToOriginalData();
 }
@@ -939,7 +939,7 @@ async function loadReconnectPrefillData() {
       return;
     }
 
-    // ✅ STORE ORIGINAL DATA PARA SA RESET
+    // STORE ORIGINAL DATA PARA SA RESET
     window._originalData = {
         full_name: data.full_name || '',
         contact_number: data.contact_number || '',
@@ -947,13 +947,13 @@ async function loadReconnectPrefillData() {
         full_address: data.full_address || ''
     };
 
-    // ✅ FILL FIELDS - Single Full Name field
+    // FILL FIELDS - Single Full Name field
     document.getElementById('reconnectFullName').value = data.full_name || '';
     document.getElementById('reconnectContact').value = data.contact_number || '';
     document.getElementById('reconnectEmail').value = data.email || '';
     document.getElementById('reconnectFullAddress').value = data.full_address || '';
 
-    // ✅ DISPLAY CURRENT PLAN
+    // DISPLAY CURRENT PLAN
     const plan = data.current_plan || {};
     const planName = plan.name || 'No Active Plan';
     document.getElementById('currentPlanName').textContent = planName;
@@ -965,7 +965,7 @@ async function loadReconnectPrefillData() {
     }
     document.getElementById('currentPlanSpeed').textContent = speedDisplay;
 
-    // 👇 I-CLEAN MUNA ANG STRING BAGO I-PARSE (tanggalin ₱, commas, at "/month")
+    // I-CLEAN MUNA ANG STRING BAGO I-PARSE (tanggalin ₱, commas, at "/month")
     const cleanPriceStr = String(plan.price || '0')
         .replace(/[₱,]/g, '')
         .replace(/\/month.*$/i, '')
@@ -973,11 +973,11 @@ async function loadReconnectPrefillData() {
     const priceNum = parseFloat(cleanPriceStr) || 0;
     document.getElementById('currentPlanPrice').textContent = priceNum.toFixed(2);
     
-    // ✅ SAVE CURRENT PLAN NAME
+    // SAVE CURRENT PLAN NAME
     const cleanedPlanName = planName.trim().replace(/\s+/g, ' ');
     window.currentPlanName = cleanedPlanName;
     
-    console.log('✅ [DEBUG] currentPlanName set to:', `"${window.currentPlanName}"`);
+    console.log(' [DEBUG] currentPlanName set to:', `"${window.currentPlanName}"`);
 
   } catch (err) {
     console.error('Error loading reconnect info:', err);
@@ -992,51 +992,51 @@ async function loadPlansIntoSelect() {
   select.innerHTML = `<option value="">Loading plans...</option>`;
   
   try {
-    console.log('🔍 [DEBUG] Starting loadPlansIntoSelect...');
-    console.log('🔍 [DEBUG] window.currentPlanName =', window.currentPlanName);
-    console.log('🔍 [DEBUG] Type of window.currentPlanName:', typeof window.currentPlanName);
+    console.log(' [DEBUG] Starting loadPlansIntoSelect...');
+    console.log(' [DEBUG] window.currentPlanName =', window.currentPlanName);
+    console.log(' [DEBUG] Type of window.currentPlanName:', typeof window.currentPlanName);
     
     const res = await fetch('/api/get-plans-for-reconnect');
-    console.log('🔍 [DEBUG] Response status:', res.status);
+    console.log(' [DEBUG] Response status:', res.status);
     
     if (!res.ok) {
       throw new Error(`HTTP error! status: ${res.status}`);
     }
     
     const plans = await res.json();
-    console.log('📋 [DEBUG] Raw plans data:', plans);
-    console.log('📋 [DEBUG] Number of plans:', plans.length);
+    console.log(' [DEBUG] Raw plans data:', plans);
+    console.log(' [DEBUG] Number of plans:', plans.length);
     
     if (!plans || plans.length === 0) {
       select.innerHTML = `<option value="">No plans available</option>`;
       return;
     }
     
-    // ✅ GET CURRENT PLAN NAME - I-CLEAN ANG NAME
+    // GET CURRENT PLAN NAME - I-CLEAN ANG NAME
     let currentPlanName = '';
     if (window.currentPlanName) {
-      // ✅ I-CONVERT SA STRING, I-TRIM, AT I-REMOVE ANG EXTRA SPACES
+      // I-CONVERT SA STRING, I-TRIM, AT I-REMOVE ANG EXTRA SPACES
       currentPlanName = String(window.currentPlanName).trim().replace(/\s+/g, ' ');
-      console.log('📌 [DEBUG] Current plan name (cleaned):', `"${currentPlanName}"`);
-      console.log('📌 [DEBUG] Current plan name length:', currentPlanName.length);
-      console.log('📌 [DEBUG] Current plan name chars:', Array.from(currentPlanName).map(c => c.charCodeAt(0)));
+      console.log(' [DEBUG] Current plan name (cleaned):', `"${currentPlanName}"`);
+      console.log(' [DEBUG] Current plan name length:', currentPlanName.length);
+      console.log(' [DEBUG] Current plan name chars:', Array.from(currentPlanName).map(c => c.charCodeAt(0)));
     }
     
-    // ✅ KUNG WALANG CURRENT PLAN NAME, GAMITIN ANG DEFAULT
+    // KUNG WALANG CURRENT PLAN NAME, GAMITIN ANG DEFAULT
     if (!currentPlanName) {
-      console.warn('⚠️ [DEBUG] No current plan name found, using default');
-      // ✅ DEFAULT: I-FILTER OUT ANG "Premium Package"
+      console.warn(' [DEBUG] No current plan name found, using default');
+      // DEFAULT: I-FILTER OUT ANG "Premium Package"
       currentPlanName = 'Premium Package';
     }
     
-    // ✅ I-DISPLAY ANG LAHAT NG PLAN NAMES
-    console.log('📌 [DEBUG] All plan names in database:');
+    // I-DISPLAY ANG LAHAT NG PLAN NAMES
+    console.log(' [DEBUG] All plan names in database:');
     plans.forEach((p, index) => {
       const cleanName = (p.name || '').trim().replace(/\s+/g, ' ');
       console.log(`  ${index + 1}. "${cleanName}" (length: ${cleanName.length})`);
     });
     
-    // ✅ FILTER OUT ANG CURRENT PLAN - EXACT MATCH
+    // FILTER OUT ANG CURRENT PLAN - EXACT MATCH
     const filteredPlans = [];
     const skippedPlans = [];
     
@@ -1046,23 +1046,23 @@ async function loadPlansIntoSelect() {
       
       if (isCurrentPlan) {
         skippedPlans.push(p.name);
-        console.log(`⏩ [DEBUG] SKIPPING: "${p.name}" (matches current plan "${currentPlanName}")`);
+        console.log(` [DEBUG] SKIPPING: "${p.name}" (matches current plan "${currentPlanName}")`);
       } else {
         filteredPlans.push(p);
-        console.log(`✅ [DEBUG] KEEPING: "${p.name}"`);
+        console.log(` [DEBUG] KEEPING: "${p.name}"`);
       }
     });
     
-    console.log(`📊 [DEBUG] Skipped plans: ${skippedPlans.length} (${skippedPlans.join(', ')})`);
-    console.log(`📊 [DEBUG] Filtered plans: ${filteredPlans.length} of ${plans.length} total`);
+    console.log(` [DEBUG] Skipped plans: ${skippedPlans.length} (${skippedPlans.join(', ')})`);
+    console.log(` [DEBUG] Filtered plans: ${filteredPlans.length} of ${plans.length} total`);
     
     if (filteredPlans.length === 0) {
       select.innerHTML = `<option value="">No other plans available</option>`;
-      console.warn('⚠️ [DEBUG] No filtered plans found!');
+      console.warn(' [DEBUG] No filtered plans found!');
       return;
     }
     
-    // ✅ BUILD THE OPTIONS
+    // BUILD THE OPTIONS
     let optionsHTML = `<option value="">-- Select a plan --</option>`;
     filteredPlans.forEach(p => {
       const price = parseFloat(p.price || 0);
@@ -1073,18 +1073,18 @@ async function loadPlansIntoSelect() {
     });
     
     select.innerHTML = optionsHTML;
-    console.log('✅ [DEBUG] Plans loaded successfully!');
-    console.log(`📋 [DEBUG] Total options: ${select.options.length - 1}`);
+    console.log(' [DEBUG] Plans loaded successfully!');
+    console.log(` [DEBUG] Total options: ${select.options.length - 1}`);
     
-    // ✅ I-SHOW ANG FINAL OPTIONS
-    console.log('📋 [DEBUG] Final options in dropdown:');
+    // I-SHOW ANG FINAL OPTIONS
+    console.log(' [DEBUG] Final options in dropdown:');
     for (let i = 1; i < select.options.length; i++) {
       console.log(`  ${i}. ${select.options[i].text}`);
     }
     
   } catch (err) {
-    console.error('❌ [DEBUG] Error loading plans:', err);
-    console.error('❌ [DEBUG] Error stack:', err.stack);
+    console.error(' [DEBUG] Error loading plans:', err);
+    console.error(' [DEBUG] Error stack:', err.stack);
     select.innerHTML = `<option value="">Failed to load plans</option>`;
     showToast('Failed to load available plans. Please refresh and try again.', 'error');
   }
@@ -1109,7 +1109,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (closeSuccessBtn) closeSuccessBtn.addEventListener('click', closeReconnectModal);
 
     // ============================================================
-    // ✅ EDIT TOGGLE FUNCTIONALITY
+    // EDIT TOGGLE FUNCTIONALITY
     // ============================================================
     
     // Helper: Auto-capitalize function
@@ -1207,7 +1207,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const isEditing = this.classList.contains('editing');
             
             if (isEditing) {
-                // ✅ SAVE CHANGES MODE
+                // SAVE CHANGES MODE
                 // Apply capitalization
                 applyCapitalizationToFields();
                 
@@ -1253,7 +1253,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 
                 showToast('Changes saved successfully!', 'success');
             } else {
-                // ✅ EDIT MODE
+                // EDIT MODE
                 // Remove any error states
                 document.querySelectorAll('.form-control.error').forEach(el => el.classList.remove('error'));
                 
@@ -1290,7 +1290,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // ✅ Auto-capitalize on input events
+    // Auto-capitalize on input events
     document.addEventListener('input', function(e) {
         if (e.target.id === 'reconnectFullName' || e.target.id === 'reconnectFullAddress') {
             if (!e.target.disabled) {
@@ -1308,7 +1308,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ============================================================
-    // ✅ RADIO BUTTON CHANGE - SHOW/HIDE PLAN SELECTION
+    // RADIO BUTTON CHANGE - SHOW/HIDE PLAN SELECTION
     // ============================================================
     document.querySelectorAll('input[name="changePlan"]').forEach(function(radio) {
         radio.addEventListener('change', function() {
@@ -1331,7 +1331,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    // ✅ I-SET ANG INITIAL STATE
+    // I-SET ANG INITIAL STATE
     const planSelect = document.getElementById('newPlanSelect');
     const noRadio = document.querySelector('input[name="changePlan"][value="no"]');
     if (planSelect && noRadio && noRadio.checked) {
@@ -1341,11 +1341,11 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('planSelectGroup').style.display = 'none';
     }
 
-    // ✅ INITIAL DISABLE EDITING
+    // INITIAL DISABLE EDITING
     disableEditing();
 
     // ============================================================
-    // ✅ FORM SUBMIT HANDLER
+    // FORM SUBMIT HANDLER
     // ============================================================
     if (form) {
         form.addEventListener('submit', async function(e) {
@@ -1361,8 +1361,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 newPlanId = document.getElementById('newPlanSelect').value;
             }
 
-            console.log('📌 changePlan:', changePlan);
-            console.log('📌 newPlanId:', newPlanId);
+            console.log(' changePlan:', changePlan);
+            console.log(' newPlanId:', newPlanId);
 
             if (changePlan && !newPlanId) {
                 showToast('Please select a plan to change to.', 'error');
@@ -1370,7 +1370,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // ✅ KUNIN ANG MGA VALUES (EDITED OR NOT)
+            // KUNIN ANG MGA VALUES (EDITED OR NOT)
             const payload = {
                 change_plan: changePlan,
                 first_name: document.getElementById('reconnectFullName').value.trim(),
@@ -1383,7 +1383,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 payload.new_plan_id = parseInt(newPlanId);
             }
 
-            // ✅ VALIDATE REQUIRED FIELDS
+            // VALIDATE REQUIRED FIELDS
             if (!payload.first_name) {
                 showToast('Full Name is required.', 'error');
                 document.getElementById('reconnectFullName').focus();
@@ -1405,7 +1405,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            console.log('📤 Sending payload:', payload);
+            console.log(' Sending payload:', payload);
 
             const submitBtn = document.getElementById('submitReconnectBtn');
             submitBtn.disabled = true;
@@ -1419,7 +1419,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 const result = await res.json();
 
-                console.log('📥 Response:', result);
+                console.log(' Response:', result);
 
                 if (res.ok && result.success) {
                     reconnectAlreadyRequested = true;
@@ -1444,7 +1444,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 } else {
                     showToast(result.error || 'Something went wrong.', 'error');
-                    console.error('❌ Error response:', result);
+                    console.error(' Error response:', result);
                 }
             } catch (err) {
                 console.error('Error submitting reconnect request:', err);

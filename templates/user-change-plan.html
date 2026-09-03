@@ -25,53 +25,53 @@
 <!-- ================= PAGE GUARD - WITH TAB ID VALIDATION ================= -->
 <script>
     (function() {
-        // 👇 KUNIN ANG TAB ID MULA SA URL
+        // KUNIN ANG TAB ID MULA SA URL
         const urlParams = new URLSearchParams(window.location.search);
         const urlTabId = urlParams.get('tab_id');
         const sessionTabId = sessionStorage.getItem('tab_id');
         const isLoggedIn = sessionStorage.getItem('username') && sessionStorage.getItem('userType') === 'user';
         
-        console.log('🔍 Change Plan Page Guard Check:');
+        console.log(' Change Plan Page Guard Check:');
         console.log('  - Logged in:', isLoggedIn);
         console.log('  - URL Tab ID:', urlTabId);
         console.log('  - Session Tab ID:', sessionTabId);
         
-        // 👇 KUNG WALANG LOGIN, REDIRECT SA LOGIN PAGE
+        // KUNG WALANG LOGIN, REDIRECT SA LOGIN PAGE
         if (!isLoggedIn) {
-            console.log('❌ Not logged in, redirecting to login...');
+            console.log(' Not logged in, redirecting to login...');
             window.location.replace('/');
             return;
         }
         
-        // 👇 KUNG WALANG TAB ID SA URL PERO MERON SA SESSION
+        // KUNG WALANG TAB ID SA URL PERO MERON SA SESSION
         if (!urlTabId && sessionTabId) {
-            console.log('🔄 No tab_id in URL, adding from session...');
+            console.log(' No tab_id in URL, adding from session...');
             const newUrl = window.location.pathname + '?tab_id=' + sessionTabId;
             window.location.replace(newUrl);
             return;
         }
         
-        // 👇 KUNG MAY TAB ID SA URL PERO WALA SA SESSION
+        // KUNG MAY TAB ID SA URL PERO WALA SA SESSION
         if (urlTabId && !sessionTabId) {
-            console.log('🔄 Tab ID found in URL, saving to session...');
+            console.log(' Tab ID found in URL, saving to session...');
             sessionStorage.setItem('tab_id', urlTabId);
             // I-reload ang page para mag-sync
             window.location.reload();
             return;
         }
         
-        // 👇 KUNG MAGKAIBA ANG TAB ID SA URL AT SESSION
+        // KUNG MAGKAIBA ANG TAB ID SA URL AT SESSION
         if (urlTabId && sessionTabId && urlTabId !== sessionTabId) {
-            console.warn('⚠️ Tab ID mismatch! URL:', urlTabId, 'Session:', sessionTabId);
+            console.warn(' Tab ID mismatch! URL:', urlTabId, 'Session:', sessionTabId);
             // Gamitin ang URL tab_id
             sessionStorage.setItem('tab_id', urlTabId);
             window.location.reload();
             return;
         }
         
-        // ✅ LAHAT NG CHECKS PASSED - CONTINUE SA PAGE
-        console.log('✅ Page Guard passed! Tab ID:', urlTabId || sessionTabId);
-        console.log('👤 User:', sessionStorage.getItem('username'));
+        // LAHAT NG CHECKS PASSED - CONTINUE SA PAGE
+        console.log(' Page Guard passed! Tab ID:', urlTabId || sessionTabId);
+        console.log(' User:', sessionStorage.getItem('username'));
         
         // Replace the current history state to prevent back navigation
         history.replaceState(null, null, window.location.href);
@@ -422,7 +422,7 @@
             document.getElementById('currentPlanName').textContent = data.plan || '--';
             document.getElementById('currentPlanSpeed').textContent = data.speed ? `${data.speed}` : '-- Mbps';
             
-            // 🔥 FIX: Extract numeric value from price string (e.g., "₱1600.00/month" → 1600.00)
+            // FIX: Extract numeric value from price string (e.g., "₱1600.00/month" → 1600.00)
             let priceDisplay = '--';
             if (data.price) {
                 // Remove ₱, commas, and /month text, then parse
@@ -486,7 +486,7 @@
             plans.forEach(plan => {
                 const isCurrentPlan = currentPlan && (currentPlan.plan === plan.name);
                 
-                // 🔥 FIX: Format price display
+                // FIX: Format price display
                 let priceDisplay = 'N/A';
                 if (plan.price) {
                     const cleanPrice = String(plan.price)
@@ -548,7 +548,7 @@
         
         messageEl.innerHTML = `Are you sure you want to change your plan?`;
         
-        // 🔥 FIX: Helper function to clean and format price
+        // FIX: Helper function to clean and format price
         function formatPriceDisplay(priceValue) {
             if (!priceValue) return 'N/A';
             const cleanPrice = String(priceValue)
@@ -632,7 +632,7 @@
                     plan_name: planToSubmit.name,
                     plan_speed: planToSubmit.speed,
                     plan_price: planToSubmit.price,
-                    tab_id: tabId  // 👈 ISAMA ANG TAB ID
+                    tab_id: tabId  // ISAMA ANG TAB ID
                 })
             });
             
@@ -640,7 +640,7 @@
             
             if (data.success) {
             const requestId = data.request_id;
-            showToast(`✓ Request submitted! ID: ${requestId}`, 'success');
+            showToast(` Request submitted! ID: ${requestId}`, 'success');
                 selectedPlan = null;
                 pendingSelectedPlan = null;
                 
@@ -675,10 +675,10 @@
     async function loadProfileName() {
         try {
             const username = sessionStorage.getItem('username');
-            const tabId = sessionStorage.getItem('tab_id');  // 👈 KUNIN ANG TAB ID
+            const tabId = sessionStorage.getItem('tab_id');  // KUNIN ANG TAB ID
             if (!username) return;
             
-            // ✅ MAY TAB ID NA!
+            // MAY TAB ID NA!
             const response = await fetch(`/api/user/profile?username=${encodeURIComponent(username)}&tab_id=${tabId}`);
             const data = await response.json();
             const profileNameSpan = document.getElementById('profileName');
@@ -697,8 +697,8 @@
     // ==================== PROFILE ICON ====================
     async function loadProfileIcon() {
         try {
-            const tabId = sessionStorage.getItem('tab_id');  // 👈 KUNIN ANG TAB ID
-            // ✅ MAY TAB ID NA!
+            const tabId = sessionStorage.getItem('tab_id');  // KUNIN ANG TAB ID
+            // MAY TAB ID NA!
             const response = await fetch('/api/get-user-profile?tab_id=' + tabId);
             const data = await response.json();
             
@@ -857,17 +857,17 @@ function setupLogout() {
             if (userId) {
                 localStorage.setItem('user_id', userId);
                 sessionStorage.setItem('user_id', userId);
-                console.log('✅ User ID stored from change-plan page:', userId);
+                console.log(' User ID stored from change-plan page:', userId);
                 
-                // 👇 INITIALIZE NOTIFICATIONS PAGKATAPOS MAKUHA ANG USER ID
+                // INITIALIZE NOTIFICATIONS PAGKATAPOS MAKUHA ANG USER ID
                 if (window.UserNotificationSystem) {
-                    console.log('🔔 Initializing UserNotificationSystem from change-plan page...');
+                    console.log(' Initializing UserNotificationSystem from change-plan page...');
                     window.UserNotificationSystem.init();
                 } else {
-                    console.warn('⚠️ UserNotificationSystem not found!');
+                    console.warn(' UserNotificationSystem not found!');
                 }
             } else {
-                console.warn('⚠️ No user_id found in profile response:', profile);
+                console.warn(' No user_id found in profile response:', profile);
             }
 
             // Display profile name (kung wala pang loadProfileName)
@@ -902,20 +902,20 @@ function setupLogout() {
         await loadCurrentPlan();
         await loadAvailablePlans();
         
-        // 🔥 IDAGDAG ITO - INITIALIZE NOTIFICATION SYSTEM
+        // IDAGDAG ITO - INITIALIZE NOTIFICATION SYSTEM
         // try {
         //     if (window.UserNotificationSystem) {
-        //         console.log('🔔 Initializing notifications from change-plan page...');
+        //         console.log(' Initializing notifications from change-plan page...');
         //         await window.UserNotificationSystem.init();
         //     } else {
-        //         console.warn('⚠️ UserNotificationSystem not found, waiting...');
+        //         console.warn(' UserNotificationSystem not found, waiting...');
         //         // Wait for it to load
         //         setTimeout(async () => {
         //             if (window.UserNotificationSystem) {
-        //                 console.log('🔔 Initializing notifications (delayed)...');
+        //                 console.log(' Initializing notifications (delayed)...');
         //                 await window.UserNotificationSystem.init();
         //             } else {
-        //                 console.error('❌ UserNotificationSystem still not available');
+        //                 console.error(' UserNotificationSystem still not available');
         //             }
         //         }, 2000);
         //     }
@@ -935,8 +935,8 @@ function setupLogout() {
         }
         
         // Check if user is terminated
-        const tabId = sessionStorage.getItem('tab_id');  // 👈 KUNIN ANG TAB ID
-        // ✅ MAY TAB ID NA!
+        const tabId = sessionStorage.getItem('tab_id');  // KUNIN ANG TAB ID
+        // MAY TAB ID NA!
         fetch('/api/get-user-status?tab_id=' + tabId)
             .then(res => res.json())
             .then(data => {

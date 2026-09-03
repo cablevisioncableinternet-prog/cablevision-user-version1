@@ -290,7 +290,7 @@
 <!-- JavaScript -->
 <script>
     // ===============================
-    // 🆔 GENERATE UNIQUE TAB ID
+    // GENERATE UNIQUE TAB ID
     // ===============================
     function getOrCreateTabId() {
         let tabId = sessionStorage.getItem('tab_id');
@@ -367,11 +367,11 @@
         if (tabIdHidden) {
             tabIdHidden.value = tabId;
         }
-        console.log('🆔 Tab ID:', tabId);
+        console.log(' Tab ID:', tabId);
     });
 
     // ===============================
-    // 🔑 FORGOT PASSWORD MODAL - UPDATED FOR XAMPP/MYSQL
+    // FORGOT PASSWORD MODAL - UPDATED FOR XAMPP/MYSQL
     // ===============================
     const forgotModal = document.getElementById("forgotPasswordModal");
     const closeModalBtn = forgotModal ? forgotModal.querySelector(".close") : null;
@@ -521,7 +521,7 @@
                 showToast("Password must be at least 6 characters.", 'error');
                 return;
             }
-            // 👇 BAGONG CHECK: MATCH BA ANG DALAWANG PASSWORD
+            // BAGONG CHECK: MATCH BA ANG DALAWANG PASSWORD
             if (newPassword !== confirmPassword) {
                 showToast("Passwords do not match.", 'error');
                 return;
@@ -547,7 +547,7 @@
                 if (res.ok && data.success) {
                     showToast(data.message || "Password updated successfully.", 'success');
 
-                    // 👇 UNCONDITIONAL na, may fallback — kagaya ng ginagawa sa normal login
+                    // UNCONDITIONAL na, may fallback — kagaya ng ginagawa sa normal login
                     const finalTabId = data.tab_id || sessionStorage.getItem('tab_id') || '';
                     const finalUsername = data.username || data.user_id || currentUsername || '';
 
@@ -726,7 +726,7 @@
                 gaModalError.style.display = 'none';
             }
 
-            // 👇 KUNIN ANG TAB ID
+            // KUNIN ANG TAB ID
             const tabId = getOrCreateTabId();
             if (tabIdHidden) {
                 tabIdHidden.value = tabId;
@@ -737,7 +737,7 @@
                 user_id: formData.get('user_id').trim(),
                 password: formData.get('password').trim(),
                 ga_code: formData.get('ga_code').trim(),
-                tab_id: tabId  // 👈 ISAMA ANG TAB ID SA PAYLOAD
+                tab_id: tabId  // ISAMA ANG TAB ID SA PAYLOAD
             };
 
             if (!payload.user_id || !payload.password) {
@@ -767,7 +767,7 @@
 
                 const data = await res.json();
 
-                // ✅ CHECK KUNG 403 FORBIDDEN (Deactivated/Terminated)
+                // CHECK KUNG 403 FORBIDDEN (Deactivated/Terminated)
                 if (res.status === 403) {
                     errorDiv.textContent = data.error || "Your account is deactivated or terminated. Please contact support.";
                     errorDiv.style.display = "block";
@@ -776,10 +776,10 @@
                     return;
                 }
 
-                // ✅ CHECK KUNG 2FA REQUIRED
+                // CHECK KUNG 2FA REQUIRED
                 if (data.requires_2fa) {
                     gaPendingUserId = data.user_id || null;
-                    // 👇 I-STORE ANG TAB ID PARA SA 2FA
+                    // I-STORE ANG TAB ID PARA SA 2FA
                     if (data.tab_id) {
                         sessionStorage.setItem('tab_id', data.tab_id);
                     }
@@ -789,8 +789,8 @@
                     return;
                 }
 
-                // ✅ SUCCESSFUL LOGIN
-                // ✅ SUCCESSFUL LOGIN
+                // SUCCESSFUL LOGIN
+                // SUCCESSFUL LOGIN
                 if (res.ok && data.success) {
                     // Store session data including tab_id
                     const tabId = data.tab_id || tabIdFromStorage;
@@ -799,19 +799,19 @@
                     sessionStorage.setItem("user_id", data.user_id || payload.user_id);
                     sessionStorage.setItem("tab_id", tabId);
                     
-                    // 👇 SIGURADUHIN NA TAMA ANG REDIRECT URL
+                    // SIGURADUHIN NA TAMA ANG REDIRECT URL
                     let redirectUrl = data.redirect || "/dashboard";
                     if (!redirectUrl.includes('tab_id=')) {
                         const separator = redirectUrl.includes('?') ? '&' : '?';
                         redirectUrl = redirectUrl + separator + 'tab_id=' + tabId;
                     }
                     
-                    console.log('✅ Login successful!');
+                    console.log(' Login successful!');
                     console.log('  - Redirect URL:', redirectUrl);
                     console.log('  - Tab ID:', tabId);
                     console.log('  - User ID:', data.user_id || payload.user_id);
                     
-                    // 🔔 MARK SESSION START FOR DEVICE MONITOR
+                    // MARK SESSION START FOR DEVICE MONITOR
                     sessionStorage.setItem('sessionStart', Date.now().toString());
                     console.log('  - Session Start:', sessionStorage.getItem('sessionStart'));
                     
@@ -849,11 +849,11 @@
                 const diff = Math.abs(serverTime - clientTime) / 1000;
                 
                 if (diff > 30) {
-                    console.warn(`⏰ Time difference: ${diff} seconds`);
+                    console.warn(` Time difference: ${diff} seconds`);
                     const warningEl = document.getElementById('timeSyncWarning');
                     if (warningEl) {
                         warningEl.style.display = 'block';
-                        warningEl.textContent = `⚠️ Your device time is ${Math.round(diff)} seconds off from server time. Please sync your device clock for Google Authenticator to work.`;
+                        warningEl.textContent = ` Your device time is ${Math.round(diff)} seconds off from server time. Please sync your device clock for Google Authenticator to work.`;
                     }
                 }
             })
@@ -870,7 +870,7 @@
         if (tabIdHidden) {
             tabIdHidden.value = tabId;
         }
-        console.log('🆔 Page loaded with Tab ID:', tabId);
+        console.log(' Page loaded with Tab ID:', tabId);
     });
 
     // ================= PREVENT DUPLICATE LOGIN IN OTHER TABS =================
@@ -880,13 +880,13 @@
             const currentTabId = sessionStorage.getItem('tab_id');
             if (currentTabId && currentTabId !== e.newValue) {
                 // Another tab changed the tab_id - this tab might be compromised
-                console.warn('⚠️ Tab ID changed in another tab. This tab may have been overwritten.');
+                console.warn(' Tab ID changed in another tab. This tab may have been overwritten.');
                 // You can optionally show a warning or force re-login
             }
         }
     });
 
-    console.log('🔐 Login page loaded with Tab ID support!');
+    console.log(' Login page loaded with Tab ID support!');
 
 // ================= FORGOT MODAL CLOSE =================
 const forgotModalEl = document.getElementById('forgotPasswordModal');

@@ -167,7 +167,7 @@
         <div class="header-actions">
             <a href="{{ url_for('download_pdf', application_number=application_number) }}" 
                class="btn btn-success" target="_blank">
-                📄 Download PDF
+                Download PDF
             </a>
 
             <a href="{{ url_for('plans') }}" class="btn btn-light">
@@ -188,7 +188,7 @@
                                     box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
     <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; justify-content: space-between;">
         <div style="display: flex; align-items: center; gap: 12px;">
-            <div style="font-size: 32px;">⚠️</div>
+            <div style="font-size: 32px;"></div>
             <div>
                 <h4 style="margin: 0 0 5px 0; color: #991b1b; font-weight: 700;">Application Rejected</h4>
                 <p style="margin: 0; color: #7f1d1d; font-size: 14px;">
@@ -203,7 +203,7 @@
            class="btn btn-danger" 
            style="background: #ef4444; border: none; padding: 10px 24px; font-weight: 600; border-radius: 50px;
                   text-decoration: none; color: white; display: inline-flex; align-items: center; gap: 8px;">
-            🔄 Re-apply Now
+            Re-apply Now
         </a>
     </div>
     <p style="margin: 15px 0 0 0; font-size: 12px; color: #b91c1c;">
@@ -243,7 +243,7 @@
             {% if status|upper == 'REJECTED' %}
             <div class="alert alert-danger" style="border-radius: 12px; border-left: 4px solid #dc2626; background: #fef2f2;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <span style="font-size: 28px;">❌</span>
+                    <span style="font-size: 28px;"></span>
                     <div>
                         <strong style="font-size: 16px; color: #991b1b;">Status: Rejected</strong>
                         <p style="margin: 5px 0 0 0; color: #7f1d1d;">
@@ -270,7 +270,7 @@
             {% elif status|upper == 'APPROVED' %}
             <div class="alert alert-success" style="border-radius: 12px; border-left: 4px solid #10b981; background: #ecfdf5;">
                 <div style="display: flex; align-items: center; gap: 12px;">
-                    <span style="font-size: 28px;">✅</span>
+                    <span style="font-size: 28px;"></span>
                     <div>
                         <strong style="font-size: 16px; color: #065f46;">Status: Approved</strong>
                         <p style="margin: 5px 0 0 0; color: #047857;">
@@ -663,7 +663,7 @@ if (lat && lng && lat !== 0 && lng !== 0) {
         .openPopup();
 } else {
     document.getElementById('map').innerHTML = 
-        '<div class="alert alert-info text-center mb-0">📍 No location coordinates provided for this application.</div>';
+        '<div class="alert alert-info text-center mb-0">No location coordinates provided for this application.</div>';
 }
 
 /* =========================

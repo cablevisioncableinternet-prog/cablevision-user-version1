@@ -21,51 +21,51 @@
 <!-- ================= PAGE GUARD - WITH TAB ID VALIDATION ================= -->
 <script>
     (function() {
-        // 👇 KUNIN ANG TAB ID MULA SA URL
+        // KUNIN ANG TAB ID MULA SA URL
         const urlParams = new URLSearchParams(window.location.search);
         const urlTabId = urlParams.get('tab_id');
         const sessionTabId = sessionStorage.getItem('tab_id');
         const isLoggedIn = sessionStorage.getItem('username') && sessionStorage.getItem('userType') === 'user';
         
-        console.log('🔍 Termination Page Guard Check:');
+        console.log(' Termination Page Guard Check:');
         console.log('  - Logged in:', isLoggedIn);
         console.log('  - URL Tab ID:', urlTabId);
         console.log('  - Session Tab ID:', sessionTabId);
         
-        // 👇 KUNG WALANG LOGIN, REDIRECT SA LOGIN PAGE
+        // KUNG WALANG LOGIN, REDIRECT SA LOGIN PAGE
         if (!isLoggedIn) {
-            console.log('❌ Not logged in, redirecting to login...');
+            console.log(' Not logged in, redirecting to login...');
             window.location.replace('/');
             return;
         }
         
-        // 👇 KUNG WALANG TAB ID SA URL PERO MERON SA SESSION
+        // KUNG WALANG TAB ID SA URL PERO MERON SA SESSION
         if (!urlTabId && sessionTabId) {
-            console.log('🔄 No tab_id in URL, adding from session...');
+            console.log(' No tab_id in URL, adding from session...');
             const newUrl = window.location.pathname + '?tab_id=' + sessionTabId;
             window.location.replace(newUrl);
             return;
         }
         
-        // 👇 KUNG MAY TAB ID SA URL PERO WALA SA SESSION
+        // KUNG MAY TAB ID SA URL PERO WALA SA SESSION
         if (urlTabId && !sessionTabId) {
-            console.log('🔄 Tab ID found in URL, saving to session...');
+            console.log(' Tab ID found in URL, saving to session...');
             sessionStorage.setItem('tab_id', urlTabId);
             window.location.reload();
             return;
         }
         
-        // 👇 KUNG MAGKAIBA ANG TAB ID SA URL AT SESSION
+        // KUNG MAGKAIBA ANG TAB ID SA URL AT SESSION
         if (urlTabId && sessionTabId && urlTabId !== sessionTabId) {
-            console.warn('⚠️ Tab ID mismatch! URL:', urlTabId, 'Session:', sessionTabId);
+            console.warn(' Tab ID mismatch! URL:', urlTabId, 'Session:', sessionTabId);
             sessionStorage.setItem('tab_id', urlTabId);
             window.location.reload();
             return;
         }
         
-        // ✅ LAHAT NG CHECKS PASSED
-        console.log('✅ Page Guard passed! Tab ID:', urlTabId || sessionTabId);
-        console.log('👤 User:', sessionStorage.getItem('username'));
+        // LAHAT NG CHECKS PASSED
+        console.log(' Page Guard passed! Tab ID:', urlTabId || sessionTabId);
+        console.log(' User:', sessionStorage.getItem('username'));
         
         history.replaceState(null, null, window.location.href);
         
@@ -427,17 +427,17 @@ function showToast(message, type = 'info') {
             if (userId) {
                 localStorage.setItem('user_id', userId);
                 sessionStorage.setItem('user_id', userId);
-                console.log('✅ User ID stored from termination page:', userId);
+                console.log(' User ID stored from termination page:', userId);
                 
-                // 👇 INITIALIZE NOTIFICATIONS PAGKATAPOS MAKUHA ANG USER ID
+                // INITIALIZE NOTIFICATIONS PAGKATAPOS MAKUHA ANG USER ID
                 if (window.UserNotificationSystem) {
-                    console.log('🔔 Initializing UserNotificationSystem from termination page...');
+                    console.log(' Initializing UserNotificationSystem from termination page...');
                     window.UserNotificationSystem.init();
                 } else {
-                    console.warn('⚠️ UserNotificationSystem not found!');
+                    console.warn(' UserNotificationSystem not found!');
                 }
             } else {
-                console.warn('⚠️ No user_id found in profile response:', profile);
+                console.warn(' No user_id found in profile response:', profile);
             }
 
             // Display profile name
@@ -472,7 +472,7 @@ function showToast(message, type = 'info') {
                 return;
             }
             
-            // ✅ GAMITIN ANG TAMANG ENDPOINT NA MAY TAB_ID
+            // GAMITIN ANG TAMANG ENDPOINT NA MAY TAB_ID
             const response = await fetch(`/api/user/termination-info?username=${encodeURIComponent(username)}&tab_id=${tabId}`);
             const data = await response.json();
             
@@ -501,7 +501,7 @@ function showToast(message, type = 'info') {
             document.getElementById('currentPlanPrice').textContent = priceDisplay;
             document.getElementById('contractNumber').textContent = data.contract_number || '--';
             
-            // 🔥 I-CHECK ANG PENDING TERMINATION REQUEST
+            // I-CHECK ANG PENDING TERMINATION REQUEST
             const alertDiv = document.getElementById('pendingRequestAlert');
             alertDiv.innerHTML = '';
             
@@ -620,7 +620,7 @@ function showToast(message, type = 'info') {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     username: username,
-                    tab_id: tabId,  // 👈 ISAMA ANG TAB ID
+                    tab_id: tabId,  // ISAMA ANG TAB ID
                     termination_reason: reason,
                     termination_date: terminationDate.value || null
                 })
@@ -629,7 +629,7 @@ function showToast(message, type = 'info') {
             const data = await response.json();
             
             if (data.success) {
-                showToast(`✓ Termination request submitted! ID: ${data.request_id}`, 'success');
+                showToast(` Termination request submitted! ID: ${data.request_id}`, 'success');
                 setTimeout(() => {
                     location.reload();
                 }, 2000);
@@ -825,20 +825,20 @@ function setupLogout() {
         await loadProfileIcon();
         await loadCurrentPlan();
         
-        // 🔥 IDAGDAG ITO - INITIALIZE NOTIFICATION SYSTEM
+        // IDAGDAG ITO - INITIALIZE NOTIFICATION SYSTEM
         // try {
         //     if (window.UserNotificationSystem) {
-        //         console.log('🔔 Initializing notifications from termination page...');
+        //         console.log(' Initializing notifications from termination page...');
         //         await window.UserNotificationSystem.init();
         //     } else {
-        //         console.warn('⚠️ UserNotificationSystem not found, waiting...');
+        //         console.warn(' UserNotificationSystem not found, waiting...');
         //         // Wait for it to load
         //         setTimeout(async () => {
         //             if (window.UserNotificationSystem) {
-        //                 console.log('🔔 Initializing notifications (delayed)...');
+        //                 console.log(' Initializing notifications (delayed)...');
         //                 await window.UserNotificationSystem.init();
         //             } else {
-        //                 console.error('❌ UserNotificationSystem still not available');
+        //                 console.error(' UserNotificationSystem still not available');
         //             }
         //         }, 2000);
         //     }
@@ -855,7 +855,7 @@ function setupLogout() {
             return;
         }
         
-        // 👇 KUNIN ANG TAB ID
+        // KUNIN ANG TAB ID
         const tabId = sessionStorage.getItem('tab_id');
         
         // Check if user is terminated - MAY TAB ID NA!

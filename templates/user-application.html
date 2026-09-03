@@ -646,13 +646,13 @@ input[name="birthdate"]::placeholder {
 
     <div id="map"></div>
 
-    <!-- ✅ HIDDEN FIELDS - IDAGDAG ANG preferred_napbox_id AT preferred_napbox_name -->
+    <!-- HIDDEN FIELDS - IDAGDAG ANG preferred_napbox_id AT preferred_napbox_name -->
     <input type="hidden" name="latitude" id="latitude">
     <input type="hidden" name="longitude" id="longitude">
     <input type="hidden" name="assigned_napbox_id" id="assigned_napbox_id">
     <input type="hidden" name="assigned_napbox_name" id="assigned_napbox_name">
     
-    <!-- ✅ BAGONG HIDDEN FIELDS PARA SA PREFERRED NAP BOX -->
+    <!-- BAGONG HIDDEN FIELDS PARA SA PREFERRED NAP BOX -->
     <input type="hidden" name="preferred_napbox_id" id="preferred_napbox_id">
     <input type="hidden" name="preferred_napbox_name" id="preferred_napbox_name">
 
@@ -1285,7 +1285,7 @@ document.getElementById("barangay").addEventListener("change", function () {
     
         
         // ================= SHOW BARANGAY BOUNDARY (BROKEN LINE) =================
-        console.log("🔄 Loading barangay boundary for:", selectedBarangay, selectedCity);
+        console.log(" Loading barangay boundary for:", selectedBarangay, selectedCity);
         if (typeof showBarangayBoundary === 'function') {
             showBarangayBoundary(selectedBarangay, selectedCity);
         }
@@ -1745,7 +1745,7 @@ async function isAllowed(lat, lng) {
             document.getElementById("latitude").value = lat;
             document.getElementById("longitude").value = lng;
             
-            // ✅ IDAGDAG ITO: Validate kung match ang barangay sa pin location
+            // IDAGDAG ITO: Validate kung match ang barangay sa pin location
             const isMatch = await validateBarangayMatch();
             if (!isMatch) {
                 console.log("Barangay mismatch detected");
@@ -1761,7 +1761,7 @@ let isCustomLocationPinned = false;
 
 // ================= SIMPLE MAP CLICK HANDLER =================
 map.on('click', async function (e) {
-    // ✅ BLOCK PINNING SA TUBIG (via GeoRisk API)
+    // BLOCK PINNING SA TUBIG (via GeoRisk API)
     const isWaterLocation = await checkIsWaterViaGeoRisk(e.latlng.lat, e.latlng.lng);
     if (isWaterLocation) {
         showToast("You cannot pin a location in water.", "error");
@@ -1936,7 +1936,7 @@ map.on('click', async function (e) {
                 <div style="background: #f0fdf4; padding: 8px 12px; border-radius: 30px; display: inline-flex; align-items: center; gap: 8px;">
                     <i class="fas fa-ruler-combined" style="color: #22c55e; font-size: 12px;"></i>
                     <span style="font-weight: 700; color: #22c55e; font-size: 13px;">${distanceValue}</span>
-                    <span style="color: #166534; font-size: 10px;">✓ from NAP Box</span>
+                    <span style="color: #166534; font-size: 10px;"> from NAP Box</span>
                 </div>
             </div>
         `)
@@ -2166,7 +2166,7 @@ async function validateLocation(lat, lng, selectedBarangay) {
         
         // ===== TRY 1: GEO-RISK API (WITHOUT CITY FILTER FOR BETTER ACCURACY) =====
         try {
-            console.log(`🌐 [GeoRisk] Checking point: ${lat}, ${lng}`);
+            console.log(` [GeoRisk] Checking point: ${lat}, ${lng}`);
             
             // Remove city filter to get accurate detection from GeoRisk
             const georiskUrl = `https://portal.georisk.gov.ph/arcgis/rest/services/PSA/Barangay/MapServer/4/query`;
@@ -2217,7 +2217,7 @@ async function validateLocation(lat, lng, selectedBarangay) {
         // ===== TRY 2: OPENSTREETMAP/NOMINATIM (FALLBACK WITH REVERSE LOOKUP) =====
         if (!detected) {
             try {
-                console.log(`🌍 [OSM] Checking point: ${lat}, ${lng}`);
+                console.log(` [OSM] Checking point: ${lat}, ${lng}`);
                 
                 // First, try to get the barangay context using a larger zoom
                 const res = await fetch(
@@ -2253,14 +2253,14 @@ async function validateLocation(lat, lng, selectedBarangay) {
                     }
                 }
             } catch (err) {
-                console.log("⚠️ OSM error:", err.message);
+                console.log(" OSM error:", err.message);
             }
         }
         
         // ===== TRY 3: SECONDARY GEO-RISK WITH CITY MATCH (kung may napili nang city) =====
         if (!detected && selectedCity) {
             try {
-                console.log(`🔍 [GeoRisk - City Filter] Checking with city: ${selectedCity}`);
+                console.log(` [GeoRisk - City Filter] Checking with city: ${selectedCity}`);
                 
                 const georiskUrl = `https://portal.georisk.gov.ph/arcgis/rest/services/PSA/Barangay/MapServer/4/query`;
                 const queryParams = new URLSearchParams({
@@ -2292,7 +2292,7 @@ async function validateLocation(lat, lng, selectedBarangay) {
                     }
                 }
             } catch (err) {
-                console.log("⚠️ GeoRisk filtered error:", err.message);
+                console.log(" GeoRisk filtered error:", err.message);
             }
         }
         
@@ -2374,14 +2374,14 @@ async function validateLocation(lat, lng, selectedBarangay) {
         
         return {
             isValid: true,
-            message: "✓ Location validated successfully",
+            message: " Location validated successfully",
             city: selectedCity,
             barangay: selectedBarangay
         };
         
     } catch (err) {
         console.error("Validation error:", err);
-        // ✅ Kapag nag-error ang API, assume na tama ang pin ni user
+        // Kapag nag-error ang API, assume na tama ang pin ni user
         return {
             isValid: true,
             message: "Location accepted (offline mode)",
@@ -2406,7 +2406,7 @@ async function validateWithGeoRiskBoundary(lat, lng, selectedBarangay, detectedC
         console.log(`Detected city: ${detectedCity}`);
         
         // ==============================================
-        // 🆕 CONVERT TO DISPLAY FORMAT FUNCTION
+        // CONVERT TO DISPLAY FORMAT FUNCTION
         // ==============================================
         
         const convertToDisplayFormat = (barangayName, cityName) => {
@@ -2446,20 +2446,20 @@ async function validateWithGeoRiskBoundary(lat, lng, selectedBarangay, detectedC
         };
         
         // ==============================================
-        // 🚨 CRITICAL: I-VERIFY MUNA KUNG MATCH ANG CITIES
+        // CRITICAL: I-VERIFY MUNA KUNG MATCH ANG CITIES
         // ==============================================
         
         if (selectedBarangayCity === 'Santa Cruz' && detectedCity === 'Pagsanjan') {
             return {
                 isValid: false,
-                message: ` LOCATION MISMATCH: You selected "${selectedBarangay}" (SANTA CRUZ) but you clicked on a location in PAGSANJAN.\n\n📌 Please select a PAGSANJAN barangay (Uno, Dos, Tres, Kuwatro, Sinko).`
+                message: ` LOCATION MISMATCH: You selected "${selectedBarangay}" (SANTA CRUZ) but you clicked on a location in PAGSANJAN.\n\n Please select a PAGSANJAN barangay (Uno, Dos, Tres, Kuwatro, Sinko).`
             };
         }
         
         if (selectedBarangayCity === 'Pagsanjan' && detectedCity === 'Santa Cruz') {
             return {
                 isValid: false,
-                message: ` LOCATION MISMATCH: You selected "${selectedBarangay}" (PAGSANJAN) but you clicked on a location in SANTA CRUZ.\n\n📌 Please select a SANTA CRUZ barangay (I, II, III, IV, V).`
+                message: ` LOCATION MISMATCH: You selected "${selectedBarangay}" (PAGSANJAN) but you clicked on a location in SANTA CRUZ.\n\n Please select a SANTA CRUZ barangay (I, II, III, IV, V).`
             };
         }
         
@@ -2704,7 +2704,7 @@ async function validateWithGeoRiskBoundary(lat, lng, selectedBarangay, detectedC
         console.log(`OSM Detected Barangay: ${osmDetectedBarangay}`);
         
         // ==============================================
-        // 🆕 UPDATED ERROR MESSAGES WITH DISPLAY FORMAT
+        // UPDATED ERROR MESSAGES WITH DISPLAY FORMAT
         // ==============================================
         
         if (actualBarangay) {
@@ -3205,7 +3205,7 @@ function showTemporaryMessage(message, type) {
                     if (!successMsg) {
                         successMsg = document.createElement('div');
                         successMsg.className = 'terms-success-message';
-                        successMsg.textContent = '✓ Terms agreed successfully!';
+                        successMsg.textContent = ' Terms agreed successfully!';
                         termsCheckbox.closest('.terms-container').appendChild(successMsg);
                     }
                     successMsg.style.display = 'block';
@@ -4606,7 +4606,7 @@ function returnToCurrentLocation() {
                 document.getElementById("longitude").value = lng;
                 showToast("Current location restored!", "success");
                 
-                // ✅ ENABLE PIN BUTTON KAPAG MAY LOCATION NA
+                // ENABLE PIN BUTTON KAPAG MAY LOCATION NA
                 const pinBtn = document.getElementById('returnToPinBtn');
                 if (pinBtn) {
                     pinBtn.disabled = false;
@@ -4701,48 +4701,48 @@ function normalizeCityName(cityName) {
 
 // MAIN FUNCTION: Show boundary for selected city
 async function showCityBoundary(cityName) {
-    console.log(`🔍 Looking for boundary of "${cityName}"...`);
+    console.log(` Looking for boundary of "${cityName}"...`);
     clearBoundary();
 
     const properCityName = normalizeCityName(cityName);
 
     if (!properCityName) {
-        console.log(`❌ Could not normalize city name: ${cityName}`);
+        console.log(` Could not normalize city name: ${cityName}`);
         showToast(`No boundary data for ${cityName}`, "error");
         return;
     }
 
-    console.log(`📝 Normalized: "${properCityName}"`);
+    console.log(` Normalized: "${properCityName}"`);
 
     const url = LAGUNA_GEOJSON_URLS[properCityName];
 
     if (!url) {
-        console.log(`❌ No URL configured for "${properCityName}"`);
+        console.log(` No URL configured for "${properCityName}"`);
         await showBoundaryFromNominatim(properCityName);
         return;
     }
 
     try {
-        console.log(`📡 Fetching GeoJSON from: ${url}`);
+        console.log(` Fetching GeoJSON from: ${url}`);
         const response = await fetch(url);
-        console.log(`📡 Response status: ${response.status}`);
+        console.log(` Response status: ${response.status}`);
 
         if (response.ok) {
             const geojsonData = await response.json();
-            console.log(`✅ GeoJSON loaded, features: ${geojsonData.features?.length || 0}`);
+            console.log(` GeoJSON loaded, features: ${geojsonData.features?.length || 0}`);
 
             if (geojsonData?.features?.length > 0) {
                 displayBoundaryOnly(geojsonData, properCityName);
             } else {
-                console.log(`❌ No features found`);
+                console.log(` No features found`);
                 await showBoundaryFromNominatim(properCityName);
             }
         } else {
-            console.warn(`⚠️ GitHub fetch failed, falling back to Nominatim...`);
+            console.warn(` GitHub fetch failed, falling back to Nominatim...`);
             await showBoundaryFromNominatim(properCityName);
         }
     } catch (error) {
-        console.error("❌ Error showing boundary:", error);
+        console.error(" Error showing boundary:", error);
         await showBoundaryFromNominatim(properCityName);
     }
 }
@@ -4759,7 +4759,7 @@ async function showBoundaryFromNominatim(cityName) {
         const data = await res.json();
 
         if (data?.length > 0 && data[0].geojson) {
-            console.log(`✅ Nominatim polygon found for ${cityName}`);
+            console.log(` Nominatim polygon found for ${cityName}`);
             displayBoundaryOnly({
                 type: "FeatureCollection",
                 features: [{ type: "Feature", geometry: data[0].geojson, properties: {} }]
@@ -4792,14 +4792,14 @@ async function showBoundaryFromNominatim(cityName) {
             showToast(`No boundary data for ${cityName}, Laguna`, "error");
         }
     } catch (err) {
-        console.error("❌ Nominatim fallback failed:", err);
+        console.error(" Nominatim fallback failed:", err);
         showToast(`Error loading boundary for ${cityName}`, "error");
     }
 }
 
 // Display accurate boundary line
 function displayBoundaryOnly(geojsonData, cityName) {
-    console.log(`🎨 Displaying boundary for: ${cityName}`);
+    console.log(` Displaying boundary for: ${cityName}`);
 
     if (cityBoundaryLayer) {
         map.removeLayer(cityBoundaryLayer);
@@ -4839,12 +4839,12 @@ function displayBoundaryOnly(geojsonData, cityName) {
 
     if (bounds.isValid()) {
         map.fitBounds(bounds, { padding: [40, 40] });
-        console.log(`✅ Boundary visible for ${cityName}`);
+        console.log(` Boundary visible for ${cityName}`);
     }
 
     currentCity = cityName;
 
-    showToast(`✓ ${cityName}, Laguna boundary loaded`, "success");
+    showToast(` ${cityName}, Laguna boundary loaded`, "success");
     
     // Auto-select in dropdowns
     autoSelectCityInDropdown(cityName);
@@ -4856,7 +4856,7 @@ function clearBoundary() {
     if (cityBoundaryLayer) {
         map.removeLayer(cityBoundaryLayer);
         cityBoundaryLayer = null;
-        console.log("🗑️ Boundary cleared from map");
+        console.log(" Boundary cleared from map");
     }
     currentCity = null;
     
@@ -5037,7 +5037,7 @@ function loadBarangayCache() {
         const saved = localStorage.getItem('barangay_zoom_cache_final');
         if (saved) {
             barangayCache = JSON.parse(saved);
-            console.log(`📦 Loaded ${Object.keys(barangayCache).length} barangays from cache`);
+            console.log(` Loaded ${Object.keys(barangayCache).length} barangays from cache`);
         }
     } catch(e) {
         console.log("No existing cache found");
@@ -5048,7 +5048,7 @@ function loadBarangayCache() {
 function saveBarangayCache() {
     try {
         localStorage.setItem('barangay_zoom_cache_final', JSON.stringify(barangayCache));
-        console.log(`💾 Saved ${Object.keys(barangayCache).length} barangays to cache`);
+        console.log(` Saved ${Object.keys(barangayCache).length} barangays to cache`);
     } catch(e) {}
 }
 
@@ -5082,7 +5082,7 @@ async function getBarangayCoordinates(barangayName, cityName) {
         ];
 
         if (santaCruzBarangays.includes(normalizedBarangay)) {
-            console.log(`🌐 Santa Cruz API call for: ${barangayName}`);
+            console.log(` Santa Cruz API call for: ${barangayName}`);
 
             try {
                 const searchQuery = `${barangayName}, Santa Cruz, Laguna`;
@@ -5113,7 +5113,7 @@ async function getBarangayCoordinates(barangayName, cityName) {
 
     //  CACHE CHECK (normalized key)
     if (barangayCache[cacheKey]) {
-        console.log(`📦 Cache hit: ${barangayName}`);
+        console.log(` Cache hit: ${barangayName}`);
         return barangayCache[cacheKey];
     }
 
@@ -5122,7 +5122,7 @@ async function getBarangayCoordinates(barangayName, cityName) {
         return pendingRequests.get(cacheKey);
     }
 
-    console.log(`🌐 OSM API call for: ${barangayName}, ${cityName}`);
+    console.log(` OSM API call for: ${barangayName}, ${cityName}`);
 
     const requestPromise = (async () => {
         try {
@@ -5429,32 +5429,32 @@ async function zoomToBarangay(barangayName, cityName) {
         observer.observe(tvContainer, { childList: true, subtree: true });
     }
     
-    console.log('🎯 Auto uppercase first letter script loaded successfully!');
+    console.log(' Auto uppercase first letter script loaded successfully!');
 })();
 
 
 <!-- ================= PRE-FILL FORM DATA FOR RE-APPLY ================= -->
 {% if is_reapply and form_data %}
 (function() {
-    // ✅ GET RE-APPLY DATA FROM JINJA TEMPLATE VARS
+    // GET RE-APPLY DATA FROM JINJA TEMPLATE VARS
     const isReapply = true;
     const formData = {{ form_data|tojson }};
     const originalApplicationId = {{ original_application_id|tojson }};
     const rejectionReason = {{ rejection_reason|tojson }};
     const reapplyMessage = {{ reapply_message|tojson }};
     
-    // ✅ STORE GLOBAL FLAGS FOR EMAIL VERIFICATION
+    // STORE GLOBAL FLAGS FOR EMAIL VERIFICATION
     window.isReapplyGlobal = isReapply;
     window.originalAppIdGlobal = originalApplicationId;
     
-    console.log("🔄 RE-APPLY MODE:", isReapply);
-    console.log("📋 ORIGINAL APP ID:", originalApplicationId);
-    console.log("📋 REJECTION REASON:", rejectionReason);
-    console.log("📋 FORM DATA:", formData);
+    console.log(" RE-APPLY MODE:", isReapply);
+    console.log(" ORIGINAL APP ID:", originalApplicationId);
+    console.log(" REJECTION REASON:", rejectionReason);
+    console.log(" FORM DATA:", formData);
     
     if (isReapply && formData && Object.keys(formData).length > 0) {
-        console.log("🔄 Pre-filling form with existing data for re-application");
-        console.log("📋 FORM DATA:", formData);
+        console.log(" Pre-filling form with existing data for re-application");
+        console.log(" FORM DATA:", formData);
         
         // Helper function to set value
         function setFieldValue(name, value) {
@@ -5646,7 +5646,7 @@ async function zoomToBarangay(barangayName, cityName) {
                             map.removeLayer(marker);
                         }
                         marker = L.marker([lat, lng]).addTo(map)
-                            .bindPopup("📍 Previous Application Location")
+                            .bindPopup(" Previous Application Location")
                             .openPopup();
                         map.setView([lat, lng], 16);
                         
@@ -5706,9 +5706,9 @@ async function zoomToBarangay(barangayName, cityName) {
             }
         }
         
-        console.log("✅ Pre-filling completed successfully");
+        console.log(" Pre-filling completed successfully");
     } else {
-        console.log("ℹ️ Not in re-apply mode or no form data available");
+        console.log(" Not in re-apply mode or no form data available");
     }
 })();
 {% endif %}
@@ -5725,7 +5725,7 @@ const hiddenOriginalId = document.querySelector('input[name="original_applicatio
 if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
     window.isReapplyGlobal = true;
     window.originalAppIdGlobal = hiddenOriginalId ? hiddenOriginalId.value : null;
-    console.log("✅ Re-apply mode detected (global flags):", { isReapplyGlobal: window.isReapplyGlobal, originalAppIdGlobal: window.originalAppIdGlobal });
+    console.log(" Re-apply mode detected (global flags):", { isReapplyGlobal: window.isReapplyGlobal, originalAppIdGlobal: window.originalAppIdGlobal });
 }
 
 // ================= DUPLICATE EMAIL CHECK (REAL-TIME) =================
@@ -6175,7 +6175,7 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
             // Clean barangay value
             const barangaySelect = document.getElementById('barangay');
             if (barangaySelect && barangaySelect.value) {
-                barangaySelect.value = barangaySelect.value.replace(/\s*✓\s*$/, '').trim();
+                barangaySelect.value = barangaySelect.value.replace(/\s*\s*$/, '').trim();
             }
             
             // Check email duplicate
@@ -6312,13 +6312,13 @@ let userPinMarker = null;
 // Load NAP box data from API
 async function loadUserNapboxData() {
     try {
-        console.log('📡 Loading NAP box data...');
+        console.log(' Loading NAP box data...');
         const response = await fetch('/api/user/napbox-slots');
         if (!response.ok) throw new Error('Failed to load NAP box data');
         const data = await response.json();
         userAllNapboxes = data.napboxes || [];
         userAllSlots = data.slots || [];
-        console.log(`✅ Loaded ${userAllNapboxes.length} napboxes`);
+        console.log(` Loaded ${userAllNapboxes.length} napboxes`);
         
         if (userMap) {
             const selectedBarangay = document.getElementById('barangay')?.value;
@@ -6327,7 +6327,7 @@ async function loadUserNapboxData() {
             }
         }
     } catch (error) {
-        console.error('❌ Error loading NAP box data:', error);
+        console.error(' Error loading NAP box data:', error);
     }
 }
 
@@ -6443,7 +6443,7 @@ function addUserNapboxMarkers() {
 
 // ================= UPDATED: SELECT NAP BOX (NO AUTO-OCCUPY) =================
 window.selectUserNapbox = function(napboxId) {
-    console.log(`✅ Selecting NAP box ID: ${napboxId}`);
+    console.log(` Selecting NAP box ID: ${napboxId}`);
     
     const napbox = userAllNapboxes.find(n => n.id === napboxId);
     if (!napbox) {
@@ -6486,7 +6486,7 @@ window.selectUserNapbox = function(napboxId) {
                 marker.circleRef.setStyle({ color: '#22c55e', fillColor: '#22c55e', fillOpacity: 0.25, weight: 4 });
             }
             
-            // 🔧 UPDATED POPUP - NO "Select This NAP Box" button, instead "Selected ✓"
+            // UPDATED POPUP - NO "Select This NAP Box" button, instead "Selected "
             marker.bindPopup(`
                 <div style="font-family: 'Poppins', sans-serif; min-width: 260px; text-align: center; padding: 4px 0;">
                     <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 2px solid #22c55e;">
@@ -6514,7 +6514,7 @@ window.selectUserNapbox = function(napboxId) {
                     <div style="background: #dcfce7; padding: 8px; border-radius: 8px; margin-top: 5px;">
                         <div style="display: flex; align-items: center; justify-content: center; gap: 8px;">
                             <i class="fas fa-check-circle" style="color: #22c55e; font-size: 14px;"></i>
-                            <span style="color: #166534; font-size: 12px; font-weight: 500;">✓ NAP Box Selected</span>
+                            <span style="color: #166534; font-size: 12px; font-weight: 500;"> NAP Box Selected</span>
                         </div>
                         <p style="margin: 5px 0 0 0; font-size: 10px; color: #15803d;">
                             Click on the map within the ${napbox.coverage_radius || 500}m radius to pin your location
@@ -6534,7 +6534,7 @@ window.selectUserNapbox = function(napboxId) {
     userSelectedNapboxId = napboxId;
     userSelectedNapbox = napbox;
     
-    // 🔧 OPTIONAL: Save to hidden field for technician reference (HINDI mag-a-auto occupy)
+    // OPTIONAL: Save to hidden field for technician reference (HINDI mag-a-auto occupy)
     // Pwede mong i-keep ito para malaman ng technician kung anong napbox ang pinili ng user
     let napboxInfoInput = document.getElementById('selected_napbox_info');
     if (!napboxInfoInput) {
@@ -6552,7 +6552,7 @@ window.selectUserNapbox = function(napboxId) {
         available_slots: availableSlots.length
     });
     
-    showToast(`✓ Selected ${napbox.name}. Click on the map to pin your location.`, 'success');
+    showToast(` Selected ${napbox.name}. Click on the map to pin your location.`, 'success');
 };
 
 // DESELECT NAP BOX - balik sa normal na kulay at Select button
@@ -6727,7 +6727,7 @@ window.returnToPinLocation = function() {
 
 // ================= PRE-FILL NAP BOX AND LOCATION FOR RE-APPLY =================
 function prefillNapboxAndLocation() {
-    console.log('🔄 Checking for re-apply location data...');
+    console.log(' Checking for re-apply location data...');
     
     // Hanapin ang mga re-apply hidden fields
     const reapplyLat = document.querySelector('input[name="reapply_latitude"]');
@@ -6745,15 +6745,15 @@ function prefillNapboxAndLocation() {
     const assignedNapboxId = reapplyAssignedNapboxId ? reapplyAssignedNapboxId.value : null;
     const assignedNapboxName = reapplyAssignedNapboxName ? reapplyAssignedNapboxName.value : null;
     
-    console.log(`📍 Re-apply Latitude: ${latitude}`);
-    console.log(`📍 Re-apply Longitude: ${longitude}`);
-    console.log(`📌 Re-apply Preferred NAP Box ID: ${preferredNapboxId}`);
-    console.log(`📌 Re-apply Preferred NAP Box Name: ${preferredNapboxName}`);
-    console.log(`📌 Re-apply Assigned NAP Box ID: ${assignedNapboxId}`);
+    console.log(` Re-apply Latitude: ${latitude}`);
+    console.log(` Re-apply Longitude: ${longitude}`);
+    console.log(` Re-apply Preferred NAP Box ID: ${preferredNapboxId}`);
+    console.log(` Re-apply Preferred NAP Box Name: ${preferredNapboxName}`);
+    console.log(` Re-apply Assigned NAP Box ID: ${assignedNapboxId}`);
     
     // Kung walang data, exit
     if (!latitude && !longitude && !preferredNapboxId) {
-        console.log('ℹ️ No re-apply location data found');
+        console.log(' No re-apply location data found');
         return;
     }
     
@@ -6763,7 +6763,7 @@ function prefillNapboxAndLocation() {
     if (latitude && longitude) {
         document.getElementById("latitude").value = latitude;
         document.getElementById("longitude").value = longitude;
-        console.log(`✅ Set latitude: ${latitude}, longitude: ${longitude}`);
+        console.log(` Set latitude: ${latitude}, longitude: ${longitude}`);
     }
     
     // ==============================================
@@ -6772,13 +6772,13 @@ function prefillNapboxAndLocation() {
     if (preferredNapboxId) {
         document.getElementById("preferred_napbox_id").value = preferredNapboxId;
         document.getElementById("preferred_napbox_name").value = preferredNapboxName || '';
-        console.log(`✅ Set preferred NAP Box: ${preferredNapboxName} (${preferredNapboxId})`);
+        console.log(` Set preferred NAP Box: ${preferredNapboxName} (${preferredNapboxId})`);
     }
     
     if (assignedNapboxId) {
         document.getElementById("assigned_napbox_id").value = assignedNapboxId;
         document.getElementById("assigned_napbox_name").value = assignedNapboxName || '';
-        console.log(`✅ Set assigned NAP Box: ${assignedNapboxName} (${assignedNapboxId})`);
+        console.log(` Set assigned NAP Box: ${assignedNapboxName} (${assignedNapboxId})`);
     }
     
     // ==============================================
@@ -6789,7 +6789,7 @@ function prefillNapboxAndLocation() {
         const lng = parseFloat(longitude);
         
         if (!isNaN(lat) && !isNaN(lng)) {
-            console.log(`📍 Pinning location on map: ${lat}, ${lng}`);
+            console.log(` Pinning location on map: ${lat}, ${lng}`);
             
             // I-remove ang existing pin marker
             if (userPinMarker) {
@@ -6852,11 +6852,11 @@ function prefillNapboxAndLocation() {
     if (preferredNapboxId && userAllNapboxes.length > 0) {
         const napbox = userAllNapboxes.find(n => n.id == preferredNapboxId);
         if (napbox) {
-            console.log(`📌 Highlighting NAP Box: ${napbox.name}`);
+            console.log(` Highlighting NAP Box: ${napbox.name}`);
             // I-call ang selectUserNapbox para i-highlight
             selectUserNapbox(parseInt(preferredNapboxId));
         } else {
-            console.log(`⚠️ NAP Box ${preferredNapboxId} not found in loaded data`);
+            console.log(` NAP Box ${preferredNapboxId} not found in loaded data`);
         }
     }
 }
@@ -6935,7 +6935,7 @@ async function initNapboxSystem() {
                 currentLocationBtn.style.opacity = '1';
                 currentLocationBtn.style.cursor = 'pointer';
             }
-            // ✅ I-DISABLE ANG PIN BUTTON KAPAG WALANG LOCATION
+            // I-DISABLE ANG PIN BUTTON KAPAG WALANG LOCATION
             const pinLocationBtn = document.getElementById('returnToPinBtn');
             if (pinLocationBtn) {
                 pinLocationBtn.disabled = true;
@@ -6984,11 +6984,11 @@ async function initNapboxSystem() {
         });
         
         // ==============================================
-        // ✅ PRE-FILL NAP BOX AND LOCATION FOR RE-APPLY
+        // PRE-FILL NAP BOX AND LOCATION FOR RE-APPLY
         // ==============================================
         // Maghintay ng 1.5 seconds para fully loaded ang NAP box data
         setTimeout(() => {
-            console.log('🔄 Attempting to pre-fill NAP box and location...');
+            console.log(' Attempting to pre-fill NAP box and location...');
             prefillNapboxAndLocation();
         }, 1500);
     }

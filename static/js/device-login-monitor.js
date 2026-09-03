@@ -198,17 +198,17 @@
         currentAlertDeviceId = deviceId;
 
         if (deviceId && dismissedDeviceIds.has(deviceId)) {
-            console.log('ℹ️ Device alert was dismissed already; skipping:', deviceId);
+            console.log(' Device alert was dismissed already; skipping:', deviceId);
             return;
         }
 
-        console.log('🎯 Showing alert modal for device:', device);
+        console.log(' Showing alert modal for device:', device);
 
         createDeviceAlertModal();
         const modal = document.getElementById('deviceLoginAlertModal');
 
         if (!modal) {
-            console.error('❌ Modal element not found after createDeviceAlertModal()!');
+            console.error(' Modal element not found after createDeviceAlertModal()!');
             return;
         }
 
@@ -231,7 +231,7 @@
 
         modal.classList.add('show');
         document.body.style.overflow = 'hidden';
-        console.log('✅ Modal displayed');
+        console.log(' Modal displayed');
     }
 
     // ================= CLOSE DEVICE ALERT MODAL =================
@@ -299,7 +299,7 @@
         try {
             const tabId = sessionStorage.getItem('tab_id') || '';
             if (!tabId) {
-                console.log('⚠️ No tab_id found, skipping device check');
+                console.log(' No tab_id found, skipping device check');
                 return;
             }
 
@@ -307,20 +307,20 @@
             let queryString = `/api/check-new-devices?tab_id=${encodeURIComponent(tabId)}`;
             queryString += `&last_check=${lastCheckTime}`;
 
-            console.log('📱 Checking for new devices...');
+            console.log(' Checking for new devices...');
             console.log('  API URL:', queryString);
             console.log('  Last check time:', lastCheckTime, `(${new Date(lastCheckTime * 1000).toLocaleString()})`);
             
             const response = await fetch(queryString);
             
             if (!response.ok) {
-                console.error(`❌ API returned HTTP ${response.status}`);
+                console.error(` API returned HTTP ${response.status}`);
                 console.error('Response:', await response.text());
                 return;
             }
 
             const data = await response.json();
-            console.log('✅ API Response received:');
+            console.log(' API Response received:');
             console.log('  Success:', data.success);
             console.log('  New devices count:', data.new_devices?.length || 0);
             console.log('  Current server timestamp:', data.current_timestamp, `(${new Date(data.current_timestamp * 1000).toLocaleString()})`);
@@ -330,32 +330,32 @@
                 const deviceKey = newDevice && newDevice.id ? String(newDevice.id) : null;
 
                 if (deviceKey && dismissedDeviceIds.has(deviceKey)) {
-                    console.log('ℹ️ Device was dismissed by user; skipping repeated alert:', deviceKey);
+                    console.log(' Device was dismissed by user; skipping repeated alert:', deviceKey);
                     return;
                 }
 
                 const deviceLoginUnix = newDevice.login_time ? new Date(newDevice.login_time).getTime() / 1000 : null;
                 if (deviceLoginUnix && deviceLoginUnix <= lastCheckTime) {
-                    console.log('ℹ️ Ignoring historical device login older than current session window:', newDevice);
+                    console.log(' Ignoring historical device login older than current session window:', newDevice);
                 } else if (deviceKey && !alreadyNotified.has(deviceKey)) {
-                    console.log('🚨 NEW DEVICE DETECTED:', newDevice);
+                    console.log(' NEW DEVICE DETECTED:', newDevice);
                     alreadyNotified.add(deviceKey);
                     showDeviceAlertModal(newDevice);
                 } else if (deviceKey) {
-                    console.log('ℹ️ Device already notified:', deviceKey);
+                    console.log(' Device already notified:', deviceKey);
                 }
             } else {
-                console.log('✅ No new devices found');
+                console.log(' No new devices found');
             }
 
             // Update last check time for next check
             if (data.current_timestamp) {
                 const oldCheckTime = lastCheckTime;
                 lastCheckTime = Math.floor(data.current_timestamp);
-                console.log(`📅 Updated lastCheckTime: ${oldCheckTime} → ${lastCheckTime}`);
+                console.log(` Updated lastCheckTime: ${oldCheckTime} → ${lastCheckTime}`);
             }
         } catch (error) {
-            console.error('❌ Error in checkForNewDevices:', error);
+            console.error(' Error in checkForNewDevices:', error);
             console.error('Error message:', error.message);
             console.error('Stack:', error.stack);
         }
@@ -364,26 +364,26 @@
     // ================= START MONITORING =================
     function startMonitoring() {
         console.log('═══════════════════════════════════════════════════════════');
-        console.log('✅ DEVICE MONITOR STARTING');
+        console.log(' DEVICE MONITOR STARTING');
         console.log('═══════════════════════════════════════════════════════════');
         console.log('Configuration:');
         console.log('  Check Interval: 30 seconds');
-        console.log('  Current tab_id:', currentTabId || '⚠️ NOT SET');
+        console.log('  Current tab_id:', currentTabId || ' NOT SET');
         console.log('  Session started at:', new Date(sessionStartedAt).toLocaleString());
         console.log('  Initial lastCheckTime:', lastCheckTime, `(${new Date(lastCheckTime * 1000).toLocaleString()})`);
         console.log('═══════════════════════════════════════════════════════════');
         
         // Initial check after 2 seconds (faster for better UX)
-        console.log('⏳ Initial device check scheduled in 2 seconds...');
+        console.log(' Initial device check scheduled in 2 seconds...');
         setTimeout(() => {
-            console.log('🔍 RUNNING INITIAL DEVICE CHECK (iteration 1)');
+            console.log(' RUNNING INITIAL DEVICE CHECK (iteration 1)');
             checkForNewDevices();
         }, 2000);
 
         // Periodic check every 30 seconds
         let checkCount = 2;
         setInterval(() => {
-            console.log(`🔄 Running periodic device check (iteration ${checkCount})`);
+            console.log(` Running periodic device check (iteration ${checkCount})`);
             checkCount++;
             checkForNewDevices();
         }, CHECK_INTERVAL);
@@ -391,10 +391,10 @@
         // Stop monitoring if user logs out
         document.addEventListener('logout', () => {
             monitorActive = false;
-            console.log('📱 Device monitor STOPPED (logout event)');
+            console.log(' Device monitor STOPPED (logout event)');
         });
         
-        console.log('✅ Device monitor initialized and ready!');
+        console.log(' Device monitor initialized and ready!');
         console.log('═══════════════════════════════════════════════════════════');
     }
 
@@ -407,7 +407,7 @@
 
     // ================= DEBUG LOGGING =================
     console.log('═══════════════════════════════════════════════════════════');
-    console.log('📱 DEVICE LOGIN MONITOR LOADED');
+    console.log(' DEVICE LOGIN MONITOR LOADED');
     console.log('═══════════════════════════════════════════════════════════');
     console.log('Session Storage Values:');
     console.log('  sessionStart:', sessionStorage.getItem('sessionStart'));
@@ -418,7 +418,7 @@
     console.log('  sessionStartedAt (ms):', sessionStartedAt);
     console.log('  lastCheckTime (unix sec):', lastCheckTime);
     console.log('  lastCheckTime (date):', new Date(lastCheckTime * 1000).toLocaleString());
-    console.log('  currentTabId:', currentTabId || '⚠️ NOT SET');
+    console.log('  currentTabId:', currentTabId || ' NOT SET');
     console.log('═══════════════════════════════════════════════════════════');
 
 })();

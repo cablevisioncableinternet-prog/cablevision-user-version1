@@ -68,15 +68,15 @@ app = Flask(__name__)
 
 def get_cloudinary_url(image_path, resource_type="image"):
     """Convert image path to Cloudinary URL"""
-    print(f"🔍 get_cloudinary_url called with: {image_path}")
+    print(f" get_cloudinary_url called with: {image_path}")
     
     if not image_path:
-        print(f"⚠️ image_path is empty")
+        print(f" image_path is empty")
         return ''
     
     # If already a full URL
     if image_path.startswith('http'):
-        print(f"✅ Already a full URL: {image_path}")
+        print(f" Already a full URL: {image_path}")
         return image_path
     
     # Determine resource type (image or video)
@@ -86,18 +86,18 @@ def get_cloudinary_url(image_path, resource_type="image"):
     # If path starts with 'cablevision/'
     if image_path.startswith('cablevision/'):
         result = f"https://res.cloudinary.com/oa3fcr2b/{upload_type}/upload/{image_path}"
-        print(f"✅ Converted cablevision/ to: {result}")
+        print(f" Converted cablevision/ to: {result}")
         return result
     
     # If path still has /shared-uploads/ (legacy)
     if image_path.startswith('/shared-uploads/'):
         cloudinary_path = image_path.replace('/shared-uploads/', 'cablevision/')
         result = f"https://res.cloudinary.com/oa3fcr2b/{upload_type}/upload/{cloudinary_path}"
-        print(f"✅ Converted legacy path to: {result}")
+        print(f" Converted legacy path to: {result}")
         return result
     
     # Default: return as is
-    print(f"⚠️ No matching condition, returning as is: {image_path}")
+    print(f" No matching condition, returning as is: {image_path}")
     return image_path
 
 
@@ -108,7 +108,7 @@ cloudinary.config(
     api_secret=os.getenv('CLOUDINARY_API_SECRET')
 )
 
-# ✅ I-ADD ITO: Ang /api/upload route
+# I-ADD ITO: Ang /api/upload route
 @app.route('/api/upload', methods=['POST'])
 def upload_image():
     if 'file' not in request.files:
@@ -422,12 +422,12 @@ def is_email_duplicate_allowed(email, exclude_application_id=None):
 def get_allowed_barangays():
     """Get allowed barangays dynamically from MySQL areas table"""
     try:
-        print("🔍 DEBUG: Starting get_allowed_barangays()")
+        print(" DEBUG: Starting get_allowed_barangays()")
         
         connection = get_db_connection()
 
         if not connection:
-            print("❌ DEBUG: Database connection failed")
+            print(" DEBUG: Database connection failed")
             return get_fallback_barangays()
 
         cursor = connection.cursor(dictionary=True)
@@ -442,7 +442,7 @@ def get_allowed_barangays():
         cursor.close()
         connection.close()
         
-        print(f"🔍 DEBUG: Found {len(all_areas)} records in areas table")
+        print(f" DEBUG: Found {len(all_areas)} records in areas table")
         
         allowed_barangays = {}
         for area in all_areas:
@@ -466,13 +466,13 @@ def get_allowed_barangays():
         for city in allowed_barangays:
             allowed_barangays[city].sort()
         
-        print(f"🔍 DEBUG: Final allowed_barangays: {allowed_barangays}")
-        print(f"🔍 DEBUG: Cities found: {list(allowed_barangays.keys())}")
+        print(f" DEBUG: Final allowed_barangays: {allowed_barangays}")
+        print(f" DEBUG: Cities found: {list(allowed_barangays.keys())}")
         
         return allowed_barangays
         
     except Exception as e:
-        print(f"❌ Error getting allowed barangays: {e}")
+        print(f" Error getting allowed barangays: {e}")
         import traceback
         traceback.print_exc()
         return get_fallback_barangays()
@@ -492,10 +492,10 @@ def get_cached_allowed_barangays():
     now = time.time()
     
     if _cached_allowed_barangays is None or (now - _cached_timestamp) > CACHE_DURATION:
-        print("🔍 DEBUG: Cache expired or empty, fetching from database...")
+        print(" DEBUG: Cache expired or empty, fetching from database...")
         _cached_allowed_barangays = get_allowed_barangays()
         _cached_timestamp = now
-        print(f"🔍 DEBUG: Cached data: {_cached_allowed_barangays}")
+        print(f" DEBUG: Cached data: {_cached_allowed_barangays}")
         
     return _cached_allowed_barangays
 
@@ -577,10 +577,10 @@ def home():
             image_path = plan.get("image_path", "")
             cloudinary_url = get_cloudinary_url(image_path)
             
-            # ✅ I-PRINT ANG VALUE NA IPAPASA SA TEMPLATE
-            print(f"📸 Image path: {image_path}")
-            print(f"✅ Cloudinary URL: {cloudinary_url}")
-            print(f"📤 Passing to template: {cloudinary_url}")
+            # I-PRINT ANG VALUE NA IPAPASA SA TEMPLATE
+            print(f" Image path: {image_path}")
+            print(f" Cloudinary URL: {cloudinary_url}")
+            print(f" Passing to template: {cloudinary_url}")
             
             plan_list.append({
                 "id": plan.get("id"),
@@ -590,8 +590,8 @@ def home():
                 "image": cloudinary_url
             })
         
-        # ✅ I-PRINT ANG BUONG plan_list
-        print(f"📤 plan_list: {plan_list}")
+        # I-PRINT ANG BUONG plan_list
+        print(f" plan_list: {plan_list}")
         
         return render_template("user-homepage.html", plans=plan_list)
         
@@ -732,11 +732,11 @@ def public_plans():
         for plan in plans:
             image_path = plan.get('image_path', '')
             
-            # ✅ Convert to Cloudinary URL
+            # Convert to Cloudinary URL
             formatted_image = get_cloudinary_url(image_path)
             
-            # ✅ Debug print
-            print(f"📸 Public plans - image_path: {image_path} -> {formatted_image}")
+            # Debug print
+            print(f" Public plans - image_path: {image_path} -> {formatted_image}")
             
             plan_list.append({
                 "id": plan['id'],
@@ -760,11 +760,11 @@ def get_public_advertisements():
     conn = None
     cursor = None
     try:
-        print("🔍 Fetching advertisements for public homepage...")
+        print(" Fetching advertisements for public homepage...")
         
         conn = get_db_connection()
         if not conn:
-            print("❌ Database connection failed")
+            print(" Database connection failed")
             return jsonify([])
 
         cursor = conn.cursor(dictionary=True)
@@ -778,14 +778,14 @@ def get_public_advertisements():
         cursor.execute(query)
         ads = cursor.fetchall()
         
-        print(f"📊 Found {len(ads)} advertisements total")
+        print(f" Found {len(ads)} advertisements total")
         
         ad_list = []
         for ad in ads:
             file_path = ad.get('file_path', '')
             file_type = ad.get('file_type', 'image')
             
-            # ✅ Pass resource_type to get_cloudinary_url
+            # Pass resource_type to get_cloudinary_url
             formatted_file_path = get_cloudinary_url(file_path, resource_type=file_type)
             
             ad_list.append({
@@ -799,12 +799,12 @@ def get_public_advertisements():
         
         images = [a for a in ad_list if a['fileType'] == 'image']
         videos = [a for a in ad_list if a['fileType'] == 'video']
-        print(f"📸 Images: {len(images)}, 🎬 Videos: {len(videos)}")
+        print(f" Images: {len(images)}, Videos: {len(videos)}")
         
         return jsonify(ad_list)
         
     except Exception as e:
-        print(f"❌ Error getting public advertisements: {e}")
+        print(f" Error getting public advertisements: {e}")
         import traceback
         traceback.print_exc()
         return jsonify([])
@@ -832,14 +832,14 @@ def public_announcements():
         for ann in announcements:
             image_path = ann.get('image_path', '')
             
-            # ✅ Convert to Cloudinary URL
+            # Convert to Cloudinary URL
             formatted_image = get_cloudinary_url(image_path)
             
             result.append({
                 "id": ann['id'],
                 "title": ann.get('title', ''),
                 "message": ann.get('message', ''),
-                "imageBase64": formatted_image,  # ✅ Updated
+                "imageBase64": formatted_image,  # Updated
                 "date": ann.get('date', ''),
                 "timestamp": ann.get('timestamp', 0),
                 "expirationDate": ann.get('expirationDate', '')
@@ -863,12 +863,12 @@ def public_channel_logos():
         for logo in logos:
             image_path = logo.get('image_path', '')
             
-            # ✅ Convert to Cloudinary URL
+            # Convert to Cloudinary URL
             formatted_image = get_cloudinary_url(image_path)
             
             result.append({
                 "id": logo['id'],
-                "image": formatted_image,  # ✅ Updated
+                "image": formatted_image,  # Updated
                 "name": f"logo_{logo['id']}",
                 "date": logo.get('date', '')
             })
@@ -926,7 +926,7 @@ def plans():
         for plan in plans_data:
             image_path = plan.get("image_path", "")
             
-            # ✅ Use Cloudinary URL helper
+            # Use Cloudinary URL helper
             formatted_image = get_cloudinary_url(image_path)
             
             plan_list.append({
@@ -1083,12 +1083,12 @@ def get_areas_by_city(city):
     connection = None
 
     try:
-        print(f"🔍 Getting barangays for city: {city}")
+        print(f" Getting barangays for city: {city}")
 
         connection = get_db_connection()
 
         if not connection:
-            print("❌ Database connection failed")
+            print(" Database connection failed")
             return jsonify([]), 500
 
         cursor = connection.cursor(dictionary=True)
@@ -1096,7 +1096,7 @@ def get_areas_by_city(city):
         # I-print ang lahat ng cities sa database
         cursor.execute("SELECT DISTINCT city FROM areas")
         all_cities = cursor.fetchall()
-        print(f"📊 Cities in database: {all_cities}")
+        print(f" Cities in database: {all_cities}")
 
         # Query para sa specific city
         # Tinatanggal ang extra spaces at trailing comma
@@ -1111,8 +1111,8 @@ def get_areas_by_city(city):
         cursor.execute(query, (city,))
         areas_data = cursor.fetchall()
 
-        print(f"📊 Found {len(areas_data)} barangays for {city}")
-        print(f"📊 Data: {areas_data}")
+        print(f" Found {len(areas_data)} barangays for {city}")
+        print(f" Data: {areas_data}")
 
         result = []
 
@@ -1126,7 +1126,7 @@ def get_areas_by_city(city):
         return jsonify(result)
 
     except Exception as e:
-        print(f"❌ Error: {e}")
+        print(f" Error: {e}")
 
         import traceback
         traceback.print_exc()
@@ -1233,7 +1233,7 @@ def validate_location_barangay(lat, lng):
                 detected_city = props.get("city_name", "").upper()
                 detected_barangay = props.get("brgy_name", "").upper()
                 
-                print(f"📍 GeoRisk detected: City='{detected_city}', Barangay='{detected_barangay}'")
+                print(f" GeoRisk detected: City='{detected_city}', Barangay='{detected_barangay}'")
                 
                 if detected_city and detected_barangay:
                     ALLOWED_CITIES = ["SANTA CRUZ", "PAGSANJAN", "PILA", "MAGDALENA"]
@@ -1268,11 +1268,11 @@ def validate_location_barangay(lat, lng):
                     if not matched_barangay:
                         return False, f"Barangay '{detected_barangay}' is not within our coverage area for {detected_city}."
                     
-                    print(f"✅ Location validated: {detected_city}, {matched_barangay}")
+                    print(f" Location validated: {detected_city}, {matched_barangay}")
                     return True, matched_barangay
             
             # Fallback to OSM
-            print("⚠️ GeoRisk returned no data, trying OSM fallback...")
+            print(" GeoRisk returned no data, trying OSM fallback...")
             osm_url = f"https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat={lat}&lon={lng}"
             osm_response = requests.get(osm_url, headers={"User-Agent": "CableVision-App"}, timeout=10)
             osm_data = osm_response.json()
@@ -1325,7 +1325,7 @@ def validate_location_barangay(lat, lng):
 def upload_to_cloudinary_application(file, application_number, file_type):
     """Upload application document to Cloudinary and return URL"""
     try:
-        print(f"📤 Uploading {file_type} for application {application_number}")
+        print(f" Uploading {file_type} for application {application_number}")
         
         # I-reset ang file pointer
         file.stream.seek(0)
@@ -1363,11 +1363,11 @@ def upload_to_cloudinary_application(file, application_number, file_type):
         )
         
         url_path = f"/shared-uploads/application_uploads/{application_number}/{file_type}_{timestamp}.jpg"
-        print(f"✅ Uploaded to Cloudinary: {result['secure_url']}")
+        print(f" Uploaded to Cloudinary: {result['secure_url']}")
         return result['secure_url']
         
     except Exception as e:
-        print(f"❌ Cloudinary upload error for {file_type}: {e}")
+        print(f" Cloudinary upload error for {file_type}: {e}")
         import traceback
         traceback.print_exc()
         return None
@@ -1413,11 +1413,11 @@ def upload_base64_to_cloudinary(base64_string, application_number, file_type, ma
             overwrite=True
         )
         
-        print(f"✅ Base64 uploaded to Cloudinary: {result['secure_url']}")
+        print(f" Base64 uploaded to Cloudinary: {result['secure_url']}")
         return result['secure_url']
         
     except Exception as e:
-        print(f"❌ Base64 upload error for {file_type}: {e}")
+        print(f" Base64 upload error for {file_type}: {e}")
         return None
 
     
@@ -1463,12 +1463,12 @@ def submit_application():
         submitted_key = f'{field_name}_submitted'
         if submitted_key in request.form:
             value = request.form[submitted_key]
-            print(f"📥 {field_name} from _submitted: '{value}'")
+            print(f" {field_name} from _submitted: '{value}'")
             return value
         
         # Kung wala, balik sa regular field
         value = request.form.get(field_name, '')
-        print(f"📥 {field_name} from regular: '{value}'")
+        print(f" {field_name} from regular: '{value}'")
         return value if value else ''
     
     # ========== GET ALL OPTIONAL FIELD VALUES ==========
@@ -1489,7 +1489,7 @@ def submit_application():
     # ========== CONVERT BIRTHDATE ==========
     birthdate_raw = data.get('birthdate', '')
     birthdate = convert_birthdate_format(birthdate_raw)
-    print(f"📅 Birthdate converted: '{birthdate_raw}' -> '{birthdate}'")
+    print(f" Birthdate converted: '{birthdate_raw}' -> '{birthdate}'")
     
     # ========== TV FIELDS (special handling) ==========
     def get_tv_field_values(prefix, count):
@@ -1500,16 +1500,16 @@ def submit_application():
             submitted_key = f'{prefix}_{i}_submitted'
             if submitted_key in request.form:
                 values.append(request.form[submitted_key])
-                print(f"📥 {prefix}[{i}] from _submitted: '{request.form[submitted_key]}'")
+                print(f" {prefix}[{i}] from _submitted: '{request.form[submitted_key]}'")
             else:
                 # Kunin mula sa regular list
                 regular_values = request.form.getlist(f'{prefix}[]')
                 if i < len(regular_values) and regular_values[i]:
                     values.append(regular_values[i])
-                    print(f"📥 {prefix}[{i}] from regular: '{regular_values[i]}'")
+                    print(f" {prefix}[{i}] from regular: '{regular_values[i]}'")
                 else:
                     values.append('')
-                    print(f"📥 {prefix}[{i}] is empty")
+                    print(f" {prefix}[{i}] is empty")
         return values
     
     # Kunin ang TV values
@@ -1559,12 +1559,12 @@ def submit_application():
             return None
         
         try:
-            # ✅ Upload to Cloudinary
+            # Upload to Cloudinary
             url = upload_to_cloudinary_application(file_input, application_number, file_type)
             return url
             
         except Exception as e:
-            print(f"❌ Error saving {file_type}: {e}")
+            print(f" Error saving {file_type}: {e}")
             return None
     
     def save_base64_image(base64_string, application_number, file_type, max_size=(800, 800), quality=75):
@@ -1573,12 +1573,12 @@ def submit_application():
             return None
         
         try:
-            # ✅ Upload to Cloudinary
+            # Upload to Cloudinary
             url = upload_base64_to_cloudinary(base64_string, application_number, file_type, max_size, quality)
             return url
             
         except Exception as e:
-            print(f"❌ Error saving base64 {file_type}: {e}")
+            print(f" Error saving base64 {file_type}: {e}")
             return None
 
     # ========== CHECK EMAIL VERIFICATION ==========
@@ -1609,23 +1609,23 @@ def submit_application():
         existing_app = execute_query(check_query, (original_application_id,), fetch_one=True)
         
         if not existing_app:
-            print(f"❌ Re-apply failed: Application {original_application_id} not found")
+            print(f" Re-apply failed: Application {original_application_id} not found")
             return 'Application not found. Please contact support.', 404
         
         if existing_app.get('status') != 'Rejected':
-            print(f"❌ Re-apply failed: Application {original_application_id} status is {existing_app.get('status')}, not Rejected")
+            print(f" Re-apply failed: Application {original_application_id} status is {existing_app.get('status')}, not Rejected")
             return 'This application cannot be re-applied. Only rejected applications are eligible.', 400
         
         reapplied_count = existing_app.get('reapplied_count', 0)
         if reapplied_count >= 2:
-            print(f"❌ Re-apply failed: Application {original_application_id} has already re-applied {reapplied_count} times (max 2)")
+            print(f" Re-apply failed: Application {original_application_id} has already re-applied {reapplied_count} times (max 2)")
             return 'You have already re-applied twice. Further re-applications are not allowed.', 400
         
         application_number = original_application_id
-        print(f"🔄 Re-applying application #{application_number} (reapplied_count={reapplied_count})")
+        print(f" Re-applying application #{application_number} (reapplied_count={reapplied_count})")
     else:
         application_number = str(random.randint(1000000000, 9999999999))
-        print(f"📝 New application #{application_number}")
+        print(f" New application #{application_number}")
 
     # ========== PROCESS SIGNATURE ==========
     signature_value = None
@@ -1692,15 +1692,15 @@ def submit_application():
                 if check_napbox:
                     preferred_napbox_id = candidate_id
                     preferred_napbox_name = candidate_name
-                    print(f"📌 User selected valid NAP Box: {preferred_napbox_name} (ID: {preferred_napbox_id})")
+                    print(f" User selected valid NAP Box: {preferred_napbox_name} (ID: {preferred_napbox_id})")
                 else:
-                    print(f"⚠️ NAP Box ID {candidate_id} does not exist in DB — proceeding with NULL")
+                    print(f" NAP Box ID {candidate_id} does not exist in DB — proceeding with NULL")
             else:
-                print("ℹ️ No NAP box in coverage (out of radius) — proceeding with NULL, application allowed")
+                print(" No NAP box in coverage (out of radius) — proceeding with NULL, application allowed")
         except Exception as e:
-            print(f"⚠️ Error parsing napbox info (non-blocking): {e}")
+            print(f" Error parsing napbox info (non-blocking): {e}")
     else:
-        print("ℹ️ No selected_napbox_info sent from form — proceeding with NULL")
+        print(" No selected_napbox_info sent from form — proceeding with NULL")
 
     # ========== CHECK IF APPLICATION ALREADY EXISTS (for re-apply) ==========
     if is_reapply and original_application_id:
@@ -1732,7 +1732,7 @@ def submit_application():
             now.strftime('%B %d, %Y'), now.strftime('%I:%M %p'), now.timestamp(),
             data.get('first_name'), middle_name, data.get('last_name'), suffix,
             email, data.get('mobile'), secondary_mobile, phone,
-            birthdate,  # ✅ CONVERTED BIRTHDATE
+            birthdate,  # CONVERTED BIRTHDATE
             data.get('place_of_birth'), mother_maiden_name,
             father_name, data.get('sex'), data.get('civil_status'), data.get('citizenship'),
             data.get('occupation'), data.get('home_ownership'), address, data.get('billing_address'),
@@ -1754,9 +1754,9 @@ def submit_application():
 
         update_result = execute_query(update_query, params)
         if update_result is None:
-            print(f"❌ CRITICAL: UPDATE failed for application {application_number} — check [QUERY ERROR] above")
+            print(f" CRITICAL: UPDATE failed for application {application_number} — check [QUERY ERROR] above")
             return f"We couldn't save your application. Please try again or contact support. (Ref: {application_number})", 500
-        print(f"✅ Application {application_number} updated (re-apply) with preferred NAP Box: {preferred_napbox_name}")
+        print(f" Application {application_number} updated (re-apply) with preferred NAP Box: {preferred_napbox_name}")
         
     else:
         insert_query = """
@@ -1790,7 +1790,7 @@ def submit_application():
             now.strftime('%B %d, %Y'), now.strftime('%I:%M %p'), now.timestamp(),
             data.get('first_name'), middle_name, data.get('last_name'), suffix, email,
             data.get('mobile'), secondary_mobile, phone,
-            birthdate,  # ✅ CONVERTED BIRTHDATE
+            birthdate,  # CONVERTED BIRTHDATE
             data.get('place_of_birth'), mother_maiden_name,
             father_name, data.get('sex'), data.get('civil_status'), data.get('citizenship'),
             data.get('occupation'), data.get('home_ownership'), address, data.get('billing_address'),
@@ -1804,20 +1804,20 @@ def submit_application():
             preferred_napbox_id, preferred_napbox_name
         )
 
-        print(f"📊 Number of params: {len(params)}")
-        print(f"📊 Expected: 57 (55 original + 2 for preferred napbox)")
-        print(f"📊 Application Number: {application_number}")
-        print(f"📅 Birthdate saved as: {birthdate}")
+        print(f" Number of params: {len(params)}")
+        print(f" Expected: 57 (55 original + 2 for preferred napbox)")
+        print(f" Application Number: {application_number}")
+        print(f" Birthdate saved as: {birthdate}")
         
         if preferred_napbox_id:
-            print(f"📌 Preferred NAP Box saved: {preferred_napbox_name} (ID: {preferred_napbox_id})")
+            print(f" Preferred NAP Box saved: {preferred_napbox_name} (ID: {preferred_napbox_id})")
 
         result = execute_query(insert_query, params)
-        print(f"✅ Insert result: {result}")
+        print(f" Insert result: {result}")
         if result is None:
-            print(f"❌ CRITICAL: INSERT failed for application {application_number} — check [QUERY ERROR] above")
+            print(f" CRITICAL: INSERT failed for application {application_number} — check [QUERY ERROR] above")
             return f"We couldn't save your application. Please try again or contact support. (Ref: {application_number})", 500
-        print(f"✅ New application {application_number} saved with preferred NAP Box")
+        print(f" New application {application_number} saved with preferred NAP Box")
 
     # ========== CREATE NOTIFICATIONS ==========
     try:
@@ -1839,7 +1839,7 @@ def submit_application():
             datetime.now(PH_TZ).isoformat(),
             0
         ))
-        print(f"🔔 Superadmin notification created")
+        print(f" Superadmin notification created")
         
         admin_notif_id = notification_id + 1
         admin_notif_query = """
@@ -1860,12 +1860,12 @@ def submit_application():
             application_city,
             application_number
         ))
-        print(f"🔔 Admin notification created for city: {application_city}")
+        print(f" Admin notification created for city: {application_city}")
         
     except Exception as e:
-        print(f"⚠️ Notification failed: {e}")
+        print(f" Notification failed: {e}")
 
-    # ========== 🔒 SAFEGUARD: ENSURE NO SLOT OCCUPATION ==========
+    # ========== SAFEGUARD: ENSURE NO SLOT OCCUPATION ==========
     try:
         check_slot_query = """
             SELECT id, status, application_number 
@@ -1886,11 +1886,11 @@ def submit_application():
                 WHERE application_number = %s
             """
             execute_query(reset_slot_query, (application_number,))
-            print(f"🔒 SAFEGUARD: Reset occupied slot for application {application_number}")
+            print(f" SAFEGUARD: Reset occupied slot for application {application_number}")
         else:
-            print(f"✅ SAFEGUARD: No occupied slot found for application {application_number}")
+            print(f" SAFEGUARD: No occupied slot found for application {application_number}")
     except Exception as safeguard_err:
-        print(f"⚠️ Safeguard check failed: {safeguard_err}")
+        print(f" Safeguard check failed: {safeguard_err}")
 
     # Clear email verification session
     session.pop('email_verified', None)
@@ -1907,21 +1907,21 @@ def reapply_application(application_id):
     Maximum 2 re-applications only.
     """
     try:
-        print(f"🔄 Loading re-apply for application #{application_id}")
+        print(f" Loading re-apply for application #{application_id}")
         
         # Fetch the existing application data from MySQL
         query = "SELECT * FROM applications WHERE application_number = %s"
         app_data = execute_query(query, (application_id,), fetch_one=True)
         
         if not app_data:
-            print(f"❌ Application #{application_id} not found")
+            print(f" Application #{application_id} not found")
             flash('Application not found.', 'danger')
             return redirect('/')
         
-        # ========== 🔍 DEBUG: RAW BIRTHDATE FROM DATABASE ==========
+        # ========== DEBUG: RAW BIRTHDATE FROM DATABASE ==========
         print("="*60)
-        print(f"🔍 RAW birthdate value: {app_data.get('birthdate')!r}")
-        print(f"🔍 RAW birthdate type: {type(app_data.get('birthdate'))}")
+        print(f" RAW birthdate value: {app_data.get('birthdate')!r}")
+        print(f" RAW birthdate type: {type(app_data.get('birthdate'))}")
         print("="*60)
         
         # Convert None values to empty strings
@@ -1929,14 +1929,14 @@ def reapply_application(application_id):
         
         # Check if status is Rejected (only rejected apps can reapply)
         if app_data.get('status') != 'Rejected':
-            print(f"❌ Application #{application_id} status is {app_data.get('status')}, not Rejected")
+            print(f" Application #{application_id} status is {app_data.get('status')}, not Rejected")
             flash('This application cannot be re-applied. Only rejected applications are eligible.', 'warning')
             return redirect('/')
         
         # CHECK RE-APPLY COUNT (max 2)
         reapplied_count = int(app_data.get('reapplied_count', 0) or 0)
         if reapplied_count >= 2:
-            print(f"❌ Application #{application_id} has already re-applied {reapplied_count} times (max 2)")
+            print(f" Application #{application_id} has already re-applied {reapplied_count} times (max 2)")
             flash('You have already re-applied twice. Further re-applications are not allowed.', 'danger')
             return redirect('/')
         
@@ -1955,13 +1955,13 @@ def reapply_application(application_id):
         # ========== PREPARE FORM DATA WITH ALL FIELDS ==========
         form_data = {}
 
-        # ========== HELPER: FORMAT BIRTHDATE FOR DISPLAY (✅ FIXED VERSION) ==========
+        # ========== HELPER: FORMAT BIRTHDATE FOR DISPLAY ( FIXED VERSION) ==========
         def format_birthdate_for_display(birthdate_value):
             """Convert stored birthdate (date object or string) to MM-DD-YYYY for display"""
             if not birthdate_value or birthdate_value == '':
                 return ''
             try:
-                # ✅ CRITICAL FIX: mysql.connector returns DATE columns as
+                # CRITICAL FIX: mysql.connector returns DATE columns as
                 # datetime.date objects, NOT strings. Must use strftime here,
                 # BEFORE the value ever reaches Jinja's |tojson filter.
                 if hasattr(birthdate_value, 'strftime'):
@@ -1977,7 +1977,7 @@ def reapply_application(application_id):
                             return birthdate_str
                 return birthdate_str
             except Exception as e:
-                print(f"⚠️ Error formatting birthdate for display: {e}")
+                print(f" Error formatting birthdate for display: {e}")
                 return ''
         
         # Personal Information
@@ -1987,9 +1987,9 @@ def reapply_application(application_id):
         form_data['suffix'] = get_value('suffix')
         form_data['birthdate'] = format_birthdate_for_display(get_value('birthdate'))
         
-        # ========== 🔍 DEBUG: FORMATTED BIRTHDATE ==========
+        # ========== DEBUG: FORMATTED BIRTHDATE ==========
         print("="*60)
-        print(f"🔍 FORMATTED birthdate: {form_data['birthdate']!r}")
+        print(f" FORMATTED birthdate: {form_data['birthdate']!r}")
         print("="*60)
         
         form_data['place_of_birth'] = get_value('place_of_birth')
@@ -2100,12 +2100,12 @@ def reapply_application(application_id):
         rejection_reason = app_data.get('rejection_reason', 'No specific reason provided')
         reapply_message = get_value('reapply_message')
         
-        print(f"✅ Loading re-apply form for application #{application_id} (reapplied_count={reapplied_count})")
-        print(f"📌 First Name: {form_data['first_name']}")
-        print(f"📌 Last Name: {form_data['last_name']}")
-        print(f"📌 Email: {form_data['email']}")
-        print(f"📌 City: {form_data['city']}")
-        print(f"📌 Barangay: {form_data['barangay']}")
+        print(f" Loading re-apply form for application #{application_id} (reapplied_count={reapplied_count})")
+        print(f" First Name: {form_data['first_name']}")
+        print(f" Last Name: {form_data['last_name']}")
+        print(f" Email: {form_data['email']}")
+        print(f" City: {form_data['city']}")
+        print(f" Barangay: {form_data['barangay']}")
         
         return render_template(
             'user-application.html',
@@ -2120,7 +2120,7 @@ def reapply_application(application_id):
         )
         
     except Exception as e:
-        print(f"❌ Error in reapply route: {e}")
+        print(f" Error in reapply route: {e}")
         import traceback
         traceback.print_exc()
         flash('An error occurred while loading your application. Please try again.', 'danger')
@@ -2184,7 +2184,7 @@ def check_email_duplicate():
         return jsonify({"available": True, "message": "Email is available"})
         
     except Exception as e:
-        print(f"❌ Error checking email: {e}")
+        print(f" Error checking email: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({"available": False, "message": "Error checking email. Please try again."}), 500
@@ -2245,7 +2245,7 @@ def save_terms_agreement():
             existing_app_id,
             datetime.now().isoformat()
         ))
-        print(f"✓ Terms agreement saved for {email} with ID: {terms_id}")
+        print(f" Terms agreement saved for {email} with ID: {terms_id}")
         
         # Also update the application record if it exists
         if existing_app_id:
@@ -2255,7 +2255,7 @@ def save_terms_agreement():
                 WHERE application_number = %s
             """
             execute_query(update_query, (1, agreed_at, ip_address, existing_app_id))
-            print(f"✓ Updated application {existing_app_id} with terms agreement")
+            print(f" Updated application {existing_app_id} with terms agreement")
         
         return jsonify({
             'success': True, 
@@ -2264,7 +2264,7 @@ def save_terms_agreement():
         }), 200
         
     except Exception as e:
-        print(f"❌ Error saving terms agreement: {str(e)}")
+        print(f" Error saving terms agreement: {str(e)}")
         return jsonify({'success': False, 'message': str(e)}), 500
     
 
@@ -2278,7 +2278,7 @@ def application_success(application_number):
     Display application success page with application details from MySQL
     """
     try:
-        print(f"🔍 Loading application #{application_number} for success page")
+        print(f" Loading application #{application_number} for success page")
         
         # Query the application from MySQL
         query = """
@@ -2307,7 +2307,7 @@ def application_success(application_number):
         
         # Check if application exists
         if application_data is None:
-            print(f"❌ Application #{application_number} not found in MySQL database")
+            print(f" Application #{application_number} not found in MySQL database")
             abort(404, description=f'Application #{application_number} not found. Please contact support.')
         
         # Convert None values to empty strings for template rendering
@@ -2407,14 +2407,14 @@ def application_success(application_number):
             if not value or value == 'none' or value == 'None':
                 application_data[img_field] = None
         
-        print(f"✅ Loaded application #{application_number} from MySQL for success page")
-        print(f"📸 Profile Photo: {application_data.get('profile_photo', 'None')[:50] if application_data.get('profile_photo') else 'None'}...")
-        print(f"📸 Signature: {application_data.get('signature', 'None')[:50] if application_data.get('signature') else 'None'}...")
+        print(f" Loaded application #{application_number} from MySQL for success page")
+        print(f" Profile Photo: {application_data.get('profile_photo', 'None')[:50] if application_data.get('profile_photo') else 'None'}...")
+        print(f" Signature: {application_data.get('signature', 'None')[:50] if application_data.get('signature') else 'None'}...")
         
         return render_template('user-application_success.html', **application_data)
         
     except Exception as e:
-        print(f"❌ Error loading application #{application_number}: {e}")
+        print(f" Error loading application #{application_number}: {e}")
         import traceback
         traceback.print_exc()
         abort(500, description=f'Error loading application details. Please contact support.')
@@ -2454,7 +2454,7 @@ def is_email_duplicate_allowed(email, exclude_application_id=None):
         connection = get_db_connection()
 
         if not connection:
-            print("❌ Database connection failed")
+            print(" Database connection failed")
             return False, None
 
         cursor = connection.cursor(dictionary=True)
@@ -2501,7 +2501,7 @@ def is_email_duplicate_allowed(email, exclude_application_id=None):
         return False, None
         
     except Exception as e:
-        print(f"❌ Error checking duplicate email: {e}")
+        print(f" Error checking duplicate email: {e}")
         import traceback
         traceback.print_exc()
         return False, None
@@ -2588,7 +2588,7 @@ def send_verification_code():
         brevo_api_key = os.getenv("BREVO_API_KEY")
 
         if not brevo_api_key:
-            print("❌ BREVO_API_KEY is not configured!")
+            print(" BREVO_API_KEY is not configured!")
 
             return jsonify({
                 "success": False,
@@ -2857,7 +2857,7 @@ def send_verification_code():
         # ============================================================
 
         print(
-            f"📧 Sending verification email via Brevo API "
+            f" Sending verification email via Brevo API "
             f"to {email}..."
         )
 
@@ -2875,7 +2875,7 @@ def send_verification_code():
         if response.status_code not in (200, 201):
 
             print(
-                f"❌ Brevo API error "
+                f" Brevo API error "
                 f"({response.status_code}): "
                 f"{response.text}"
             )
@@ -2909,13 +2909,13 @@ def send_verification_code():
         # ============================================================
 
         print(
-            f"✅ Verification email successfully "
+            f" Verification email successfully "
             f"submitted to Brevo for {email}"
         )
 
         if message_id:
             print(
-                f"📨 Brevo Message ID: {message_id}"
+                f" Brevo Message ID: {message_id}"
             )
 
         # IMPORTANT:
@@ -2938,7 +2938,7 @@ def send_verification_code():
     except requests.exceptions.Timeout:
 
         print(
-            "❌ Brevo API request timed out"
+            " Brevo API request timed out"
         )
 
         verification_codes.pop(
@@ -2961,7 +2961,7 @@ def send_verification_code():
     except requests.exceptions.RequestException as e:
 
         print(
-            f"❌ Brevo API request error: {e}"
+            f" Brevo API request error: {e}"
         )
 
         verification_codes.pop(
@@ -2984,7 +2984,7 @@ def send_verification_code():
     except Exception as e:
 
         print(
-            f"❌ Error sending verification email: {e}"
+            f" Error sending verification email: {e}"
         )
 
         traceback.print_exc()
@@ -3094,7 +3094,7 @@ def download_pdf(application_number):
     width, height = letter
 
     print("=" * 80)
-    print("🔍 IMAGE DATA FROM DATABASE:")
+    print(" IMAGE DATA FROM DATABASE:")
     print(f"Application Number (folder): {app_folder}")
     print(f"id_front: {data.get('id_front', 'None')}")
     print(f"id_back: {data.get('id_back', 'None')}")
@@ -3102,13 +3102,13 @@ def download_pdf(application_number):
     print(f"proof_billing: {data.get('proof_billing', 'None')}")
     print("=" * 80)
 
-    # ================= ✅ GET IMAGE FROM CLOUDINARY =================
+    # ================= GET IMAGE FROM CLOUDINARY =================
     def get_image_from_cloudinary(image_path):
         """Get image from Cloudinary URL or local path"""
         if not image_path:
             return None
         
-        # ✅ Convert to Cloudinary URL
+        # Convert to Cloudinary URL
         if not image_path.startswith('http'):
             cloudinary_url = get_cloudinary_url(image_path)
         else:
@@ -3116,19 +3116,19 @@ def download_pdf(application_number):
         
         if cloudinary_url and cloudinary_url.startswith('http'):
             try:
-                print(f"📤 Downloading from Cloudinary: {cloudinary_url[:80]}...")
+                print(f" Downloading from Cloudinary: {cloudinary_url[:80]}...")
                 response = requests.get(cloudinary_url, timeout=30)
                 if response.status_code == 200:
-                    print(f"✅ Downloaded {len(response.content)} bytes")
+                    print(f" Downloaded {len(response.content)} bytes")
                     return response.content
                 else:
-                    print(f"❌ Cloudinary download failed: {response.status_code}")
+                    print(f" Cloudinary download failed: {response.status_code}")
                     return None
             except Exception as e:
-                print(f"❌ Error downloading from Cloudinary: {e}")
+                print(f" Error downloading from Cloudinary: {e}")
                 return None
         
-        # ✅ Fallback: Try local path (for development)
+        # Fallback: Try local path (for development)
         SHARED_UPLOADS_BASE = r"C:\xampp\htdocs\cablevision_uploads"
         
         # Extract filename from path
@@ -3137,7 +3137,7 @@ def download_pdf(application_number):
         # Try to find in application_uploads folder
         full_path = os.path.join(SHARED_UPLOADS_BASE, 'application_uploads', app_folder, filename)
         if os.path.exists(full_path):
-            print(f"✅ Found locally: {full_path}")
+            print(f" Found locally: {full_path}")
             with open(full_path, 'rb') as f:
                 return f.read()
         
@@ -3149,23 +3149,23 @@ def download_pdf(application_number):
         
         for alt_path in alt_paths:
             if os.path.exists(alt_path):
-                print(f"✅ Found locally: {alt_path}")
+                print(f" Found locally: {alt_path}")
                 with open(alt_path, 'rb') as f:
                     return f.read()
         
-        print(f"❌ Image not found: {image_path}")
+        print(f" Image not found: {image_path}")
         return None
 
     # ================= HELPER: Load and convert image =================
     def load_and_convert_image(image_data):
         """Load image and convert to RGB format for PDF"""
         if not image_data:
-            print(f"❌ No image data provided")
+            print(f" No image data provided")
             return None
         
         img_bytes = None
         
-        # ✅ Try to get from Cloudinary
+        # Try to get from Cloudinary
         if isinstance(image_data, str):
             img_bytes = get_image_from_cloudinary(image_data)
         
@@ -3182,65 +3182,65 @@ def download_pdf(application_number):
                     
                     image_data = image_data.strip()
                     img_bytes = base64.b64decode(image_data)
-                    print(f"✅ Decoded base64 image ({len(img_bytes)} bytes)")
+                    print(f" Decoded base64 image ({len(img_bytes)} bytes)")
                 except Exception as e:
-                    print(f"❌ Error decoding base64: {e}")
+                    print(f" Error decoding base64: {e}")
         
         if not img_bytes:
-            print(f"❌ No image bytes loaded")
+            print(f" No image bytes loaded")
             return None
         
         # Convert image to RGB format using PIL
         try:
             img = Image.open(io.BytesIO(img_bytes))
-            print(f"✅ Image opened: {img.format}, {img.size}, {img.mode}")
+            print(f" Image opened: {img.format}, {img.size}, {img.mode}")
             
             if img.mode != 'RGB':
                 img = img.convert('RGB')
-                print(f"✅ Converted to RGB")
+                print(f" Converted to RGB")
             
             output = io.BytesIO()
             img.save(output, format='JPEG', quality=90)
             output.seek(0)
             
-            print(f"✅ Converted to JPEG ({output.getbuffer().nbytes} bytes)")
+            print(f" Converted to JPEG ({output.getbuffer().nbytes} bytes)")
             return output.getvalue()
             
         except Exception as e:
-            print(f"❌ Error converting image: {e}")
+            print(f" Error converting image: {e}")
             return img_bytes
 
     # ================= HELPER: Draw image safely =================
     def draw_image_safe(p, image_data, x, y, width, height, label="Image"):
         """Safely draw an image on the PDF"""
         try:
-            print(f"🖼️ Drawing {label}...")
+            print(f" Drawing {label}...")
             img_bytes = load_and_convert_image(image_data)
             if img_bytes:
                 with tempfile.NamedTemporaryFile(suffix='.jpg', delete=False) as tmp_file:
                     tmp_file.write(img_bytes)
                     tmp_path = tmp_file.name
-                    print(f"📝 Temp file: {tmp_path}")
+                    print(f" Temp file: {tmp_path}")
                 
                 try:
                     img = ImageReader(tmp_path)
                     p.drawImage(img, x, y, width, height, preserveAspectRatio=True, mask='auto')
-                    print(f"✅ Drew {label} successfully")
+                    print(f" Drew {label} successfully")
                     return True
                 except Exception as e:
-                    print(f"❌ Error in drawImage for {label}: {e}")
+                    print(f" Error in drawImage for {label}: {e}")
                     return False
                 finally:
                     try:
                         os.unlink(tmp_path)
-                        print(f"🗑️ Deleted temp file: {tmp_path}")
+                        print(f" Deleted temp file: {tmp_path}")
                     except:
                         pass
             else:
-                print(f"❌ No image bytes for {label}")
+                print(f" No image bytes for {label}")
                 return False
         except Exception as e:
-            print(f"❌ Error drawing {label}: {e}")
+            print(f" Error drawing {label}: {e}")
             return False
 
     # ================= MAX PAGES =================
@@ -3605,15 +3605,15 @@ def download_pdf(application_number):
         ensure_space(25)
         p.setFont("Helvetica-Bold", 12)
         p.setFillColorRGB(0, 0.5, 0)
-        p.drawCentredString(width / 2, y, "📍 GET DIRECTIONS from your current location to this address")
-        text_width = p.stringWidth("📍 GET DIRECTIONS from your current location to this address", "Helvetica-Bold", 12)
+        p.drawCentredString(width / 2, y, " GET DIRECTIONS from your current location to this address")
+        text_width = p.stringWidth(" GET DIRECTIONS from your current location to this address", "Helvetica-Bold", 12)
         p.linkURL(google_maps_direction_url, ((width - text_width) / 2, y - 2, (width + text_width) / 2, y + 12), relative=0)
         p.setFillColorRGB(0, 0, 0)
         y -= 20
         
         p.setFont("Helvetica", 8)
         p.setFillColorRGB(0.5, 0.5, 0.5)
-        p.drawCentredString(width / 2, y, "👉 Click above to see distance from YOUR location, travel time, and turn-by-turn directions")
+        p.drawCentredString(width / 2, y, " Click above to see distance from YOUR location, travel time, and turn-by-turn directions")
         p.setFillColorRGB(0, 0, 0)
         y -= 20
 
@@ -3636,7 +3636,7 @@ def download_pdf(application_number):
         
         p.setFont("Helvetica", 8)
         p.setFillColorRGB(0.5, 0.5, 0.5)
-        p.drawCentredString(width / 2, y, "💡 Tip: Click the green 'GET DIRECTIONS' link above to see distance from your current location")
+        p.drawCentredString(width / 2, y, " Tip: Click the green 'GET DIRECTIONS' link above to see distance from your current location")
         p.setFillColorRGB(0, 0, 0)
         y -= 15
     else:
@@ -3718,10 +3718,10 @@ def clear_user_sessions(user_id):
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        # 👇 UNA, CHECK KUNG MAY TAB ID SA URL
+        # UNA, CHECK KUNG MAY TAB ID SA URL
         tab_id = request.args.get("tab_id")
         
-        # 👇 KUNG MAY TAB ID, CHECK KUNG MAY SESSION NA MAY TAB ID
+        # KUNG MAY TAB ID, CHECK KUNG MAY SESSION NA MAY TAB ID
         if tab_id:
             user_session = session.get(f"user_{tab_id}")
             if user_session and user_session.get("user_id"):
@@ -3733,7 +3733,7 @@ def login_required(f):
                 flash("Your session has ended. Please login again.", "warning")
                 return redirect(url_for("login"))
         
-        # 👇 CHECK KUNG MAY REGULAR SESSION
+        # CHECK KUNG MAY REGULAR SESSION
         if "user_id" in session:
             current_user_id = session.get("user_id")
             active_tab = get_session_tab_for_user(current_user_id)
@@ -3746,7 +3746,7 @@ def login_required(f):
             flash("Your session has ended. Please login again.", "warning")
             return redirect(url_for("login"))
         
-        # ❌ WALANG SESSION - REDIRECT SA LOGIN
+        # WALANG SESSION - REDIRECT SA LOGIN
         flash("Please login first.", "warning")
         return redirect(url_for("login"))
     return decorated_function
@@ -3772,14 +3772,14 @@ def verify_ga_code(secret, code):
     import struct
     
     if not secret or not code:
-        print(f"❌ GA verify: Missing secret or code - secret: {bool(secret)}, code: {bool(code)}")
+        print(f" GA verify: Missing secret or code - secret: {bool(secret)}, code: {bool(code)}")
         return False
     
     try:
         # Clean the code - remove any non-numeric characters
         code = ''.join(filter(str.isdigit, str(code)))
         if len(code) != 6:
-            print(f"❌ GA verify: Invalid code length - {len(code)}")
+            print(f" GA verify: Invalid code length - {len(code)}")
             return False
         
         # Clean the secret
@@ -3794,11 +3794,11 @@ def verify_ga_code(secret, code):
         
         # Decode secret
         decoded_key = base64.b32decode(secret.encode("utf-8"), casefold=True)
-        print(f"🔐 GA verify: Secret decoded successfully, length: {len(decoded_key)}")
+        print(f" GA verify: Secret decoded successfully, length: {len(decoded_key)}")
         
         # Get current time window (30 seconds)
         current_timestamp = int(time.time()) // 30
-        print(f"🔐 GA verify: Current time window: {current_timestamp}")
+        print(f" GA verify: Current time window: {current_timestamp}")
         
         # Check wider time windows for time sync issues
         # Range -3 to 3 gives 7 windows (210 seconds or 3.5 minutes)
@@ -3813,14 +3813,14 @@ def verify_ga_code(secret, code):
             print(f"   Window {offset}: expected={expected}, entered={code}")
             
             if expected == code:
-                print(f"✅ GA code matched at offset {offset}")
+                print(f" GA code matched at offset {offset}")
                 return True
         
-        print(f"❌ GA verify: No match found for code {code}")
+        print(f" GA verify: No match found for code {code}")
         return False
         
     except Exception as e:
-        print(f"❌ GA verification error: {e}")
+        print(f" GA verification error: {e}")
         import traceback
         traceback.print_exc()
         return False
@@ -3852,7 +3852,7 @@ def login():
         pending_user_id = session.get("pending_ga_user_id")
         
         if pending_user_id and ga_code:
-            print(f"🔐 2FA verification attempt for user_id: {pending_user_id}")
+            print(f" 2FA verification attempt for user_id: {pending_user_id}")
             
             user_query = """
                 SELECT user_id, customer_id, application_number, email, username, password, role,
@@ -3865,7 +3865,7 @@ def login():
             user_data = execute_query(user_query, (pending_user_id,), fetch_one=True)
             
             if not user_data:
-                print(f"❌ User not found for pending_user_id: {pending_user_id}")
+                print(f" User not found for pending_user_id: {pending_user_id}")
                 session.pop("pending_ga_user_id", None)
                 if request.is_json:
                     return jsonify({"success": False, "error": "User not found. Please login again.", "requires_2fa": False}), 401
@@ -3874,13 +3874,13 @@ def login():
             
             ga_secret = user_data.get("ga_secret")
             is_valid = verify_ga_code(ga_secret, ga_code)
-            print(f"🔐 Verification result: {is_valid}")
+            print(f" Verification result: {is_valid}")
             
             if is_valid:
-                # ✅ GA CODE IS CORRECT - LOGIN THE USER
+                # GA CODE IS CORRECT - LOGIN THE USER
                 session.pop("pending_ga_user_id", None)
                 
-                # 👇 STORE SESSION WITH TAB ID AS KEY - DITO ANG IMPORTANTE!
+                # STORE SESSION WITH TAB ID AS KEY - DITO ANG IMPORTANTE!
                 if tab_id:
                     session[f"user_{tab_id}"] = {
                         "user_id": user_data.get("user_id"),
@@ -3891,7 +3891,7 @@ def login():
                         "contract_number": user_data.get("contract_number"),
                         "status": user_data.get("status", "Active")
                     }
-                    # 👇 I-STORE DIN ANG ACTIVE TAB ID
+                    # I-STORE DIN ANG ACTIVE TAB ID
                     session["active_tab"] = tab_id
                 else:
                     # Fallback: use regular session if no tab_id
@@ -3912,11 +3912,11 @@ def login():
                 record_login_history(user_data.get("user_id"), tab_id)
                 
                 # Sa login route, pagkatapos mag-store ng session:
-                print(f"✅ Login successful: {user_data.get('user_id')}")
+                print(f" Login successful: {user_data.get('user_id')}")
                 print(f"   Tab ID: {tab_id}")
                 print(f"   Session key: user_{tab_id}")
-                print(f"   Session data: {session.get(f'user_{tab_id}')}")  # 👈 I-PRINT ANG SESSION DATA
-                print(f"   All session keys: {list(session.keys())}")  # 👈 I-PRINT LAHAT NG SESSION KEYS
+                print(f"   Session data: {session.get(f'user_{tab_id}')}")  # I-PRINT ANG SESSION DATA
+                print(f"   All session keys: {list(session.keys())}")  # I-PRINT LAHAT NG SESSION KEYS
                 
                 if request.is_json:
                     return jsonify({
@@ -3929,8 +3929,8 @@ def login():
                     })
                 return redirect(url_for("dashboard") + "?tab_id=" + tab_id if tab_id else url_for("dashboard"))
             else:
-                # ❌ GA CODE IS INVALID
-                print(f"❌ Invalid GA code for user: {pending_user_id}")
+                # GA CODE IS INVALID
+                print(f" Invalid GA code for user: {pending_user_id}")
                 
                 if request.is_json:
                     return jsonify({
@@ -3965,7 +3965,7 @@ def login():
                 if user_data.get("ga_enabled"):
                     # Store user ID in session for 2FA verification
                     session["pending_ga_user_id"] = user_data.get("user_id")
-                    print(f"🔐 2FA required for user: {user_data.get('user_id')}")
+                    print(f" 2FA required for user: {user_data.get('user_id')}")
                     
                     if request.is_json:
                         return jsonify({
@@ -3980,7 +3980,7 @@ def login():
                 
                 # ========== NO 2FA - LOGIN DIRECTLY ==========
                 
-                # 👇 STORE SESSION WITH TAB ID AS KEY - DITO ANG IMPORTANTE!
+                # STORE SESSION WITH TAB ID AS KEY - DITO ANG IMPORTANTE!
                 if tab_id:
                     session[f"user_{tab_id}"] = {
                         "user_id": user_data.get("user_id"),
@@ -3991,7 +3991,7 @@ def login():
                         "contract_number": user_data.get("contract_number"),
                         "status": user_data.get("status", "Active")
                     }
-                    # 👇 I-STORE DIN ANG ACTIVE TAB ID
+                    # I-STORE DIN ANG ACTIVE TAB ID
                     session["active_tab"] = tab_id
                 else:
                     # Fallback: use regular session if no tab_id
@@ -4010,7 +4010,7 @@ def login():
                 )
                 record_login_history(user_data.get("user_id"), tab_id)
                 
-                print(f"✅ Login successful: {user_data.get('user_id')}")
+                print(f" Login successful: {user_data.get('user_id')}")
                 print(f"   Tab ID: {tab_id}")
                 print(f"   Session key: user_{tab_id}")
                 
@@ -4026,7 +4026,7 @@ def login():
                 return redirect(url_for("dashboard") + "?tab_id=" + tab_id if tab_id else url_for("dashboard"))
 
         # Invalid credentials
-        print(f"❌ Login failed: Invalid credentials for {user_id}")
+        print(f" Login failed: Invalid credentials for {user_id}")
         if request.is_json:
             return jsonify({"success": False, "error": "Invalid User ID or Password"}), 401
         else:
@@ -4066,7 +4066,7 @@ def send_otp_email(to_email, otp_code):
     # ===============================
 
     if not brevo_api_key:
-        print("❌ BREVO_API_KEY is not configured!")
+        print(" BREVO_API_KEY is not configured!")
 
         return False
 
@@ -4221,7 +4221,7 @@ def send_otp_email(to_email, otp_code):
     try:
 
         print(
-            f"📧 Sending password reset OTP via Brevo "
+            f" Sending password reset OTP via Brevo "
             f"to {to_email}..."
         )
 
@@ -4239,7 +4239,7 @@ def send_otp_email(to_email, otp_code):
         if response.status_code not in (200, 201):
 
             print(
-                f"❌ Brevo API error "
+                f" Brevo API error "
                 f"({response.status_code}): "
                 f"{response.text}"
             )
@@ -4256,14 +4256,14 @@ def send_otp_email(to_email, otp_code):
 
             if message_id:
                 print(
-                    f"📨 Brevo Message ID: {message_id}"
+                    f" Brevo Message ID: {message_id}"
                 )
 
         except Exception:
             pass
 
         print(
-            f"✅ Password reset OTP sent successfully "
+            f" Password reset OTP sent successfully "
             f"to {to_email}"
         )
 
@@ -4271,14 +4271,14 @@ def send_otp_email(to_email, otp_code):
 
     except requests.exceptions.Timeout:
 
-        print("❌ Brevo API request timed out")
+        print(" Brevo API request timed out")
 
         return False
 
     except requests.exceptions.RequestException as e:
 
         print(
-            f"❌ Brevo API request error: {e}"
+            f" Brevo API request error: {e}"
         )
 
         return False
@@ -4286,7 +4286,7 @@ def send_otp_email(to_email, otp_code):
     except Exception as e:
 
         print(
-            f"❌ Error sending password reset OTP: {e}"
+            f" Error sending password reset OTP: {e}"
         )
 
         import traceback
@@ -4327,14 +4327,14 @@ def user_forgot_password():
     otp_code = str(random.randint(100000, 999999))
     expiry = datetime.now().timestamp() + 300
     
-    # ✅ SAVE TO temp_reset TABLE (HINDI SA users table)
+    # SAVE TO temp_reset TABLE (HINDI SA users table)
     insert_query = """
         INSERT INTO temp_reset (email, otp, expiry, user_type, area, username)
         VALUES (%s, %s, %s, %s, %s, %s)
     """
     result = execute_query(insert_query, (user_email, otp_code, expiry, "user", "", username))
     
-    print(f"✅ OTP saved to temp_reset for user {username}: {otp_code}")
+    print(f" OTP saved to temp_reset for user {username}: {otp_code}")
     print(f"   Insert result: {result}")
 
     # Send email
@@ -4400,7 +4400,7 @@ def user_reset_password():
             "error": "Invalid verification code"
         }), 400
 
-    print(f"✅ Found temp_data: {temp_data}")
+    print(f" Found temp_data: {temp_data}")
 
     # ===============================
     # CHECK OTP EXPIRATION
@@ -4454,7 +4454,7 @@ def user_reset_password():
     )
 
     print(
-        f"✅ new_password saved to temp_reset: "
+        f" new_password saved to temp_reset: "
         f"{update_result} rows affected"
     )
 
@@ -4472,7 +4472,7 @@ def user_reset_password():
     )
 
     print(
-        f"🔍 Verified new_password: "
+        f" Verified new_password: "
         f"{'SAVED' if verify_temp and verify_temp.get('new_password') else 'NULL'}"
     )
 
@@ -4500,7 +4500,7 @@ def user_reset_password():
     )
 
     print(
-        f"✅ User password updated: "
+        f" User password updated: "
         f"{update_rows} rows affected"
     )
 
@@ -4547,7 +4547,7 @@ def user_reset_password():
             "error": "User not found"
         }), 404
 
-    print(f"✅ User data retrieved: {user_data.get('user_id')}")
+    print(f" User data retrieved: {user_data.get('user_id')}")
 
     # ===============================
     # STEP 4
@@ -4584,16 +4584,16 @@ def user_reset_password():
 
         session["active_tab"] = tab_id
 
-        print(f"✅ Tab session created: user_{tab_id}")
-        print(f"✅ Active tab set: {tab_id}")
+        print(f" Tab session created: user_{tab_id}")
+        print(f" Active tab set: {tab_id}")
 
-    # 👇 IDAGDAG MO ITO — GAYA NG GINAGAWA SA /login ROUTE
+    # IDAGDAG MO ITO — GAYA NG GINAGAWA SA /login ROUTE
     execute_query(
         "UPDATE users SET connection_status = 'Connected' WHERE user_id = %s AND status != 'Terminated'",
         (user_data.get('user_id'),)
     )
     record_login_history(user_data.get("user_id"), tab_id)
-    print(f"✅ Login history recorded for reset-password auto-login: {user_data.get('user_id')} / {tab_id}")
+    print(f" Login history recorded for reset-password auto-login: {user_data.get('user_id')} / {tab_id}")
 
     # FORCE SESSION SAVE
     session.modified = True
@@ -4603,13 +4603,13 @@ def user_reset_password():
     # AUTO LOGIN CONFIRMATION
     # ===============================
     print("=========================================")
-    print("✅ PASSWORD RESET SUCCESSFUL")
-    print("✅ AUTO-LOGIN SESSION CREATED")
-    print(f"✅ User ID: {user_data.get('user_id')}")
-    print(f"✅ Username: {user_data.get('username')}")
-    print(f"✅ Email: {user_data.get('email')}")
-    print(f"✅ Tab ID: {tab_id}")
-    print(f"✅ GA Verified: {session.get('ga_verified')}")
+    print(" PASSWORD RESET SUCCESSFUL")
+    print(" AUTO-LOGIN SESSION CREATED")
+    print(f" User ID: {user_data.get('user_id')}")
+    print(f" Username: {user_data.get('username')}")
+    print(f" Email: {user_data.get('email')}")
+    print(f" Tab ID: {tab_id}")
+    print(f" GA Verified: {session.get('ga_verified')}")
     print("=========================================")
 
     # ===============================
@@ -4629,7 +4629,7 @@ def user_reset_password():
         "message": "Password updated successfully! Redirecting to your dashboard...",
         "redirect": redirect_url,
         "tab_id": tab_id,
-        "username": user_data.get("username") or user_data.get("user_id"),   # 👈 fallback dito
+        "username": user_data.get("username") or user_data.get("user_id"),   # fallback dito
         "user_id": user_data.get("user_id")
     }), 200
 
@@ -4659,19 +4659,19 @@ def get_user_status():
 @app.route("/user/dashboard")
 @login_required
 def dashboard():
-    # 👇 KUNIN ANG TAB ID MULA SA URL PARAMETER
+    # KUNIN ANG TAB ID MULA SA URL PARAMETER
     tab_id = request.args.get("tab_id")
     
-    # 👇 KUNG WALANG TAB ID SA URL, TINGNAN KUNG NASA SESSION
+    # KUNG WALANG TAB ID SA URL, TINGNAN KUNG NASA SESSION
     if not tab_id:
         tab_id = session.get("active_tab")
     
-    # 👇 KUNG WALANG TAB ID, REDIRECT SA LOGIN
+    # KUNG WALANG TAB ID, REDIRECT SA LOGIN
     if not tab_id:
         flash("Please login first.", "warning")
         return redirect(url_for("login"))
     
-    # 👇 KUNIN ANG USER DATA GAMIT ANG TAB ID
+    # KUNIN ANG USER DATA GAMIT ANG TAB ID
     user_session = session.get(f"user_{tab_id}")
     
     if user_session:
@@ -4680,7 +4680,7 @@ def dashboard():
         # FALLBACK: USE REGULAR SESSION
         user_id = session.get("user_id")
     
-    # 👇 KUNG WALANG USER_ID, REDIRECT SA LOGIN
+    # KUNG WALANG USER_ID, REDIRECT SA LOGIN
     if not user_id:
         flash("Session expired. Please login again.", "warning")
         return redirect(url_for("login"))
@@ -4799,7 +4799,7 @@ def get_user_connection():
         application_number = user.get("application_number")
         email = user.get("email")
         user_status = user.get("user_status", "Active")
-        balance = user.get("balance", 0)  # 🔥 KUNIN ANG BALANCE
+        balance = user.get("balance", 0)  # KUNIN ANG BALANCE
 
         if not application_number:
             return jsonify([{
@@ -4833,7 +4833,7 @@ def get_user_connection():
             installation_status = customer.get("installation_status", "Pending")
             contract_number = customer.get("contract_number", contract_number)
             
-            # 🔥 CRITICAL: Kung ang user_status ay "Active", gamitin yun
+            # CRITICAL: Kung ang user_status ay "Active", gamitin yun
             if user_status == "Active":
                 display_status = "Active"
             elif user_status in ["Terminated", "Inactive"]:
@@ -4895,7 +4895,7 @@ def get_user_connection():
             app_status = application.get("status", "Pending")
             installation_status = application.get("installation_status", "Pending")
             
-            # 🔥 CRITICAL: Same logic para sa applications table
+            # CRITICAL: Same logic para sa applications table
             if user_status == "Active":
                 display_status = "Active"
             elif user_status in ["Terminated", "Inactive"]:
@@ -4980,16 +4980,16 @@ def get_reconnect_info():
 
     plan_name, plan_speed, plan_price = "No Active Plan", "0", "0"
     
-    # ✅ FULL NAME
+    # FULL NAME
     first_name = user.get("first_name") or ""
     middle_name = user.get("middle_name") or ""
     last_name = user.get("last_name") or ""
     suffix = user.get("suffix") or ""
     
-    # ✅ BUMUO NG FULL NAME
+    # BUMUO NG FULL NAME
     full_name = " ".join(filter(None, [first_name, middle_name, last_name, suffix]))
     
-    # ✅ ADDRESS FIELDS
+    # ADDRESS FIELDS
     address = ""
     barangay = ""
     city = ""
@@ -5007,22 +5007,22 @@ def get_reconnect_info():
         """
         customer = execute_query(customer_query, (application_number,), fetch_one=True)
 
-        # 👇 IDINAGDAG NA DEBUG PRINT
-        print(f"🔍 DEBUG RECONNECT - raw customer row: {customer}")
+        # IDINAGDAG NA DEBUG PRINT
+        print(f" DEBUG RECONNECT - raw customer row: {customer}")
 
         if customer and customer.get("plan"):
             plan_name = customer.get("plan") or plan_name
             plan_speed = customer.get("plan_speed") or plan_speed
             plan_price = customer.get("plan_price") or plan_price
             
-            # ✅ KUNIN ANG ADDRESS
+            # KUNIN ANG ADDRESS
             address = customer.get("address") or ""
             barangay = customer.get("barangay") or ""
             city = customer.get("city") or ""
             province = customer.get("province") or ""
             zip_code = customer.get("zip") or ""
             
-            # ✅ BUMUO NG FULL ADDRESS
+            # BUMUO NG FULL ADDRESS
             full_address = " ".join(filter(None, [
                 address, 
                 barangay, 
@@ -5040,8 +5040,8 @@ def get_reconnect_info():
             """
             application = execute_query(app_query, (application_number,), fetch_one=True)
 
-            # 👇 DEBUG PRINT DIN DITO PARA SA FALLBACK CASE
-            print(f"🔍 DEBUG RECONNECT - raw application row (fallback): {application}")
+            # DEBUG PRINT DIN DITO PARA SA FALLBACK CASE
+            print(f" DEBUG RECONNECT - raw application row (fallback): {application}")
 
             if application and application.get("plan"):
                 plan_name = application.get("plan") or plan_name
@@ -5054,7 +5054,7 @@ def get_reconnect_info():
                 province = application.get("province") or ""
                 zip_code = application.get("zip") or ""
                 
-                # ✅ BUMUO NG FULL ADDRESS
+                # BUMUO NG FULL ADDRESS
                 full_address = " ".join(filter(None, [
                     address, 
                     barangay, 
@@ -5063,16 +5063,16 @@ def get_reconnect_info():
                     zip_code
                 ]))
 
-    # 👇 FINAL DEBUG PRINT — ITO ANG MAKIKITA NATIN BAGO IPADALA SA FRONTEND
-    print(f"🔍 DEBUG RECONNECT - FINAL: plan_name={plan_name!r}, plan_speed={plan_speed!r}, plan_price={plan_price!r}")
+    # FINAL DEBUG PRINT — ITO ANG MAKIKITA NATIN BAGO IPADALA SA FRONTEND
+    print(f" DEBUG RECONNECT - FINAL: plan_name={plan_name!r}, plan_speed={plan_speed!r}, plan_price={plan_price!r}")
 
     return jsonify({
-        "full_name": full_name,  # ✅ ITO ANG GAGAMITIN SA FRONTEND
+        "full_name": full_name,  # ITO ANG GAGAMITIN SA FRONTEND
         "contact_number": user.get("contact_number") or "",
         "email": user.get("email") or "",
         "application_number": application_number,
         "already_requested": already_requested,
-        "full_address": full_address,  # ✅ ITO ANG GAGAMITIN SA FRONTEND
+        "full_address": full_address,  # ITO ANG GAGAMITIN SA FRONTEND
         "current_plan": {
             "name": plan_name,
             "speed": plan_speed,
@@ -5089,15 +5089,15 @@ def get_plans_for_reconnect():
     try:
         query = "SELECT id, name, speed, price FROM plans ORDER BY price ASC"
         plans = execute_query(query, (), fetch_all=True) or []
-        print(f"📋 Retrieved {len(plans)} plans from database")
+        print(f" Retrieved {len(plans)} plans from database")
         
-        # ✅ I-PRINT ANG MGA PLANS PARA MAKITA
+        # I-PRINT ANG MGA PLANS PARA MAKITA
         for plan in plans:
             print(f"  - ID: {plan.get('id')}, Name: {plan.get('name')}, Speed: {plan.get('speed')}, Price: {plan.get('price')}")
         
         return jsonify(plans)
     except Exception as e:
-        print(f"❌ Error fetching plans: {e}")
+        print(f" Error fetching plans: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({"error": "Failed to fetch plans"}), 500
@@ -5114,7 +5114,7 @@ def generate_request_number():
     random_part = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
     candidate = f"REQ{date_str}-{random_part}"
     
-    # ✅ I-CHECK KUNG EXISTING NA
+    # I-CHECK KUNG EXISTING NA
     existing = execute_query(
         "SELECT request_id FROM reconnect_requests WHERE request_id = %s LIMIT 1",
         (candidate,), fetch_one=True
@@ -5145,16 +5145,16 @@ def submit_reconnect_request():
     user_id = session["user_id"]
     data = request.get_json(silent=True) or {}
 
-    print(f"📥 Received data: {data}")
+    print(f" Received data: {data}")
 
-    # ✅ I-HANDLE ANG change_plan
+    # I-HANDLE ANG change_plan
     change_plan = data.get("change_plan", False)
     if isinstance(change_plan, bool):
         change_plan = change_plan
     else:
         change_plan = bool(change_plan) or change_plan == 1
 
-    # ✅ KUNG WALANG CHANGE PLAN, I-SET ANG new_plan_id SA None
+    # KUNG WALANG CHANGE PLAN, I-SET ANG new_plan_id SA None
     if not change_plan:
         new_plan_id = None
     else:
@@ -5166,7 +5166,7 @@ def submit_reconnect_request():
         except (ValueError, TypeError):
             return jsonify({"error": "Invalid plan selected."}), 400
     
-    print(f"📥 change_plan: {change_plan}, new_plan_id: {new_plan_id}")
+    print(f" change_plan: {change_plan}, new_plan_id: {new_plan_id}")
 
     first_name = (data.get("first_name") or "").strip()
     middle_name = (data.get("middle_name") or "").strip() or None
@@ -5196,11 +5196,11 @@ def submit_reconnect_request():
     if not user_row:
         return jsonify({"error": "User not found"}), 404
 
-    # ✅ BAGONG CHECK: kasama na ang "approved but awaiting slot reassignment" state
+    # BAGONG CHECK: kasama na ang "approved but awaiting slot reassignment" state
     if user_row.get("has_pending_reconnect"):
         return jsonify({"error": "You already have a reconnect request on file. Please wait for slot reassignment or admin approval."}), 409
 
-    # ✅ CHECK: KUNG MAY PENDING REQUEST (safety net, existing check)
+    # CHECK: KUNG MAY PENDING REQUEST (safety net, existing check)
     pending = execute_query(
         "SELECT request_id, status FROM reconnect_requests WHERE user_id = %s AND status = 'Pending' LIMIT 1",
         (user_id,), fetch_one=True
@@ -5237,11 +5237,11 @@ def submit_reconnect_request():
             new_plan_speed = plan_row.get("speed")
             new_plan_price = plan_row.get("price")
 
-    # ✅ GENERATE REQUEST NUMBER
+    # GENERATE REQUEST NUMBER
     request_id = generate_request_number()
-    print(f"🆕 Generated new request_id: {request_id}")
+    print(f" Generated new request_id: {request_id}")
 
-    # ✅ INSERT RECONNECT REQUEST
+    # INSERT RECONNECT REQUEST
     try:
         insert_query = """
             INSERT INTO reconnect_requests
@@ -5269,51 +5269,51 @@ def submit_reconnect_request():
             email, 
             address
         ))
-        print(f"✅ Inserted NEW request {request_id} for user {user_id}")
+        print(f" Inserted NEW request {request_id} for user {user_id}")
 
     except Exception as e:
-        print(f"❌ ERROR saving reconnect_requests: {e}")
+        print(f" ERROR saving reconnect_requests: {e}")
         import traceback
         traceback.print_exc()
         return jsonify({"error": "Failed to submit reconnect request. Please try again."}), 500
 
-    # ✅ UPDATE USER
+    # UPDATE USER
     try:
         execute_query(
             "UPDATE users SET has_pending_reconnect = 1, reconnect_requested_at = NOW() WHERE user_id = %s",
             (user_id,)
         )
-        print(f"✅ Updated user {user_id} has_pending_reconnect = 1")
+        print(f" Updated user {user_id} has_pending_reconnect = 1")
     except Exception as e:
-        print(f"⚠️ WARNING: User update failed: {e}")
+        print(f" WARNING: User update failed: {e}")
 
-    # ✅ INSERT NOTIFICATION - GAYA NG TERMINATION REQUEST
+    # INSERT NOTIFICATION - GAYA NG TERMINATION REQUEST
     try:
         full_name = " ".join(filter(None, [first_name, middle_name, last_name, suffix]))
         
-        # ✅ GUMAMIT NG CUSTOM ID (timestamp * 1000) tulad ng termination
+        # GUMAMIT NG CUSTOM ID (timestamp * 1000) tulad ng termination
         notification_id = int(datetime.now().timestamp() * 1000)
         
-        # ✅ BUUIN ANG MESSAGE - GAYA NG TERMINATION FORMAT
+        # BUUIN ANG MESSAGE - GAYA NG TERMINATION FORMAT
         notif_message = f"[{request_id}] {full_name} requested reconnection"
         if change_plan and new_plan_name:
             notif_message += f" with plan change to {new_plan_name}"
         notif_message += f" - Application #{application_number}"
 
-        print(f"🔔 Inserting notification:")
+        print(f" Inserting notification:")
         print(f"   ID: {notification_id}")
         print(f"   Title: Reconnect Request")
         print(f"   Message: {notif_message}")
         print(f"   Type: reconnect_request")
         print(f"   relatedId: {application_number}")
 
-        # ✅ INSERT SA notifications TABLE
+        # INSERT SA notifications TABLE
         notif_query = """
             INSERT INTO notifications (id, title, message, type, relatedId, timestamp, read_status, created_at)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """
         
-        # ✅ I-TRAP ANG EXECUTION PARA MAKITA KUNG MAY ERROR
+        # I-TRAP ANG EXECUTION PARA MAKITA KUNG MAY ERROR
         try:
             result = execute_query(notif_query, (
                 notification_id,
@@ -5325,30 +5325,30 @@ def submit_reconnect_request():
                 0,
                 datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             ))
-            print(f"✅ execute_query result: {result}")
+            print(f" execute_query result: {result}")
             
-            # ✅ VERIFY NA NA-INSERT
+            # VERIFY NA NA-INSERT
             verify_query = "SELECT id, message FROM notifications WHERE id = %s"
             verify_result = execute_query(verify_query, (notification_id,), fetch_one=True)
             
             if verify_result:
-                print(f"✅ VERIFIED: Notification exists - ID: {verify_result['id']}")
+                print(f" VERIFIED: Notification exists - ID: {verify_result['id']}")
                 print(f"   Message: {verify_result['message']}")
             else:
-                print(f"❌ NOT FOUND: Notification {notification_id} not in database!")
+                print(f" NOT FOUND: Notification {notification_id} not in database!")
                 
         except Exception as insert_error:
-            print(f"❌ NOTIFICATION INSERT FAILED: {insert_error}")
+            print(f" NOTIFICATION INSERT FAILED: {insert_error}")
             import traceback
             traceback.print_exc()
 
     except Exception as e:
-        print(f"❌ NOTIFICATION PREPARATION FAILED: {e}")
+        print(f" NOTIFICATION PREPARATION FAILED: {e}")
         import traceback
         traceback.print_exc()
-        # ✅ Huwag mag-fail ang buong request dahil sa notification
+        # Huwag mag-fail ang buong request dahil sa notification
 
-    # ✅ RETURN RESPONSE
+    # RETURN RESPONSE
     return jsonify({
         "success": True,
         "request_id": request_id,
@@ -5375,12 +5375,12 @@ def submit_reconnect_request():
 def get_user_notifications():
     try:
         user_id = request.args.get("user_id")
-        tab_id = request.args.get("tab_id")  # 👈 KUNIN ANG TAB ID
+        tab_id = request.args.get("tab_id")  # KUNIN ANG TAB ID
         
         if not user_id:
             return jsonify({"error": "User ID required"}), 400
         
-        # 👇 KUNG MAY TAB ID, I-VERIFY NA TAMA ANG USER
+        # KUNG MAY TAB ID, I-VERIFY NA TAMA ANG USER
         if tab_id:
             user_session = session.get(f"user_{tab_id}")
             if user_session and user_session.get("user_id") != user_id:
@@ -5428,9 +5428,9 @@ def get_user_notifications():
 @app.route("/api/user/notifications/<int:notification_id>/read", methods=["PUT"])
 def mark_user_notification_read(notification_id):
     try:
-        tab_id = request.args.get("tab_id")  # 👈 KUNIN ANG TAB ID
+        tab_id = request.args.get("tab_id")  # KUNIN ANG TAB ID
         
-        # 👇 KUNG MAY TAB ID, I-VERIFY NA TAMA ANG USER
+        # KUNG MAY TAB ID, I-VERIFY NA TAMA ANG USER
         if tab_id:
             user_session = session.get(f"user_{tab_id}")
             if not user_session:
@@ -5463,12 +5463,12 @@ def mark_user_notification_read(notification_id):
 def mark_all_user_notifications_read():
     try:
         user_id = request.args.get("user_id")
-        tab_id = request.args.get("tab_id")  # 👈 KUNIN ANG TAB ID
+        tab_id = request.args.get("tab_id")  # KUNIN ANG TAB ID
         
         if not user_id:
             return jsonify({"error": "User ID required"}), 400
         
-        # 👇 KUNG MAY TAB ID, I-VERIFY NA TAMA ANG USER
+        # KUNG MAY TAB ID, I-VERIFY NA TAMA ANG USER
         if tab_id:
             user_session = session.get(f"user_{tab_id}")
             if not user_session or user_session.get("user_id") != user_id:
@@ -5784,10 +5784,10 @@ def logout_all_user_devices():
 @app.route("/user/profile")
 @login_required
 def user_profile():
-    # 👇 KUNIN ANG TAB ID MULA SA URL
+    # KUNIN ANG TAB ID MULA SA URL
     tab_id = request.args.get("tab_id")
     
-    # 👇 KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER
+    # KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER
     if tab_id:
         user_session = session.get(f"user_{tab_id}")
         if user_session:
@@ -5896,14 +5896,14 @@ def user_profile():
     address = application_data.get("installation_address", "") if application_data else user_data.get("address", "")
     role = user_data.get("role", "customer")
 
-    # ========== ✅ PROFILE PHOTO - CONVERT TO CLOUDINARY ==========
+    # ========== PROFILE PHOTO - CONVERT TO CLOUDINARY ==========
     profile_photo = user_data.get("profile_photo")
     
     # I-convert ang profile_photo sa Cloudinary URL
     if profile_photo and profile_photo != 'none' and profile_photo != '':
         if not profile_photo.startswith('http'):
             profile_photo = get_cloudinary_url(profile_photo)
-            print(f"✅ Converted profile photo to Cloudinary: {profile_photo}")
+            print(f" Converted profile photo to Cloudinary: {profile_photo}")
     
     # Kung wala sa users table, try sa applications
     if not profile_photo or profile_photo == 'none' or profile_photo == '':
@@ -5914,13 +5914,13 @@ def user_profile():
                     profile_photo = get_cloudinary_url(app_photo)
                 else:
                     profile_photo = app_photo
-                print(f"✅ Profile photo from application: {profile_photo}")
+                print(f" Profile photo from application: {profile_photo}")
     
     # Default photo
     if not profile_photo or profile_photo == 'none' or profile_photo == '':
         profile_photo = url_for("static", filename="profile.jpg")
 
-    # ========== ✅ CONVERT APPLICATION IMAGES TO CLOUDINARY ==========
+    # ========== CONVERT APPLICATION IMAGES TO CLOUDINARY ==========
     # I-convert ang lahat ng image fields sa application_data
     if application_data:
         image_fields = ['signature', 'id_front', 'id_back', 'proof_billing', 'profile_photo']
@@ -5930,7 +5930,7 @@ def user_profile():
                 if value and value != 'none' and value != '':
                     if not value.startswith('http'):
                         application_data[field] = get_cloudinary_url(value)
-                        print(f"✅ Converted {field} to Cloudinary")
+                        print(f" Converted {field} to Cloudinary")
 
     # TV sets (parse JSON if stored as string)
     import json
@@ -5994,7 +5994,7 @@ def user_profile():
         user_id=user_id,
         customer_id=customer_id,
         role=role,
-        profile_photo=profile_photo,  # ✅ Cloudinary URL na ito
+        profile_photo=profile_photo,  # Cloudinary URL na ito
         contract_number=user_data.get("contract_number", ""),
 
         # ========== APPLICATION DATA (with Cloudinary URLs) ==========
@@ -6037,10 +6037,10 @@ def user_profile():
         tv_qty_str=tv_qtys_str,
         tv_type_str=tv_types_str,
         installation_phone=installation_phone_value,
-        signature=application_data.get("signature", "") if application_data else "",  # ✅ Cloudinary URL
-        id_front=application_data.get("id_front", "") if application_data else "",  # ✅ Cloudinary URL
-        id_back=application_data.get("id_back", "") if application_data else "",    # ✅ Cloudinary URL
-        proof_billing=application_data.get("proof_billing", "") if application_data else "",  # ✅ Cloudinary URL
+        signature=application_data.get("signature", "") if application_data else "",  # Cloudinary URL
+        id_front=application_data.get("id_front", "") if application_data else "",  # Cloudinary URL
+        id_back=application_data.get("id_back", "") if application_data else "",    # Cloudinary URL
+        proof_billing=application_data.get("proof_billing", "") if application_data else "",  # Cloudinary URL
         date_submitted=application_data.get("date_submitted", "") if application_data else "",
         time_submitted=application_data.get("time_submitted", "") if application_data else "",
         application_number=application_id if application_id else "",
@@ -6077,19 +6077,19 @@ def enable_google_auth():
         # Generate new secret if none exists
         secret = generate_ga_secret()
         session["ga_setup_secret"] = secret
-        print(f"🔐 Generated new GA secret for user {user_id}")
+        print(f" Generated new GA secret for user {user_id}")
 
     if not code:
         flash("Please enter the 6-digit code from Google Authenticator.", "danger")
         return redirect(url_for("user_profile"))
 
     # Verify the code with debug logging
-    print(f"🔐 Verifying GA code for user {user_id}")
-    print(f"🔐 Secret: {secret[:10]}... (truncated)")
-    print(f"🔐 Code entered: {code}")
+    print(f" Verifying GA code for user {user_id}")
+    print(f" Secret: {secret[:10]}... (truncated)")
+    print(f" Code entered: {code}")
     
     is_valid = verify_ga_code(secret, code)
-    print(f"🔐 Verification result: {is_valid}")
+    print(f" Verification result: {is_valid}")
     
     if is_valid:
         # Save the secret to database
@@ -6218,18 +6218,18 @@ def get_user_application_data():
 @app.route("/user/get-contract-number")
 def get_user_contract_number():
     """Get contract number for logged in user"""
-    # 👇 KUNIN ANG TAB ID MULA SA URL
+    # KUNIN ANG TAB ID MULA SA URL
     tab_id = request.args.get("tab_id")
     
     user_id = None
     
-    # 👇 KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER
+    # KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER
     if tab_id:
         user_session = session.get(f"user_{tab_id}")
         if user_session:
             user_id = user_session.get("user_id")
     
-    # 👇 FALLBACK: CHECK REGULAR SESSION
+    # FALLBACK: CHECK REGULAR SESSION
     if not user_id and 'user_id' in session:
         user_id = session.get('user_id')
     
@@ -6271,18 +6271,18 @@ def get_user_contract_number():
 @app.route("/user/get-contract-details/<contract_number>")
 def get_user_contract_details(contract_number):
     """Get contract details for logged in user"""
-    # 👇 KUNIN ANG TAB ID MULA SA URL
+    # KUNIN ANG TAB ID MULA SA URL
     tab_id = request.args.get("tab_id")
     
     user_id = None
     
-    # 👇 KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER
+    # KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER
     if tab_id:
         user_session = session.get(f"user_{tab_id}")
         if user_session:
             user_id = user_session.get("user_id")
     
-    # 👇 FALLBACK: CHECK REGULAR SESSION
+    # FALLBACK: CHECK REGULAR SESSION
     if not user_id and 'user_id' in session:
         user_id = session.get('user_id')
     
@@ -6365,47 +6365,47 @@ def get_signature_image(signature_data, width=180, height=50):
     
     try:
         if not signature_data:
-            print("❌ No signature data provided")
+            print(" No signature data provided")
             return None
         
         if isinstance(signature_data, str):
-            print(f"🔍 Processing signature: {signature_data[:100]}...")
+            print(f" Processing signature: {signature_data[:100]}...")
             
-            # ✅ CASE 1: Cloudinary URL
+            # CASE 1: Cloudinary URL
             if signature_data.startswith('http') and 'cloudinary.com' in signature_data:
-                print(f"📤 Downloading signature from Cloudinary: {signature_data}")
+                print(f" Downloading signature from Cloudinary: {signature_data}")
                 try:
                     response = requests.get(signature_data, timeout=30)
                     if response.status_code == 200:
                         img = Image(io.BytesIO(response.content), width=width, height=height)
                         img.drawWidth = width
                         img.drawHeight = height
-                        print(f"✅ Signature loaded from Cloudinary")
+                        print(f" Signature loaded from Cloudinary")
                         return img
                 except Exception as e:
-                    print(f"❌ Error downloading from Cloudinary: {e}")
+                    print(f" Error downloading from Cloudinary: {e}")
             
-            # ✅ CASE 2: Convert relative path to Cloudinary first
+            # CASE 2: Convert relative path to Cloudinary first
             if signature_data.startswith('/shared-uploads/') or signature_data.startswith('cablevision/'):
                 cloudinary_url = get_cloudinary_url(signature_data)
                 if cloudinary_url and cloudinary_url.startswith('http'):
                     try:
-                        print(f"📤 Downloading signature from Cloudinary: {cloudinary_url}")
+                        print(f" Downloading signature from Cloudinary: {cloudinary_url}")
                         response = requests.get(cloudinary_url, timeout=30)
                         if response.status_code == 200:
                             img = Image(io.BytesIO(response.content), width=width, height=height)
                             img.drawWidth = width
                             img.drawHeight = height
-                            print(f"✅ Signature loaded from Cloudinary")
+                            print(f" Signature loaded from Cloudinary")
                             return img
                     except Exception as e:
-                        print(f"❌ Error downloading from Cloudinary: {e}")
+                        print(f" Error downloading from Cloudinary: {e}")
                 
                 # Fallback to local path
                 base_dir = SHARED_UPLOADS_BASE
                 relative_path = signature_data.replace('/shared-uploads/', '')
                 full_path = os.path.join(base_dir, relative_path)
-                print(f"🔍 Looking for signature at: {full_path}")
+                print(f" Looking for signature at: {full_path}")
                 
                 alt_paths = [
                     full_path,
@@ -6415,18 +6415,18 @@ def get_signature_image(signature_data, width=180, height=50):
                 
                 for path in alt_paths:
                     if os.path.exists(path):
-                        print(f"✅ Found signature at: {path}")
+                        print(f" Found signature at: {path}")
                         img = Image(path, width=width, height=height)
                         img.drawWidth = width
                         img.drawHeight = height
                         return img
                 
-                print(f"❌ Signature file not found")
+                print(f" Signature file not found")
                 return None
             
             # CASE 3: Base64 string
             elif 'base64,' in signature_data or ('data:image' in signature_data[:50] if len(signature_data) > 50 else False):
-                print("🔍 Processing base64 signature...")
+                print(" Processing base64 signature...")
                 if 'base64,' in signature_data:
                     signature_data = signature_data.split('base64,')[1]
                 elif 'data:image' in signature_data:
@@ -6436,32 +6436,32 @@ def get_signature_image(signature_data, width=180, height=50):
                 img = Image(io.BytesIO(image_bytes), width=width, height=height)
                 img.drawWidth = width
                 img.drawHeight = height
-                print(f"✅ Signature loaded from base64")
+                print(f" Signature loaded from base64")
                 return img
             
             # CASE 4: HTTP/HTTPS URL (non-Cloudinary)
             elif signature_data.startswith(('http://', 'https://')):
-                print(f"🔍 Loading signature from URL: {signature_data}")
+                print(f" Loading signature from URL: {signature_data}")
                 resp = requests.get(signature_data, timeout=10)
                 if resp.status_code == 200:
                     img = Image(io.BytesIO(resp.content), width=width, height=height)
                     img.drawWidth = width
                     img.drawHeight = height
-                    print(f"✅ Signature loaded from URL")
+                    print(f" Signature loaded from URL")
                     return img
             else:
                 # CASE 5: Direct file path (without /shared-uploads/)
-                print(f"🔍 Trying direct file path: {signature_data}")
+                print(f" Trying direct file path: {signature_data}")
                 if os.path.exists(signature_data):
                     img = Image(signature_data, width=width, height=height)
                     img.drawWidth = width
                     img.drawHeight = height
-                    print(f"✅ Signature loaded from direct path")
+                    print(f" Signature loaded from direct path")
                     return img
         
         return None
     except Exception as e:
-        print(f"❌ Signature error: {e}")
+        print(f" Signature error: {e}")
         import traceback
         traceback.print_exc()
         return None
@@ -6488,10 +6488,10 @@ def user_download_contract(contract_number):
             user_id = session.get('user_id')
         
         if not user_id:
-            print(f"❌ Unauthorized: No user_id found in session")
+            print(f" Unauthorized: No user_id found in session")
             return "Unauthorized - Please login again", 401
         
-        print(f"✅ Authorized: user_id: {user_id}, contract: {contract_number}, tab_id: {tab_id}")
+        print(f" Authorized: user_id: {user_id}, contract: {contract_number}, tab_id: {tab_id}")
         
         # ========== 2. VERIFY CONTRACT BELONGS TO USER ==========
         verify_query = """
@@ -6546,12 +6546,12 @@ def user_download_contract(contract_number):
         # ========== 6. GET SIGNATURE FROM APPLICATION AND CONVERT TO CLOUDINARY ==========
         signature_data = application_data.get('signature')
         
-        # ✅ CONVERT TO CLOUDINARY URL
+        # CONVERT TO CLOUDINARY URL
         if signature_data and not signature_data.startswith('http'):
             signature_data = get_cloudinary_url(signature_data)
-            print(f"📸 Signature converted to Cloudinary: {signature_data}")
+            print(f" Signature converted to Cloudinary: {signature_data}")
         
-        print(f"📸 SIGNATURE DATA: {signature_data}")
+        print(f" SIGNATURE DATA: {signature_data}")
         
         # ========== 7. BUILD CONTRACT DATA (with fallbacks) ==========
         plan_name = application_data.get('plan', '')
@@ -6656,7 +6656,7 @@ def user_download_contract(contract_number):
             fontName='Helvetica', textColor=colors.grey
         )
         
-        # ✅ Use the external get_signature_image function with Cloudinary URL
+        # Use the external get_signature_image function with Cloudinary URL
         signature_img = get_signature_image(signature_data, 180, 50)
         
         # ========== 11. PAGE 1: HEADER AND MAIN CONTRACT ==========
@@ -7005,7 +7005,7 @@ def sync_user_session():
     try:
         data = request.get_json()
         username = data.get('username')
-        tab_id = data.get('tab_id')  # 👈 KUNIN ANG TAB ID
+        tab_id = data.get('tab_id')  # KUNIN ANG TAB ID
         
         print(f"DEBUG: Syncing session - username: {username}, tab_id: {tab_id}")
         
@@ -7022,7 +7022,7 @@ def sync_user_session():
             user_data = execute_query(user_query, (username, username, username), fetch_one=True)
             
             if user_data:
-                # 👇 STORE SESSION WITH TAB ID AS KEY (role derived server-side)
+                # STORE SESSION WITH TAB ID AS KEY (role derived server-side)
                 server_role = (user_data.get('role') or 'customer').lower()
                 server_usertype = 'admin' if server_role in ('admin', 'administrator') else 'user'
                 session[f"user_{tab_id}"] = {
@@ -7114,10 +7114,10 @@ def check_user_session():
 # ===============================
 @app.route("/api/get-user-profile")
 def get_user_profile():
-    # 👇 KUNIN ANG TAB ID MULA SA REQUEST
+    # KUNIN ANG TAB ID MULA SA REQUEST
     tab_id = request.args.get("tab_id")
     
-    # 👇 KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER
+    # KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER
     if tab_id:
         user_session = session.get(f"user_{tab_id}")
         if user_session:
@@ -7146,12 +7146,12 @@ def get_user_profile():
     # ========== GET PROFILE PHOTO ==========
     profile_photo = user_data.get("profile_photo")
     
-    # ✅ KUNG MAY PROFILE_PHOTO, I-CONVERT SA CLOUDINARY URL
+    # KUNG MAY PROFILE_PHOTO, I-CONVERT SA CLOUDINARY URL
     if profile_photo and profile_photo != 'none' and profile_photo != '':
-        # ✅ KUNG RELATIVE PATH (nagsisimula sa cablevision/ or /shared-uploads/)
+        # KUNG RELATIVE PATH (nagsisimula sa cablevision/ or /shared-uploads/)
         if not profile_photo.startswith('http'):
             profile_photo = get_cloudinary_url(profile_photo)
-            print(f"✅ Converted profile photo to Cloudinary: {profile_photo}")
+            print(f" Converted profile photo to Cloudinary: {profile_photo}")
     else:
         # Try to get from applications table using application_number
         app_number = user_data.get("application_number")
@@ -7160,10 +7160,10 @@ def get_user_profile():
             app_data = execute_query(app_query, (app_number,), fetch_one=True)
             if app_data and app_data.get('profile_photo'):
                 profile_photo = app_data.get('profile_photo')
-                # ✅ I-CONVERT DIN ANG APP PROFILE PHOTO
+                # I-CONVERT DIN ANG APP PROFILE PHOTO
                 if not profile_photo.startswith('http'):
                     profile_photo = get_cloudinary_url(profile_photo)
-                    print(f"✅ Converted app profile photo to Cloudinary: {profile_photo}")
+                    print(f" Converted app profile photo to Cloudinary: {profile_photo}")
     
     if not profile_photo or profile_photo == 'none' or profile_photo == '':
         profile_photo = url_for("static", filename="profile.jpg")
@@ -7198,7 +7198,7 @@ def get_user_profile():
         "contact_number": user_data.get("contact_number", ""),
         "address": user_data.get("address", ""),
         "photo_url": profile_photo,
-        "profile_photo": profile_photo,  # ✅ FULL CLOUDINARY URL
+        "profile_photo": profile_photo,  # FULL CLOUDINARY URL
         "role": user_data.get("role", "customer"),
         "contract_number": user_data.get("contract_number", ""),
         "connection_status": user_data.get("connection_status", "Disconnected"),
@@ -7212,10 +7212,10 @@ def get_user_profile():
 # ===============================
 @app.route("/user/profile/update", methods=["POST"])
 def update_profile():
-    # 👇 KUNIN ANG TAB ID MULA SA FORM
+    # KUNIN ANG TAB ID MULA SA FORM
     tab_id = request.form.get("tab_id")
     
-    # 👇 KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER
+    # KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER
     if tab_id:
         user_session = session.get(f"user_{tab_id}")
         if user_session:
@@ -7342,9 +7342,9 @@ def update_profile():
                     app_params.append(app_num_data.get('application_number'))
                     app_update_query = f"UPDATE applications SET {', '.join(app_fields)} WHERE application_number = %s"
                     execute_query(app_update_query, app_params)
-                    print(f"✅ Updated applications table for user {user_id}")
+                    print(f" Updated applications table for user {user_id}")
         except Exception as app_err:
-            print(f"⚠️ Could not update applications table: {app_err}")
+            print(f" Could not update applications table: {app_err}")
         
         flash("Profile updated successfully!", "success")
     else:
@@ -7359,10 +7359,10 @@ def update_profile():
 @app.route("/user/profile/upload-photo", methods=["POST"])
 def upload_profile_photo():
     """Upload profile photo for the logged in user"""
-    # 👇 KUNIN ANG TAB ID MULA SA FORM
+    # KUNIN ANG TAB ID MULA SA FORM
     tab_id = request.form.get("tab_id")
     
-    # 👇 KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER
+    # KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER
     if tab_id:
         user_session = session.get(f"user_{tab_id}")
         if user_session:
@@ -7468,10 +7468,10 @@ def change_password():
     """Change user password"""
     data = request.get_json()
     
-    # 👇 KUNIN ANG TAB ID MULA SA REQUEST
+    # KUNIN ANG TAB ID MULA SA REQUEST
     tab_id = data.get("tab_id")
     
-    # 👇 KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER
+    # KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER
     if tab_id:
         user_session = session.get(f"user_{tab_id}")
         if user_session:
@@ -7537,17 +7537,17 @@ def logout():
         tab_id = data.get('tab_id') if data else None
         
         if tab_id:
-            # 👇 I-REMOVE ANG SPECIFIC TAB SESSION
+            # I-REMOVE ANG SPECIFIC TAB SESSION
             session.pop(f"user_{tab_id}", None)
-            print(f"✅ Logout: Removed session for tab_id: {tab_id}")
+            print(f" Logout: Removed session for tab_id: {tab_id}")
         else:
-            # 👇 FALLBACK: CLEAR ALL SESSION
+            # FALLBACK: CLEAR ALL SESSION
             session.clear()
-            print("✅ Logout: Cleared all session")
+            print(" Logout: Cleared all session")
         
         return jsonify({"success": True, "message": "Logged out successfully"})
     except Exception as e:
-        print(f"❌ Logout error: {e}")
+        print(f" Logout error: {e}")
         return jsonify({"success": False, "error": str(e)}), 500
 
 
@@ -7590,7 +7590,7 @@ def get_dynamic_barangay_data():
         conn = get_db_connection()
 
         if not conn:
-            print("❌ Database connection failed")
+            print(" Database connection failed")
             return get_fallback_barangays()
 
         cursor = conn.cursor(dictionary=True)
@@ -7630,12 +7630,12 @@ def get_dynamic_barangay_data():
             barangays_by_city[city]['barangays'].sort()
         
         total_barangays = sum(len(v['barangays']) for v in barangays_by_city.values())
-        print(f"✅ Loaded {total_barangays} barangays from areas table across {len(barangays_by_city)} cities")
+        print(f" Loaded {total_barangays} barangays from areas table across {len(barangays_by_city)} cities")
         
         return barangays_by_city
         
     except Exception as e:
-        print(f"❌ Error getting barangays from areas table: {e}")
+        print(f" Error getting barangays from areas table: {e}")
         import traceback
         traceback.print_exc()
         return get_fallback_barangays()
@@ -8193,7 +8193,7 @@ def get_dynamic_barangay_response(message):
         response = "Good day, Ka-CV! Here is the complete list of barangays per municipality:\n\n"
         for city in municipalities:
             barangays = barangays_by_city[city]['barangays']
-            response += f"\n📌 {city}, Laguna ({len(barangays)} barangay{'s' if len(barangays) != 1 else ''}):\n"
+            response += f"\n {city}, Laguna ({len(barangays)} barangay{'s' if len(barangays) != 1 else ''}):\n"
             # Show all barangays (not just first 10)
             for b in barangays:
                 response += f"• {b}\n"
@@ -8214,7 +8214,7 @@ def chat():
     if not user_message:
         return jsonify({'response': "Please enter a question, Ka-CV.", 'success': False})
 
-    # 🔥 I-HARDCODE ANG TECH SUPPORT HOURS 🔥
+    # I-HARDCODE ANG TECH SUPPORT HOURS
     message_lower = user_message.lower()
     
     tech_support_keywords = [
@@ -8360,7 +8360,7 @@ Extension Offices:
                 messages.append(msg)
             messages.append({"role": "user", "content": user_message})
             
-            # 🔥 ITO ANG BAGONG CODE GAMIT ANG GPT-OSS-120B 🔥
+            # ITO ANG BAGONG CODE GAMIT ANG GPT-OSS-120B
             stream = groq_client.chat.completions.create(
                 messages=messages,
                 model="openai/gpt-oss-120b",  # <-- Pinalitan na
@@ -8540,10 +8540,10 @@ def user_change_plan():
 @app.route("/api/user/current-plan", methods=["GET"])
 def get_user_current_plan():
     """Get user's current plan from customers table"""
-    # 👇 KUNIN ANG TAB ID MULA SA REQUEST
+    # KUNIN ANG TAB ID MULA SA REQUEST
     tab_id = request.args.get("tab_id")
     
-    # 👇 KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER SESSION
+    # KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER SESSION
     if tab_id:
         user_session = session.get(f"user_{tab_id}")
         if user_session:
@@ -8612,7 +8612,7 @@ def get_user_current_plan():
 @app.route("/api/user/available-plans", methods=["GET"])
 def get_available_plans():
     """Get all available plans from plans table"""
-    # 👇 KUNIN ANG TAB ID PARA I-VERIFY ANG SESSION
+    # KUNIN ANG TAB ID PARA I-VERIFY ANG SESSION
     tab_id = request.args.get("tab_id")
     
     if tab_id:
@@ -8642,7 +8642,7 @@ def get_available_plans():
             if plan.get('price'):
                 plan['price'] = float(plan['price'])
         
-        print(f"📊 Found {len(plans)} plans")
+        print(f" Found {len(plans)} plans")
         return jsonify(plans)
         
     except Exception as e:
@@ -8660,10 +8660,10 @@ def submit_plan_change():
     """User submits a plan upgrade/downgrade request"""
     data = request.get_json()
     
-    # 👇 KUNIN ANG TAB ID MULA SA REQUEST
+    # KUNIN ANG TAB ID MULA SA REQUEST
     tab_id = data.get("tab_id")
     
-    # 👇 KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER SESSION
+    # KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER SESSION
     if tab_id:
         user_session = session.get(f"user_{tab_id}")
         if user_session:
@@ -8777,7 +8777,7 @@ def submit_plan_change():
             0
         ))
         conn.commit()
-        print(f"🔔 Superadmin notification created for plan change request {generated_request_id}")
+        print(f" Superadmin notification created for plan change request {generated_request_id}")
         
         # ========== CREATE NOTIFICATION FOR ADMIN (BY CITY) ==========
         admin_notif_id = notification_id + 1
@@ -8807,7 +8807,7 @@ def submit_plan_change():
             generated_request_id  # request_id
         ))
         conn.commit()
-        print(f"🔔 Admin notification created for plan change request {generated_request_id} in {application_city}")
+        print(f" Admin notification created for plan change request {generated_request_id} in {application_city}")
         
         cursor.close()
         conn.close()
@@ -8892,10 +8892,10 @@ def check_pending_request():
 # ===============================
 @app.route("/user/request-termination")
 def user_request_termination():
-    # 👇 KUNIN ANG TAB ID MULA SA URL
+    # KUNIN ANG TAB ID MULA SA URL
     tab_id = request.args.get("tab_id")
     
-    # 👇 KUNG MAY TAB ID, I-VERIFY ANG SESSION
+    # KUNG MAY TAB ID, I-VERIFY ANG SESSION
     if tab_id:
         user_session = session.get(f"user_{tab_id}")
         if not user_session:
@@ -8914,10 +8914,10 @@ def user_request_termination():
 @app.route("/api/user/termination-info", methods=["GET"])
 def get_user_termination_info():
     """Get user's current plan info for termination request"""
-    # 👇 KUNIN ANG TAB ID MULA SA REQUEST
+    # KUNIN ANG TAB ID MULA SA REQUEST
     tab_id = request.args.get("tab_id")
     
-    # 👇 KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER
+    # KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER
     if tab_id:
         user_session = session.get(f"user_{tab_id}")
         if user_session:
@@ -9046,10 +9046,10 @@ def get_termination_info():
 @app.route("/api/user/pending-termination", methods=["GET"])
 def get_pending_termination():
     """Check if user has a pending termination request"""
-    # 👇 KUNIN ANG TAB ID MULA SA REQUEST
+    # KUNIN ANG TAB ID MULA SA REQUEST
     tab_id = request.args.get("tab_id")
     
-    # 👇 KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER
+    # KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER
     if tab_id:
         user_session = session.get(f"user_{tab_id}")
         if user_session:
@@ -9106,11 +9106,11 @@ def submit_termination_request():
     """User submits a termination request"""
     data = request.get_json()
     
-    # 👇 KUNIN ANG TAB ID MULA SA REQUEST
+    # KUNIN ANG TAB ID MULA SA REQUEST
     tab_id = data.get("tab_id")
     username = data.get("username")
     
-    # 👇 KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER
+    # KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER
     if tab_id:
         user_session = session.get(f"user_{tab_id}")
         if user_session:
@@ -9152,10 +9152,10 @@ def submit_termination_request():
         
         application_number = user.get("application_number")
         
-        # 👇 IDAGDAG ITO — I-CLEAN ANG PRICE BAGO GAMITIN
+        # IDAGDAG ITO — I-CLEAN ANG PRICE BAGO GAMITIN
         clean_price = clean_price_to_decimal(user.get("plan_price"))
-        print(f"🔍 DEBUG - Raw plan_price: {repr(user.get('plan_price'))}")
-        print(f"🔍 DEBUG - Cleaned price: {clean_price}")
+        print(f" DEBUG - Raw plan_price: {repr(user.get('plan_price'))}")
+        print(f" DEBUG - Cleaned price: {clean_price}")
         
         # Check if there's already a pending termination request
         pending_check = """
@@ -9201,7 +9201,7 @@ def submit_termination_request():
             user.get("contract_number"),
             user.get("plan"),
             user.get("plan_speed"),
-            clean_price,   # 👈 NA-CLEAN NA
+            clean_price,   # NA-CLEAN NA
             termination_reason,
             termination_date,
             'Pending',
@@ -9228,7 +9228,7 @@ def submit_termination_request():
             0
         ))
         conn.commit()
-        print(f"🔔 Superadmin notification created for termination request {generated_request_id}")
+        print(f" Superadmin notification created for termination request {generated_request_id}")
         
         # ========== CREATE NOTIFICATION FOR ADMIN (BY CITY) ==========
         admin_notif_id = notification_id + 1
@@ -9258,7 +9258,7 @@ def submit_termination_request():
             generated_request_id  # request_id
         ))
         conn.commit()
-        print(f"🔔 Admin notification created for termination request {generated_request_id} in {application_city}")
+        print(f" Admin notification created for termination request {generated_request_id} in {application_city}")
         
         cursor.close()
         conn.close()

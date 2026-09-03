@@ -25,51 +25,51 @@
 <!-- ================= PAGE GUARD - WITH TAB ID VALIDATION ================= -->
 <script>
     (function() {
-        // 👇 KUNIN ANG TAB ID MULA SA URL
+        //  KUNIN ANG TAB ID MULA SA URL
         const urlParams = new URLSearchParams(window.location.search);
         const urlTabId = urlParams.get('tab_id');
         const sessionTabId = sessionStorage.getItem('tab_id');
         const isLoggedIn = sessionStorage.getItem('username') && sessionStorage.getItem('userType') === 'user';
         
-        console.log('🔍 Profile Page Guard Check:');
+        console.log(' Profile Page Guard Check:');
         console.log('  - Logged in:', isLoggedIn);
         console.log('  - URL Tab ID:', urlTabId);
         console.log('  - Session Tab ID:', sessionTabId);
         
-        // 👇 KUNG WALANG LOGIN, REDIRECT SA LOGIN PAGE
+        //  KUNG WALANG LOGIN, REDIRECT SA LOGIN PAGE
         if (!isLoggedIn) {
-            console.log('❌ Not logged in, redirecting to login...');
+            console.log('Not logged in, redirecting to login...');
             window.location.replace('/');
             return;
         }
         
-        // 👇 KUNG WALANG TAB ID SA URL PERO MERON SA SESSION
+        // KUNG WALANG TAB ID SA URL PERO MERON SA SESSION
         if (!urlTabId && sessionTabId) {
-            console.log('🔄 No tab_id in URL, adding from session...');
+            console.log('No tab_id in URL, adding from session...');
             const newUrl = window.location.pathname + '?tab_id=' + sessionTabId;
             window.location.replace(newUrl);
             return;
         }
         
-        // 👇 KUNG MAY TAB ID SA URL PERO WALA SA SESSION
+        // KUNG MAY TAB ID SA URL PERO WALA SA SESSION
         if (urlTabId && !sessionTabId) {
-            console.log('🔄 Tab ID found in URL, saving to session...');
+            console.log(' Tab ID found in URL, saving to session...');
             sessionStorage.setItem('tab_id', urlTabId);
             window.location.reload();
             return;
         }
         
-        // 👇 KUNG MAGKAIBA ANG TAB ID SA URL AT SESSION
+        //  KUNG MAGKAIBA ANG TAB ID SA URL AT SESSION
         if (urlTabId && sessionTabId && urlTabId !== sessionTabId) {
-            console.warn('⚠️ Tab ID mismatch! URL:', urlTabId, 'Session:', sessionTabId);
+            console.warn('️ Tab ID mismatch! URL:', urlTabId, 'Session:', sessionTabId);
             sessionStorage.setItem('tab_id', urlTabId);
             window.location.reload();
             return;
         }
         
-        // ✅ LAHAT NG CHECKS PASSED
-        console.log('✅ Page Guard passed! Tab ID:', urlTabId || sessionTabId);
-        console.log('👤 User:', sessionStorage.getItem('username'));
+        //  LAHAT NG CHECKS PASSED
+        console.log(' Page Guard passed! Tab ID:', urlTabId || sessionTabId);
+        console.log(' User:', sessionStorage.getItem('username'));
         
         // ===== CHECK USER STATUS AND DISABLE FEATURES =====
         async function checkUserStatusAndDisableFeatures() {
@@ -79,10 +79,10 @@
                 const data = await response.json();
                 const status = data.status || 'Active';
                 
-                console.log(`📊 [PAGE GUARD] User status: ${status}`);
+                console.log(`[PAGE GUARD] User status: ${status}`);
                 
                 if (status === 'Terminated' || status === 'Inactive' || status === 'Deactivated') {
-                    console.log(`⚠️ [PAGE GUARD] User status: ${status} - Disabling sidebar features on profile page`);
+                    console.log(` [PAGE GUARD] User status: ${status} - Disabling sidebar features on profile page`);
                     
                     // Disable sidebar links (except Dashboard and Profile)
                     const sidebarLinks = document.querySelectorAll('.sidebar-menu a');

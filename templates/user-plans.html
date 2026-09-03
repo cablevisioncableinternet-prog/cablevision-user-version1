@@ -383,7 +383,7 @@ function applyPlan() {
         alert("Please select a plan first");
         return;
     }
-    // ✅ Encode spaces and special characters
+    // Encode spaces and special characters
     const encodedPlan = encodeURIComponent(selectedPlan);
     window.open("/apply/" + encodedPlan, "_blank");
 }
@@ -539,7 +539,7 @@ function autoSelectPlanFromURL() {
         const emptyState = document.getElementById('emptyState');
         if (emptyState) {
             const originalContent = emptyState.innerHTML;
-            emptyState.innerHTML = `<div class="alert alert-warning">⚠️ Plan "${decodedPlanName}" not found. Please select a plan from the list.</div>`;
+            emptyState.innerHTML = `<div class="alert alert-warning"> Plan "${decodedPlanName}" not found. Please select a plan from the list.</div>`;
             setTimeout(() => {
                 emptyState.innerHTML = originalContent;
             }, 3000);
