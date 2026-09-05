@@ -342,6 +342,27 @@
     let hasPendingRequest = false;
     let pendingRequestData = null;
 
+// ==================== FORMAT DATE TIME TO 12-HOUR WITH AM/PM (UTC) ====================
+function formatDateTime12Hour(dateString) {
+    if (!dateString) return 'N/A';
+    
+    // Parse the date string as UTC
+    const date = new Date(dateString + ' UTC');
+    if (isNaN(date.getTime())) return 'Invalid Date';
+    
+    const options = {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+        timeZone: 'UTC'  // Force UTC timezone
+    };
+    
+    return date.toLocaleString('en-US', options);
+}
+
 function showToast(message, type = 'info') {
     const LABELS = {
         success: 'Success',
@@ -505,34 +526,31 @@ function showToast(message, type = 'info') {
             const alertDiv = document.getElementById('pendingRequestAlert');
             alertDiv.innerHTML = '';
             
-            // Check pending termination
-            try {
-                const termResponse = await fetch(`/api/user/pending-termination?username=${encodeURIComponent(username)}&tab_id=${tabId}`);
-                const termData = await termResponse.json();
+            // Check pending termination from the data
+            if (data.pending_request) {
+                hasPendingRequest = true;
+                pendingRequestData = data.pending_request;
+                const requestIdDisplay = pendingRequestData.request_id ? `<strong>Request ID: ${pendingRequestData.request_id}</strong><br>` : '';
                 
-                if (termData.pending_termination) {
-                    hasPendingRequest = true;
-                    pendingRequestData = termData.pending_termination;
-                    const requestIdDisplay = pendingRequestData.request_id ? `<strong>Request ID: ${pendingRequestData.request_id}</strong><br>` : '';
-                    alertDiv.innerHTML = `
-                        <div class="pending-badge" style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px 16px; margin-top: 16px; color: #92400e;">
-                            <i class="fas fa-clock" style="color: #f59e0b;"></i> 
-                            ${requestIdDisplay}
-                            You have a pending <strong>termination</strong> request.
-                            <br><small>Submitted on: ${pendingRequestData.created_at ? new Date(pendingRequestData.created_at).toLocaleString() : 'N/A'}</small>
-                            <br><small>Status: Pending Approval</small>
-                        </div>
-                    `;
-                    document.getElementById('submitTerminationBtn').disabled = true;
-                    document.getElementById('submitTerminationBtn').innerHTML = '<i class="fas fa-clock"></i> Request Pending...';
-                } else {
-                    hasPendingRequest = false;
-                    pendingRequestData = null;
-                    document.getElementById('submitTerminationBtn').disabled = false;
-                    document.getElementById('submitTerminationBtn').innerHTML = '<i class="fas fa-times-circle"></i> Request Termination';
-                }
-            } catch (termError) {
-                console.error('Error checking pending termination:', termError);
+                // GAMITIN ANG formatDateTime12Hour FUNCTION
+                const formattedDate = formatDateTime12Hour(pendingRequestData.created_at);
+                
+                alertDiv.innerHTML = `
+                    <div class="pending-badge" style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px 16px; margin-top: 16px; color: #92400e;">
+                        <i class="fas fa-clock" style="color: #f59e0b;"></i> 
+                        ${requestIdDisplay}
+                        You have a pending <strong>termination</strong> request.
+                        <br><small>Submitted on: ${formattedDate}</small>
+                        <br><small>Status: Pending Approval</small>
+                    </div>
+                `;
+                document.getElementById('submitTerminationBtn').disabled = true;
+                document.getElementById('submitTerminationBtn').innerHTML = '<i class="fas fa-clock"></i> Request Pending...';
+            } else {
+                hasPendingRequest = false;
+                pendingRequestData = null;
+                document.getElementById('submitTerminationBtn').disabled = false;
+                document.getElementById('submitTerminationBtn').innerHTML = '<i class="fas fa-times-circle"></i> Request Termination';
             }
             
         } catch (error) {
