@@ -331,11 +331,12 @@
     let pendingRequestData = null;
     let pendingSelectedPlan = null;
 
-    // ==================== FORMAT DATE TIME TO 12-HOUR WITH AM/PM ====================
+    // ==================== FORMAT DATE TIME TO 12-HOUR WITH AM/PM (UTC) ====================
     function formatDateTime12Hour(dateString) {
         if (!dateString) return 'N/A';
         
-        const date = new Date(dateString);
+        // Parse the date string as UTC
+        const date = new Date(dateString + ' UTC');
         if (isNaN(date.getTime())) return 'Invalid Date';
         
         const options = {
@@ -344,7 +345,8 @@
             day: 'numeric',
             hour: '2-digit',
             minute: '2-digit',
-            hour12: true
+            hour12: true,
+            timeZone: 'UTC'  // Force UTC timezone
         };
         
         return date.toLocaleString('en-US', options);
