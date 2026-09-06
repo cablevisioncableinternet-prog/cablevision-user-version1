@@ -3968,22 +3968,29 @@ def login():
                 if locked_until.tzinfo is None:
                     locked_until = locked_until.replace(tzinfo=PH_TZ)
                 now = datetime.now(PH_TZ)
+                
+                # ACCOUNT IS STILL LOCKED - RETURN AGAD, WALANG INCREMENT
                 if locked_until > now:
-                    # Account is still locked - RETURN EARLY
                     remaining_seconds = max(1, int((locked_until - now).total_seconds()))
                     remaining_minutes = (remaining_seconds + 59) // 60
                     lock_error = f"Account locked after 5 failed attempts. Try again in {remaining_minutes} minute(s)."
+                    
+                    print(f" Account is LOCKED. Failed attempts: {user_data.get('failed_login_attempts')}")
+                    print(f" Locked until: {locked_until}")
+                    
                     if request.is_json:
                         return jsonify({
                             "success": False,
                             "locked": True,
                             "error": lock_error,
-                            "locked_until": locked_until.isoformat()
+                            "locked_until": locked_until.isoformat(),
+                            "failed_login_attempts": user_data.get("failed_login_attempts")  # STAYS AT 5
                         }), 423
                     flash(lock_error, "danger")
                     return redirect(url_for("login"))
                 else:
-                    # Lock expired - reset attempts
+                    # Lock expired - reset attempts to 0
+                    print(f" Lock expired for user: {user_data.get('user_id')}")
                     execute_query(
                         "UPDATE users SET failed_login_attempts = 0, locked_until = NULL, lock_level = 0 WHERE user_id = %s",
                         (user_data.get("user_id"),)
@@ -3992,8 +3999,8 @@ def login():
                     user_data["locked_until"] = None
                     user_data["lock_level"] = 0
 
+            # ====== CHECK PASSWORD ======
             stored_password = user_data.get("password")
-            # Support plain and hashed passwords
             if stored_password == password or check_password_hash(stored_password, password):
                 
                 user_status = user_data.get("status", "Active")
@@ -4063,16 +4070,19 @@ def login():
                     })
                 return redirect(url_for("dashboard") + "?tab_id=" + tab_id if tab_id else url_for("dashboard"))
 
-            # ====== INVALID PASSWORD - INCREMENT FAILED ATTEMPTS ======
-            # Only increment if account is NOT locked
+            # ====== INVALID PASSWORD ======
+            # DAPAT HINDI NA MAKA-ABOT DITO KUNG LOCKED ANG ACCOUNT
             current_failed_attempts = int(user_data.get("failed_login_attempts") or 0)
             failed_attempts = current_failed_attempts + 1
             
+            print(f" Invalid password attempt #{failed_attempts} for user: {user_data.get('user_id')}")
+            
             if failed_attempts >= 5:
-                # LOCK THE ACCOUNT
+                # LOCK THE ACCOUNT - ITO ANG 5TH FAILED ATTEMPT
+                print(f" LOCKING account for user: {user_data.get('user_id')}")
                 execute_query(
-                    "UPDATE users SET failed_login_attempts = %s, locked_until = DATE_ADD(NOW(), INTERVAL 5 MINUTE), lock_level = 1 WHERE user_id = %s",
-                    (failed_attempts, user_data.get("user_id"))
+                    "UPDATE users SET failed_login_attempts = 5, locked_until = DATE_ADD(NOW(), INTERVAL 5 MINUTE), lock_level = 1 WHERE user_id = %s",
+                    (user_data.get("user_id"),)
                 )
                 lock_error = "Account locked after 5 failed attempts. Try again in 5 minutes."
                 if request.is_json:
@@ -4080,13 +4090,13 @@ def login():
                         "success": False,
                         "locked": True,
                         "error": lock_error,
-                        "failed_login_attempts": failed_attempts,
+                        "failed_login_attempts": 5,
                         "lock_level": 1
                     }), 423
                 flash(lock_error, "danger")
                 return redirect(url_for("login"))
             else:
-                # Update failed attempts but keep locked_until as NULL
+                # 1ST TO 4TH FAILED ATTEMPT - UPDATE LANG ANG COUNTER
                 execute_query(
                     "UPDATE users SET failed_login_attempts = %s, lock_level = 0 WHERE user_id = %s",
                     (failed_attempts, user_data.get("user_id"))
@@ -4096,7 +4106,7 @@ def login():
             failed_attempts = 0
             warning = None
 
-        # Invalid credentials
+        # Invalid credentials (user not found or invalid password)
         print(f" Login failed: Invalid credentials for {user_id}")
         if request.is_json:
             response = {
