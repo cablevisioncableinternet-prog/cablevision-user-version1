@@ -1699,7 +1699,6 @@ body::before {
     }
 }
 
-
 /* ================= PASSWORD TOGGLE BUTTON (EYE ICON) ================= */
 .pw-toggle-group {
     position: relative;
@@ -1713,12 +1712,12 @@ body::before {
 
 .password-toggle-btn {
     position: absolute;
-    right: 6px;
+    right: 8px;
     top: 50%;
     transform: translateY(-50%);
     background: transparent;
     border: none;
-    padding: 8px 10px;
+    padding: 4px 10px;
     margin: 0;
     width: auto;
     height: auto;
@@ -1728,7 +1727,7 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 10;
+    z-index: 5;
     transition: all 0.2s ease;
     border-radius: 50%;
     line-height: 1;
@@ -1736,12 +1735,10 @@ body::before {
 
 .password-toggle-btn:hover {
     color: #003c77;
-    background: rgba(0, 60, 119, 0.08);
 }
 
 .password-toggle-btn:focus {
     outline: none;
-    color: #003c77;
 }
 
 .password-toggle-btn i {
@@ -1749,56 +1746,7 @@ body::before {
     font-size: 16px;
 }
 
-/* For forgot modal eye icon */
-.forgot-input-group.pw-toggle-group {
-    position: relative;
-    width: 100%;
-}
-
-.forgot-input-group.pw-toggle-group input {
-    padding-right: 44px !important;
-    width: 100%;
-}
-
-.forgot-input-group .password-toggle-btn {
-    right: 6px;
-    font-size: 15px;
-    padding: 6px 10px;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .password-toggle-btn {
-        right: 4px;
-        font-size: 14px;
-        padding: 6px 8px;
-    }
-    
-    .pw-toggle-group input {
-        padding-right: 38px !important;
-    }
-}
-
-@media (max-width: 480px) {
-    .password-toggle-btn {
-        right: 2px;
-        font-size: 13px;
-        padding: 5px 8px;
-    }
-    
-    .pw-toggle-group input {
-        padding-right: 34px !important;
-    }
-    
-    .forgot-input-group .password-toggle-btn {
-        right: 4px;
-        font-size: 13px;
-        padding: 4px 8px;
-    }
-}
-
-
-/* ================= FIX FOR FORGOT MODAL EYE ICON ================= */
+/* For forgot modal */
 .forgot-input-group.pw-toggle-group {
     position: relative;
     width: 100%;
@@ -1811,12 +1759,12 @@ body::before {
 
 .forgot-input-group .password-toggle-btn {
     position: absolute;
-    right: 6px;
+    right: 8px;
     top: 50%;
     transform: translateY(-50%);
     background: transparent;
     border: none;
-    padding: 6px 10px;
+    padding: 4px 10px;
     margin: 0;
     width: auto;
     height: auto;
@@ -1826,7 +1774,7 @@ body::before {
     display: flex;
     align-items: center;
     justify-content: center;
-    z-index: 10;
+    z-index: 5;
     transition: all 0.2s ease;
     border-radius: 50%;
     line-height: 1;
@@ -1834,9 +1782,47 @@ body::before {
 
 .forgot-input-group .password-toggle-btn:hover {
     color: #003c77;
-    background: rgba(0, 60, 119, 0.08);
 }
 
 .forgot-input-group .password-toggle-btn i {
     pointer-events: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .password-toggle-btn {
+        right: 6px;
+        font-size: 14px;
+        padding: 4px 8px;
+    }
+    .pw-toggle-group input {
+        padding-right: 38px !important;
+    }
+    .forgot-input-group .password-toggle-btn {
+        right: 6px;
+        font-size: 14px;
+        padding: 4px 8px;
+    }
+    .forgot-input-group.pw-toggle-group input {
+        padding-right: 38px !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .password-toggle-btn {
+        right: 4px;
+        font-size: 13px;
+        padding: 3px 6px;
+    }
+    .pw-toggle-group input {
+        padding-right: 34px !important;
+    }
+    .forgot-input-group .password-toggle-btn {
+        right: 4px;
+        font-size: 13px;
+        padding: 3px 6px;
+    }
+    .forgot-input-group.pw-toggle-group input {
+        padding-right: 34px !important;
+    }
 }
