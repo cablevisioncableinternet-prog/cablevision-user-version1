@@ -6209,6 +6209,16 @@ body {
     z-index: 10001;
 }
 
+
+/* Keep the chatbot behind Bootstrap modals. */
+body.modal-open .chatbot-toggle,
+body.modal-open .chatbot-container {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+
+
 /* Fix for overlapping with footer on mobile */
 @media (max-width: 480px) {
     .footer {
