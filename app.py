@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify, redirect, url_for, s
 from functools import wraps
 import random
 from datetime import datetime as _real_datetime
+from datetime import timedelta
 from zoneinfo import ZoneInfo
 
 PH_TZ = ZoneInfo("Asia/Manila")
@@ -3891,7 +3892,7 @@ def login():
                     (user_data.get("user_id"),)
                 )
                 
-                # STORE SESSION WITH TAB ID AS KEY
+                # STORE SESSION WITH TAB ID AS KEY - DITO ANG IMPORTANTE!
                 if tab_id:
                     session[f"user_{tab_id}"] = {
                         "user_id": user_data.get("user_id"),
@@ -3902,8 +3903,10 @@ def login():
                         "contract_number": user_data.get("contract_number"),
                         "status": user_data.get("status", "Active")
                     }
+                    # I-STORE DIN ANG ACTIVE TAB ID
                     session["active_tab"] = tab_id
                 else:
+                    # Fallback: use regular session if no tab_id
                     session["user_id"] = user_data.get("user_id")
                     session["customer_id"] = user_data.get("customer_id")
                     session["role"] = user_data.get("role")
@@ -3913,17 +3916,19 @@ def login():
                     session["ga_verified"] = True
                     session["user_status"] = user_data.get("status", "Active")
                 
+                # Update connection status
                 execute_query(
                     "UPDATE users SET connection_status = 'Connected' WHERE user_id = %s AND status != 'Terminated'",
                     (user_data.get('user_id'),)
                 )
                 record_login_history(user_data.get("user_id"), tab_id)
                 
+                # Sa login route, pagkatapos mag-store ng session:
                 print(f" Login successful: {user_data.get('user_id')}")
                 print(f"   Tab ID: {tab_id}")
                 print(f"   Session key: user_{tab_id}")
-                print(f"   Session data: {session.get(f'user_{tab_id}')}")
-                print(f"   All session keys: {list(session.keys())}")
+                print(f"   Session data: {session.get(f'user_{tab_id}')}")  # I-PRINT ANG SESSION DATA
+                print(f"   All session keys: {list(session.keys())}")  # I-PRINT LAHAT NG SESSION KEYS
                 
                 if request.is_json:
                     return jsonify({
@@ -3962,45 +3967,34 @@ def login():
         user_data = execute_query(query, (user_id, user_id, user_id), fetch_one=True)
 
         if user_data:
-            # ====== CHECK IF ACCOUNT IS LOCKED ======
             locked_until = user_data.get("locked_until")
             if locked_until:
                 if locked_until.tzinfo is None:
                     locked_until = locked_until.replace(tzinfo=PH_TZ)
                 now = datetime.now(PH_TZ)
-                
-                # ACCOUNT IS STILL LOCKED - RETURN AGAD, WALANG INCREMENT
                 if locked_until > now:
                     remaining_seconds = max(1, int((locked_until - now).total_seconds()))
                     remaining_minutes = (remaining_seconds + 59) // 60
                     lock_error = f"Account locked after 5 failed attempts. Try again in {remaining_minutes} minute(s)."
-                    
-                    print(f" Account is LOCKED. Failed attempts: {user_data.get('failed_login_attempts')}")
-                    print(f" Locked until: {locked_until}")
-                    
                     if request.is_json:
                         return jsonify({
                             "success": False,
                             "locked": True,
                             "error": lock_error,
-                            "locked_until": locked_until.isoformat(),
-                            "failed_login_attempts": user_data.get("failed_login_attempts")  # STAYS AT 5
+                            "locked_until": locked_until.isoformat()
                         }), 423
                     flash(lock_error, "danger")
                     return redirect(url_for("login"))
-                else:
-                    # Lock expired - reset attempts to 0
-                    print(f" Lock expired for user: {user_data.get('user_id')}")
-                    execute_query(
-                        "UPDATE users SET failed_login_attempts = 0, locked_until = NULL, lock_level = 0 WHERE user_id = %s",
-                        (user_data.get("user_id"),)
-                    )
-                    user_data["failed_login_attempts"] = 0
-                    user_data["locked_until"] = None
-                    user_data["lock_level"] = 0
+                execute_query(
+                    "UPDATE users SET failed_login_attempts = 0, locked_until = NULL, lock_level = 0 WHERE user_id = %s",
+                    (user_data.get("user_id"),)
+                )
+                user_data["failed_login_attempts"] = 0
+                user_data["locked_until"] = None
+                user_data["lock_level"] = 0
 
-            # ====== CHECK PASSWORD ======
             stored_password = user_data.get("password")
+            # Support plain and hashed passwords
             if stored_password == password or check_password_hash(stored_password, password):
                 
                 user_status = user_data.get("status", "Active")
@@ -4008,6 +4002,7 @@ def login():
 
                 # ========== CHECK IF 2FA IS ENABLED ==========
                 if user_data.get("ga_enabled"):
+                    # Store user ID in session for 2FA verification
                     session["pending_ga_user_id"] = user_data.get("user_id")
                     print(f" 2FA required for user: {user_data.get('user_id')}")
                     
@@ -4028,6 +4023,7 @@ def login():
                     (user_data.get("user_id"),)
                 )
                 
+                # STORE SESSION WITH TAB ID AS KEY - DITO ANG IMPORTANTE!
                 if tab_id:
                     session[f"user_{tab_id}"] = {
                         "user_id": user_data.get("user_id"),
@@ -4038,8 +4034,10 @@ def login():
                         "contract_number": user_data.get("contract_number"),
                         "status": user_data.get("status", "Active")
                     }
+                    # I-STORE DIN ANG ACTIVE TAB ID
                     session["active_tab"] = tab_id
                 else:
+                    # Fallback: use regular session if no tab_id
                     session["user_id"] = user_data.get("user_id")
                     session["customer_id"] = user_data.get("customer_id")
                     session["role"] = user_data.get("role")
@@ -4070,19 +4068,13 @@ def login():
                     })
                 return redirect(url_for("dashboard") + "?tab_id=" + tab_id if tab_id else url_for("dashboard"))
 
-            # ====== INVALID PASSWORD ======
-            # DAPAT HINDI NA MAKA-ABOT DITO KUNG LOCKED ANG ACCOUNT
-            current_failed_attempts = int(user_data.get("failed_login_attempts") or 0)
-            failed_attempts = current_failed_attempts + 1
-            
-            print(f" Invalid password attempt #{failed_attempts} for user: {user_data.get('user_id')}")
-            
+        if user_data:
+            failed_attempts = int(user_data.get("failed_login_attempts") or 0) + 1
             if failed_attempts >= 5:
-                # LOCK THE ACCOUNT - ITO ANG 5TH FAILED ATTEMPT
-                print(f" LOCKING account for user: {user_data.get('user_id')}")
+                lock_until_ph = datetime.now(PH_TZ) + timedelta(minutes=5)
                 execute_query(
-                    "UPDATE users SET failed_login_attempts = 5, locked_until = DATE_ADD(NOW(), INTERVAL 5 MINUTE), lock_level = 1 WHERE user_id = %s",
-                    (user_data.get("user_id"),)
+                    "UPDATE users SET failed_login_attempts = 5, locked_until = %s, lock_level = 1 WHERE user_id = %s",
+                    (lock_until_ph.strftime('%Y-%m-%d %H:%M:%S'), user_data.get("user_id"))
                 )
                 lock_error = "Account locked after 5 failed attempts. Try again in 5 minutes."
                 if request.is_json:
@@ -4095,18 +4087,17 @@ def login():
                     }), 423
                 flash(lock_error, "danger")
                 return redirect(url_for("login"))
-            else:
-                # 1ST TO 4TH FAILED ATTEMPT - UPDATE LANG ANG COUNTER
-                execute_query(
-                    "UPDATE users SET failed_login_attempts = %s, lock_level = 0 WHERE user_id = %s",
-                    (failed_attempts, user_data.get("user_id"))
-                )
-                warning = "If you forgot your password, please change it now or reset your password." if failed_attempts >= 3 else None
+
+            execute_query(
+                "UPDATE users SET failed_login_attempts = %s, lock_level = 0 WHERE user_id = %s",
+                (failed_attempts, user_data.get("user_id"))
+            )
+            warning = "If you forgot your password, please change it now or reset your password." if failed_attempts >= 3 else None
         else:
             failed_attempts = 0
             warning = None
 
-        # Invalid credentials (user not found or invalid password)
+        # Invalid credentials
         print(f" Login failed: Invalid credentials for {user_id}")
         if request.is_json:
             response = {

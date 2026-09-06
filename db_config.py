@@ -22,7 +22,10 @@ def get_db_connection():
         connection = mysql.connector.connect(**DB_CONFIG)
 
         if connection.is_connected():
-            print("[DB] Connected successfully")
+            cursor = connection.cursor()
+            cursor.execute("SET time_zone = '+08:00'")
+            cursor.close()
+            print("[DB] Connected successfully (timezone set to +08:00)")
             return connection
 
     except Error as e:
