@@ -177,10 +177,13 @@
         <input type="text" name="user_id" id="userIdInput" placeholder="Enter your User ID" required autocomplete="username">
     </div>
 
-    <!-- PASSWORD -->
-    <div class="input-group password-wrapper">
+    <!-- PASSWORD - MAY EYE ICON -->
+    <div class="input-group pw-toggle-group">
         <i class="fas fa-lock"></i>
         <input type="password" name="password" id="password" placeholder="Password" required autocomplete="current-password">
+        <button type="button" class="password-toggle-btn" aria-label="Show password">
+            <i class="fas fa-eye"></i>
+        </button>
     </div>
 
     <input type="hidden" name="ga_code" id="ga_code_hidden" value="">
@@ -245,14 +248,20 @@
                     <input type="text" maxlength="1" class="code-digit" id="fpDigit6">
                 </div>
 
-                <div class="forgot-input-group">
+                <div class="forgot-input-group pw-toggle-group">
                     <i class="fas fa-lock"></i>
                     <input type="password" id="fpNewPassword" placeholder="New Password">
+                    <button type="button" class="password-toggle-btn" aria-label="Show password">
+                        <i class="fas fa-eye"></i>
+                    </button>
                 </div>
 
-                <div class="forgot-input-group">
+                <div class="forgot-input-group pw-toggle-group">
                     <i class="fas fa-lock"></i>
                     <input type="password" id="fpConfirmPassword" placeholder="Confirm New Password">
+                    <button type="button" class="password-toggle-btn" aria-label="Show password">
+                        <i class="fas fa-eye"></i>
+                    </button>
                 </div>
 
                 <div class="forgot-timer-wrapper">
@@ -929,6 +938,28 @@ document.addEventListener('keydown', (e) => {
             closeGaModal();
         }
     }
+});
+
+
+// ================= PASSWORD TOGGLE EYE ICON =================
+document.addEventListener('click', function (event) {
+    const toggleButton = event.target.closest('.password-toggle-btn');
+    if (!toggleButton) return;
+
+    const passwordWrapper = toggleButton.closest('.pw-toggle-group');
+    const passwordInput = passwordWrapper?.querySelector('input[type="password"], input[type="text"]');
+
+    if (!passwordInput) return;
+
+    const isHidden = passwordInput.type === 'password';
+    passwordInput.type = isHidden ? 'text' : 'password';
+
+    const icon = toggleButton.querySelector('i');
+    if (icon) {
+        icon.className = isHidden ? 'fas fa-eye-slash' : 'fas fa-eye';
+    }
+
+    toggleButton.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
 });
 </script>
 
