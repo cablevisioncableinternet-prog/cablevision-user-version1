@@ -8665,6 +8665,7 @@ def get_user_napbox_slots():
 
 # ===============================
 # USER PLAN CHANGE PAGE - GET CURRENT PLAN & AVAILABLE PLANS
+# (UPDATED: user_id is now passed/stored to plan_change_requests)
 # ===============================
 @app.route("/user/change-plan")
 def user_change_plan():
@@ -8681,7 +8682,7 @@ def get_user_current_plan():
     """Get user's current plan from customers table"""
     # KUNIN ANG TAB ID MULA SA REQUEST
     tab_id = request.args.get("tab_id")
-    
+
     # KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER SESSION
     if tab_id:
         user_session = session.get(f"user_{tab_id}")
@@ -8694,7 +8695,7 @@ def get_user_current_plan():
         if "user_id" not in session:
             return jsonify({"error": "Not logged in"}), 401
         user_id = session["user_id"]
-    
+
     try:
         query = """
             SELECT c.plan, c.plan_speed, c.plan_price, c.contract_number, 
@@ -8704,19 +8705,20 @@ def get_user_current_plan():
             WHERE u.user_id = %s
         """
         result = execute_query(query, (user_id,), fetch_one=True)
-        
+
         if not result:
             return jsonify({"error": "No active plan found"}), 404
-        
+
         # Check if there's a pending request
+        # (na-scope na rin ngayon base sa user_id, hindi lang application_number)
         pending_query = """
             SELECT id, request_id, requested_plan, requested_speed, requested_price, status, requested_at
             FROM plan_change_requests
-            WHERE application_number = %s AND status = 'Pending'
+            WHERE user_id = %s AND status = 'Pending'
             ORDER BY requested_at DESC LIMIT 1
         """
-        pending = execute_query(pending_query, (result.get("application_number"),), fetch_one=True)
-        
+        pending = execute_query(pending_query, (user_id,), fetch_one=True)
+
         response = {
             "plan": result.get("plan"),
             "speed": result.get("plan_speed"),
@@ -8725,7 +8727,7 @@ def get_user_current_plan():
             "billing_date": result.get("billing_date"),
             "application_number": result.get("application_number")
         }
-        
+
         if pending:
             response["pending_request"] = {
                 "id": pending.get("id"),
@@ -8736,12 +8738,11 @@ def get_user_current_plan():
                 "status": pending.get("status"),
                 "requested_at": pending.get("requested_at")
             }
-        
+
         return jsonify(response)
-        
+
     except Exception as e:
         print(f"Error in get_user_current_plan: {e}")
-        rint(f"Error in get_user_current_plan: {e}")
         return jsonify({"error": str(e)}), 500
 
 
@@ -8753,7 +8754,7 @@ def get_available_plans():
     """Get all available plans from plans table"""
     # KUNIN ANG TAB ID PARA I-VERIFY ANG SESSION
     tab_id = request.args.get("tab_id")
-    
+
     if tab_id:
         user_session = session.get(f"user_{tab_id}")
         if not user_session:
@@ -8761,11 +8762,11 @@ def get_available_plans():
     else:
         if "user_id" not in session:
             return jsonify({"error": "Not logged in"}), 401
-    
+
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        
+
         query = """
             SELECT id, name, speed, price 
             FROM plans 
@@ -8775,15 +8776,15 @@ def get_available_plans():
         plans = cursor.fetchall()
         cursor.close()
         conn.close()
-        
+
         # Convert Decimal to float para ma-JSON
         for plan in plans:
             if plan.get('price'):
                 plan['price'] = float(plan['price'])
-        
+
         print(f" Found {len(plans)} plans")
         return jsonify(plans)
-        
+
     except Exception as e:
         print(f"Error in get_available_plans: {e}")
         import traceback
@@ -8792,16 +8793,16 @@ def get_available_plans():
 
 
 # ===============================
-# USER SUBMIT PLAN CHANGE REQUEST (WITH REQUEST ID)
+# USER SUBMIT PLAN CHANGE REQUEST (WITH REQUEST ID + USER ID)
 # ===============================
 @app.route("/api/user/submit-plan-change", methods=["POST"])
 def submit_plan_change():
     """User submits a plan upgrade/downgrade request"""
     data = request.get_json()
-    
+
     # KUNIN ANG TAB ID MULA SA REQUEST
     tab_id = data.get("tab_id")
-    
+
     # KUNG MAY TAB ID, GAMITIN ITO PARA MAKUHA ANG USER SESSION
     if tab_id:
         user_session = session.get(f"user_{tab_id}")
@@ -8814,21 +8815,21 @@ def submit_plan_change():
         if "user_id" not in session:
             return jsonify({"error": "Not logged in"}), 401
         user_id = session["user_id"]
-    
+
     new_plan_name = data.get("plan_name")
     new_plan_speed = data.get("plan_speed")
     new_plan_price = data.get("plan_price")
-    
+
     if not all([new_plan_name, new_plan_speed, new_plan_price]):
         return jsonify({"error": "Missing plan details"}), 400
-    
+
     conn = None
     cursor = None
-    
+
     try:
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
-        
+
         # Get user's application number and current plan
         user_query = """
             SELECT u.application_number, u.first_name, u.last_name, u.email,
@@ -8840,52 +8841,53 @@ def submit_plan_change():
         """
         cursor.execute(user_query, (user_id,))
         user = cursor.fetchone()
-        
+
         if not user:
             return jsonify({"error": "User not found"}), 404
-        
+
         application_number = user.get("application_number")
         current_plan = user.get("current_plan")
         current_speed = user.get("current_speed")
         current_price = user.get("current_price")
-        
+
         # Check if trying to change to the same plan
         if current_plan == new_plan_name:
             return jsonify({"error": "You are already on this plan"}), 400
-        
-        # Check if there's already a pending request
+
+        # Check if there's already a pending request (base sa user_id na)
         pending_check = """
             SELECT id FROM plan_change_requests 
-            WHERE application_number = %s AND status = 'Pending'
+            WHERE user_id = %s AND status = 'Pending'
         """
-        cursor.execute(pending_check, (application_number,))
+        cursor.execute(pending_check, (user_id,))
         pending_request = cursor.fetchone()
-        
+
         if pending_request:
             return jsonify({
                 "error": "You already have a pending plan change request. Please wait for admin approval."
             }), 400
-        
+
         # ========== GENERATE REQUEST ID ==========
         import random
         import string
-        
+
         date_part = datetime.now().strftime("%Y%m%d")
         random_part = ''.join(random.choices(string.digits, k=5))
         generated_request_id = f"PCR-{date_part}-{random_part}"
-        
-        # ========== SAVE PLAN CHANGE REQUEST WITH REQUEST ID ==========
+
+        # ========== SAVE PLAN CHANGE REQUEST WITH REQUEST ID + USER ID ==========
         insert_request = """
             INSERT INTO plan_change_requests (
-                request_id, application_number, 
+                request_id, application_number, user_id,
                 current_plan, current_speed, current_price,
                 requested_plan, requested_speed, requested_price, 
                 status, requested_at
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
         cursor.execute(insert_request, (
             generated_request_id,
             application_number,
+            user_id,
             current_plan,
             current_speed,
             current_price,
@@ -8896,10 +8898,10 @@ def submit_plan_change():
             datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         ))
         conn.commit()
-        
+
         applicant_name = f"{user.get('first_name', '')} {user.get('last_name', '')}".strip()
         application_city = user.get('city', 'Unknown')
-        
+
         # ========== CREATE NOTIFICATION FOR SUPERADMIN (with request_id) ==========
         notification_id = int(datetime.now().timestamp() * 1000)
         notif_query = """
@@ -8917,7 +8919,7 @@ def submit_plan_change():
         ))
         conn.commit()
         print(f" Superadmin notification created for plan change request {generated_request_id}")
-        
+
         # ========== CREATE NOTIFICATION FOR ADMIN (BY CITY) ==========
         admin_notif_id = notification_id + 1
         admin_notif_query = """
@@ -8927,7 +8929,7 @@ def submit_plan_change():
                 contract_number, billing_date, request_id
             ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """
-        
+
         cursor.execute(admin_notif_query, (
             admin_notif_id,
             "Plan Change Request in Your Area",
@@ -8947,10 +8949,10 @@ def submit_plan_change():
         ))
         conn.commit()
         print(f" Admin notification created for plan change request {generated_request_id} in {application_city}")
-        
+
         cursor.close()
         conn.close()
-        
+
         return jsonify({
             "success": True,
             "message": f"Your plan change request has been submitted. Request ID: {generated_request_id}",
@@ -8961,7 +8963,7 @@ def submit_plan_change():
                 "price": new_plan_price
             }
         })
-        
+
     except Exception as e:
         print(f"Error in submit_plan_change: {e}")
         import traceback
@@ -9463,48 +9465,38 @@ def get_user_all_transactions():
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
-        # Kunin ang application_number na naka-bind sa user_id na ito.
-        # (Ginagamit lang ito ng plan_change_requests dahil walang sariling
-        #  user_id column ang table na iyon — pero galing pa rin ito sa
-        #  user_id ng kasalukuyang naka-login, kaya secure pa rin ang scoping.)
-        cursor.execute("SELECT application_number FROM users WHERE user_id = %s", (user_id,))
-        user_row = cursor.fetchone()
-        application_number = user_row.get("application_number") if user_row else None
-
         transactions = []
 
         # ---------- CHANGE PLAN REQUESTS ----------
-        # (plan_change_requests has no user_id column — application_number here
-        #  was already resolved above strictly from this user's own user_id)
-        if application_number:
-            cursor.execute("""
-                SELECT pcr.request_id, pcr.current_plan, pcr.current_speed, pcr.requested_plan,
-                       pcr.requested_speed, pcr.status, pcr.admin_notes, pcr.requested_at, pcr.reviewed_at,
-                       c.first_name, c.last_name
-                FROM plan_change_requests pcr
-                LEFT JOIN customers c ON pcr.application_number = c.application_number
-                WHERE pcr.application_number = %s
-                ORDER BY pcr.requested_at DESC
-            """, (application_number,))
-            for row in cursor.fetchall():
-                status = row.get("status") or "Pending"
-                full_name = f"{row.get('first_name') or ''} {row.get('last_name') or ''}".strip() or "N/A"
-                transactions.append({
-                    "id": row.get("request_id"),
-                    "full_name": full_name,
-                    "type": "Change Plan",
-                    "status": status,
-                    "description": f"{row.get('current_plan') or 'N/A'} \u2192 {row.get('requested_plan')}",
-                    "submitted_at": row.get("requested_at"),
-                    # ipakita lang ang updated date kung na-review na (hindi pending)
-                    "updated_at": row.get("reviewed_at") if status != "Pending" else None,
-                    "details": {
-                        "Requested By": full_name,
-                        "Current Plan": f"{row.get('current_plan') or 'N/A'} ({row.get('current_speed') or 'N/A'} Mbps)",
-                        "Requested Plan": f"{row.get('requested_plan')} ({row.get('requested_speed')} Mbps)",
-                        "Admin Notes": row.get("admin_notes")
-                    }
-                })
+        # (plan_change_requests now has its own user_id column — filter directly)
+        cursor.execute("""
+            SELECT pcr.request_id, pcr.current_plan, pcr.current_speed, pcr.requested_plan,
+                   pcr.requested_speed, pcr.status, pcr.admin_notes, pcr.requested_at, pcr.reviewed_at,
+                   u.first_name, u.last_name
+            FROM plan_change_requests pcr
+            LEFT JOIN users u ON pcr.user_id = u.user_id
+            WHERE pcr.user_id = %s
+            ORDER BY pcr.requested_at DESC
+        """, (user_id,))
+        for row in cursor.fetchall():
+            status = row.get("status") or "Pending"
+            full_name = f"{row.get('first_name') or ''} {row.get('last_name') or ''}".strip() or "N/A"
+            transactions.append({
+                "id": row.get("request_id"),
+                "full_name": full_name,
+                "type": "Change Plan",
+                "status": status,
+                "description": f"{row.get('current_plan') or 'N/A'} \u2192 {row.get('requested_plan')}",
+                "submitted_at": row.get("requested_at"),
+                # ipakita lang ang updated date kung na-review na (hindi pending)
+                "updated_at": row.get("reviewed_at") if status != "Pending" else None,
+                "details": {
+                    "Requested By": full_name,
+                    "Current Plan": f"{row.get('current_plan') or 'N/A'} ({row.get('current_speed') or 'N/A'} Mbps)",
+                    "Requested Plan": f"{row.get('requested_plan')} ({row.get('requested_speed')} Mbps)",
+                    "Admin Notes": row.get("admin_notes")
+                }
+            })
 
         # ---------- TERMINATION REQUESTS ----------
         # (termination_requests HAS its own user_id column — filter directly by user_id,
