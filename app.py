@@ -9463,7 +9463,10 @@ def get_user_all_transactions():
         conn = get_db_connection()
         cursor = conn.cursor(dictionary=True)
 
-        # Kunin ang application_number ng user (para sa plan_change_requests / termination_requests)
+        # Kunin ang application_number na naka-bind sa user_id na ito.
+        # (Ginagamit lang ito ng plan_change_requests dahil walang sariling
+        #  user_id column ang table na iyon — pero galing pa rin ito sa
+        #  user_id ng kasalukuyang naka-login, kaya secure pa rin ang scoping.)
         cursor.execute("SELECT application_number FROM users WHERE user_id = %s", (user_id,))
         user_row = cursor.fetchone()
         application_number = user_row.get("application_number") if user_row else None
@@ -9471,7 +9474,8 @@ def get_user_all_transactions():
         transactions = []
 
         # ---------- CHANGE PLAN REQUESTS ----------
-        # (plan_change_requests has no name columns, so JOIN with customers via application_number)
+        # (plan_change_requests has no user_id column — application_number here
+        #  was already resolved above strictly from this user's own user_id)
         if application_number:
             cursor.execute("""
                 SELECT pcr.request_id, pcr.current_plan, pcr.current_speed, pcr.requested_plan,
@@ -9503,36 +9507,36 @@ def get_user_all_transactions():
                 })
 
         # ---------- TERMINATION REQUESTS ----------
-        # (termination_requests already has its own first_name/last_name columns)
-        if application_number:
-            cursor.execute("""
-                SELECT request_id, first_name, last_name, current_plan, current_speed,
-                       termination_reason, termination_date, status, admin_notes,
-                       created_at, approved_at, rejected_at, updated_at
-                FROM termination_requests
-                WHERE application_number = %s
-                ORDER BY created_at DESC
-            """, (application_number,))
-            for row in cursor.fetchall():
-                status = row.get("status") or "Pending"
-                updated = row.get("approved_at") or row.get("rejected_at")
-                full_name = f"{row.get('first_name') or ''} {row.get('last_name') or ''}".strip() or "N/A"
-                transactions.append({
-                    "id": row.get("request_id"),
-                    "full_name": full_name,
-                    "type": "Termination",
-                    "status": status,
-                    "description": f"Terminate {row.get('current_plan') or 'plan'}",
-                    "submitted_at": row.get("created_at"),
-                    "updated_at": updated if status != "Pending" else None,
-                    "details": {
-                        "Requested By": full_name,
-                        "Current Plan": f"{row.get('current_plan') or 'N/A'} ({row.get('current_speed') or 'N/A'} Mbps)",
-                        "Reason": row.get("termination_reason"),
-                        "Preferred Termination Date": str(row.get("termination_date")) if row.get("termination_date") else None,
-                        "Admin Notes": row.get("admin_notes")
-                    }
-                })
+        # (termination_requests HAS its own user_id column — filter directly by user_id,
+        #  hindi na application_number, para talagang naka-base sa CV-**** ng naka-login)
+        cursor.execute("""
+            SELECT request_id, first_name, last_name, current_plan, current_speed,
+                   termination_reason, termination_date, status, admin_notes,
+                   created_at, approved_at, rejected_at, updated_at
+            FROM termination_requests
+            WHERE user_id = %s
+            ORDER BY created_at DESC
+        """, (user_id,))
+        for row in cursor.fetchall():
+            status = row.get("status") or "Pending"
+            updated = row.get("approved_at") or row.get("rejected_at")
+            full_name = f"{row.get('first_name') or ''} {row.get('last_name') or ''}".strip() or "N/A"
+            transactions.append({
+                "id": row.get("request_id"),
+                "full_name": full_name,
+                "type": "Termination",
+                "status": status,
+                "description": f"Terminate {row.get('current_plan') or 'plan'}",
+                "submitted_at": row.get("created_at"),
+                "updated_at": updated if status != "Pending" else None,
+                "details": {
+                    "Requested By": full_name,
+                    "Current Plan": f"{row.get('current_plan') or 'N/A'} ({row.get('current_speed') or 'N/A'} Mbps)",
+                    "Reason": row.get("termination_reason"),
+                    "Preferred Termination Date": str(row.get("termination_date")) if row.get("termination_date") else None,
+                    "Admin Notes": row.get("admin_notes")
+                }
+            })
 
         # ---------- RECONNECT REQUESTS ----------
         # Note: reconnect_requests uses user_id (application_number can be NULL there)
