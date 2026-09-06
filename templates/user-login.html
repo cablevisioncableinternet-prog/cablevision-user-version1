@@ -941,57 +941,25 @@ document.addEventListener('keydown', (e) => {
 });
 
 
-// ================= PASSWORD TOGGLE EYE ICON - FIXED =================
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('🔍 Setting up password toggles...');
-    
-    // Kunin ang lahat ng password toggle buttons
-    const toggleButtons = document.querySelectorAll('.password-toggle-btn');
-    console.log('👁️ Found', toggleButtons.length, 'toggle buttons');
-    
-    toggleButtons.forEach(function(button, index) {
-        // I-REMOVE ang existing event listeners sa pamamagitan ng clone
-        const newButton = button.cloneNode(true);
-        button.parentNode.replaceChild(newButton, button);
-        
-        // Magdagdag ng bagong event listener
-        newButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            console.log('👆 Toggle button clicked!');
-            
-            // Hanapin ang parent container na may class na pw-toggle-group
-            const wrapper = this.closest('.pw-toggle-group, .forgot-input-group');
-            if (!wrapper) {
-                console.error('❌ No wrapper found!');
-                return;
-            }
-            
-            // Hanapin ang password input sa loob ng wrapper
-            const input = wrapper.querySelector('input[type="password"], input[type="text"]');
-            if (!input) {
-                console.error('❌ No password input found!');
-                return;
-            }
-            
-            console.log('  - Input type before:', input.type);
-            
-            // Toggle password visibility
-            const isHidden = input.type === 'password';
-            input.type = isHidden ? 'text' : 'password';
-            
-            // Toggle icon
-            const icon = this.querySelector('i');
-            if (icon) {
-                icon.className = isHidden ? 'fas fa-eye-slash' : 'fas fa-eye';
-                console.log('  - Icon changed to:', icon.className);
-            }
-            
-            this.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
-            console.log('  - Input type after:', input.type);
-        });
-    });
+// ================= PASSWORD TOGGLE EYE ICON (FROM WORKING LOGIN) =================
+document.addEventListener('click', function (event) {
+    const toggleButton = event.target.closest('.password-toggle-btn');
+    if (!toggleButton) return;
+
+    const passwordWrapper = toggleButton.closest('.pw-toggle-group');
+    const passwordInput = passwordWrapper?.querySelector('input[type="password"], input[type="text"]');
+
+    if (!passwordInput) return;
+
+    const isHidden = passwordInput.type === 'password';
+    passwordInput.type = isHidden ? 'text' : 'password';
+
+    const icon = toggleButton.querySelector('i');
+    if (icon) {
+        icon.className = isHidden ? 'fas fa-eye-slash' : 'fas fa-eye';
+    }
+
+    toggleButton.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
 });
 </script>
 
