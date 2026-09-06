@@ -544,6 +544,16 @@
                     })
                 });
                 const data = await res.json();
+
+                // KUNG NAKA-LOCK PA ANG ACCOUNT, HUWAG MAG-AUTO-LOGIN
+                if (res.ok && data.success && data.locked) {
+                    showToast(data.message || `Password updated. Please wait ${data.remaining_minutes} minute(s) - your account is still locked.`, 'info');
+                    if (forgotModal) forgotModal.style.display = 'none';
+                    resetPasswordBtn.disabled = false;
+                    resetPasswordBtn.textContent = "Reset Password";
+                    return;
+                }
+
                 if (res.ok && data.success) {
                     showToast(data.message || "Password updated successfully.", 'success');
 

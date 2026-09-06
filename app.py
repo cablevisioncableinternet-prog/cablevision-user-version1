@@ -4510,6 +4510,38 @@ def user_reset_password():
         }), 400
 
     # ===============================
+    # CHECK IF USER IS CURRENTLY LOCKED
+    # ===============================
+    lock_check_query = """
+        SELECT locked_until
+        FROM users
+        WHERE user_id = %s OR username = %s OR email = %s
+        LIMIT 1
+    """
+    lock_check_data = execute_query(
+        lock_check_query,
+        (actual_username, actual_username, user_email),
+        fetch_one=True
+    )
+
+    is_still_locked = False
+    remaining_minutes = 0
+    locked_until_value = None
+
+    if lock_check_data:
+        locked_until_value = lock_check_data.get("locked_until")
+        if locked_until_value:
+            if locked_until_value.tzinfo is None:
+                locked_until_value = locked_until_value.replace(tzinfo=PH_TZ)
+            now_ph = datetime.now(PH_TZ)
+            if locked_until_value > now_ph:
+                is_still_locked = True
+                remaining_seconds = max(1, int((locked_until_value - now_ph).total_seconds()))
+                remaining_minutes = (remaining_seconds + 59) // 60
+
+    print(f" Lock check - is_still_locked: {is_still_locked}, remaining_minutes: {remaining_minutes}")
+
+    # ===============================
     # HASH NEW PASSWORD
     # ===============================
     hashed_new_password = generate_password_hash(new_password)
@@ -4558,18 +4590,29 @@ def user_reset_password():
     # ===============================
     # STEP 2
     # UPDATE USER PASSWORD
+    # (Kung naka-lock pa, huwag i-clear ang lockout fields)
     # ===============================
-    update_query = """
-        UPDATE users
-        SET password = %s,
-            reset_code = NULL,
-            failed_login_attempts = 0,
-            locked_until = NULL,
-            lock_level = 0
-        WHERE user_id = %s
-           OR username = %s
-           OR email = %s
-    """
+    if is_still_locked:
+        update_query = """
+            UPDATE users
+            SET password = %s,
+                reset_code = NULL
+            WHERE user_id = %s
+               OR username = %s
+               OR email = %s
+        """
+    else:
+        update_query = """
+            UPDATE users
+            SET password = %s,
+                reset_code = NULL,
+                failed_login_attempts = 0,
+                locked_until = NULL,
+                lock_level = 0
+            WHERE user_id = %s
+               OR username = %s
+               OR email = %s
+        """
 
     update_rows = execute_query(
         update_query,
@@ -4630,6 +4673,20 @@ def user_reset_password():
         }), 404
 
     print(f" User data retrieved: {user_data.get('user_id')}")
+
+    # ===============================
+    # KUNG NAKA-LOCK PA, HUWAG AUTO-LOGIN
+    # BABALIK SA LOGIN PAGE NA LANG MAY MESSAGE
+    # ===============================
+    if is_still_locked:
+        return jsonify({
+            "success": True,
+            "locked": True,
+            "message": f"Password updated successfully! However, your account is still locked due to multiple failed login attempts. Please wait {remaining_minutes} minute(s) before logging in.",
+            "remaining_minutes": remaining_minutes,
+            "locked_until": locked_until_value.isoformat() if locked_until_value else None,
+            "username": actual_username or user_data.get("username") or user_data.get("user_id")
+        }), 200
 
     # ===============================
     # STEP 4
