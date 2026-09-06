@@ -152,6 +152,12 @@ def ensure_user_security_columns():
             execute_query("ALTER TABLE users ADD COLUMN ga_enabled TINYINT(1) NOT NULL DEFAULT 0")
         if "reset_code" not in existing_fields:
             execute_query("ALTER TABLE users ADD COLUMN reset_code VARCHAR(32) NULL")
+        if "failed_login_attempts" not in existing_fields:
+            execute_query("ALTER TABLE users ADD COLUMN failed_login_attempts INT NOT NULL DEFAULT 0")
+        if "locked_until" not in existing_fields:
+            execute_query("ALTER TABLE users ADD COLUMN locked_until DATETIME NULL")
+        if "lock_level" not in existing_fields:
+            execute_query("ALTER TABLE users ADD COLUMN lock_level TINYINT NOT NULL DEFAULT 0")
     except Exception as e:
         print(f"Could not ensure user security columns: {e}")
 
@@ -3857,7 +3863,8 @@ def login():
             user_query = """
                 SELECT user_id, customer_id, application_number, email, username, password, role,
                        connection_status, contract_number, status, ga_secret, ga_enabled,
-                       first_name, last_name, middle_name, suffix, contact_number, address
+                      first_name, last_name, middle_name, suffix, contact_number, address,
+                      failed_login_attempts, locked_until, lock_level
                 FROM users
                 WHERE user_id = %s
                 LIMIT 1
@@ -3879,6 +3886,10 @@ def login():
             if is_valid:
                 # GA CODE IS CORRECT - LOGIN THE USER
                 session.pop("pending_ga_user_id", None)
+                execute_query(
+                    "UPDATE users SET failed_login_attempts = 0, locked_until = NULL, lock_level = 0 WHERE user_id = %s",
+                    (user_data.get("user_id"),)
+                )
                 
                 # STORE SESSION WITH TAB ID AS KEY - DITO ANG IMPORTANTE!
                 if tab_id:
@@ -3946,7 +3957,8 @@ def login():
             SELECT user_id, customer_id, application_number, email, username,
                    password, role, connection_status, contract_number, status,
                    ga_secret, ga_enabled, first_name, last_name, middle_name,
-                   suffix, contact_number, address
+                     suffix, contact_number, address, failed_login_attempts,
+                     locked_until, lock_level
             FROM users 
             WHERE user_id = %s OR email = %s OR username = %s
             LIMIT 1
@@ -3954,6 +3966,32 @@ def login():
         user_data = execute_query(query, (user_id, user_id, user_id), fetch_one=True)
 
         if user_data:
+            locked_until = user_data.get("locked_until")
+            if locked_until:
+                if locked_until.tzinfo is None:
+                    locked_until = locked_until.replace(tzinfo=PH_TZ)
+                now = datetime.now(PH_TZ)
+                if locked_until > now:
+                    remaining_seconds = max(1, int((locked_until - now).total_seconds()))
+                    remaining_minutes = (remaining_seconds + 59) // 60
+                    lock_error = f"Account locked after 5 failed attempts. Try again in {remaining_minutes} minute(s)."
+                    if request.is_json:
+                        return jsonify({
+                            "success": False,
+                            "locked": True,
+                            "error": lock_error,
+                            "locked_until": locked_until.isoformat()
+                        }), 423
+                    flash(lock_error, "danger")
+                    return redirect(url_for("login"))
+                execute_query(
+                    "UPDATE users SET failed_login_attempts = 0, locked_until = NULL, lock_level = 0 WHERE user_id = %s",
+                    (user_data.get("user_id"),)
+                )
+                user_data["failed_login_attempts"] = 0
+                user_data["locked_until"] = None
+                user_data["lock_level"] = 0
+
             stored_password = user_data.get("password")
             # Support plain and hashed passwords
             if stored_password == password or check_password_hash(stored_password, password):
@@ -3979,6 +4017,10 @@ def login():
                     return render_template("user-login.html", require_ga_code=True, pending_ga_user_id=user_data.get("user_id"))
                 
                 # ========== NO 2FA - LOGIN DIRECTLY ==========
+                execute_query(
+                    "UPDATE users SET failed_login_attempts = 0, locked_until = NULL, lock_level = 0 WHERE user_id = %s",
+                    (user_data.get("user_id"),)
+                )
                 
                 # STORE SESSION WITH TAB ID AS KEY - DITO ANG IMPORTANTE!
                 if tab_id:
@@ -4025,10 +4067,45 @@ def login():
                     })
                 return redirect(url_for("dashboard") + "?tab_id=" + tab_id if tab_id else url_for("dashboard"))
 
+        if user_data:
+            failed_attempts = int(user_data.get("failed_login_attempts") or 0) + 1
+            if failed_attempts >= 5:
+                execute_query(
+                    "UPDATE users SET failed_login_attempts = 5, locked_until = DATE_ADD(NOW(), INTERVAL 5 MINUTE), lock_level = 1 WHERE user_id = %s",
+                    (user_data.get("user_id"),)
+                )
+                lock_error = "Account locked after 5 failed attempts. Try again in 5 minutes."
+                if request.is_json:
+                    return jsonify({
+                        "success": False,
+                        "locked": True,
+                        "error": lock_error,
+                        "failed_login_attempts": 5,
+                        "lock_level": 1
+                    }), 423
+                flash(lock_error, "danger")
+                return redirect(url_for("login"))
+
+            execute_query(
+                "UPDATE users SET failed_login_attempts = %s, lock_level = 0 WHERE user_id = %s",
+                (failed_attempts, user_data.get("user_id"))
+            )
+            warning = "If you forgot your password, please change it now or reset your password." if failed_attempts >= 3 else None
+        else:
+            failed_attempts = 0
+            warning = None
+
         # Invalid credentials
         print(f" Login failed: Invalid credentials for {user_id}")
         if request.is_json:
-            return jsonify({"success": False, "error": "Invalid User ID or Password"}), 401
+            response = {
+                "success": False,
+                "error": "Invalid User ID or Password",
+                "failed_login_attempts": failed_attempts
+            }
+            if warning:
+                response["warning"] = warning
+            return jsonify(response), 401
         else:
             flash("Invalid User ID or Password", "danger")
             return redirect(url_for("login"))
@@ -4483,7 +4560,10 @@ def user_reset_password():
     update_query = """
         UPDATE users
         SET password = %s,
-            reset_code = NULL
+            reset_code = NULL,
+            failed_login_attempts = 0,
+            locked_until = NULL,
+            lock_level = 0
         WHERE user_id = %s
            OR username = %s
            OR email = %s
@@ -9282,6 +9362,296 @@ def submit_termination_request():
         if conn:
             conn.close()
 
+
+
+
+# ===============================
+# USER TRANSACTIONS PAGE
+# ===============================
+@app.route("/user/transactions")
+@login_required
+def user_transactions():
+    # KUNIN ANG TAB ID MULA SA URL PARAMETER
+    tab_id = request.args.get("tab_id")
+    
+    # KUNG WALANG TAB ID SA URL, TINGNAN KUNG NASA SESSION
+    if not tab_id:
+        tab_id = session.get("active_tab")
+    
+    # KUNG WALANG TAB ID, REDIRECT SA LOGIN
+    if not tab_id:
+        flash("Please login first.", "warning")
+        return redirect(url_for("login"))
+    
+    # KUNIN ANG USER DATA GAMIT ANG TAB ID
+    user_session = session.get(f"user_{tab_id}")
+    
+    if user_session:
+        user_id = user_session.get("user_id")
+    else:
+        # FALLBACK: USE REGULAR SESSION
+        user_id = session.get("user_id")
+    
+    # KUNG WALANG USER_ID, REDIRECT SA LOGIN
+    if not user_id:
+        flash("Session expired. Please login again.", "warning")
+        return redirect(url_for("login"))
+    
+    # KUNIN ANG USER DATA
+    user_query = "SELECT application_number, first_name, last_name FROM users WHERE user_id = %s"
+    user_data = execute_query(user_query, (user_id,), fetch_one=True)
+    
+    application_number = user_data.get("application_number") if user_data else None
+    
+    # KUNIN ANG CURRENT PLAN NG USER
+    current_plan = None
+    if application_number:
+        plan_query = """
+            SELECT plan, plan_speed, plan_price 
+            FROM customers 
+            WHERE application_number = %s 
+            LIMIT 1
+        """
+        customer = execute_query(plan_query, (application_number,), fetch_one=True)
+        if customer:
+            current_plan = {
+                "name": customer.get("plan", "No Active Plan"),
+                "speed": customer.get("plan_speed", "0"),
+                "price": customer.get("plan_price", "0")
+            }
+    
+    return render_template("user-transactions.html",
+                         user_id=user_id,
+                         application_number=application_number,
+                         current_plan=current_plan,
+                         tab_id=tab_id)
+
+
+@app.route("/api/user/transactions")
+@login_required
+def api_user_transactions():
+    # KUNIN ANG USER ID
+    tab_id = request.args.get("tab_id")
+    if tab_id:
+        user_session = session.get(f"user_{tab_id}")
+        user_id = user_session.get("user_id") if user_session else None
+    else:
+        user_id = session.get("user_id")
+    
+    if not user_id:
+        return jsonify({"error": "Unauthorized"}), 401
+    
+    # KUNIN ANG FILTERS AT PAGINATION PARAMETERS
+    page = request.args.get("page", 1, type=int)
+    per_page = request.args.get("per_page", 10, type=int)
+    status_filter = request.args.get("status", "All")
+    type_filter = request.args.get("type", "All")
+    search_query = request.args.get("search", "").strip()
+    
+    if per_page > 50:
+        per_page = 50
+    
+    offset = (page - 1) * per_page
+    
+    # KUNIN ANG APPLICATION NUMBER NG USER
+    user_query = "SELECT application_number FROM users WHERE user_id = %s"
+    user_data = execute_query(user_query, (user_id,), fetch_one=True)
+    application_number = user_data.get("application_number") if user_data else None
+    
+    print(f"DEBUG: User ID: {user_id}, Application Number: {application_number}")
+    
+    if not application_number:
+        return jsonify({
+            "transactions": [],
+            "total": 0,
+            "page": page,
+            "per_page": per_page,
+            "total_pages": 0
+        })
+    
+    # ==========================================
+    # FETCH FROM EACH TABLE SEPARATELY
+    # ==========================================
+    all_transactions = []
+    
+    # 1. Plan Change Requests
+    plan_query = """
+        SELECT 
+            id,
+            request_id,
+            'Change Plan' as transaction_type,
+            current_plan as current_plan_name,
+            requested_plan as new_plan_name,
+            status,
+            requested_at as submitted_at,
+            reviewed_at as updated_at
+        FROM plan_change_requests
+        WHERE application_number = %s
+    """
+    plan_params = [application_number]
+    plan_where = []
+    
+    if status_filter != "All":
+        plan_where.append("status = %s")
+        plan_params.append(status_filter)
+    if search_query:
+        plan_where.append("request_id LIKE %s")
+        plan_params.append(f"%{search_query}%")
+    
+    if plan_where:
+        plan_query += " AND " + " AND ".join(plan_where)
+    
+    plan_results = execute_query(plan_query, tuple(plan_params), fetch_all=True) or []
+    for t in plan_results:
+        t['transaction_type'] = 'Change Plan'
+        all_transactions.append(t)
+    
+    # 2. Termination Requests
+    term_query = """
+        SELECT 
+            id,
+            request_id,
+            'Termination' as transaction_type,
+            current_plan as current_plan_name,
+            NULL as new_plan_name,
+            status,
+            created_at as submitted_at,
+            CASE 
+                WHEN status = 'Approved' THEN approved_at
+                WHEN status = 'Rejected' THEN rejected_at
+                ELSE created_at
+            END as updated_at
+        FROM termination_requests
+        WHERE application_number = %s
+    """
+    term_params = [application_number]
+    term_where = []
+    
+    if status_filter != "All":
+        term_where.append("status = %s")
+        term_params.append(status_filter)
+    if search_query:
+        term_where.append("request_id LIKE %s")
+        term_params.append(f"%{search_query}%")
+    
+    if term_where:
+        term_query += " AND " + " AND ".join(term_where)
+    
+    term_results = execute_query(term_query, tuple(term_params), fetch_all=True) or []
+    for t in term_results:
+        t['transaction_type'] = 'Termination'
+        all_transactions.append(t)
+    
+    # 3. Reconnect Requests
+    recon_query = """
+        SELECT 
+            id,
+            request_id,
+            'Reconnection' as transaction_type,
+            current_plan_name as current_plan_name,
+            new_plan_name as new_plan_name,
+            status,
+            created_at as submitted_at,
+            updated_at as updated_at
+        FROM reconnect_requests
+        WHERE application_number = %s
+    """
+    recon_params = [application_number]
+    recon_where = []
+    
+    if status_filter != "All":
+        recon_where.append("status = %s")
+        recon_params.append(status_filter)
+    if search_query:
+        recon_where.append("request_id LIKE %s")
+        recon_params.append(f"%{search_query}%")
+    
+    if recon_where:
+        recon_query += " AND " + " AND ".join(recon_where)
+    
+    recon_results = execute_query(recon_query, tuple(recon_params), fetch_all=True) or []
+    for t in recon_results:
+        t['transaction_type'] = 'Reconnection'
+        all_transactions.append(t)
+    
+    # ==========================================
+    # FILTER BY TYPE (if not "All")
+    # ==========================================
+    if type_filter != "All":
+        all_transactions = [t for t in all_transactions if t.get('transaction_type') == type_filter]
+    
+    # ==========================================
+    # SORT BY SUBMITTED DATE (latest first)
+    # ==========================================
+    all_transactions.sort(key=lambda x: x.get('submitted_at') or datetime.min, reverse=True)
+    
+    # ==========================================
+    # APPLY PAGINATION
+    # ==========================================
+    total = len(all_transactions)
+    total_pages = (total + per_page - 1) // per_page if total > 0 else 0
+    
+    # Slice for current page
+    start_idx = offset
+    end_idx = min(start_idx + per_page, total)
+    paginated_transactions = all_transactions[start_idx:end_idx]
+    
+    # ==========================================
+    # FORMAT OUTPUT
+    # ==========================================
+    formatted_transactions = []
+    for t in paginated_transactions:
+        status = t.get("status", "Pending")
+        
+        submitted_at = t.get("submitted_at")
+        updated_at = t.get("updated_at")
+        
+        if submitted_at:
+            submitted_at = submitted_at.strftime("%Y-%m-%d %I:%M %p") if hasattr(submitted_at, 'strftime') else str(submitted_at)
+        if updated_at:
+            updated_at = updated_at.strftime("%Y-%m-%d %I:%M %p") if hasattr(updated_at, 'strftime') else str(updated_at)
+        
+        trans_type = t.get("transaction_type", "")
+        current_plan = t.get("current_plan_name", "N/A")
+        new_plan = t.get("new_plan_name")
+        
+        if trans_type == "Change Plan":
+            description = f"Change Plan: {current_plan} → {new_plan}" if new_plan else f"Change Plan: {current_plan}"
+        elif trans_type == "Termination":
+            description = f"Termination Request - Current Plan: {current_plan}"
+        elif trans_type == "Reconnection":
+            if new_plan:
+                description = f"Reconnection with Plan Change: {current_plan} → {new_plan}"
+            else:
+                description = f"Reconnection Request - Current Plan: {current_plan}"
+        else:
+            description = f"{trans_type} Request"
+        
+        formatted_transactions.append({
+            "id": t.get("id"),
+            "request_id": t.get("request_id", ""),
+            "type": trans_type,
+            "description": description,
+            "status": status,
+            "submitted_at": submitted_at,
+            "updated_at": updated_at,
+            "admin_notes": t.get("admin_notes")
+        })
+    
+    print(f"DEBUG: Total transactions: {total}, Showing: {len(formatted_transactions)}")
+    
+    return jsonify({
+        "transactions": formatted_transactions,
+        "total": total,
+        "page": page,
+        "per_page": per_page,
+        "total_pages": total_pages,
+        "filters": {
+            "status": status_filter,
+            "type": type_filter,
+            "search": search_query
+        }
+    })
 
 # ===============================
 # RUN APP

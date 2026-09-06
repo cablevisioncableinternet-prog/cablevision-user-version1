@@ -776,6 +776,18 @@
                     return;
                 }
 
+                if (data.warning) {
+                    showToast(data.warning, 'error');
+                }
+
+                if (res.status === 423 || data.locked) {
+                    errorDiv.textContent = data.error || 'Your account is temporarily locked. Please try again later.';
+                    errorDiv.style.display = 'block';
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                    return;
+                }
+
                 // CHECK KUNG 2FA REQUIRED
                 if (data.requires_2fa) {
                     gaPendingUserId = data.user_id || null;
@@ -793,11 +805,11 @@
                 // SUCCESSFUL LOGIN
                 if (res.ok && data.success) {
                     // Store session data including tab_id
-                    const tabId = data.tab_id || tabIdFromStorage;
+                    const tabId = data.tab_id || sessionStorage.getItem('tab_id') || getOrCreateTabId();
                     sessionStorage.setItem("username", data.username || payload.user_id);
                     sessionStorage.setItem("userType", "user");
                     sessionStorage.setItem("user_id", data.user_id || payload.user_id);
-                    sessionStorage.setItem("tab_id", tabId);
+                   sessionStorage.setItem("tab_id", tabId);
                     
                     // SIGURADUHIN NA TAMA ANG REDIRECT URL
                     let redirectUrl = data.redirect || "/dashboard";
