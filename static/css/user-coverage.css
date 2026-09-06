@@ -3249,3 +3249,38 @@ body {
         transition: none !important;
     }
 }
+
+/* Intermediate widths: keep the map and supporting content readable. */
+@media (min-width: 769px) and (max-width: 991.98px) {
+    .coverage-hero {
+        padding: 76px 20px;
+    }
+
+    .coverage-map {
+        padding: 48px 0 64px;
+    }
+
+    .coverage-map .container {
+        max-width: 900px;
+        padding: 0 24px;
+    }
+
+    #map {
+        height: 430px;
+        border-radius: 18px;
+    }
+
+    .coverage-note {
+        margin-left: 24px;
+        margin-right: 24px;
+    }
+
+    .barangay-section {
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+
+    .barangay-grid {
+        gap: 20px;
+    }
+}

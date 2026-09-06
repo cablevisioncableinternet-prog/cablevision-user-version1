@@ -1996,3 +1996,31 @@ body {
         transition: none !important;
     }
 }
+
+/* Intermediate widths: reflow content before the browser becomes cramped. */
+@media (min-width: 769px) and (max-width: 991.98px) {
+    .contact-section {
+        padding: 48px 20px;
+    }
+
+    .contact-section > .container {
+        max-width: 760px;
+    }
+
+    .contact-section .row {
+        --bs-gutter-y: 24px;
+    }
+
+    .contact-section .col-md-5,
+    .contact-section .col-md-7 {
+        width: 100%;
+    }
+
+    .contact-card {
+        padding: 24px;
+    }
+
+    .office-row {
+        gap: 12px;
+    }
+}

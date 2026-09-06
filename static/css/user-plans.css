@@ -2789,3 +2789,30 @@ body {
         transition: none !important;
     }
 }
+
+/* Intermediate widths: reflow content before the browser becomes cramped. */
+@media (min-width: 769px) and (max-width: 991.98px) {
+    .main-content {
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+
+    .plans-row {
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .plans-row > .col-md-5,
+    .plans-row > .col-md-7 {
+        width: 100%;
+    }
+
+    .plan-details-card {
+        width: 100% !important;
+        margin-left: 0 !important;
+    }
+
+    .plan-image-section {
+        min-height: 240px;
+    }
+}

@@ -6608,3 +6608,33 @@ body {
         transition: none !important;
     }
 }
+
+/* Intermediate widths: reflow sections as the browser window narrows. */
+@media (min-width: 769px) and (max-width: 991.98px) {
+    .hero-section {
+        height: auto;
+        min-height: 620px;
+        padding: 80px 20px;
+    }
+
+    .features-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 20px;
+    }
+
+    .feature-card {
+        min-width: 0;
+        padding: 28px 20px 24px;
+    }
+
+    .intro-video-section,
+    .gcash-payment-section,
+    .video-carousel-section {
+        padding-left: 24px;
+        padding-right: 24px;
+    }
+
+    .gallery-card {
+        width: 120px;
+    }
+}
