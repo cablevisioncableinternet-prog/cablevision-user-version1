@@ -1372,6 +1372,52 @@ body {
   cursor: not-allowed;
 }
 
+/* ================= PASSWORD TOGGLE BUTTON (EYE ICON) ================= */
+.pw-toggle-group {
+  position: relative;
+  width: 100%;
+}
+
+.pw-toggle-group input {
+  padding-right: 42px !important;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  width: auto;
+  height: auto;
+  cursor: pointer;
+  color: #94a3b8;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  transition: color 0.2s ease;
+}
+
+.password-toggle-btn:hover {
+  color: #0047ab;
+}
+
+.password-toggle-btn:focus {
+  outline: none;
+}
+
+.pw-toggle-group input:disabled ~ .password-toggle-btn,
+.pw-toggle-group input:disabled + .password-toggle-btn {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* Full width row for password fields (span both columns) */
 .form-field-full {
   grid-column: span 2;

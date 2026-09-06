@@ -1213,3 +1213,27 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+
+
+// ===============================
+// PASSWORD SHOW/HIDE TOGGLE
+// ===============================
+document.addEventListener('click', function (event) {
+    const toggleButton = event.target.closest('.password-toggle-btn');
+    if (!toggleButton) return;
+
+    const passwordWrapper = toggleButton.closest('.pw-toggle-group');
+    const passwordInput = passwordWrapper?.querySelector('input[type="password"], input[type="text"]');
+
+    if (!passwordInput) return;
+    const isHidden = passwordInput.type === 'password';
+    passwordInput.type = isHidden ? 'text' : 'password';
+
+    const icon = toggleButton.querySelector('i');
+    if (icon) {
+        icon.className = isHidden ? 'fas fa-eye-slash' : 'fas fa-eye';
+    }
+
+    toggleButton.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+});
