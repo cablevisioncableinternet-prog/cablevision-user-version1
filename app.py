@@ -9423,6 +9423,192 @@ def submit_termination_request():
 
 
 # ===============================
+# I-DAGDAG ITO SA app.py MO
+# (kasama ng ibang user routes gaya ng /user/change-plan)
+# ===============================
+
+# ===============================
+# USER TRANSACTIONS PAGE
+# ===============================
+@app.route("/user/transactions")
+def user_transactions():
+    if "user_id" not in session:
+        return redirect("/")
+    return render_template("user-transactions.html")
+
+
+# ===============================
+# GET ALL USER TRANSACTIONS
+# (Change Plan + Termination + Reconnection, combined & sorted)
+# ===============================
+@app.route("/api/user/all-transactions", methods=["GET"])
+def get_user_all_transactions():
+    tab_id = request.args.get("tab_id")
+
+    if tab_id:
+        user_session = session.get(f"user_{tab_id}")
+        if user_session:
+            user_id = user_session.get("user_id")
+        else:
+            return jsonify({"error": "Invalid session"}), 401
+    else:
+        if "user_id" not in session:
+            return jsonify({"error": "Not logged in"}), 401
+        user_id = session["user_id"]
+
+    conn = None
+    cursor = None
+
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # Kunin ang application_number ng user (para sa plan_change_requests / termination_requests)
+        cursor.execute("SELECT application_number FROM users WHERE user_id = %s", (user_id,))
+        user_row = cursor.fetchone()
+        application_number = user_row.get("application_number") if user_row else None
+
+        transactions = []
+
+        # ---------- CHANGE PLAN REQUESTS ----------
+        # (plan_change_requests has no name columns, so JOIN with customers via application_number)
+        if application_number:
+            cursor.execute("""
+                SELECT pcr.request_id, pcr.current_plan, pcr.current_speed, pcr.requested_plan,
+                       pcr.requested_speed, pcr.status, pcr.admin_notes, pcr.requested_at, pcr.reviewed_at,
+                       c.first_name, c.last_name
+                FROM plan_change_requests pcr
+                LEFT JOIN customers c ON pcr.application_number = c.application_number
+                WHERE pcr.application_number = %s
+                ORDER BY pcr.requested_at DESC
+            """, (application_number,))
+            for row in cursor.fetchall():
+                status = row.get("status") or "Pending"
+                full_name = f"{row.get('first_name') or ''} {row.get('last_name') or ''}".strip() or "N/A"
+                transactions.append({
+                    "id": row.get("request_id"),
+                    "full_name": full_name,
+                    "type": "Change Plan",
+                    "status": status,
+                    "description": f"{row.get('current_plan') or 'N/A'} \u2192 {row.get('requested_plan')}",
+                    "submitted_at": row.get("requested_at"),
+                    # ipakita lang ang updated date kung na-review na (hindi pending)
+                    "updated_at": row.get("reviewed_at") if status != "Pending" else None,
+                    "details": {
+                        "Requested By": full_name,
+                        "Current Plan": f"{row.get('current_plan') or 'N/A'} ({row.get('current_speed') or 'N/A'} Mbps)",
+                        "Requested Plan": f"{row.get('requested_plan')} ({row.get('requested_speed')} Mbps)",
+                        "Admin Notes": row.get("admin_notes")
+                    }
+                })
+
+        # ---------- TERMINATION REQUESTS ----------
+        # (termination_requests already has its own first_name/last_name columns)
+        if application_number:
+            cursor.execute("""
+                SELECT request_id, first_name, last_name, current_plan, current_speed,
+                       termination_reason, termination_date, status, admin_notes,
+                       created_at, approved_at, rejected_at, updated_at
+                FROM termination_requests
+                WHERE application_number = %s
+                ORDER BY created_at DESC
+            """, (application_number,))
+            for row in cursor.fetchall():
+                status = row.get("status") or "Pending"
+                updated = row.get("approved_at") or row.get("rejected_at")
+                full_name = f"{row.get('first_name') or ''} {row.get('last_name') or ''}".strip() or "N/A"
+                transactions.append({
+                    "id": row.get("request_id"),
+                    "full_name": full_name,
+                    "type": "Termination",
+                    "status": status,
+                    "description": f"Terminate {row.get('current_plan') or 'plan'}",
+                    "submitted_at": row.get("created_at"),
+                    "updated_at": updated if status != "Pending" else None,
+                    "details": {
+                        "Requested By": full_name,
+                        "Current Plan": f"{row.get('current_plan') or 'N/A'} ({row.get('current_speed') or 'N/A'} Mbps)",
+                        "Reason": row.get("termination_reason"),
+                        "Preferred Termination Date": str(row.get("termination_date")) if row.get("termination_date") else None,
+                        "Admin Notes": row.get("admin_notes")
+                    }
+                })
+
+        # ---------- RECONNECT REQUESTS ----------
+        # Note: reconnect_requests uses user_id (application_number can be NULL there)
+        # It also already has its own first_name/last_name columns.
+        cursor.execute("""
+            SELECT request_id, first_name, last_name, change_plan, new_plan_name,
+                   current_plan_name, current_plan_speed, status, created_at, updated_at
+            FROM reconnect_requests
+            WHERE user_id = %s
+            ORDER BY created_at DESC
+        """, (user_id,))
+        for row in cursor.fetchall():
+            status = row.get("status") or "Pending"
+            full_name = f"{row.get('first_name') or ''} {row.get('last_name') or ''}".strip() or "N/A"
+            if row.get("change_plan"):
+                desc = f"Reconnect + change to {row.get('new_plan_name')}"
+            else:
+                desc = f"Reconnect ({row.get('current_plan_name') or 'current plan'})"
+            transactions.append({
+                "id": row.get("request_id"),
+                "full_name": full_name,
+                "type": "Reconnection",
+                "status": status,
+                "description": desc,
+                "submitted_at": row.get("created_at"),
+                "updated_at": row.get("updated_at") if status != "Pending" else None,
+                "details": {
+                    "Requested By": full_name,
+                    "Current Plan": f"{row.get('current_plan_name') or 'N/A'} ({row.get('current_plan_speed') or 'N/A'} Mbps)",
+                    "New Plan (if changing)": row.get("new_plan_name") if row.get("change_plan") else None
+                }
+            })
+
+        cursor.close()
+        conn.close()
+
+        # I-normalize ang datetime fields (para JSON-safe) at i-sort by submitted_at (latest first)
+        def to_str(value):
+            if value is None:
+                return None
+            if isinstance(value, str):
+                return value
+            try:
+                return value.strftime("%Y-%m-%d %H:%M:%S")
+            except AttributeError:
+                return str(value)
+
+        for t in transactions:
+            t["submitted_at"] = to_str(t.get("submitted_at"))
+            t["updated_at"] = to_str(t.get("updated_at"))
+            # tanggalin ang mga None entries sa details para hindi ipakita sa modal
+            if t.get("details"):
+                t["details"] = {k: v for k, v in t["details"].items() if v}
+
+        transactions.sort(key=lambda t: t.get("submitted_at") or "", reverse=True)
+
+        return jsonify(transactions)
+
+    except Exception as e:
+        print(f"Error in get_user_all_transactions: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if cursor:
+            try:
+                cursor.close()
+            except Exception:
+                pass
+        if conn:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
+# ===============================
 # RUN APP
 # ===============================
 if __name__ == "__main__":

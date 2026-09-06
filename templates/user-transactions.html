@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cablevision | My Transactions</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='cablevision.jpg') }}?v=123" type="image/jpeg">
+
+    <!-- Prevent caching -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/user-change-plan.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/user-transactions.css') }}">
+    <link rel="stylesheet" href="/static/css/user-notification-system.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/device-login-alert.css') }}">
+</head>
+<body>
+
+<!-- ================= PAGE GUARD - WITH TAB ID VALIDATION ================= -->
+<script>
+    (function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const urlTabId = urlParams.get('tab_id');
+        const sessionTabId = sessionStorage.getItem('tab_id');
+        const isLoggedIn = sessionStorage.getItem('username') && sessionStorage.getItem('userType') === 'user';
+
+        if (!isLoggedIn) {
+            window.location.replace('/');
+            return;
+        }
+
+        if (!urlTabId && sessionTabId) {
+            const newUrl = window.location.pathname + '?tab_id=' + sessionTabId;
+            window.location.replace(newUrl);
+            return;
+        }
+
+        if (urlTabId && !sessionTabId) {
+            sessionStorage.setItem('tab_id', urlTabId);
+            window.location.reload();
+            return;
+        }
+
+        if (urlTabId && sessionTabId && urlTabId !== sessionTabId) {
+            sessionStorage.setItem('tab_id', urlTabId);
+            window.location.reload();
+            return;
+        }
+
+        history.replaceState(null, null, window.location.href);
+
+        window.addEventListener('popstate', function() {
+            const stillLoggedIn = sessionStorage.getItem('username') && sessionStorage.getItem('userType') === 'user';
+            if (!stillLoggedIn) {
+                window.location.replace('/');
+            } else {
+                history.pushState(null, null, window.location.href);
+            }
+        });
+
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden) {
+                const stillLoggedIn = sessionStorage.getItem('username') && sessionStorage.getItem('userType') === 'user';
+                if (!stillLoggedIn) {
+                    window.location.replace('/');
+                }
+            }
+        });
+    })();
+</script>
+<!-- ================= END PAGE GUARD ================= -->
+
+<!-- TOAST -->
+<div class="custom-toast"></div>
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+        <h2>Cablevision</h2>
+        <p>Customer Portal</p>
+    </div>
+
+    <nav class="sidebar-menu">
+        <ul>
+            <li>
+                <a href="/user/dashboard">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="7" rx="2"/>
+                        <rect x="14" y="3" width="7" height="7" rx="2"/>
+                        <rect x="3" y="14" width="7" height="7" rx="2"/>
+                        <rect x="14" y="14" width="7" height="7" rx="2"/>
+                    </svg>
+                    <span class="menu-text">Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a href="/user/change-plan">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 11a8.1 8.1 0 0 0-15.5-2m-.5-4v4h4"/>
+                        <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/>
+                    </svg>
+                    <span class="menu-text">Change Plan</span>
+                </a>
+            </li>
+            <li>
+                <a href="/user/request-termination">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <path d="M14 2v6h6"/>
+                        <path d="M8 15h8"/>
+                    </svg>
+                    <span class="menu-text">Request Termination</span>
+                </a>
+            </li>
+            <li class="active">
+                <a href="/user/transactions">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <path d="M14 2v6h6"/>
+                        <path d="M8 13h8M8 17h5"/>
+                    </svg>
+                    <span class="menu-text">My Transactions</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="sidebar-description">
+            <div class="desc-item">
+                <i class="fas fa-receipt"></i>
+                <div>
+                    <strong>Transaction History</strong>
+                    <span>Track your requests and their status</span>
+                </div>
+            </div>
+            <div class="desc-item">
+                <i class="fas fa-bullhorn"></i>
+                <div>
+                    <strong>Announcements</strong>
+                    <span>Latest news and promos</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <p>© 2026 Cablevision Systems Corporation</p>
+            <p>All rights reserved.</p>
+        </div>
+    </nav>
+</aside>
+
+<!-- TOP BAR -->
+<div class="top-bar">
+    <button class="hamburger" id="hamburgerBtn">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+
+    <div class="top-bar-left"></div>
+
+    <div class="top-bar-right">
+        <!-- NOTIFICATION -->
+        <div class="notification-dropdown">
+            <button id="userNotificationBtn" class="notification-btn">
+                <i class="fas fa-bell"></i>
+                <span id="userNotificationBadge" class="notification-badge" style="display: none;">0</span>
+            </button>
+            <div class="notification-menu" id="userNotificationMenu">
+                <div class="notification-header">
+                    <h4>My Notifications</h4>
+                    <button id="userMarkAllReadBtn" class="mark-read-btn">Mark all as read</button>
+                </div>
+                <div class="notification-list" id="userNotificationList">
+                    <div class="notification-empty">
+                        <i class="fas fa-bell-slash"></i>
+                        <p>No notifications</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROFILE DROPDOWN -->
+        <div class="profile-dropdown">
+            <button id="profileBtn">
+                <img src="" alt="Profile" class="profile-icon" id="profileIcon">
+                <span id="profileName"></span>
+                <i class="fas fa-chevron-down"></i>
+            </button>
+            <ul class="dropdown-menu" id="profileMenu">
+                <li><a href="/user/profile" id="profileLink"><i class="fas fa-user-circle"></i> Profile</a></li>
+                <li><a href="/user/login-history" id="loginHistoryLink"><i class="fas fa-history"></i> Login History</a></li>
+                <li><a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- LOGOUT MODAL -->
+<div id="logoutModal" class="modal logout-modal">
+  <div class="modal-content logout-modal-content">
+    <span class="close-btn logout-close-btn" id="closeLogoutModal">&times;</span>
+    <h2 class="logout-title">Confirm Logout</h2>
+    <p class="logout-message">Are you sure you want to logout?</p>
+    <div class="logout-actions">
+      <button id="cancelLogout" class="btn logout-cancel"> <i class="fas fa-times"></i> Cancel</button>
+      <button id="confirmLogout" class="btn logout-confirm"> <i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </div>
+</div>
+
+<!-- ================= TRANSACTION DETAILS MODAL ================= -->
+<div id="transactionDetailsModal" class="modal">
+    <div class="modal-content" style="max-width: 480px; text-align:left;">
+        <span class="close-btn" id="closeTransactionDetailsModal">&times;</span>
+        <h2 style="text-align:center;"><i class="fas fa-file-invoice"></i> Transaction Details</h2>
+        <div id="transactionDetailsBody" class="transaction-details-body">
+            <!-- Filled dynamically -->
+        </div>
+        <div class="modal-actions">
+            <button id="closeTransactionDetailsBtn" class="btn cancel" style="min-width: 160px;"> <i class="fas fa-times"></i> Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<main class="main-content">
+    <!-- DASHBOARD HEADER -->
+    <div class="dashboard-header-card">
+        <div class="dashboard-header-left">
+            <h1>My Transactions</h1>
+            <p>Cablevision Systems Corporation</p>
+        </div>
+        <div class="dashboard-header-right"></div>
+    </div>
+
+    <!-- CURRENT PLAN MINI CARD -->
+    <div class="card current-plan-card">
+        <div class="card-header">
+            <div class="header-title-section">
+                <h2><i class="fas fa-wifi"></i> Current Plan</h2>
+                <p class="header-subtitle">Your active internet subscription details</p>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="current-plan-details" id="currentPlanDetails">
+                <div class="plan-detail-item">
+                    <div class="plan-detail-label">Plan Name</div>
+                    <div class="plan-detail-value" id="currentPlanName">--</div>
+                </div>
+                <div class="plan-detail-item">
+                    <div class="plan-detail-label">Speed</div>
+                    <div class="plan-detail-value speed" id="currentPlanSpeed">--</div>
+                </div>
+                <div class="plan-detail-item">
+                    <div class="plan-detail-label">Monthly Price</div>
+                    <div class="plan-detail-value price" id="currentPlanPrice">--</div>
+                </div>
+                <div class="plan-detail-item">
+                    <div class="plan-detail-label">Contract Number</div>
+                    <div class="plan-detail-value" id="contractNumber">--</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TRANSACTIONS TABLE CARD -->
+    <div class="card">
+        <div class="card-header">
+            <div class="header-title-section">
+                <h2><i class="fas fa-receipt"></i> Transaction History</h2>
+                <p class="header-subtitle">All your plan change, termination, and reconnection requests</p>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="search-section">
+                <div class="search-icon-wrapper">
+                    <i class="fas fa-search search-icon"></i>
+                </div>
+                <input type="text" id="searchInput" placeholder="Search by request ID, name, or type">
+                <button class="search-clear-btn" id="clearSearch" style="display: none;">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+
+            <div class="filter-section">
+                <div class="filter-group">
+                    <label><i class="fas fa-filter"></i> Filter by Status:</label>
+                    <select id="statusFilter" class="filter-select">
+                        <option value="all">All Status</option>
+                        <option value="pending">Pending</option>
+                        <option value="approved">Approved</option>
+                        <option value="rejected">Rejected</option>
+                    </select>
+                </div>
+                <div class="stats-badge">
+                    <span id="transactionCount">0</span> total transactions
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table id="transactionsTable">
+                    <thead>
+                        <tr>
+                            <th>Request ID</th>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                            <th>Date Submitted</th>
+                            <th>Date Updated</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionsBody">
+                        <tr class="loading-row">
+                            <td colspan="8">
+                                <div class="loading-container">
+                                    <div class="spinner"></div>
+                                    <p>Loading transactions...</p>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="paginationControls" class="pagination-container"></div>
+
+            <div id="noData" class="no-data-message">
+                <i class="fas fa-inbox"></i>
+                <p>No transactions found</p>
+                <span>You haven't made any plan change, termination, or reconnection requests yet</span>
+            </div>
+        </div>
+    </div>
+</main>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<script src="/static/js/user-notification-system.js"></script>
+<script src="/static/js/session-manager.js"></script>
+<script src="{{ url_for('static', filename='js/user-transactions.js') }}"></script>
+<!-- Device Login Monitor -->
+<script src="{{ url_for('static', filename='js/device-login-monitor.js') }}"></script>
+
+</body>
+</html>
