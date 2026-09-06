@@ -433,6 +433,48 @@
     padding: 40px 0 30px;
   }
 
+
+/* Announcement modal: size to its actual content, scroll only when long. */
+.modal-dialog.announcement-modal-dialog {
+    width: auto;
+    max-width: min(70vw, 900px);
+    max-height: calc(100vh - 2rem);
+}
+
+.modal-content.announcement-modal {
+    width: fit-content;
+    max-width: 100%;
+    min-height: 0;
+    max-height: calc(100vh - 2rem);
+}
+
+.announcement-modal-body {
+    flex: 0 1 auto;
+    min-height: 0;
+    max-height: calc(100vh - 9rem);
+    overflow-y: auto;
+}
+
+#combinedAnnouncementsList {
+    height: auto;
+}
+
+@media (max-width: 768px) {
+    .modal-dialog.announcement-modal-dialog,
+    .modal-content.announcement-modal {
+        width: calc(100% - 2rem);
+        max-width: calc(100% - 2rem);
+    }
+
+    .modal-content.announcement-modal {
+        max-height: calc(100vh - 1rem);
+    }
+
+    .announcement-modal-body {
+        max-height: calc(100vh - 8rem);
+        padding: 16px;
+    }
+}
   .section-title-modern {
     font-size: 26px;
   }
@@ -6636,5 +6678,51 @@ body {
 
     .gallery-card {
         width: 120px;
+    }
+}
+
+/* Final announcement modal sizing: content height for short lists, scroll for long lists. */
+.modal-dialog.announcement-modal-dialog {
+    width: auto !important;
+    max-width: min(90vw, 760px) !important;
+    height: auto !important;
+    max-height: calc(100vh - 2rem) !important;
+}
+
+.modal-content.announcement-modal {
+    width: min(70vw, 700px) !important;
+    max-width: 100% !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: calc(100vh - 2rem) !important;
+}
+
+.announcement-modal-body {
+    display: block !important;
+    flex: 0 1 auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: calc(100vh - 9rem) !important;
+    overflow-y: auto !important;
+}
+
+#combinedAnnouncementsList {
+    height: auto !important;
+}
+
+@media (max-width: 768px) {
+    .modal-dialog.announcement-modal-dialog,
+    .modal-content.announcement-modal {
+        width: calc(100% - 1.5rem) !important;
+        max-width: calc(100% - 1.5rem) !important;
+    }
+
+    .modal-content.announcement-modal {
+        max-height: calc(100vh - 1rem) !important;
+    }
+
+    .announcement-modal-body {
+        max-height: calc(100vh - 8rem) !important;
+        padding: 16px !important;
     }
 }
