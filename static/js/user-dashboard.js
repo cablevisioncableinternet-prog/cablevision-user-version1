@@ -743,13 +743,14 @@ async function checkUserStatusAndDisableFeatures() {
                     background: ${bannerBg};
                     border: 1px solid ${bannerBorder};
                     border-radius: 12px;
-                    padding: 16px 20px;
+                    padding: 16px 44px 16px 20px;
                     margin-bottom: 20px;
                     display: flex;
                     align-items: center;
                     gap: 12px;
                     color: ${bannerColor};
                     animation: slideInDown 0.5s ease;
+                    position: relative;
                 `;
                 
                 banner.innerHTML = `
@@ -762,13 +763,22 @@ async function checkUserStatusAndDisableFeatures() {
                         </button>
                     </div>
                     <button onclick="this.parentElement.remove()" style="
+                        position: absolute;
+                        top: 12px;
+                        right: 12px;
                         background: none;
                         border: none;
                         font-size: 20px;
                         cursor: pointer;
                         color: ${bannerColor};
-                        margin-left: auto;
-                        padding: 0 8px;
+                        padding: 4px;
+                        width: 24px;
+                        height: 24px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        line-height: 1;
+                        z-index: 2;
                     ">&times;</button>
                 `;
                 
