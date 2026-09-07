@@ -84,7 +84,7 @@
                 if (status === 'Terminated' || status === 'Inactive' || status === 'Deactivated') {
                     console.log(` [PAGE GUARD] User status: ${status} - Disabling sidebar features on profile page`);
                     
-                    // Disable sidebar links (except Dashboard and Profile)
+                    // Disable sidebar links
                     const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
                     sidebarLinks.forEach(link => {
                         if (!link.href.includes('/user/dashboard') && !link.href.includes('/user/profile')) {
@@ -104,7 +104,7 @@
                         }
                     });
                     
-                    // Show banner
+                    // Show banner - COMPACT VERSION
                     const mainContent = document.querySelector('.main-content');
                     if (mainContent) {
                         const existingBanner = document.querySelector('.status-banner');
@@ -113,22 +113,26 @@
                         const banner = document.createElement('div');
                         banner.className = 'status-banner';
                         
-                        let bannerTitle = '', bannerMessage = '', bannerIcon = '', bannerColor = '', bannerBg = '', bannerBorder = '';
+                        let bannerTitle = '', bannerMessage = '', bannerIcon = '', iconBgColor = '', iconColor = '', bannerBg = '', bannerBorder = '', textColor = '';
                         
                         if (status === 'Terminated') {
                             bannerTitle = 'Account Terminated';
-                            bannerMessage = 'Your account has been terminated. You can view your profile but cannot make changes. Sidebar features are disabled.';
+                            bannerMessage = 'Your account has been terminated. You can view your profile but cannot make changes.';
                             bannerIcon = 'fa-exclamation-circle';
-                            bannerColor = '#dc2626';
+                            iconBgColor = '#fecaca';
+                            iconColor = '#dc2626';
                             bannerBg = '#fef2f2';
                             bannerBorder = '#fecaca';
+                            textColor = '#991b1b';
                         } else if (status === 'Inactive' || status === 'Deactivated') {
                             bannerTitle = 'Account Inactive';
-                            bannerMessage = 'Your account is currently inactive. Please visit our office to settle your outstanding balance. You can view your profile but cannot make changes.';
+                            bannerMessage = 'Your account is currently inactive. Visit our office to settle your balance.';
                             bannerIcon = 'fa-info-circle';
-                            bannerColor = '#d97706';
+                            iconBgColor = '#fde68a';
+                            iconColor = '#d97706';
                             bannerBg = '#fffbeb';
                             bannerBorder = '#fde68a';
+                            textColor = '#92400e';
                         }
                         
                         banner.style.cssText = `
@@ -140,24 +144,37 @@
                             display: flex;
                             align-items: center;
                             gap: 12px;
-                            color: ${bannerColor};
                             animation: slideInDown 0.5s ease;
+                            width: 100%;
+                            box-sizing: border-box;
                         `;
                         
                         banner.innerHTML = `
-                            <i class="fas ${bannerIcon}" style="font-size: 24px; flex-shrink: 0; color: ${bannerColor};"></i>
-                            <div style="flex: 1;">
-                                <strong style="font-size: 16px;">${bannerTitle}</strong>
-                                <p style="margin: 4px 0 0 0; font-size: 14px; color: #666;">${bannerMessage}</p>
+                            <div class="banner-icon" style="
+                                flex-shrink: 0;
+                                width: 40px;
+                                height: 40px;
+                                border-radius: 50%;
+                                background: ${iconBgColor};
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                            ">
+                                <i class="fas ${bannerIcon}" style="font-size: 20px; color: ${iconColor};"></i>
                             </div>
-                            <button onclick="this.parentElement.remove()" style="
+                            <div class="banner-content" style="flex: 1; min-width: 0;">
+                                <strong class="banner-title" style="font-size: 16px; color: ${textColor}; display: block; margin-bottom: 2px;">${bannerTitle}</strong>
+                                <p class="banner-message" style="margin: 0; font-size: 14px; color: #666; line-height: 1.4;">${bannerMessage}</p>
+                            </div>
+                            <button class="banner-close" onclick="this.parentElement.remove()" style="
                                 background: none;
                                 border: none;
                                 font-size: 20px;
                                 cursor: pointer;
-                                color: ${bannerColor};
-                                margin-left: auto;
+                                color: ${textColor};
                                 padding: 0 8px;
+                                flex-shrink: 0;
+                                opacity: 0.7;
                             ">&times;</button>
                         `;
                         
