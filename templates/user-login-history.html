@@ -62,91 +62,10 @@
             return;
         }
         
-        // ===== CHECK USER STATUS AND DISABLE FEATURES =====
-        async function checkUserStatusAndDisableFeatures() {
-            try {
-                const tabId = sessionStorage.getItem('tab_id');
-                const response = await fetch('/api/get-user-status?tab_id=' + tabId);
-                const data = await response.json();
-                const status = data.status || 'Active';
-                
-                if (status === 'Terminated' || status === 'Inactive' || status === 'Deactivated') {
-                    const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
-                    sidebarLinks.forEach(link => {
-                        if (!link.href.includes('/user/dashboard') && !link.href.includes('/user/profile')) {
-                            link.style.pointerEvents = 'none';
-                            link.style.opacity = '0.5';
-                            link.style.cursor = 'not-allowed';
-                            link.title = 'This feature is disabled for your account status.';
-                            
-                            if (!link.querySelector('.fa-lock')) {
-                                const lockIcon = document.createElement('i');
-                                lockIcon.className = 'fas fa-lock';
-                                lockIcon.style.marginLeft = '8px';
-                                lockIcon.style.fontSize = '12px';
-                                lockIcon.style.color = '#dc2626';
-                                link.appendChild(lockIcon);
-                            }
-                        }
-                    });
-                    
-                    const mainContent = document.querySelector('.main-content');
-                    if (mainContent) {
-                        const existingBanner = document.querySelector('.status-banner');
-                        if (existingBanner) existingBanner.remove();
-                        
-                        const banner = document.createElement('div');
-                        banner.className = 'status-banner';
-                        
-                        let bannerTitle = '', bannerMessage = '', bannerIcon = '', bannerColor = '', bannerBg = '', bannerBorder = '';
-                        
-                        if (status === 'Terminated') {
-                            bannerTitle = 'Account Terminated';
-                            bannerMessage = 'Your account has been terminated. You can view your device history but cannot make changes. Sidebar features are disabled.';
-                            bannerIcon = 'fa-exclamation-circle';
-                            bannerColor = '#dc2626';
-                            bannerBg = '#fef2f2';
-                            bannerBorder = '#fecaca';
-                        } else if (status === 'Inactive' || status === 'Deactivated') {
-                            bannerTitle = 'Account Inactive';
-                            bannerMessage = 'Your account is currently inactive. Please visit our office to settle your outstanding balance.';
-                            bannerIcon = 'fa-info-circle';
-                            bannerColor = '#d97706';
-                            bannerBg = '#fffbeb';
-                            bannerBorder = '#fde68a';
-                        }
-                        
-                        banner.style.cssText = `
-                            background: ${bannerBg};
-                            border: 1px solid ${bannerBorder};
-                            border-radius: 12px;
-                            padding: 16px 20px;
-                            margin-bottom: 20px;
-                            display: flex;
-                            align-items: center;
-                            gap: 12px;
-                            color: ${bannerColor};
-                            animation: slideInDown 0.5s ease;
-                        `;
-                        
-                        banner.innerHTML = `
-                            <i class="fas ${bannerIcon}" style="font-size: 24px; flex-shrink: 0; color: ${bannerColor};"></i>
-                            <div style="flex: 1;">
-                                <strong style="font-size: 16px;">${bannerTitle}</strong>
-                                <p style="margin: 4px 0 0 0; font-size: 14px; color: #666;">${bannerMessage}</p>
-                            </div>
-                        `;
-                        mainContent.insertBefore(banner, mainContent.firstChild);
-                    }
-                }
-            } catch (error) {
-                console.error('Error checking user status:', error);
-            }
-        }
-        
-        document.addEventListener('DOMContentLoaded', function() {
-            checkUserStatusAndDisableFeatures();
-        });
+        // Note: Status check, sidebar lock (Change Plan & Request Termination only),
+        // and banner display are handled by checkUserStatusAndDisableFeatures()
+        // inside user-login-history.js — removed here to avoid duplicate
+        // conflicting logic that was incorrectly locking the Transactions link.
 
         history.replaceState(null, null, window.location.href);
         
