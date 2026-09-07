@@ -821,6 +821,78 @@ def get_public_advertisements():
         if conn:
             conn.close()
 
+
+# ===============================    
+# PUBLIC ENDPOINT: GET PLAN APPLICATIONS COUNT
+# (para sa Most Popular Plan determination)
+# ===============================    
+@app.route('/api/public/customer-plan-counts', methods=['GET'])
+def public_customer_plan_counts():
+    """
+    Return count of applications per plan from the applications table.
+    Only counts applications with status 'Approved' or 'Installed'.
+    Returns: { "Plan Name": count, ... }
+    """
+    conn = None
+    cursor = None
+    try:
+        print("🔍 Fetching plan application counts for Most Popular Plan...")
+        
+        conn = get_db_connection()
+        if not conn:
+            print("❌ Database connection failed")
+            return jsonify({}), 500
+
+        cursor = conn.cursor(dictionary=True)
+        
+        # Query applications table - count per plan name
+        # Only include Approved and Installed applications
+        query = """
+            SELECT 
+                plan, 
+                COUNT(*) as count 
+            FROM applications 
+            WHERE status IN ('Approved', 'Installed')
+              AND plan IS NOT NULL 
+              AND plan != ''
+            GROUP BY plan 
+            ORDER BY count DESC
+        """
+        cursor.execute(query)
+        results = cursor.fetchall()
+        
+        # Convert to { plan_name: count } format
+        plan_counts = {}
+        for row in results:
+            plan_name = row.get('plan', '').strip()
+            if plan_name:
+                plan_counts[plan_name] = row.get('count', 0)
+        
+        print(f"✅ Found {len(plan_counts)} plans with applications: {plan_counts}")
+        
+        cursor.close()
+        conn.close()
+        
+        return jsonify(plan_counts)
+        
+    except Exception as e:
+        print(f"❌ Error in public_customer_plan_counts: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({}), 500
+    finally:
+        if cursor:
+            try:
+                cursor.close()
+            except:
+                pass
+        if conn:
+            try:
+                conn.close()
+            except:
+                pass            
+            
+
 @app.route('/api/public/announcements')
 def public_announcements():
     """Public endpoint for announcements - ginagamit ng announcements modal"""

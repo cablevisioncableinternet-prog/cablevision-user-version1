@@ -1,2399 +1,1573 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Cablevision | Homepage</title>
-<link rel="shortcut icon" href="{{ url_for('static', filename='cablevision.jpg') }}?v=123" type="image/jpeg">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/user-homepage.css') }}">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"> 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cablevision | Fast Fiber Internet</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='cablevision.jpg') }}?v=123" type="image/jpeg" />
+    <!-- Bootstrap 5 -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" />
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <!-- Google Font: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <!-- REDESIGNED CSS (Cablevision-inspired) -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style-cablevision.css') }}" />
+    <!-- Keep original user-homepage.css for compatibility -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/user-homepage.css') }}" />
 </head>
-
 <body>
 
-<!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
-<div class="container">
+    <!-- ============================================================
+    NAVBAR — REDESIGNED WITH IMPROVED HAMBURGER
+    ============================================================ -->
+    <nav class="navbar-custom" id="mainNav">
+        <div class="container">
+            <a class="brand" href="/">
+                <img src="{{ url_for('static', filename='logo1.png') }}" alt="Cablevision" />
+                <span >Cablevision Systems Corporation</span>
+            </a>
 
-<a class="navbar-brand brand-logo" href="/">
-    <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo">
-    <span>CABLEVISION SYSTEMS CORPORATION</span>
-</a>
+            <button class="hamburger" id="hamburgerBtn" aria-label="Menu">
+                <span></span><span></span><span></span>
+            </button>
 
-<!--  hamburger button  -->
-<button class="hamburger" id="hamburgerBtn" type="button" aria-label="Menu">
-  <span></span>
-  <span></span>
-  <span></span>
-</button>
+            <ul class="nav-links" id="navMenu">
+                <li><a href="/" class="active">Home</a></li>
+                <li><a href="/plans">Plans</a></li>
+                <li><a href="/contact-us">Contact</a></li>
+                <li><a href="/coverage">Coverage</a></li>
+                <li class="dropdown">
+                    <a class="dropdown-toggle" href="#" id="moreDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">More</a>
+                    <ul class="dropdown-menu" aria-labelledby="moreDropdown">
+                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#aboutUsModal">About Us</a></li>
+                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#missionModal">Mission</a></li>
+                        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#visionModal">Vision</a></li>
+                    </ul>
+                </li>
+                <li><a href="/login" class="login-link" target="_blank">Login</a></li>
+            </ul>
+        </div>
+    </nav>
 
-<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-<span class="navbar-toggler-icon"></span>
-</button>
-
-<div class="collapse navbar-collapse" id="navMenu">
-  <ul class="navbar-nav ms-auto">
-    <li class="nav-item"><a class="nav-link active" href="/">Home</a></li>
-    <li class="nav-item"><a class="nav-link" href="/plans">Plans</a></li>
-    <li class="nav-item"><a class="nav-link" href="/contact-us">Contact</a></li>
-    <li class="nav-item"><a class="nav-link" href="/coverage">Coverage</a></li>
-
-    <!-- Dropdown for More (next to Coverage) -->
-    <li class="nav-item dropdown">
-      <a class="nav-link dropdown-toggle" href="#" id="moreDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-        More
-      </a>
-      <ul class="dropdown-menu" aria-labelledby="moreDropdown">
-      <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#aboutUsModal">About Us</a></li>
-      <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#missionModal">Mission</a></li>
-      <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#visionModal">Vision</a></li>
-      </ul>
-    </li>
-
-    <!-- Login -->
-<li class="nav-item">
-    <a class="nav-link" href="/login" target="_blank">Login</a>
-</li>
-  </ul>
-</div>
-
-</div>
-</nav>
-
-<section class="hero-section reveal-on-scroll">
-  <!-- Background Overlay for better text contrast -->
-  <div class="hero-overlay"></div>
-  
-  <!-- Animated Background Elements -->
-  <div class="bg-circles">
-    <div class="circle circle-1"></div>
-    <div class="circle circle-2"></div>
-    <div class="circle circle-3"></div>
-  </div>
-  
-  <div class="hero-apply">
-    <h1>Fast & Reliable Fiber Internet</h1>
-    <p>Delivering trusted cable and internet services since 1991.</p><br><br>
-    <a href="/plans" class="hero-btn" target="_blank">Apply Internet Plans now</a>  
-
-    <!-- Scroll Arrow -->
-    <div class="scroll-hint">
-      <a href="#ads-section" class="scroll-arrow">
-        <span>View Advertisements</span>
-        <div class="arrow-down"></div>
-      </a>
-    </div>
-  </div>
-</section>
-
-<!-- ADVERTISEMENT SLIDER - DYNAMIC FROM DATABASE -->
-<section id="ads-section" class="ads-slider">
-  <div class="container">
-    <!-- Section Header -->
-    <div class="section-header"><br>
-      <span class="section-badge">Internet Plans</span>
-      <h2 class="section-title">Featured <span class="gradient-text">Advertisements</span></h2>
-      <p class="section-subtitle">Discover our latest deals and exclusive offers</p>
-      <div class="title-divider"></div>
-    </div>
-    
-    <div id="heroCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="4000">
-      <div class="carousel-inner">
-        {% for plan in plans %}
-        <div class="carousel-item {% if loop.first %}active{% endif %}">
-          <div class="ad-card">
-            {% if plan.image %}
-            <img src="{{ plan.image }}" class="ads-img" alt="{{ plan.name }}" 
-                 onclick="window.open('/plans?selected={{ plan.name|urlencode }}', '_blank')">
-            {% else %}
-            <div class="ad-placeholder" onclick="window.open('/plans?selected={{ plan.name|urlencode }}', '_blank')">
-              <div class="placeholder-content">
-                <h3>{{ plan.name }}</h3>
-                <p class="plan-price">₱{{ plan.price }}/month</p>
-                <p class="plan-speed">{{ plan.speed }}</p>
-                <span class="view-plan-btn">View Plan →</span>
-              </div>
+    <!-- ============================================================
+    HERO — CABLEVISION-STYLE WITH CUSTOM BACKGROUND
+    ============================================================ -->
+    <section class="hero-cablevision">
+        <div class="hero-bg-pattern"></div>
+        <div class="container">
+            <div class="hero-content">
+                <span class="section-label" style="background:rgba(255,255,255,0.12);color:#6aafff;border:none;">#1 Fiber Internet in Laguna</span>
+                <h1>Fast &amp; Reliable<br /><span class="accent">Fiber Internet</span> for Every Home</h1>
+                <p id="heroDescription">Delivering trusted cable and internet services since 1991. Choose from affordable plans with speeds up to <span id="heroMaxSpeed">800 Mbps</span>.</p>
+                <div class="hero-buttons">
+                    <a href="#plans" class="btn-primary-custom">View Plans <i class="fas fa-arrow-right"></i></a>
+                    <a href="#why-choose" class="btn-outline-light">Learn More</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat-item"><strong id="statYears">30+</strong> <span id="statYearsLabel">Years of Trust</span></div>
+                    <div class="stat-item"><strong id="statCities">4</strong> <span id="statCitiesLabel">Municipalities</span></div>
+                    <div class="stat-item"><strong id="statSupport">24/7</strong> <span id="statSupportLabel">Support</span></div>
+                </div>
             </div>
-            {% endif %}
-            <div class="ad-overlay"></div>
-          </div>
-        </div>
-        {% else %}
-        <!-- Fallback if no plans in database -->
-        <div class="carousel-item active">
-          <div class="ad-card">
-            <div class="ad-placeholder">
-              <div class="placeholder-content">
-                <h3>No Plans Available</h3>
-                <p>Please check back later</p>
-              </div>
+            <div class="hero-visual">
+                <div class="mockup-card">
+                    <div class="plan-badge">⭐ Most Popular</div>
+                    <div class="mockup-plan-image" id="mockupPlanImage">
+                        <img src="" alt="Plan Image" style="width:100%;max-height:120px;object-fit:contain;border-radius:12px;margin-bottom:12px;">
+                    </div>
+                    <div class="price" id="heroPlanPrice">₱1,260 <small>/mo</small></div>
+                    <div class="speed" id="heroPlanSpeed">Up to 300 Mbps • Fiber</div>
+                    <ul class="feature-list" id="heroPlanFeatures">
+                        <!-- DYNAMIC: Populated by JavaScript -->
+                    </ul>
+                    <a href="/plans?selected=300Mbps" class="btn-sm-custom" target="_blank" id="heroPlanBtn">Get This Plan →</a>
+                </div>
             </div>
-            <div class="ad-overlay"></div>
-          </div>
         </div>
-        {% endfor %}
-      </div>
+    </section>
 
-      <!-- Carousel controls -->
-      <button class="carousel-control-prev" type="button" data-bs-target="#heroCarousel" data-bs-slide="prev">
-        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
-        <span class="visually-hidden">Previous</span>
-      </button>
-      <button class="carousel-control-next" type="button" data-bs-target="#heroCarousel" data-bs-slide="next">
-        <span class="carousel-control-next-icon" aria-hidden="true"></span>
-        <span class="visually-hidden">Next</span>
-      </button>
-    </div>
-    
-    <!-- Dynamic Thumbnail Navigation -->
-    <div class="thumbnail-nav">
-      <div class="thumbnail-track">
-        {% for plan in plans %}
-        <div class="thumbnail-wrapper" data-slide-to="{{ loop.index0 }}">
-          {% if plan.image %}
-          <img src="{{ plan.image }}" class="thumbnail" alt="{{ plan.name }}">
-          {% else %}
-          <div class="thumbnail-placeholder">{{ plan.name[:2] }}</div>
-          {% endif %}
-        </div>
-        {% endfor %}
-      </div>
-    </div>
-  </div>
-</section>
+<!-- ============================================================
+    PLANS SECTION — CAROUSEL (SINGLE ROW)
+    ============================================================ -->
+    <section class="plans-section reveal-on-scroll" id="plans">
+        <div class="container text-center">
+            <span class="section-label">Our Plans</span>
+            <h2 class="section-title-lg">Choose Your <span class="highlight">Perfect Speed</span></h2>
+            <p class="section-sub">Affordable fiber plans designed for every need — from casual browsing to heavy gaming and streaming.</p>
 
-<!-- INTRO VIDEO SECTION (AUTOPLAY, MUTED) -->
-<section class="intro-video-section reveal-on-scroll">
-  <div class="container text-center">
-    
-    <!-- Decorative Element -->
-    <div class="section-icon">
-      <svg width="50" height="50" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M3 8L12 3L21 8L12 13L3 8Z" stroke="#001f3f" stroke-width="1.5" fill="rgba(0,31,63,0.1)"/>
-        <path d="M3 16L12 21L21 16" stroke="#001f3f" stroke-width="1.5" fill="none"/>
-        <path d="M3 12L12 17L21 12" stroke="#001f3f" stroke-width="1.5" fill="none"/>
-      </svg>
-    </div>
-    
-    <h2 class="intro-video-title">Experience CableVision</h2>
-    
-    <!-- Animated Underline -->
-    <div class="title-underline"></div>
-    
-    <p class="intro-video-subtitle">
-      Explore the journey of Cablevision Systems Corporation—from its founding in 1991 by five visionaries, to its pioneering CATV operations in Laguna, and the expansion into high-speed broadband services for homes and businesses.
-    </p>
+            <!-- Plans Carousel -->
+            <div class="plans-carousel-wrapper">
+                <button class="plans-carousel-btn prev-btn" id="plansPrevBtn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
 
-    <!-- Enhanced Video Wrapper -->
-    <div class="video-container">
-      <!-- Added: autoplay, muted, loop, playsinline -->
-      <video class="intro-video" autoplay muted loop playsinline controls>
-        <source src="{{ url_for('static', filename='cv.mp4') }}" type="video/mp4">
-        Your browser does not support the video tag.
-      </video>
-      
-      <!-- Play Button Overlay (auto-hidden when video plays) -->
-      <div class="video-overlay">
-        <div class="play-button">
-          <svg width="60" height="60" viewBox="0 0 24 24" fill="none">
-            <circle cx="12" cy="12" r="10" fill="rgba(0,31,63,0.8)" stroke="white" stroke-width="1.5"/>
-            <path d="M10 8L16 12L10 16V8Z" fill="white"/>
-          </svg>
-        </div>
-      </div>
-    </div>
-    
-  </div>
-</section>
+                <div class="plans-carousel-container" id="plansCarouselContainer">
+                    <div class="plans-carousel-track" id="plansCarouselTrack">
+                        <!-- DYNAMIC: Populated by JavaScript from /api/public/plans -->
+                        <div class="text-center" style="width:100%;padding:60px 20px;color:#94a3b8;">
+                            <i class="fas fa-spinner fa-spin" style="font-size:32px;"></i>
+                            <p style="margin-top:12px;">Loading plans...</p>
+                        </div>
+                    </div>
+                </div>
 
-<!-- ================= VIDEO CAROUSEL (DYNAMIC - FROM UPLOADED VIDEOS) ================= -->
-<section class="video-carousel-section reveal-on-scroll">
-  <div class="container">
-    <div class="section-header text-center">
-      <span class="section-badge">CableVision Ads</span>
-      <h2 class="section-title">Watch Our <span class="gradient-text">Latest Videos</span></h2>
-      <p class="section-subtitle">Enjoy Cablevision</p>
-      <div class="title-divider"></div>
-    </div>
-
-    <div class="video-carousel-container">
-      <div class="video-carousel-wrapper">
-        <div class="video-carousel-track" id="videoCarouselTrack">
-          <!-- Videos will be inserted here dynamically by JavaScript -->
-        </div>
-      </div>
-      
-      <!-- Navigation Dots -->
-      <div class="carousel-dots" id="videoCarouselDots"></div>
-      
-      <!-- Progress Bar -->
-      <div class="video-progress-container">
-        <div class="video-progress-bar" id="videoProgressBar"></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- HORIZONTAL IMAGE GALLERY - 2 ROWS, LOGO ONLY (DYNAMIC - FROM UPLOADED LOGOS) -->
-<section class="image-gallery-section reveal-on-scroll">
-  <div class="container">
-    <div class="gallery-title">
-      <span class="section-badge">Cablevision Channels</span>
-      <h2>Explore Our Cable Channels</h2>
-    </div>
-
-    <div class="gallery-nav-container">
-      <button class="gallery-nav-btn prev-btn" id="galleryPrevBtn">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="15 18 9 12 15 6"></polyline>
-        </svg>
-      </button>
-
-      <div class="horizontal-gallery-wrapper" id="galleryWrapper">
-        <div class="gallery-track-2rows" id="imageGalleryTrack">
-          <!-- Logos will be inserted here dynamically by JavaScript -->
-        </div>
-      </div>
-
-      <button class="gallery-nav-btn next-btn" id="galleryNextBtn">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="9 18 15 12 9 6"></polyline>
-        </svg>
-      </button>
-    </div>
-  </div>
-</section>
-
-<!-- ================= GCASH PAYMENT GUIDE (7 STEPS) ================= -->
-<section class="gcash-payment-section reveal-on-scroll">
-  <div class="container">
-    <div class="section-header text-center">
-      <span class="badge-gcash">Online Payment</span>
-      <h2 class="gcash-title">How to Pay via <span>GCash</span></h2>
-      <p class="gcash-subtitle">Follow these 7 simple steps – tap any image to enlarge</p>
-      <div class="title-divider"></div>
-    </div>
-
-        <div class="gcash-steps-grid">
-      
-      <!-- Step 1 -->
-      <div class="step-card" onclick="openModal('/static/s1.png')">
-        <div class="step-image">
-          <img src="/static/s1.png" alt="GCash Step 1">
-        </div>
-        <div class="step-number-badge">1</div>
-        <div class="step-caption">Tap "Bills"</div>
-        <div class="step-caption">Choose "Cable/Internet"</div>
-      </div>
-
-      <!-- Step 2 -->
-      <div class="step-card" onclick="openModal('/static/s2.png')">
-        <div class="step-image">
-          <img src="/static/s2.png" alt="GCash Step 2">
-        </div>
-        <div class="step-number-badge">2</div>
-        <div class="step-caption">Choose "Cablevision"</div>
-        <div class="step-caption">Type your Bill amount to pay</div>
-      </div>
-
-      <!-- Step 3 -->
-      <div class="step-card" onclick="openModal('/static/s3.png')">
-        <div class="step-image">
-          <img src="/static/s3.png" alt="GCash Step 3">
-        </div>
-        <div class="step-number-badge">3</div>
-        <div class="step-caption">Type your Credentials</div>
-        <div class="step-caption">Tap "Next"</div>
-      </div>
-
-      <!-- Step 4 -->
-      <div class="step-card" onclick="openModal('/static/s4.png')">
-        <div class="step-image">
-          <img src="/static/s4.png" alt="GCash Step 4">
-        </div>
-        <div class="step-number-badge">4</div>
-        <div class="step-caption">Tap "Next"</div>
-        <div class="step-caption">Tap "Confirm"</div>
-      </div>
-
-      <!-- Step 5 -->
-      <div class="step-card" onclick="openModal('/static/s5.png')">
-        <div class="step-image">
-          <img src="/static/s5.png" alt="GCash Step 5">
-        </div>
-        <div class="step-number-badge">5</div>
-        <div class="step-caption">You can see now your Receipt</div>
-      </div>
-
-    </div>
-
-    <div class="gcash-footer-note">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="12" y1="8" x2="12" y2="12"/>
-        <line x1="12" y1="16" x2="12.01" y2="16"/>
-      </svg>
-      <span>Tap any card to view full‑size guide</span>
-    </div>
-  </div>
-</section>
-
-<!-- Modal with zoom controls -->
-<div id="gcashModal" class="image-modal">
-  <div class="modal-container">
-    <button class="modal-close-btn" onclick="closeModal()">&times;</button>
-
-    <div class="zoom-controls">
-      <button class="zoom-btn" onclick="zoomImage('in')">+</button>
-      <button class="zoom-btn" onclick="zoomImage('out')">-</button>
-      <button class="zoom-btn" onclick="resetZoom()">⟳</button>
-    </div>
-    <div class="image-wrapper" id="imageWrapper">
-      <img class="image-modal-content" id="modalImage" src="" alt="Zoomable image">
-    </div>
-  </div>
-</div>
-
-<!-- ================= WHY CHOOSE CABLEVISION ================= -->
-<section class="why-choose-section reveal-on-scroll">
-  <div class="container">
-    <!-- Section Header -->
-    <div class="section-header text-center">
-      <span class="section-badge-modern">
-      Why Choose Us
-      </span>
-      <h2 class="section-title-modern">Why Choose <span class="highlight">Cablevision</span>?</h2>
-      <div class="title-divider-modern">
-        <span class="divider-line"></span>
-        <span class="divider-icon"><i class="fas fa-wifi"></i></span>
-        <span class="divider-line"></span>
-      </div>
-      <p class="section-subtitle-modern">
-        From a trusted local CATV provider in Laguna to a leading broadband and digital services company, 
-        Cablevision delivers fast, reliable internet and innovative solutions for homes and businesses.
-      </p>
-    </div>
-
-    <!-- Features Grid -->
-    <div class="features-grid">
-      <!-- Feature 1: Fast Internet Plans -->
-      <div class="feature-card-modern" onclick="openFeatureModal('fast-fiber')">
-        <div class="feature-card-icon">
-          <div class="feature-icon-circle">
-            <img src="/static/lightning.png" alt="Fast Internet Plans">
-          </div>
-          <div class="feature-icon-badge">01</div>
-        </div>
-        <h3>Fast Internet Plans</h3>
-        <p>Choose from 5 affordable fiber plans ranging from 50 Mbps to 800 Mbps with Mesh technology for seamless connectivity.</p>
-        <div class="feature-card-footer">
-          <span class="feature-learn-more">Learn More <i class="fas fa-arrow-right"></i></span>
-        </div>
-      </div>
-
-      <!-- Feature 2: Streaming -->
-      <div class="feature-card-modern" onclick="openFeatureModal('streaming')">
-        <div class="feature-card-icon">
-          <div class="feature-icon-circle">
-            <img src="/static/streaming.png" alt="Streaming">
-          </div>
-          <div class="feature-icon-badge">02</div>
-        </div>
-        <h3>Streaming</h3>
-        <p>Enjoy HD channels and popular streaming platforms with Cablevision. Watch your favorite shows and movies smoothly without interruptions.</p>
-        <div class="feature-card-footer">
-          <span class="feature-learn-more">Learn More <i class="fas fa-arrow-right"></i></span>
-        </div>
-      </div>
-
-      <!-- Feature 3: Chat Support -->
-      <div class="feature-card-modern" onclick="openFeatureModal('chat-support')">
-        <div class="feature-card-icon">
-          <div class="feature-icon-circle">
-            <img src="/static/support.png" alt="Chat Support">
-          </div>
-          <div class="feature-icon-badge">03</div>
-        </div>
-        <h3>Chat Support</h3>
-        <p>Get instant answers with our AI-powered chat support. Choose from common questions and receive step-by-step solutions from our team.</p>
-        <div class="feature-card-footer">
-          <span class="feature-learn-more">Learn More <i class="fas fa-arrow-right"></i></span>
-        </div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- Feature Modal (separate from about-modal) -->
-<div id="featureModal" class="feature-modal">
-    <div class="feature-modal-content">
-        <div class="feature-modal-header">
-            <div class="feature-modal-header-content">
-                <img src="/static/logo1.png" alt="Logo" class="feature-modal-logo" id="featureModalLogo">
-                <h3 id="featureModalTitle"></h3>
+                <button class="plans-carousel-btn next-btn" id="plansNextBtn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
             </div>
-            <button class="feature-modal-close" onclick="closeFeatureModal()">&times;</button>
+
+            <!-- Carousel Dots -->
+            <div class="plans-carousel-dots" id="plansCarouselDots"></div>
         </div>
-        <div class="feature-modal-body">
-            <p id="featureModalDescription"></p>
+    </section>
+    <!-- ============================================================
+    WHY CHOOSE CABLEVISION — ORIGINAL TEXT RESTORED
+    ============================================================ -->
+    <section class="why-section reveal-on-scroll" id="why-choose">
+        <div class="container">
+            <div class="section-header text-center">
+                <span class="section-badge-modern">Why Choose Us</span>
+                <h2 class="section-title-modern">Why Choose <span class="highlight">Cablevision</span>?</h2>
+                <div class="title-divider-modern">
+                    <span class="divider-line"></span>
+                    <span class="divider-icon"><i class="fas fa-wifi"></i></span>
+                    <span class="divider-line"></span>
+                </div>
+                <p class="section-subtitle-modern">
+                    From a trusted local CATV provider in Laguna to a leading broadband and digital services company,
+                    Cablevision delivers fast, reliable internet and innovative solutions for homes and businesses.
+                </p>
+            </div>
+
+            <div class="why-grid" id="whyChooseGrid">
+                <!-- DYNAMIC: Populated by JavaScript from plan features -->
+                <div class="text-center" style="grid-column:1/-1;padding:40px;color:#94a3b8;">
+                    <i class="fas fa-spinner fa-spin" style="font-size:32px;"></i>
+                    <p style="margin-top:12px;">Loading features...</p>
+                </div>
+            </div>
         </div>
-        <div class="feature-modal-footer">
-            <button class="feature-modal-btn" onclick="closeFeatureModal()">Close</button>
+    </section>
+
+    <!-- ============================================================
+    VIDEO CAROUSEL — REDESIGNED "WATCH OUR LATEST VIDEOS"
+    ============================================================ -->
+    <section class="video-carousel-section-modern reveal-on-scroll">
+        <div class="container">
+            <div class="section-header-modern">
+                <div class="header-decoration">
+                    <span class="section-badge-modern">CableVision Ads</span>
+                </div>
+                <h2 class="section-title-modern-video">Watch Our <span class="highlight-video">Latest Videos</span></h2>
+                <p class="section-subtitle-modern-video">Enjoy exclusive content and promotional videos from Cablevision</p>
+                <div class="title-divider-modern-video"></div>
+            </div>
+
+            <div class="video-carousel-wrapper-modern">
+                <div class="video-carousel-container-modern">
+                    <div class="video-carousel-track-modern" id="videoCarouselTrack">
+                        <!-- DYNAMIC: Populated by JavaScript from /api/public/advertisements -->
+                        <div class="no-videos-message-modern" style="text-align:center;padding:60px;color:#94a3b8;width:100%;">
+                            <i class="fas fa-video" style="font-size:48px;margin-bottom:16px;color:#1a5bb5;opacity:0.3;"></i>
+                            <p>No videos uploaded yet</p>
+                            <small>Check back later for exciting content!</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation Dots -->
+                <div class="carousel-dots-modern" id="videoCarouselDots"></div>
+
+                <!-- Progress Bar -->
+                <div class="video-progress-modern">
+                    <div class="video-progress-bar-modern" id="videoProgressBar"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+    IMAGE GALLERY — REDESIGNED "EXPLORE OUR CABLE CHANNELS"
+    ============================================================ -->
+    <section class="image-gallery-section reveal-on-scroll">
+        <div class="container">
+            <div class="gallery-header">
+                <span class="section-badge">Cablevision Channels</span>
+                <h2 class="section-title-lg">Explore Our <span class="highlight">Cable Channels</span></h2>
+                <p class="gallery-subtitle">Discover a wide range of entertainment with our premium cable channels</p>
+            </div>
+
+            <div class="gallery-wrapper-modern">
+                <button class="gallery-nav-btn prev-btn" id="galleryPrevBtn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+
+                <div class="horizontal-gallery-wrapper" id="galleryWrapper">
+                    <div class="gallery-track-modern" id="imageGalleryTrack">
+                        <!-- DYNAMIC: Populated by JavaScript from /api/public/advertisements -->
+                        <div class="no-channels-message" style="text-align:center;padding:40px;color:#94a3b8;width:100%;">
+                            <i class="fas fa-tv" style="font-size:48px;margin-bottom:16px;display:block;color:#1a5bb5;opacity:0.3;"></i>
+                            <p>Loading channel logos...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="gallery-nav-btn next-btn" id="galleryNextBtn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+    EXPERIENCE CABLEVISION — REDESIGNED (DYNAMIC YEARS)
+    ============================================================ -->
+    <section class="experience-section reveal-on-scroll">
+        <div class="container">
+            <div class="experience-content">
+                <div class="experience-text">
+                    <span class="section-badge-modern">Our Story</span>
+                    <h2 class="experience-title">Experience <span class="highlight">CableVision</span></h2>
+                    <div class="experience-divider"></div>
+                    <p class="experience-subtitle">
+                        Explore the journey of Cablevision Systems Corporation — from its founding in 1991 by five visionaries,
+                        to its pioneering CATV operations in Laguna, and the expansion into high-speed broadband services
+                        for homes and businesses.
+                    </p>
+                    <p class="experience-subtitle" style="margin-top:12px;" id="experienceYearsText">
+                        With over <span id="experienceYearsCount">30</span> years of industry experience, Cablevision continues to innovate and deliver
+                        world-class connectivity solutions to communities across Laguna.
+                    </p>
+                </div>
+
+                <div class="experience-video-wrapper">
+                    <div class="experience-video-container">
+                        <video class="experience-video" autoplay muted loop playsinline controls>
+                            <source src="{{ url_for('static', filename='cv.mp4') }}" type="video/mp4">
+                            Your browser does not support the video tag.
+                        </video>
+                        <!-- NO OVERLAY - INALIS NA ANG PAUSED ICON -->
+                    </div>
+                    <div class="experience-video-glow"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
+    GCASH PAYMENT GUIDE — 7 STEPS
+    ============================================================ -->
+    <section class="gcash-section reveal-on-scroll">
+        <div class="container text-center">
+            <span class="section-label">Online Payment</span>
+            <h2 class="section-title-lg">How to Pay via <span class="highlight">GCash</span></h2>
+            <p class="section-sub">Follow these 7 simple steps – tap any card to enlarge</p>
+
+            <div class="gcash-steps">
+                <div class="gcash-step" onclick="openModal('/static/s1.png')">
+                    <div class="step-num">1</div>
+                    <img src="/static/s1.png" alt="Step 1" />
+                    <div class="step-label">Tap "Bills" > "Cable/Internet"</div>
+                </div>
+                <div class="gcash-step" onclick="openModal('/static/s2.png')">
+                    <div class="step-num">2</div>
+                    <img src="/static/s2.png" alt="Step 2" />
+                    <div class="step-label">Choose "Cablevision" & enter amount</div>
+                </div>
+                <div class="gcash-step" onclick="openModal('/static/s3.png')">
+                    <div class="step-num">3</div>
+                    <img src="/static/s3.png" alt="Step 3" />
+                    <div class="step-label">Enter credentials & tap Next</div>
+                </div>
+                <div class="gcash-step" onclick="openModal('/static/s4.png')">
+                    <div class="step-num">4</div>
+                    <img src="/static/s4.png" alt="Step 4" />
+                    <div class="step-label">Tap Next, then Confirm</div>
+                </div>
+                <div class="gcash-step" onclick="openModal('/static/s5.png')">
+                    <div class="step-num">5</div>
+                    <img src="/static/s5.png" alt="Step 5" />
+                    <div class="step-label">View your receipt</div>
+                </div>
+            </div>
+            <p style="margin-top:24px;font-size:14px;color:#4a5568;"><i class="fas fa-info-circle"></i> Tap any card to view full‑size guide</p>
+        </div>
+    </section>
+
+    <!-- ============================================================
+    ANNOUNCEMENTS MODAL — DYNAMIC
+    ============================================================ -->
+    <div class="modal fade" id="announcementsModal" tabindex="-1" aria-labelledby="announcementsLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content announcement-modal">
+                <div class="announcement-modal-header d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center gap-3">
+                        <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo" class="announcement-logo">
+                        <h5 class="modal-title mb-0" id="announcementsLabel">ANNOUNCEMENTS</h5>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="announcement-modal-body scrollable-body">
+                    <div id="combinedAnnouncementsList">
+                        <div class="loading-announcements">Loading announcements...</div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
-</div>
 
+    <!-- ============================================================
+    FOOTER — RESTORED ORIGINAL DETAILS WITH ICONS
+    ============================================================ -->
+    <footer class="footer-cablevision">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5 class="footer-heading">Cablevision Systems Corporation</h5>
+                    <p class="footer-text">Delivering trusted cable and internet services since 1991. Fast, reliable internet for homes and businesses.</p>
+                    <a href="https://www.facebook.com/mycv.cablevision" target="_blank" class="footer-link">
+                        <i class="fab fa-facebook-f"></i> Follow us on Facebook
+                    </a>
+                </div>
 
-<!-- FOOTER -->
-<footer class="footer bg-dark text-white py-5">
-  <div class="container">
-    <div class="row">
-      <!-- Company Info -->
-      <div class="col-md-4 mb-4">
-        <h5 class="footer-heading">Cablevision Systems Corporation</h5>
-        <p class="footer-text">Delivering trusted cable and internet services since 1991. Fast, reliable internet for homes and businesses.</p>
-        <a href="https://www.facebook.com/mycv.cablevision" target="_blank" class="footer-link">
-          <img src="{{ url_for('static', filename='fb.png') }}" alt="Facebook" class="footer-icon">
-          <span>Follow us on Facebook</span>
-        </a>
-      </div>
+                <div class="col-md-4 mb-4">
+                    <h5 class="footer-heading">Contact Us</h5>
+                    <p class="footer-text">
+                        <i class="fas fa-phone-alt"></i> 0917-838-8447 | 0917-310-7948
+                    </p>
+                    <p class="footer-text">For inquiries, support, and service requests, please contact us.</p>
+                </div>
 
-      <!-- Contact Info -->
-      <div class="col-md-4 mb-4">
-        <h5 class="footer-heading">Contact Us</h5>
-        <p class="footer-text">
-          <img src="{{ url_for('static', filename='contact-us.png') }}" alt="Contact" class="footer-icon-small">
-          <span>0917-838-8447 | 0917-310-7948</span>
-        </p>
-        <p class="footer-text">For inquiries, support, and service requests, please contact us.</p>
-      </div>
+                <div class="col-md-4 mb-4">
+                    <h5 class="footer-heading">Service Areas</h5>
+                    <p class="footer-text">
+                        <i class="fas fa-map-marker-alt"></i> Santa Cruz, Pagsanjan, Magdalena, Pila
+                    </p>
+                    <p class="footer-text">Providing services in these locations.</p>
+                </div>
+            </div>
 
-      <!-- Service Areas -->
-      <div class="col-md-4 mb-4">
-        <h5 class="footer-heading">Service Areas</h5>
-        <p class="footer-text">
-          <img src="{{ url_for('static', filename='pin.png') }}" alt="Location" class="footer-icon-small">
-         <span>Santa Cruz, Pagsanjan, Magdalena, Pila</span>
-        </p>
-        <p class="footer-text">Providing services in these locations.</p>
-      </div>
-    </div>
+            <hr class="footer-divider">
 
-    <hr class="footer-divider">
-
-    <!-- Footer Navigation -->
-    <div class="footer-bottom">
-      <ul class="nav justify-content-center">
-        <li class="nav-item"><a class="nav-link text-white active" href="/">Home</a></li>
-        <li class="nav-item"><a class="nav-link text-white" href="/plans">Plans</a></li>
-        <li class="nav-item"><a class="nav-link text-white" href="/contact-us">Contact</a></li>
-        <li class="nav-item"><a class="nav-link text-white" href="/coverage">Coverage</a></li>
-      </ul>
-      <p class="text-center mt-3 footer-copyright">&copy; 2026 Cablevision Systems Corporation All rights reserved.</p>
-    </div>
-  </div>
-</footer>
-
-
-
-<!-- About Us Modal -->
-<div class="modal fade" id="aboutUsModal" tabindex="-1" aria-labelledby="aboutUsLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content about-modal">
-
-      <!-- Modal Header: Logo + Title Centered -->
-      <div class="about-modal-header position-relative">
-        <div class="header-content d-inline-flex align-items-center">
-          <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo" class="about-modal-logo me-2">
-          <h5 class="modal-title mb-0" id="aboutUsLabel">About Us</h5>
+            <div class="footer-bottom">
+                <ul class="nav justify-content-center">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/plans">Plans</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/contact-us">Contact</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/coverage">Coverage</a></li>
+                </ul>
+                <p class="text-center mt-3 footer-copyright">&copy; 2026 Cablevision Systems Corporation All rights reserved.</p>
+            </div>
         </div>
-        <button type="button" class="btn-close about-modal-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
+    </footer>
 
-      <!-- Modal Body -->
-      <div class="about-modal-body px-4 py-3">
-        Cablevision Systems Corporation was conceptualized by five classmates from Class 1960 of Pedro Guevara Memorial High School. It was founded and registered with the Securities and Exchange Commission on October 10, 1991. The company was established to operate CATV Systems primarily in Sta. Cruz, Laguna and adjacent municipalities.
+        <!-- ============================================================
+    MODALS (About, Mission, Vision) — WITH PROPER PARAGRAPH SPACING
+    ============================================================ -->
+    <div class="modal fade" id="aboutUsModal" tabindex="-1" aria-labelledby="aboutUsLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content about-modal">
+                <div class="about-modal-header position-relative">
+                    <div class="header-content d-inline-flex align-items-center">
+                        <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo" class="about-modal-logo me-2">
+                        <h5 class="modal-title mb-0" id="aboutUsLabel">About Us</h5>
+                    </div>
+                    <button type="button" class="btn-close about-modal-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="about-modal-body px-4 py-3">
+                    <p>Cablevision Systems Corporation was conceptualized by five classmates from Class 1960 of Pedro Guevara Memorial High School. It was founded and registered with the Securities and Exchange Commission on October 10, 1991. The company was established to operate CATV Systems primarily in Sta. Cruz, Laguna and adjacent municipalities.</p>
 
-        The Municipal Board of Sta. Cruz, Laguna granted Cablevision's first CATV franchise on 12/14/91. The National Telecommunications Commission awarded the corresponding Provisional Authority six months later which enabled the company to begin CATV operations and connect subscribers. The company started with 12 television channels feeding regular off-the-air TV signals plus Satellite Television channels from free-to-air transmission all over the world. One television channel is made available for community access in accordance with its CATV mandate.
+                    <p>The Municipal Board of Sta. Cruz, Laguna granted Cablevision's first CATV franchise on 12/14/91. The National Telecommunications Commission awarded the corresponding Provisional Authority six months later which enabled the company to begin CATV operations and connect subscribers. The company started with 12 television channels feeding regular off-the-air TV signals plus Satellite Television channels from free-to-air transmission all over the world. One television channel is made available for community access in accordance with its CATV mandate.</p>
 
-        Two years later, the municipal board of Pagsanjan, Laguna awarded the company's second CATV franchise in recognition of its ability to fulfill its commitment to the community.
+                    <p>Two years later, the municipal board of Pagsanjan, Laguna awarded the company's second CATV franchise in recognition of its ability to fulfill its commitment to the community.</p>
 
-        The first office and CATV center was located at Mabini Street, Sta. Cruz Laguna, where the CATV headend and two Satellite TVRO Systems were installed. Three years later, the whole operation was transferred to Pagsawitan, still in Sta. Cruz, right next to the boundary of two towns it is serving.
+                    <p>The first office and CATV center was located at Mabini Street, Sta. Cruz Laguna, where the CATV headend and two Satellite TVRO Systems were installed. Three years later, the whole operation was transferred to Pagsawitan, still in Sta. Cruz, right next to the boundary of two towns it is serving.</p>
 
-        The success of Cablevision throughout the years of each operation enabled us to expand and go beyond cable TV service. In July 2012, MyCV Broadband (Cable Internet) was launched. Since then our cable internet performance has been known as a very good compared to competition. This coming April 2014 the Company will be launching the prepaid cable internet.
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Mission Modal -->
-<div class="modal fade" id="missionModal" tabindex="-1" aria-labelledby="missionLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content about-modal">
-
-     <div class="about-modal-header position-relative">
-        <div class="header-content d-inline-flex align-items-center">
-          <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo" class="about-modal-logo me-2">
-          <h5 class="modal-title mb-0" id="missionLabel">Mission</h5>
+                    <p>The success of Cablevision throughout the years of each operation enabled us to expand and go beyond cable TV service. In July 2012, MyCV Broadband (Cable Internet) was launched. Since then our cable internet performance has been known as a very good compared to competition. This coming April 2014 the Company will be launching the prepaid cable internet.</p>
+                </div>
+            </div>
         </div>
-        <button type="button" class="btn-close about-modal-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-
-      <div class="about-modal-body px-4 py-3">
-        To make available the benefits of CATV Technology to the largest numbers of subscribers possible.
-
-        To be a model company where shareholders, management as well as workers fully participate in the development and share in the benefits of the company's operations.
-      </div>
-
     </div>
-  </div>
-</div>
 
-<!-- Vision Modal -->
-<div class="modal fade" id="visionModal" tabindex="-1" aria-labelledby="visionLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content about-modal">
-
-
-      <div class="about-modal-header position-relative">
-        <div class="header-content d-inline-flex align-items-center">
-          <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo" class="about-modal-logo me-2">
-          <h5 class="modal-title mb-0" id="visionLabel">Vision</h5>
+    <div class="modal fade" id="missionModal" tabindex="-1" aria-labelledby="missionLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content about-modal">
+                <div class="about-modal-header position-relative">
+                    <div class="header-content d-inline-flex align-items-center">
+                        <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo" class="about-modal-logo me-2">
+                        <h5 class="modal-title mb-0" id="missionLabel">Mission</h5>
+                    </div>
+                    <button type="button" class="btn-close about-modal-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="about-modal-body px-4 py-3">
+                    <p>To make available the benefits of CATV Technology to the largest numbers of subscribers possible.</p>
+                    <p>To be a model company where shareholders, management as well as workers fully participate in the development and share in the benefits of the company's operations.</p>
+                </div>
+            </div>
         </div>
-        <button type="button" class="btn-close about-modal-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-
-      <div class="about-modal-body px-4 py-3">
-        To be a relevant, dynamic telecommunications organization serving the information, entertainment and cultural needs of the community.
-      </div>
     </div>
-  </div>
-</div>
 
-
-<!-- ANNOUNCEMENTS MODAL  -->
-<div class="modal fade" id="announcementsModal" tabindex="-1" aria-labelledby="announcementsLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content announcement-modal">
-
-      <!-- Modal Header -->
-      <div class="announcement-modal-header d-flex align-items-center justify-content-between">
-        <div class="d-flex align-items-center gap-3">
-          <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo" class="announcement-logo">
-          <h5 class="modal-title mb-0" id="announcementsLabel">ANNOUNCEMENTS</h5>
+    <div class="modal fade" id="visionModal" tabindex="-1" aria-labelledby="visionLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content about-modal">
+                <div class="about-modal-header position-relative">
+                    <div class="header-content d-inline-flex align-items-center">
+                        <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo" class="about-modal-logo me-2">
+                        <h5 class="modal-title mb-0" id="visionLabel">Vision</h5>
+                    </div>
+                    <button type="button" class="btn-close about-modal-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="about-modal-body px-4 py-3">
+                    <p>To be a relevant, dynamic telecommunications organization serving the information, entertainment and cultural needs of the community.</p>
+                </div>
+            </div>
         </div>
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-
-      <!-- Scrollable Announcements List (NO PAGINATION) -->
-      <div class="announcement-modal-body scrollable-body">
-        <div id="combinedAnnouncementsList">
-          <div class="loading-announcements">Loading announcements...</div>
-        </div>
-      </div>
-
     </div>
-  </div>
-</div>
 
-<!-- Image Preview Modal (Lightbox - No Caption) -->
-<div id="imagePreviewModal" class="image-preview-modal">
-    <span class="preview-close">&times;</span>
-    <img class="preview-modal-content" id="previewImage">
-</div>
-
-<!-- Floating Chat Button -->
-<button class="chatbot-toggle" onclick="toggleChat()">
-  <svg class="chat-icon" width="28" height="28" viewBox="0 0 24 24" fill="none">
-    <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="white"/>
-    <circle cx="8" cy="10" r="2" fill="#001f3f"/>
-    <circle cx="12" cy="10" r="2" fill="#001f3f"/>
-    <circle cx="16" cy="10" r="2" fill="#001f3f"/>
-  </svg>
-</button>
-
-<!-- Chatbot Container -->
-<div class="chatbot-container" id="chatbotBox">
-  <div class="chatbot-header">
-    <div class="header-content">
-      <div class="header-icon">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="white"/>
+    <!-- ============================================================
+    CHATBOT — FULL FUNCTIONALITY
+    ============================================================ -->
+    <button class="chatbot-toggle" onclick="toggleChat()">
+        <svg class="chat-icon" width="28" height="28" viewBox="0 0 24 24" fill="none">
+            <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="white"/>
+            <circle cx="8" cy="10" r="2" fill="#001f3f"/>
+            <circle cx="12" cy="10" r="2" fill="#001f3f"/>
+            <circle cx="16" cy="10" r="2" fill="#001f3f"/>
         </svg>
-      </div>
-      <div class="header-text">
-        <span class="header-title">Cablevision Chat Support</span>
-      </div>
-    </div>
-    <div class="close-btn" onclick="toggleChat()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <path d="M18 6L6 18M6 6L18 18" stroke="white" stroke-width="2" stroke-linecap="round"/>
-      </svg>
-    </div>
-  </div>
-
-  <div class="chatbot-body" id="chatBody">
-  </div>
-
-  <div class="chatbot-footer">
-    <input type="text" id="chatInput" placeholder="Type your message..." />
-    <button onclick="sendMessage()">
-      <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-        <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
     </button>
-  </div>
-</div>
 
-<script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+    <div class="chatbot-container" id="chatbotBox">
+        <div class="chatbot-header">
+            <div class="header-content">
+                <div class="header-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="white"/>
+                    </svg>
+                </div>
+                <div class="header-text">
+                    <span class="header-title">Cablevision Chat Support</span>
+                </div>
+            </div>
+            <div class="close-btn" onclick="toggleChat()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M18 6L6 18M6 6L18 18" stroke="white" stroke-width="2" stroke-linecap="round"/>
+                </svg>
+            </div>
+        </div>
+        <div class="chatbot-body" id="chatBody"></div>
+        <div class="chatbot-footer">
+            <input type="text" id="chatInput" placeholder="Type your message..." />
+            <button onclick="sendMessage()">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                    <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        </div>
+    </div>
 
-<script>
-// Generate unique session ID para sa bawat user
-let sessionId = localStorage.getItem('chat_session_id');
-if (!sessionId) {
-    sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    localStorage.setItem('chat_session_id', sessionId);
+    <!-- Image Preview Modal (Lightbox) -->
+    <div id="imagePreviewModal" class="image-preview-modal">
+        <span class="preview-close">&times;</span>
+        <img class="preview-modal-content" id="previewImage">
+    </div>
+
+    <!-- GCash Modal (Lightbox) -->
+    <div id="gcashModal" class="image-modal" style="display:none;">
+        <div class="modal-container" style="position:relative;width:100%;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+            <button class="modal-close-btn" onclick="closeModal()">&times;</button>
+            <div class="image-wrapper" style="touch-action:pinch-zoom;width:100%;height:100%;display:flex;align-items:center;justify-content:center;cursor:grab;">
+                <img class="image-modal-content" id="modalImage" src="" alt="Zoomable" style="max-width:90vw;max-height:90vh;object-fit:contain;transition:transform 0.1s linear;">
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+    SCRIPTS
+    ============================================================ -->
+    <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+    <script>
+        // ============================================================
+        // FULL ORIGINAL JAVASCRIPT — KEPT AND UPDATED
+        // ============================================================
+
+        let sessionId = localStorage.getItem('chat_session_id');
+        if (!sessionId) {
+            sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            localStorage.setItem('chat_session_id', sessionId);
+        }
+
+        let lastMessageTime = 0;
+        const MESSAGE_DELAY = 2000;
+
+        const quickLocalResponses = {
+            'coverage': `Good day, Ka-CV! Thank you for your interest in our services.\n\nWe provide services in the following municipalities:\n\n• Santa Cruz\n• Pagsanjan\n• Magdalena\n• Pila\n\nIf your area is listed above, you are eligible to apply. May I assist you with the application process, Ka-CV?`,
+            'requirements': `Good day, Ka-CV! To apply for our services, please prepare the following requirements:\n\nApplication Requirements:\n\n• 1 Valid ID (driver's license, passport, postal ID, or any government-issued ID)\n\n• 1 Proof of Billing (electric bill or water bill dated within the last 3 months)`,
+            'contact': `Good day, Ka-CV! Here are our official contact numbers:\n\nMain Office (Santa Cruz):\n\n• Billing: 09175010341 / (049) 501-1495\n\nExtension Offices:\n\n• Pila Poblacion: +639176293796 / (049) 559-0701\n\n• Pila Labuin: +639173107948 / (049) 559-5082\n\n• Santa Cruz Extension: (049) 501-0922\n\n• Magdalena Extension: (049) 503-6819\n\nOur office hours are Monday to Saturday, 8:00 AM to 5:00 PM. How may I help you further, Ka-CV?`,
+            'hours': `Good day, Ka-CV! Here are our official operating hours:\n\nOffice Hours:\n\n• Monday to Saturday: 8:00 AM to 5:00 PM\n• Sunday: Closed\n• Holidays: Closed\n\nTechnical Support Hours:\n\n• 24/7 AVAILABLE - including weekends and holidays!\n• We are here for you anytime, day or night\n\nIs there anything specific I can help you with, Ka-CV?`,
+            'thank you': `You're welcome, Ka-CV! We are happy to help.\n\nIs there anything else I can assist you with today?\n\nHave a great day, Ka-CV!`,
+            'salamat': `You're welcome, Ka-CV! We are happy to help.\n\nIs there anything else I can assist you with today?\n\nHave a great day, Ka-CV!`,
+            'municipalities': `Good day, Ka-CV! Here are the municipalities we serve:\n\n• Santa Cruz\n• Pagsanjan\n• Magdalena\n• Pila`,
+            'bayan': `Good day, Ka-CV! Here are the municipalities we serve:\n\n• Santa Cruz\n• Pagsanjan\n• Magdalena\n• Pila`,
+            'list of municipalities': `Good day, Ka-CV! Here are the municipalities we serve:\n\n• Santa Cruz (22 barangays)\n• Pagsanjan (12 barangays)\n• Magdalena (13 barangays)\n• Pila (15 barangays)`,
+            'mga bayan': `Good day, Ka-CV! Here are the municipalities we serve:\n\n• Santa Cruz (22 barangays)\n• Pagsanjan (12 barangays)\n• Magdalena (13 barangays)\n• Pila (15 barangays)`,
+            'barangay list': `Good day, Ka-CV! Here is the complete list of barangays per municipality:\n\nSanta Cruz, Laguna (22 barangays):\n• Bagumbayan\n• Bubukal\n• Calios\n• Duhat\n• Gatid\n• Labuin\n• Oogong\n• Pagsawitan\n• Patimbao\n• Barangay I\n• Barangay II\n• Barangay III\n• Barangay IV\n• Barangay V\n• San Jose\n• San Juan\n• San Pablo Norte\n• San Pablo Sur\n• Santisima Cruz\n• Santo Angel Central\n• Santo Angel Norte\n• Santo Angel Sur\n\nPagsanjan, Laguna (12 barangays):\n• Barangay Uno\n• Barangay Dos\n• Biñan\n• Buboy\n• Cabanbanan\n• Layugan\n• Magdapio\n• Maulawin\n• Pinagsanjan\n• Sabang\n• Sampaloc\n• San Isidro\n\nMagdalena, Laguna (13 barangays):\n• Malaking Ambling\n• Munting Ambling\n• Bucal\n• Buenavista\n• Cigaras\n• Ibabang Atingay\n• Ibabang Butnong\n• Ilayang Atingay\n• Ilayang Butnong\n• Poblacion\n• Sabang\n• Salasad\n• Tipunan\n\nPila, Laguna (15 barangays):\n• Aplaya\n• Bagong Pook\n• Bulilan Norte\n• Bulilan Sur\n• Concepcion\n• Labuin\n• Linga\n• Mojon\n• Pansol\n• Pinagbayanan\n• San Antonio\n• San Miguel\n• Santa Clara Norte\n• Santa Clara Sur\n• Tubuan\n\nIs your barangay listed above, Ka-CV? Would you like to know more about our services in your area?`,
+            'barangay santa cruz': `Good day, Ka-CV! Here are the barangays in Santa Cruz, Laguna:\n\nSanta Cruz Barangays (22 barangays):\n• Bagumbayan\n• Bubukal\n• Calios\n• Duhat\n• Gatid\n• Labuin\n• Oogong\n• Pagsawitan\n• Patimbao\n• Barangay I\n• Barangay II\n• Barangay III\n• Barangay IV\n• Barangay V\n• San Jose\n• San Juan\n• San Pablo Norte\n• San Pablo Sur\n• Santisima Cruz\n• Santo Angel Central\n• Santo Angel Norte\n• Santo Angel Sur\n\nIs your barangay in Santa Cruz, Ka-CV? We would be happy to assist you with your application.`,
+            'barangay pagsanjan': `Good day, Ka-CV! Here are the barangays in Pagsanjan, Laguna:\n\nPagsanjan Barangays (12 barangays):\n• Barangay Uno\n• Barangay Dos\n• Biñan\n• Buboy\n• Cabanbanan\n• Layugan\n• Magdapio\n• Maulawin\n• Pinagsanjan\n• Sabang\n• Sampaloc\n• San Isidro\n\nIs your barangay in Pagsanjan, Ka-CV? We would be happy to assist you with your application.`,
+            'barangay magdalena': `Good day, Ka-CV! Here are the barangays in Magdalena, Laguna:\n\nMagdalena Barangays (13 barangays):\n• Malaking Ambling\n• Munting Ambling\n• Bucal\n• Buenavista\n• Cigaras\n• Ibabang Atingay\n• Ibabang Butnong\n• Ilayang Atingay\n• Ilayang Butnong\n• Poblacion\n• Sabang\n• Salasad\n• Tipunan\n\nIs your barangay in Magdalena, Ka-CV? We would be happy to assist you with your application.`,
+            'barangay pila': `Good day, Ka-CV! Here are the barangays in Pila, Laguna:\n\nPila Barangays (15 barangays):\n• Aplaya\n• Bagong Pook\n• Bulilan Norte\n• Bulilan Sur\n• Concepcion\n• Labuin\n• Linga\n• Mojon\n• Pansol\n• Pinagbayanan\n• San Antonio\n• San Miguel\n• Santa Clara Norte\n• Santa Clara Sur\n• Tubuan\n\nIs your barangay in Pila, Ka-CV? We would be happy to assist you with your application.`,
+            'about santa cruz': `Good day, Ka-CV! Santa Cruz is the capital municipality of Laguna and one of the areas we serve.\n\nSanta Cruz has 22 barangays. Would you like the complete list of barangays in Santa Cruz, Ka-CV?`,
+            'about pagsanjan': `Good day, Ka-CV! Pagsanjan is a municipality in Laguna known for its famous waterfalls, and it is one of the areas we serve.\n\nPagsanjan has 12 barangays. Would you like the complete list of barangays in Pagsanjan, Ka-CV?`,
+            'about magdalena': `Good day, Ka-CV! Magdalena is a municipality in Laguna and one of the areas we serve.\n\nMagdalena has 13 barangays. Would you like the complete list of barangays in Magdalena, Ka-CV?`,
+            'about pila': `Good day, Ka-CV! Pila is a municipality in Laguna known for its heritage town, and it is one of the areas we serve.\n\nPila has 15 barangays. Would you like the complete list of barangays in Pila, Ka-CV?`,
+            'plans': `Good day, Ka-CV! Here are our available fiber internet plans:\n\n• Fiber 50: ₱550/mo — Up to 50 Mbps\n• Fiber 98: ₱800/mo — Up to 98 Mbps\n• Fiber 300: ₱1,260/mo — Up to 300 Mbps (Most Popular!)\n• Fiber 500: ₱1,600/mo — Up to 500 Mbps\n• Fiber 800: ₱2,100/mo — Up to 800 Mbps with Mesh\n\nAll plans come with unlimited data and 24/7 support. Would you like to know more about any specific plan, Ka-CV?`
+        };
+
+        function toggleChat() {
+            const chatbotBox = document.getElementById('chatbotBox');
+            chatbotBox.classList.toggle('show');
+            if (chatbotBox.classList.contains('show')) {
+                document.getElementById('chatInput').focus();
+                const chatBody = document.getElementById('chatBody');
+                if (chatBody.children.length === 0) {
+                    showWelcomeMessage();
+                }
+            }
+        }
+
+        function showWelcomeMessage() {
+            const chatBody = document.getElementById('chatBody');
+            const botMsgDiv = document.createElement('div');
+            botMsgDiv.className = 'bot-message-wrapper';
+            botMsgDiv.innerHTML = `
+                <div class="bot-avatar">
+                    <img src="/static/logo1.png" alt="CableVision Logo" class="bot-avatar-img">
+                </div>
+                <div class="bot-message-content">
+                    <div class="bot-message-text">
+                        <strong>Good day, Ka-CV! Welcome to Cablevision Customer Support.</strong><br><br>
+                        This is Cablevision Customer Support, your official virtual assistant for fiber internet and cable television services.<br><br>
+                        How may I assist you today, Ka-CV?
+                    </div>
+                </div>
+            `;
+            chatBody.appendChild(botMsgDiv);
+
+            const quickDiv = document.createElement('div');
+            quickDiv.className = 'quick-questions-container';
+            quickDiv.innerHTML = `
+                <div class="quick-questions-header">
+                    <span class="quick-label">Frequently Asked Questions</span>
+                    <span class="quick-desc">Select a topic below, Ka-CV</span>
+                </div>
+                <div class="quick-questions-buttons">
+                    <button class="quick-btn" onclick="askQuestion('plans')">
+                        <span class="quick-icon"></span> Internet Plans & Pricing
+                    </button>
+                    <button class="quick-btn" onclick="askQuestion('coverage')">
+                        <span class="quick-icon"></span> Service Coverage Areas
+                    </button>
+                    <button class="quick-btn" onclick="askQuestion('requirements')">
+                        <span class="quick-icon"></span> Application Requirements
+                    </button>
+                    <button class="quick-btn" onclick="askQuestion('contact')">
+                        <span class="quick-icon"></span> Official Contact Numbers
+                    </button>
+                    <button class="quick-btn" onclick="askQuestion('hours')">
+                        <span class="quick-icon"></span> Office Hours
+                    </button>
+                </div>
+            `;
+            chatBody.appendChild(quickDiv);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+
+        function askQuestion(type) {
+            let question = '';
+            switch(type) {
+                case 'plans': question = 'What are your available internet plans?'; break;
+                case 'coverage': question = 'What is your service coverage?'; break;
+                case 'requirements': question = 'What are the requirements for application?'; break;
+                case 'contact': question = 'What are your contact numbers?'; break;
+                case 'hours': question = 'What are your office hours?'; break;
+                default: question = 'Can you help me with your services?';
+            }
+            document.getElementById('chatInput').value = question;
+            sendMessage();
+        }
+
+        async function sendMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (message === '') return;
+
+            const now = Date.now();
+            if (now - lastMessageTime < MESSAGE_DELAY) {
+                addBotMessage('Please wait a moment before sending another message, Ka-CV.');
+                return;
+            }
+            lastMessageTime = now;
+
+            input.value = '';
+            addUserMessage(message);
+            showTypingIndicator();
+
+            try {
+                const lowerMsg = message.toLowerCase();
+                let found = false;
+                for (const [key, response] of Object.entries(quickLocalResponses)) {
+                    if (lowerMsg.includes(key) || key.includes(lowerMsg)) {
+                        removeTypingIndicator();
+                        addBotMessage(response);
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    const response = await fetch('/chat', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message: message, session_id: sessionId })
+                    });
+                    const data = await response.json();
+                    removeTypingIndicator();
+                    addBotMessage(data.response || 'No response received.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                removeTypingIndicator();
+                addBotMessage('We apologize for the technical difficulty, Ka-CV. Please call us at 0917-501-0341 or (049) 501-1495 for assistance.');
+            }
+        }
+
+        function addUserMessage(text) {
+            const chatBody = document.getElementById('chatBody');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'user-message-wrapper';
+            messageDiv.innerHTML = `
+                <div class="user-message-content">
+                    <div class="user-message-text">${escapeHtml(text)}</div>
+                </div>
+            `;
+            chatBody.appendChild(messageDiv);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+
+        function addBotMessage(text) {
+            const chatBody = document.getElementById('chatBody');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'bot-message-wrapper';
+            let formattedText = formatMessageWithBullets(text);
+            messageDiv.innerHTML = `
+                <div class="bot-avatar">
+                    <img src="/static/logo1.png" alt="CableVision Logo" class="bot-avatar-img">
+                </div>
+                <div class="bot-message-content">
+                    <div class="bot-message-text">${formattedText}</div>
+                </div>
+            `;
+            chatBody.appendChild(messageDiv);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+
+        function formatMessageWithBullets(text) {
+            if (!text) return '';
+            let escaped = escapeHtml(text.trim());
+            escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+            const lines = escaped.split('\n');
+            let htmlResult = [];
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i].trim();
+                if (!line) {
+                    if (htmlResult.length > 0 && !htmlResult[htmlResult.length - 1].endsWith('<br>')) {
+                        htmlResult.push('<br>');
+                    }
+                    continue;
+                }
+                const bulletMatch = line.match(/^([•\-\*\+]|\d+\.)\s+(.*)/);
+                if (bulletMatch) {
+                    const symbol = bulletMatch[1].match(/\d+\./) ? bulletMatch[1] : '•';
+                    const content = bulletMatch[2];
+                    htmlResult.push(`<div class="chat-bullet-item"><span class="chat-bullet-dot">${symbol}</span><span class="chat-bullet-text">${content}</span></div>`);
+                } else {
+                    if (line.endsWith(':') && line.length < 60) {
+                        htmlResult.push(`<span class="chat-section-header">${line}</span>`);
+                    } else {
+                        htmlResult.push(`<div>${line}</div>`);
+                    }
+                }
+            }
+            return htmlResult.join('');
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function showTypingIndicator() {
+            const chatBody = document.getElementById('chatBody');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'bot-message-wrapper typing-indicator-wrapper';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = `
+                <div class="bot-avatar">
+                    <img src="/static/logo1.png" alt="CableVision Logo" class="bot-avatar-img">
+                </div>
+                <div class="bot-message-content typing-indicator">
+                    <span></span><span></span><span></span>
+                </div>
+            `;
+            chatBody.appendChild(typingDiv);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) typingIndicator.remove();
+        }
+
+        document.getElementById('chatInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') sendMessage();
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const revealElements = document.querySelectorAll('.reveal-on-scroll');
+            if ('IntersectionObserver' in window) {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) entry.target.classList.add('is-visible');
+                    });
+                }, { threshold: 0.15 });
+                revealElements.forEach(el => observer.observe(el));
+            } else {
+                revealElements.forEach(el => el.classList.add('is-visible'));
+            }
+        });
+
+        // ================= HAMBURGER TOGGLE =================
+        document.getElementById('hamburgerBtn').addEventListener('click', function() {
+            document.getElementById('navMenu').classList.toggle('open');
+            this.classList.toggle('active');
+        });
+
+        // Close hamburger when clicking outside
+        document.addEventListener('click', function(e) {
+            const nav = document.getElementById('mainNav');
+            const hamburger = document.getElementById('hamburgerBtn');
+            const navMenu = document.getElementById('navMenu');
+            if (!nav.contains(e.target) && navMenu.classList.contains('open')) {
+                navMenu.classList.remove('open');
+                hamburger.classList.remove('active');
+            }
+        });
+
+// ================= LOAD HERO STATS & EXPERIENCE YEARS =================
+async function loadHeroStats() {
+    try {
+        const currentYear = new Date().getFullYear();
+        const foundingYear = 1991;
+        const yearsCount = currentYear - foundingYear;
+
+        // Update Hero Stats
+        document.getElementById('statYears').textContent = yearsCount + '+';
+
+        // Update Experience Section Years
+        const experienceYearsElement = document.getElementById('experienceYearsCount');
+        if (experienceYearsElement) {
+            experienceYearsElement.textContent = yearsCount;
+        }
+
+        // Fetch municipalities count
+        try {
+            const response = await fetch('/api/public/areas');
+            if (response.ok) {
+                const areas = await response.json();
+                if (Array.isArray(areas) && areas.length > 0) {
+                    document.getElementById('statCities').textContent = areas.length;
+                }
+            }
+        } catch (areaError) {
+            console.log('Could not fetch areas, using fallback');
+        }
+
+        try {
+            const response2 = await fetch('/api/public/coverage');
+            if (response2.ok) {
+                const data = await response2.json();
+                if (data && data.municipalities && Array.isArray(data.municipalities)) {
+                    document.getElementById('statCities').textContent = data.municipalities.length;
+                } else if (data && data.areas && Array.isArray(data.areas)) {
+                    document.getElementById('statCities').textContent = data.areas.length;
+                }
+            }
+        } catch (coverageError) {
+            console.log('Could not fetch coverage, keeping default');
+        }
+
+        console.log(`Years of Trust: ${yearsCount}+ years (${foundingYear} - ${currentYear})`);
+
+    } catch (error) {
+        console.error('Error loading hero stats:', error);
+    }
 }
 
-// Rate limiting - para hindi mag-spam
-let lastMessageTime = 0;
-const MESSAGE_DELAY = 2000; // 2 seconds delay
-
-// Local quick responses para sa common questions (NO API CALL)
-const quickLocalResponses = {
-    'coverage': `Good day, Ka-CV! Thank you for your interest in our services.
-
-We provide services in the following municipalities:
-
-• Santa Cruz
-• Pagsanjan
-• Magdalena
-• Pila
-
-If your area is listed above, you are eligible to apply. May I assist you with the application process, Ka-CV?`,
-
-    'requirements': `Good day, Ka-CV! To apply for our services, please prepare the following requirements:
-
-Application Requirements:
-
-• 1 Valid ID (driver's license, passport, postal ID, or any government-issued ID)
-
-• 1 Proof of Billing (electric bill or water bill dated within the last 3 months)
-
-`,
-
-    'contact': `Good day, Ka-CV! Here are our official contact numbers:
-
-Main Office (Santa Cruz):
-
-
-• Billing: 09175010341 / (049) 501-1495
-
-Extension Offices:
-
-• Pila Poblacion: +639176293796 / (049) 559-0701
-
-• Pila Labuin: +639173107948 / (049) 559-5082
-
-• Santa Cruz Extension: (049) 501-0922
-
-• Magdalena Extension: (049) 503-6819
-
-Our office hours are Monday to Saturday, 8:00 AM to 5:00 PM. How may I help you further, Ka-CV?`,
-
-    'hours': `Good day, Ka-CV! Here are our official operating hours:
-
-
-
-Office Hours:
-
-• Monday to Saturday: 8:00 AM to 5:00 PM
-• Sunday: Closed
-• Holidays: Closed
-
-Technical Support Hours:
-
-• 24/7 AVAILABLE - including weekends and holidays! 
-• We are here for you anytime, day or night
-
-Is there anything specific I can help you with, Ka-CV?`,
-
-    'thank you': `You're welcome, Ka-CV! We are happy to help.
-
-Is there anything else I can assist you with today?
-
-Have a great day, Ka-CV!`,
-
-    'salamat': `You're welcome, Ka-CV! We are happy to help.
-
-Is there anything else I can assist you with today?
-
-Have a great day, Ka-CV!`,
-
-    // ================= MUNICIPALITIES / BAYAN =================
-    'municipalities': `Good day, Ka-CV! Here are the municipalities we serve:
-
-• Santa Cruz
-• Pagsanjan
-• Magdalena
-• Pila
-
-`,
-
-    'bayan': `Good day, Ka-CV! Here are the municipalities we serve:
-
-• Santa Cruz
-• Pagsanjan
-• Magdalena
-• Pila
-
-`,
-
-    'list of municipalities': `Good day, Ka-CV! Here are the municipalities we serve:
-
-• Santa Cruz (22 barangays)
-• Pagsanjan (12 barangays)
-• Magdalena (13 barangays)
-• Pila (15 barangays)
-
-`,
-
-    'mga bayan': `Good day, Ka-CV! Here are the municipalities we serve:
-
-• Santa Cruz (22 barangays)
-• Pagsanjan (12 barangays)
-• Magdalena (13 barangays)
-• Pila (15 barangays)
-
-`,
-
-    // ================= BARANGAY LISTS =================
-    'barangay list': `Good day, Ka-CV! Here is the complete list of barangays per municipality:
-
-Santa Cruz, Laguna (22 barangays):
-• Bagumbayan
-• Bubukal
-• Calios
-• Duhat
-• Gatid
-• Labuin
-• Oogong
-• Pagsawitan
-• Patimbao
-• Barangay I
-• Barangay II
-• Barangay III
-• Barangay IV
-• Barangay V
-• San Jose
-• San Juan
-• San Pablo Norte
-• San Pablo Sur
-• Santisima Cruz
-• Santo Angel Central
-• Santo Angel Norte
-• Santo Angel Sur
-
-Pagsanjan, Laguna (12 barangays):
-• Barangay Uno
-• Barangay Dos
-• Biñan
-• Buboy
-• Cabanbanan
-• Layugan
-• Magdapio
-• Maulawin
-• Pinagsanjan
-• Sabang
-• Sampaloc
-• San Isidro
-
-Magdalena, Laguna (13 barangays):
-• Malaking Ambling
-• Munting Ambling
-• Bucal
-• Buenavista
-• Cigaras
-• Ibabang Atingay
-• Ibabang Butnong
-• Ilayang Atingay
-• Ilayang Butnong
-• Poblacion
-• Sabang
-• Salasad
-• Tipunan
-
-Pila, Laguna (15 barangays):
-• Aplaya
-• Bagong Pook
-• Bulilan Norte
-• Bulilan Sur
-• Concepcion
-• Labuin
-• Linga
-• Mojon
-• Pansol
-• Pinagbayanan
-• San Antonio
-• San Miguel
-• Santa Clara Norte
-• Santa Clara Sur
-• Tubuan
-
-Is your barangay listed above, Ka-CV? Would you like to know more about our services in your area?`,
-
-    'barangay santa cruz': `Good day, Ka-CV! Here are the barangays in Santa Cruz, Laguna:
-
-Santa Cruz Barangays (22 barangays):
-• Bagumbayan
-• Bubukal
-• Calios
-• Duhat
-• Gatid
-• Labuin
-• Oogong
-• Pagsawitan
-• Patimbao
-• Barangay I
-• Barangay II
-• Barangay III
-• Barangay IV
-• Barangay V
-• San Jose
-• San Juan
-• San Pablo Norte
-• San Pablo Sur
-• Santisima Cruz
-• Santo Angel Central
-• Santo Angel Norte
-• Santo Angel Sur
-
-Is your barangay in Santa Cruz, Ka-CV? We would be happy to assist you with your application.`,
-
-    'barangay pagsanjan': `Good day, Ka-CV! Here are the barangays in Pagsanjan, Laguna:
-
-Pagsanjan Barangays (12 barangays):
-• Barangay Uno
-• Barangay Dos
-• Biñan
-• Buboy
-• Cabanbanan
-• Layugan
-• Magdapio
-• Maulawin
-• Pinagsanjan
-• Sabang
-• Sampaloc
-• San Isidro
-
-Is your barangay in Pagsanjan, Ka-CV? We would be happy to assist you with your application.`,
-
-    'barangay magdalena': `Good day, Ka-CV! Here are the barangays in Magdalena, Laguna:
-
-Magdalena Barangays (13 barangays):
-• Malaking Ambling
-• Munting Ambling
-• Bucal
-• Buenavista
-• Cigaras
-• Ibabang Atingay
-• Ibabang Butnong
-• Ilayang Atingay
-• Ilayang Butnong
-• Poblacion
-• Sabang
-• Salasad
-• Tipunan
-
-Is your barangay in Magdalena, Ka-CV? We would be happy to assist you with your application.`,
-
-    'barangay pila': `Good day, Ka-CV! Here are the barangays in Pila, Laguna:
-
-Pila Barangays (15 barangays):
-• Aplaya
-• Bagong Pook
-• Bulilan Norte
-• Bulilan Sur
-• Concepcion
-• Labuin
-• Linga
-• Mojon
-• Pansol
-• Pinagbayanan
-• San Antonio
-• San Miguel
-• Santa Clara Norte
-• Santa Clara Sur
-• Tubuan
-
-Is your barangay in Pila, Ka-CV? We would be happy to assist you with your application.`,
-
-    // ================= ABOUT MUNICIPALITIES =================
-    'about santa cruz': `Good day, Ka-CV! Santa Cruz is the capital municipality of Laguna and one of the areas we serve.
-
-Santa Cruz has 22 barangays. Would you like the complete list of barangays in Santa Cruz, Ka-CV?`,
-
-    'about pagsanjan': `Good day, Ka-CV! Pagsanjan is a municipality in Laguna known for its famous waterfalls, and it is one of the areas we serve.
-
-Pagsanjan has 12 barangays. Would you like the complete list of barangays in Pagsanjan, Ka-CV?`,
-
-    'about magdalena': `Good day, Ka-CV! Magdalena is a municipality in Laguna and one of the areas we serve.
-
-Magdalena has 13 barangays. Would you like the complete list of barangays in Magdalena, Ka-CV?`,
-
-    'about pila': `Good day, Ka-CV! Pila is a municipality in Laguna known for its heritage town, and it is one of the areas we serve.
-
-Pila has 15 barangays. Would you like the complete list of barangays in Pila, Ka-CV?`
+        // ================= FETCH CUSTOMER COUNTS PER PLAN =================
+        async function fetchCustomerCounts() {
+            try {
+                // Try to fetch from customer API endpoint
+                const response = await fetch('/api/public/customer-plan-counts');
+                if (response.ok) {
+                    const data = await response.json();
+                    return data; // Expected format: { plan_id: count, ... }
+                }
+            } catch (error) {
+                console.log('Could not fetch customer counts, using fallback');
+            }
+
+            // Fallback: Return empty object (will use popularity field from plans)
+            return {};
+        }
+
+        // ============================================================
+// PLANS CAROUSEL — SINGLE ROW WITH NAVIGATION
+// ============================================================
+let plansCarousel = {
+    currentIndex: 0,
+    totalCards: 0,
+    cardsPerView: 1,
+    track: null,
+    container: null,
+    dots: [],
+    autoPlayInterval: null,
+    isTransitioning: false
 };
 
-// I-toggle ang chat box
-function toggleChat() {
-    const chatbotBox = document.getElementById('chatbotBox');
-    chatbotBox.classList.toggle('show');
-    if (chatbotBox.classList.contains('show')) {
-        document.getElementById('chatInput').focus();
-        const chatBody = document.getElementById('chatBody');
-        if (chatBody.children.length === 0) {
-            showWelcomeMessage();
-        }
-    }
-}
+function initPlansCarousel() {
+    const track = document.getElementById('plansCarouselTrack');
+    const container = document.getElementById('plansCarouselContainer');
+    const prevBtn = document.getElementById('plansPrevBtn');
+    const nextBtn = document.getElementById('plansNextBtn');
+    const dotsContainer = document.getElementById('plansCarouselDots');
 
-// Show welcome message with bot avatar
-function showWelcomeMessage() {
-    const chatBody = document.getElementById('chatBody');
-    
-    const botMsgDiv = document.createElement('div');
-    botMsgDiv.className = 'bot-message-wrapper';
-    botMsgDiv.innerHTML = `
-        <div class="bot-avatar">
-            <img src="/static/logo1.png" alt="CableVision Logo" class="bot-avatar-img">
-        </div>
-        <div class="bot-message-content">
-            <div class="bot-message-text">
-                <strong>Good day, Ka-CV! Welcome to Cablevision Customer Support.</strong><br><br>
-                This is Cablevision Customer Support, your official virtual assistant for fiber internet and cable television services.<br><br>
-                How may I assist you today, Ka-CV?
-            </div>
-        </div>
-    `;
-    chatBody.appendChild(botMsgDiv);
-    
-    const quickDiv = document.createElement('div');
-    quickDiv.className = 'quick-questions-container';
-    quickDiv.innerHTML = `
-        <div class="quick-questions-header">
-            <span class="quick-label">Frequently Asked Questions</span>
-            <span class="quick-desc">Select a topic below, Ka-CV</span>
-        </div>
-        <div class="quick-questions-buttons">
-            <button class="quick-btn" onclick="askQuestion('plans')">
-                <span class="quick-icon"></span> Internet Plans & Pricing
-            </button>
-            <button class="quick-btn" onclick="askQuestion('coverage')">
-                <span class="quick-icon"></span> Service Coverage Areas
-            </button>
-            <button class="quick-btn" onclick="askQuestion('requirements')">
-                <span class="quick-icon"></span> Application Requirements
-            </button>
-            <button class="quick-btn" onclick="askQuestion('contact')">
-                <span class="quick-icon"></span> Official Contact Numbers
-            </button>
-            <button class="quick-btn" onclick="askQuestion('hours')">
-                <span class="quick-icon"></span> Office Hours
-            </button>
-        </div>
-    `;
-    chatBody.appendChild(quickDiv);
-    
-    chatBody.scrollTop = chatBody.scrollHeight;
-}
+    if (!track || !container) return;
 
-// Function for quick questions
-function askQuestion(type) {
-    let question = '';
-    switch(type) {
-        case 'plans':
-            question = 'What are your available internet plans?';
-            break;
-        case 'coverage':
-            question = 'What is your service coverage?';
-            break;
-        case 'requirements':
-            question = 'What are the requirements for application?';
-            break;
-        case 'contact':
-            question = 'What are your contact numbers?';
-            break;
-        case 'hours':
-            question = 'What are your office hours?';
-            break;
-        default:
-            question = 'Can you help me with your services?';
-    }
-    
-    document.getElementById('chatInput').value = question;
-    sendMessage();
-}
+    const cards = track.querySelectorAll('.plan-card');
+    if (cards.length === 0) return;
 
-// Magpadala ng mensahe (Always calls AI API directly)
-async function sendMessage() {
-    const input = document.getElementById('chatInput');
-    const message = input.value.trim();
-    
-    if (message === '') return;
-    
-    // Rate limiting - prevent spam
-    const now = Date.now();
-    if (now - lastMessageTime < MESSAGE_DELAY) {
-        addBotMessage('Please wait a moment before sending another message, Ka-CV.');
-        return;
-    }
-    lastMessageTime = now;
-    
-    input.value = '';
-    addUserMessage(message);
-    
-    // Always call backend AI API directly
-    showTypingIndicator();
-    
-    try {
-        const response = await fetch('/chat', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                message: message,
-                session_id: sessionId
-            })
-        });
-        
-        const data = await response.json();
-        removeTypingIndicator();
-        addBotMessage(data.response || 'No response received.');
-        
-    } catch (error) {
-        console.error('Error:', error);
-        removeTypingIndicator();
-        addBotMessage('We apologize for the technical difficulty, Ka-CV. Please call us at 0917-501-0341 or (049) 501-1495 for assistance.');
-    }
-}
+    plansCarousel.track = track;
+    plansCarousel.container = container;
+    plansCarousel.totalCards = cards.length;
 
-// Add user message
-function addUserMessage(text) {
-    const chatBody = document.getElementById('chatBody');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'user-message-wrapper';
-    messageDiv.innerHTML = `
-        <div class="user-message-content">
-            <div class="user-message-text">${escapeHtml(text)}</div>
-        </div>
-    `;
-    chatBody.appendChild(messageDiv);
-    chatBody.scrollTop = chatBody.scrollHeight;
-}
-
-// Add bot message with avatar and formatted text
-function addBotMessage(text) {
-    const chatBody = document.getElementById('chatBody');
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'bot-message-wrapper';
-    
-    let formattedText = formatMessageWithBullets(text);
-    
-    messageDiv.innerHTML = `
-        <div class="bot-avatar">
-            <img src="/static/logo1.png" alt="CableVision Logo" class="bot-avatar-img">
-        </div>
-        <div class="bot-message-content">
-            <div class="bot-message-text">${formattedText}</div>
-        </div>
-    `;
-    chatBody.appendChild(messageDiv);
-    chatBody.scrollTop = chatBody.scrollHeight;
-}
-
-// Format message to handle markdown bolding, section headers, and bullet points cleanly
-function formatMessageWithBullets(text) {
-    if (!text) return '';
-    let rawText = text.trim();
-    let escaped = escapeHtml(rawText);
-    
-    // Support markdown bolding **text**
-    escaped = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-
-    // Split into lines for structured parsing
-    const lines = escaped.split('\n');
-    let htmlResult = [];
-
-    for (let i = 0; i < lines.length; i++) {
-        let line = lines[i].trim();
-        
-        if (!line) {
-            // Avoid adding multiple empty line breaks
-            if (htmlResult.length > 0 && !htmlResult[htmlResult.length - 1].endsWith('<br>')) {
-                htmlResult.push('<br>');
-            }
-            continue;
-        }
-
-        // Check if line is a bullet item (starts with •, -, *, +, or numbered like 1., 2.)
-        const bulletMatch = line.match(/^([•\-\*\+]|\d+\.)\s+(.*)/);
-        
-        if (bulletMatch) {
-            const symbol = bulletMatch[1].match(/\d+\./) ? bulletMatch[1] : '•';
-            const content = bulletMatch[2];
-            htmlResult.push(`<div class="chat-bullet-item"><span class="chat-bullet-dot">${symbol}</span><span class="chat-bullet-text">${content}</span></div>`);
-        } else {
-            // Check if it looks like a section title (ends with :)
-            if (line.endsWith(':') && line.length < 60) {
-                htmlResult.push(`<span class="chat-section-header">${line}</span>`);
-            } else {
-                htmlResult.push(`<div>${line}</div>`);
-            }
-        }
+    // Calculate cards per view based on screen width
+    function getCardsPerView() {
+        const width = window.innerWidth;
+        if (width < 640) return 1;
+        if (width < 992) return 2;
+        return 3;
     }
 
-    return htmlResult.join('');
-}
+    plansCarousel.cardsPerView = getCardsPerView();
 
-// Helper function to escape HTML
-function escapeHtml(text) {
-    const div = document.createElement('div');
-    div.textContent = text;
-    return div.innerHTML;
-}
-
-// Show typing indicator
-function showTypingIndicator() {
-    const chatBody = document.getElementById('chatBody');
-    const typingDiv = document.createElement('div');
-    typingDiv.className = 'bot-message-wrapper typing-indicator-wrapper';
-    typingDiv.id = 'typingIndicator';
-    typingDiv.innerHTML = `
-        <div class="bot-avatar">
-            <img src="/static/logo1.png" alt="CableVision Logo" class="bot-avatar-img">
-        </div>
-        <div class="bot-message-content typing-indicator">
-            <span></span><span></span><span></span>
-        </div>
-    `;
-    chatBody.appendChild(typingDiv);
-    chatBody.scrollTop = chatBody.scrollHeight;
-}
-
-// Remove typing indicator
-function removeTypingIndicator() {
-    const typingIndicator = document.getElementById('typingIndicator');
-    if (typingIndicator) {
-        typingIndicator.remove();
-    }
-}
-
-// Send message on Enter key
-document.getElementById('chatInput').addEventListener('keypress', function(e) {
-    if (e.key === 'Enter') {
-        sendMessage();
-    }
-});
-
-// Initialize chat
-window.addEventListener('DOMContentLoaded', function() {
-    console.log('CableVision Chat Support System is ready.');
-});
-
-// Reveal content sections with a smooth left slide when they enter the viewport.
-document.addEventListener('DOMContentLoaded', function() {
-    const revealElements = document.querySelectorAll('.reveal-on-scroll');
-
-    if ('IntersectionObserver' in window) {
-        const observer = new IntersectionObserver((entries, obs) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('is-visible');
-                    obs.unobserve(entry.target);
-                }
-            });
-        }, {
-            threshold: 0.12,
-            rootMargin: '0px 0px -40px 0px'
-        });
-
-        revealElements.forEach(element => observer.observe(element));
-    } else {
-        revealElements.forEach(element => element.classList.add('is-visible'));
-    }
-});
-
-// Dynamic thumbnail navigation - i-update ang existing code
-document.addEventListener('DOMContentLoaded', function() {
-    const carousel = document.getElementById('heroCarousel');
-    const thumbWrappers = document.querySelectorAll('.thumbnail-wrapper');
-    
-    if (carousel && thumbWrappers.length) {
-        // Add click event to thumbnails
-        thumbWrappers.forEach((wrapper, index) => {
-            wrapper.addEventListener('click', function() {
-                const bsCarousel = bootstrap.Carousel.getInstance(carousel);
-                if (bsCarousel) {
-                    bsCarousel.to(index);
-                }
-                
-                // Update active thumbnail
-                thumbWrappers.forEach(thumb => thumb.classList.remove('active'));
-                this.classList.add('active');
-            });
-        });
-        
-        // Update active thumbnail when carousel slides
-        carousel.addEventListener('slide.bs.carousel', function(event) {
-            const newIndex = event.to;
-            thumbWrappers.forEach((thumb, idx) => {
-                if (idx === newIndex) {
-                    thumb.classList.add('active');
-                } else {
-                    thumb.classList.remove('active');
-                }
-            });
-        });
-        
-        // Set first thumbnail as active
-        if (thumbWrappers[0]) {
-            thumbWrappers[0].classList.add('active');
-        }
-    }
-});
-
-// Video overlay functionality
-document.addEventListener('DOMContentLoaded', function() {
-    const video = document.querySelector('.intro-video');
-    const overlay = document.querySelector('.video-overlay');
-    
-    if (video && overlay) {
-        video.addEventListener('play', function() {
-            overlay.style.opacity = '0';
-            overlay.style.pointerEvents = 'none';
-        });
-        
-        video.addEventListener('pause', function() {
-            if (video.currentTime === 0 || video.ended) {
-                overlay.style.opacity = '1';
-            }
-        });
-        
-        video.addEventListener('ended', function() {
-            overlay.style.opacity = '1';
-        });
-    }
-});
-
-// Feature modal functionality (separate from about modal)
-function openFeatureModal(featureType) {
-    const modal = document.getElementById('featureModal');
-    const modalTitle = document.getElementById('featureModalTitle');
-    const modalDescription = document.getElementById('featureModalDescription');
-    
-    // Define content for each feature
-    const featureContent = {
-        'fast-fiber': {
-            title: 'Fast Internet Plans',
-            description: 'Cablevision offers affordable fiber internet plans: ₱550/month for 50 Mbps, ₱800/month for 98 Mbps, ₱1,260/month for 300 Mbps, ₱1,600/month for 500 Mbps, and ₱2,100/month for 800 Mbps with Mesh. Enjoy reliable connectivity perfect for streaming, gaming, and work.'
-        },
-        'streaming': {
-            title: 'Streaming',
-            description: "Enjoy HD channels and popular streaming platforms with Cablevision. Watch your favorite shows and movies smoothly without interruptions."
-        },
-        'chat-support': {
-            title: 'Chat Support',
-            description: 'Cablevision offers chat support with ready-made questions to help you quickly resolve your concerns. Simply choose from common questions like "What are your internet plans?", "How much is installation fee?", "What are the requirements?", or "What is your coverage area?" and get instant answers. Our support team is always ready to assist you with step-by-step solutions.'
-        }
-    };
-    
-    const content = featureContent[featureType];
-    if (content) {
-        modalTitle.textContent = content.title;
-        modalDescription.textContent = content.description;
-        
-        // ✅ FIX: Para ma-center ang modal
-        modal.style.display = 'flex';  // Dapat 'flex' hindi 'block'
-        modal.style.justifyContent = 'center';
-        modal.style.alignItems = 'center';
-        document.body.style.overflow = 'hidden'; // Prevent scrolling when modal is open
-    }
-}
-
-function closeFeatureModal() {
-    const modal = document.getElementById('featureModal');
-    modal.style.display = 'none';
-    document.body.style.overflow = 'auto'; // Restore scrolling
-}
-
-// Close modal when clicking outside
-window.onclick = function(event) {
-    const modal = document.getElementById('featureModal');
-    if (event.target === modal) {
-        closeFeatureModal();
-    }
-}
-
-// Close modal with Escape key
-document.addEventListener('keydown', function(event) {
-    const modal = document.getElementById('featureModal');
-    if (event.key === 'Escape' && modal.style.display === 'flex') {
-        closeFeatureModal();
-    }
-});
-
-// Close modal with Escape key
-document.addEventListener('keydown', function(event) {
-    const modal = document.getElementById('featureModal');
-    if (event.key === 'Escape' && modal.style.display === 'block') {
-        closeFeatureModal();
-    }
-});
-
-// ================= GLOBAL VARIABLES =================
-let allAnnouncements = [];
-
-// ================= CHECK IF ANNOUNCEMENT IS EXPIRED =================
-function isAnnouncementExpired(expirationDate) {
-    if (!expirationDate) return false;
-    return new Date(expirationDate) < new Date();
-}
-
-// ================= FETCH ACTIVE ANNOUNCEMENTS ONLY =================
-async function fetchActiveAnnouncements() {
-    try {
-        const res = await fetch("/api/public/announcements");
-        if (!res.ok) throw new Error("Failed to fetch announcements");
-        const data = await res.json();
-        
-        // ✅ FILTER: Tanggalin ang mga expired na announcements (backup filter)
-        const currentTime = new Date();
-        const activeAnnouncements = data.filter(announcement => {
-            if (!announcement.expirationDate) return true; // Walang expiration, keep
-            return new Date(announcement.expirationDate) > currentTime;
-        });
-        
-        console.log(`Total: ${data.length}, Active: ${activeAnnouncements.length}`);
-        return activeAnnouncements;
-    } catch (err) {
-        console.error("Error fetching announcements:", err);
-        return [];
-    }
-}
-
-// ================= RENDER ALL ANNOUNCEMENTS (NO PAGINATION, JUST SCROLL) =================
-function renderAllAnnouncements(announcements) {
-    const container = document.getElementById("combinedAnnouncementsList");
-    if (!container) return;
-
-    if (announcements.length === 0) {
-        container.innerHTML = `<div class="empty-announcements"><i class="fas fa-bullhorn"></i><p>No announcements at this time.</p></div>`;
-    } else {
-        let html = '';
-        announcements.forEach(a => {
-            const announcementDate = new Date(a.timestamp * 1000);
-            const now = new Date();
-            const hoursDiff = (now - announcementDate) / (1000 * 60 * 60);
-            const isNew = hoursDiff < 24;
-            const badgeClass = isNew ? 'new' : 'recent';
-            const badgeText = isNew ? 'NEW POST' : 'RECENT POST';
-            const timeAgo = getTimeAgo(announcementDate);
-
-            // Image HTML (if exists)
-            const imageHtml = a.imageBase64 ? `
-                <div class="combined-image-wrapper" onclick="openImagePreview('${a.imageBase64}')">
-                    <img src="${a.imageBase64}" alt="Announcement image">
-                </div>
-            ` : '';
-
-            // ✅ Check kung may laman ang title at message
-            const hasTitle = a.title && a.title.trim() !== '';
-            const hasMessage = a.message && a.message.trim() !== '';
-            const hasImage = a.imageBase64 && a.imageBase64 !== '';
-            
-            // ✅ Kung image-only (walang title at walang message), i-simplify ang display
-            const isImageOnly = !hasTitle && !hasMessage && hasImage;
-            
-            if (isImageOnly) {
-                // ✅ Image-only announcement - walang title at message
-                html += `
-                    <div class="combined-announcement-item image-only-announcement">
-                        <div class="combined-badge ${badgeClass}">${badgeText}</div>
-                        ${imageHtml}
-                        <div class="combined-date"><i class="fas fa-calendar-alt"></i> ${timeAgo}</div>
-                    </div>
-                `;
-            } else {
-                // ✅ Normal announcement (may title o message)
-                html += `
-                    <div class="combined-announcement-item">
-                        <div class="combined-badge ${badgeClass}">${badgeText}</div>
-                        ${hasTitle ? `<div class="combined-title">${escapeHtml(a.title)}</div>` : ''}
-                        ${hasMessage ? `<div class="combined-message">${escapeHtml(a.message)}</div>` : ''}
-                        ${imageHtml}
-                        <div class="combined-date"><i class="fas fa-calendar-alt"></i> ${timeAgo}</div>
-                    </div>
-                `;
-            }
-        });
-        container.innerHTML = html;
-    }
-}
-
-// ================= LOAD AND SHOW MODAL (ONLY IF HAS ACTIVE ANNOUNCEMENTS) =================
-async function loadAndShowModal() {
-    const container = document.getElementById("combinedAnnouncementsList");
-    if (container) {
-        container.innerHTML = `<div class="loading-announcements">Loading announcements...</div>`;
+    // Create dots
+    const totalDots = Math.ceil(plansCarousel.totalCards / plansCarousel.cardsPerView);
+    dotsContainer.innerHTML = '';
+    plansCarousel.dots = [];
+    for (let i = 0; i < totalDots; i++) {
+        const dot = document.createElement('button');
+        dot.className = 'plans-carousel-dot' + (i === 0 ? ' active' : '');
+        dot.setAttribute('data-index', i);
+        dot.addEventListener('click', () => goToPlanSlide(i));
+        dotsContainer.appendChild(dot);
+        plansCarousel.dots.push(dot);
     }
 
-    const activeAnnouncements = await fetchActiveAnnouncements();
-    
-    // ✅ CHECK: Kung walang active announcements, HUWAG mag-show ng modal
-    if (activeAnnouncements.length === 0) {
-        console.log("No active announcements. Modal will not show.");
-        return; // 🚫 Hindi magpo-pop-up ang modal
-    }
-    
-    // ✅ May active announcements, i-save at i-render
-    allAnnouncements = activeAnnouncements;
-    renderAllAnnouncements(allAnnouncements);
+    // Update card width
+    updatePlanCardWidth();
 
-    // Show modal only if there are active announcements
-    const modalEl = document.getElementById('announcementsModal');
-    if (modalEl) {
-        const modal = new bootstrap.Modal(modalEl);
-        modal.show();
-    }
-}
+    // Navigation
+    prevBtn.addEventListener('click', () => goToPlanSlide(plansCarousel.currentIndex - 1));
+    nextBtn.addEventListener('click', () => goToPlanSlide(plansCarousel.currentIndex + 1));
 
-// ================= HELPER FUNCTIONS =================
-function getTimeAgo(date) {
-    const now = new Date();
-    const diffMs = now - date;
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
-
-    if (diffMins < 1) return 'Just now';
-    if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
-    if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
-    if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
-    return date.toLocaleDateString();
-}
-
-function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/&/g, "&amp;")
-              .replace(/</g, "&lt;")
-              .replace(/>/g, "&gt;")
-              .replace(/"/g, "&quot;")
-              .replace(/'/g, "&#039;");
-}
-
-// ================= IMAGE PREVIEW (LIGHTBOX) =================
-function openImagePreview(imgSrc) {
-    const modal = document.getElementById('imagePreviewModal');
-    const previewImg = document.getElementById('previewImage');
-    
-    if (previewImg) previewImg.src = imgSrc;
-    if (modal) modal.style.display = 'flex';
-}
-
-function closeImagePreview() {
-    const modal = document.getElementById('imagePreviewModal');
-    if (modal) modal.style.display = 'none';
-}
-
-// Close preview on close button or outside click
-document.addEventListener('DOMContentLoaded', function() {
-    const modal = document.getElementById('imagePreviewModal');
-    const closeBtn = document.querySelector('.preview-close');
-    if (closeBtn) closeBtn.onclick = closeImagePreview;
-    if (modal) modal.onclick = (e) => { if (e.target === modal) closeImagePreview(); };
+    // Keyboard navigation
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modal && modal.style.display === 'flex') closeImagePreview();
-    });
-});
-
-// ================= AUTO SHOW MODAL ON PAGE LOAD (ONLY IF HAS ACTIVE) =================
-document.addEventListener('DOMContentLoaded', function() {
-    loadAndShowModal();
-});
-
-// ================= FETCH UPLOADED CHANNEL LOGOS FROM API =================
-let uploadedLogos = [];
-let allGalleryItems = []; // Combined array ng static at uploaded logos
-
-async function fetchUploadedLogos() {
-    try {
-        const response = await fetch('/api/public/advertisements');
-        if (!response.ok) throw new Error('Failed to fetch');
-        
-        const data = await response.json();
-        // Filter images only (fileType === 'image')
-        uploadedLogos = Array.isArray(data) ? data.filter(item => item.fileType === 'image') : [];
-        
-        // ✅ SORT BY ID OR TIMESTAMP - PINAKAUNA INUPLOAD ANG UNA
-        // Kung may timestamp field, gamitin yun. Kung wala, gamitin ang id (mas maliit = mas nauna)
-        uploadedLogos.sort((a, b) => {
-            // Option 1: Kung may createdAt timestamp
-            if (a.createdAt && b.createdAt) {
-                return new Date(a.createdAt) - new Date(b.createdAt);
-            }
-            // Option 2: Kung may id (autoincrement) - mas maliit = mas nauna
-            if (a.id && b.id) {
-                return a.id - b.id;
-            }
-            return 0;
-        });
-        
-        console.log('Uploaded logos fetched and sorted:', uploadedLogos.length);
-        
-        buildImageGallery2Rows();
-        
-    } catch (error) {
-        console.error('Error fetching uploaded logos:', error);
-        buildImageGallery2Rows();
-    }
-}
-
-function buildImageGallery2Rows() {
-    const track = document.getElementById('imageGalleryTrack');
-    if (!track) return;
-
-    track.innerHTML = '';
-    
-    // Combine uploaded and static images
-    let allImages = [];
-    
-    // Add uploaded channel logos (from advertisements table) - ITO LANG ANG GAMITIN
-    uploadedLogos.forEach((logo) => {
-        const imgSrc = logo.filePath;
-        if (imgSrc) {
-            allImages.push({
-                src: imgSrc,
-                type: 'uploaded',
-                id: logo.id
-            });
-        }
-    });
-    
-    // ✅ TANGGALIN NA ANG STATIC IMAGES (1.png to 79.png)
-    // Wala nang fallback sa static folder
-    
-    // ✅ KUNG WALANG UPLOADED IMAGES, MAG-DISPLAY NG MESSAGE
-    if (allImages.length === 0) {
-        track.innerHTML = `
-            <div class="no-channels-message" style="text-align:center;padding:40px;color:#94a3b8;width:100%;">
-                <i class="fas fa-tv" style="font-size:48px;margin-bottom:16px;display:block;"></i>
-                <p>No channel logos uploaded yet</p>
-                <small>Please upload channel logos in the admin panel</small>
-            </div>
-        `;
-        return;
-    }
-    
-    // Split into 2 rows
-    const midPoint = Math.ceil(allImages.length / 2);
-    const row1Images = allImages.slice(0, midPoint);
-    const row2Images = allImages.slice(midPoint);
-    
-    // Create Row 1
-    const row1 = document.createElement('div');
-    row1.className = 'gallery-row';
-    
-    row1Images.forEach(img => {
-        const card = createGalleryCard(img);
-        row1.appendChild(card);
-    });
-    
-    // Create Row 2
-    const row2 = document.createElement('div');
-    row2.className = 'gallery-row';
-    
-    row2Images.forEach(img => {
-        const card = createGalleryCard(img);
-        row2.appendChild(card);
-    });
-    
-    // Add rows to track
-    track.appendChild(row1);
-    track.appendChild(row2);
-    
-    console.log(`Gallery built: Row1: ${row1Images.length}, Row2: ${row2Images.length} = ${allImages.length} total`);
-    
-    // Initialize infinite scroll after building
-    initInfiniteGallery();
-}
-
-// Create gallery card - LOGO ONLY, walang text
-function createGalleryCard(img) {
-    const card = document.createElement('div');
-    card.className = 'gallery-card';
-    
-    if (img.type === 'uploaded') {
-        card.setAttribute('data-id', img.id);
-        card.setAttribute('data-type', 'uploaded');
-    }
-    
-    card.onclick = () => {
-        window.open(img.src, '_blank');
-    };
-    
-    // ✅ WALA NANG FALLBACK NA "LOGO" TEXT - direct image na lang
-    // At may error handling para hindi magpakita ng broken image
-    card.innerHTML = `<img src="${img.src}" alt="Channel Logo" loading="lazy" onerror="this.style.display='none'">`;
-    
-    return card;
-}
-
-function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-    });
-}
-
-// Add scroll buttons functionality
-function initGalleryNavigation2Rows() {
-    const wrapper = document.getElementById('galleryWrapper');
-    const prevBtn = document.getElementById('galleryPrevBtn');
-    const nextBtn = document.getElementById('galleryNextBtn');
-
-    if (!wrapper || !prevBtn || !nextBtn) return;
-
-    const scrollAmount = 380;
-
-    prevBtn.addEventListener('click', () => {
-        wrapper.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        if (e.key === 'ArrowLeft') goToPlanSlide(plansCarousel.currentIndex - 1);
+        if (e.key === 'ArrowRight') goToPlanSlide(plansCarousel.currentIndex + 1);
     });
 
-    nextBtn.addEventListener('click', () => {
-        wrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
-    });
-}
-
-
-
-// ================= INIT =================
-document.addEventListener('DOMContentLoaded', () => {
-    fetchUploadedLogos();           // Get PNG images from advertisements
-    // Video carousel is now self-initializing (no need to call)
-    initGalleryNavigation2Rows();
-    loadPlansDynamically();
-});
-
-
-// ================= SMOOTH ZOOM & PAN FOR GCASH MODAL =================
-let modalImage = null;
-let imageWrapper = null;
-let currentZoom = 1;
-let translateX = 0, translateY = 0;
-let isDragging = false;
-let dragStartX = 0, dragStartY = 0;
-let lastTranslateX = 0, lastTranslateY = 0;
-let rafId = null;
-
-// Smooth update using requestAnimationFrame
-function updateTransform() {
-  if (!modalImage) return;
-  modalImage.style.transform = `translate(${translateX}px, ${translateY}px) scale(${currentZoom})`;
-}
-
-function scheduleUpdate() {
-  if (rafId) cancelAnimationFrame(rafId);
-  rafId = requestAnimationFrame(updateTransform);
-}
-
-// Open modal
-function openModal(imgSrc) {
-  const modal = document.getElementById('gcashModal');
-  const img = document.getElementById('modalImage');
-  const wrapper = document.getElementById('imageWrapper');
-  if (!modal || !img || !wrapper) return;
-  
-  modalImage = img;
-  imageWrapper = wrapper;
-  modalImage.src = imgSrc;
-  modal.style.display = 'flex';
-  
-  // Reset zoom and position
-  currentZoom = 1;
-  translateX = 0;
-  translateY = 0;
-  updateTransform();
-  
-  // Remove constraints class so image fits initially
-  modalImage.classList.remove('zoomed');
-  
-  // Attach events (with clean removal to avoid duplicates)
-  attachModalEvents();
-}
-
-// Close modal
-function closeModal() {
-  const modal = document.getElementById('gcashModal');
-  if (modal) {
-    modal.style.display = 'none';
-    resetZoom();
-  }
-}
-
-// Reset zoom to 1 and center
-function resetZoom() {
-  currentZoom = 1;
-  translateX = 0;
-  translateY = 0;
-  if (modalImage) {
-    modalImage.classList.remove('zoomed');
-    updateTransform();
-  }
-}
-
-// Apply zoom with limits (0.5x to 3x)
-function applyZoom(newZoom) {
-  let zoom = Math.min(Math.max(0.5, newZoom), 3);
-  if (zoom === currentZoom) return;
-  currentZoom = zoom;
-  
-  if (currentZoom > 1) {
-    modalImage.classList.add('zoomed');
-  } else {
-    modalImage.classList.remove('zoomed');
-    // Reset position when fully zoomed out
-    translateX = 0;
-    translateY = 0;
-  }
-  scheduleUpdate();
-}
-
-// Zoom in/out from buttons – smaller step for smoother control
-function zoomImage(direction) {
-  const step = 0.05;  // ← change from 0.2 to 0.05
-  let newZoom = direction === 'in' ? currentZoom + step : currentZoom - step;
-  applyZoom(newZoom);
-}
-
-// Mouse wheel zoom – also smaller step
-function handleWheel(e) {
-  e.preventDefault();
-  const delta = e.deltaY > 0 ? -0.05 : 0.05;  // ← change from 0.1 to 0.05
-  let newZoom = currentZoom + delta;
-  applyZoom(newZoom);
-}
-
-// Panning (drag) – only when zoomed > 1
-function startDrag(e) {
-  if (currentZoom <= 1) return;
-  isDragging = true;
-  const clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
-  const clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
-  dragStartX = clientX - translateX;
-  dragStartY = clientY - translateY;
-  lastTranslateX = translateX;
-  lastTranslateY = translateY;
-  imageWrapper.style.cursor = 'grabbing';
-}
-
-function onDrag(e) {
-  if (!isDragging) return;
-  const clientX = e.clientX ?? (e.touches ? e.touches[0].clientX : 0);
-  const clientY = e.clientY ?? (e.touches ? e.touches[0].clientY : 0);
-  translateX = clientX - dragStartX;
-  translateY = clientY - dragStartY;
-  scheduleUpdate();
-}
-
-function stopDrag() {
-  isDragging = false;
-  if (imageWrapper) imageWrapper.style.cursor = 'grab';
-}
-
-// Touch pinch zoom
-let initialDistance = 0;
-let initialZoom = 1;
-
-function handleTouchStart(e) {
-  if (e.touches.length === 2) {
-    e.preventDefault();
-    const t1 = e.touches[0];
-    const t2 = e.touches[1];
-    initialDistance = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
-    initialZoom = currentZoom;
-  } else if (e.touches.length === 1 && currentZoom > 1) {
-    startDrag(e);
-  }
-}
-
-function handleTouchMove(e) {
-  if (e.touches.length === 2 && initialDistance > 0) {
-    e.preventDefault();
-    const t1 = e.touches[0];
-    const t2 = e.touches[1];
-    const distance = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
-    let scale = (distance / initialDistance) * initialZoom;
-    scale = Math.min(Math.max(0.5, scale), 3);
-    if (scale !== currentZoom) {
-      currentZoom = scale;
-      if (currentZoom > 1) {
-        modalImage.classList.add('zoomed');
-      } else {
-        modalImage.classList.remove('zoomed');
-        translateX = 0;
-        translateY = 0;
-      }
-      scheduleUpdate();
-    }
-  } else if (e.touches.length === 1 && isDragging) {
-    onDrag(e);
-  }
-}
-
-function handleTouchEnd(e) {
-  if (e.touches.length < 2) initialDistance = 0;
-  if (e.touches.length === 0) stopDrag();
-}
-
-// Attach all events (ensuring no duplicates)
-function attachModalEvents() {
-  if (!imageWrapper) return;
-  
-  const events = [
-    { el: imageWrapper, type: 'wheel', handler: handleWheel, options: { passive: false } },
-    { el: imageWrapper, type: 'mousedown', handler: startDrag },
-    { el: window, type: 'mousemove', handler: onDrag },
-    { el: window, type: 'mouseup', handler: stopDrag },
-    { el: imageWrapper, type: 'touchstart', handler: handleTouchStart, options: { passive: false } },
-    { el: imageWrapper, type: 'touchmove', handler: handleTouchMove, options: { passive: false } },
-    { el: imageWrapper, type: 'touchend', handler: handleTouchEnd }
-  ];
-  
-  // Remove any previous listeners (cleanup)
-  events.forEach(({ el, type, handler }) => {
-    el.removeEventListener(type, handler);
-  });
-  
-  // Add fresh listeners
-  events.forEach(({ el, type, handler, options }) => {
-    el.addEventListener(type, handler, options);
-  });
-}
-
-// ESC key to close modal
-document.addEventListener('keydown', function(e) {
-  const modal = document.getElementById('gcashModal');
-  if (e.key === 'Escape' && modal && modal.style.display === 'flex') {
-    closeModal();
-  }
-});
-
-// Close when clicking outside the image (overlay)
-window.onclick = function(e) {
-  const modal = document.getElementById('gcashModal');
-  if (e.target === modal) closeModal();
-}
-
-// Toggle ng mobile menu gamit ang tatlong guhit
-document.addEventListener('DOMContentLoaded', function() {
-  const hamburger = document.getElementById('hamburgerBtn');
-  const navMenu = document.getElementById('navMenu');
-  
-  if (hamburger && navMenu) {
-    hamburger.addEventListener('click', function() {
-      // Toggle Bootstrap collapse
-      const bsCollapse = bootstrap.Collapse.getInstance(navMenu);
-      if (bsCollapse) {
-        bsCollapse.toggle();
-      } else {
-        new bootstrap.Collapse(navMenu, { toggle: true });
-      }
-    });
-  }
-});
-
-
-// ================= VIDEO CAROUSEL WITH STACKED EFFECT (DYNAMIC) =================
-(async function() {
-    let videoSources = [];
-    let currentIndex = 0;
-    let videos = [];
-    let videoCards = [];
-    let isTransitioning = false;
-    let currentVideo = null;
-    
-    const track = document.getElementById('videoCarouselTrack');
-    const dotsContainer = document.getElementById('videoCarouselDots');
-    const progressBar = document.getElementById('videoProgressBar');
-    const carouselContainer = document.querySelector('.video-carousel-container');
-    
-    if (!track) return;
-    
-    // ========== FETCH UPLOADED VIDEOS ==========
-    try {
-        const response = await fetch('/api/public/advertisements');
-        if (response.ok) {
-            const data = await response.json();
-            const uploadedVideos = Array.isArray(data) ? data.filter(item => item.fileType === 'video') : [];
-            console.log('Uploaded videos found:', uploadedVideos.length);
-            
-            if (uploadedVideos.length > 0) {
-                videoSources = uploadedVideos.map(video => video.filePath);
-                console.log('Using uploaded videos');
-            }
-        }
-    } catch (error) {
-        console.error('Error fetching videos:', error);
-    }
-    
-    // If no uploaded videos, show message
-    if (videoSources.length === 0) {
-        track.innerHTML = `<div class="no-videos-message" style="text-align:center;padding:60px;color:#94a3b8;">
-            <i class="fas fa-video" style="font-size:48px;margin-bottom:16px;"></i>
-            <p>No advertisement videos uploaded yet</p>
-            <small>Check back later for exciting videos!</small>
-        </div>`;
-        if (dotsContainer) dotsContainer.innerHTML = '';
-        return;
-    }
-    
-    // ========== BUILD CAROUSEL ==========
-    function buildCarousel() {
-        track.innerHTML = '';
-        dotsContainer.innerHTML = '';
-        videos = [];
-        videoCards = [];
-        
-        videoSources.forEach((src, index) => {
-            const card = document.createElement('div');
-            card.className = 'video-carousel-card';
-            card.setAttribute('data-index', index);
-            
-            const video = document.createElement('video');
-            video.className = 'portrait-video';
-            video.muted = true;
-            video.playsInline = true;
-            video.setAttribute('playsinline', '');
-            video.innerHTML = `<source src="${src}" type="video/mp4">`;
-            
-            const soundIndicator = document.createElement('div');
-            soundIndicator.className = 'sound-indicator';
-            soundIndicator.innerHTML = '<i class="fas fa-volume-mute"></i> <span>Muted</span>';
-            card.appendChild(soundIndicator);
-            card.appendChild(video);
-            track.appendChild(card);
-            
-            videos.push(video);
-            videoCards.push(card);
-            
-            const dot = document.createElement('div');
-            dot.className = 'carousel-dot';
-            dot.onclick = () => goToVideo(index);
-            dotsContainer.appendChild(dot);
-        });
-        
-        updateCardPositions();
-        setupVideoListeners();
-        setupVisibilityHandler();
-        playCurrentVideo();
-    }
-    
-    function updateCardPositions() {
-        const total = videoCards.length;
-        
-        videoCards.forEach((card, index) => {
-            card.classList.remove('active', 'prev', 'next', 'prev-far', 'next-far');
-            let diff = index - currentIndex;
-            
-            if (diff === 0) {
-                card.classList.add('active');
-            } else if (diff === 1 || (currentIndex === total - 1 && index === 0)) {
-                card.classList.add('next');
-            } else if (diff === -1 || (currentIndex === 0 && index === total - 1)) {
-                card.classList.add('prev');
-            } else if (diff === 2 || (currentIndex === total - 2 && index === 0) || 
-                       (currentIndex === total - 1 && index === 1)) {
-                card.classList.add('next-far');
-            } else if (diff === -2 || (currentIndex === 1 && index === total - 1) ||
-                       (currentIndex === 0 && index === total - 2)) {
-                card.classList.add('prev-far');
-            }
-        });
-        
-        const dots = document.querySelectorAll('.carousel-dot');
-        dots.forEach((dot, i) => {
-            if (i === currentIndex) {
-                dot.classList.add('active');
-            } else {
-                dot.classList.remove('active');
-            }
-        });
-    }
-    
-    function setupVideoListeners() {
-        videos.forEach((video, index) => {
-            video.addEventListener('ended', () => {
-                if (index === currentIndex && !isTransitioning) {
-                    goToNextVideo();
+    // Responsive
+    let resizeTimeout;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(() => {
+            const newCardsPerView = getCardsPerView();
+            if (newCardsPerView !== plansCarousel.cardsPerView) {
+                plansCarousel.cardsPerView = newCardsPerView;
+                // Rebuild dots
+                const totalDotsNew = Math.ceil(plansCarousel.totalCards / plansCarousel.cardsPerView);
+                const currentDots = dotsContainer.querySelectorAll('.plans-carousel-dot');
+                if (currentDots.length !== totalDotsNew) {
+                    dotsContainer.innerHTML = '';
+                    plansCarousel.dots = [];
+                    for (let i = 0; i < totalDotsNew; i++) {
+                        const dot = document.createElement('button');
+                        dot.className = 'plans-carousel-dot' + (i === 0 ? ' active' : '');
+                        dot.setAttribute('data-index', i);
+                        dot.addEventListener('click', () => goToPlanSlide(i));
+                        dotsContainer.appendChild(dot);
+                        plansCarousel.dots.push(dot);
+                    }
                 }
-            });
-            
-            video.addEventListener('play', () => {
-                if (index !== currentIndex && !isTransitioning) {
-                    video.pause();
-                    video.currentTime = 0;
-                }
-            });
-        });
-    }
-    
-    function setupVisibilityHandler() {
-        // Check visibility on scroll
-        window.addEventListener('scroll', () => {
-            handleVisibilityChange();
-        });
-        
-        window.addEventListener('resize', () => {
-            handleVisibilityChange();
-        });
-        
-        // Initial check
-        setTimeout(handleVisibilityChange, 100);
-    }
-    
-    function handleVisibilityChange() {
-        if (!currentVideo) return;
-        
-        const isVisible = checkIfCarouselVisible();
-        
-        if (isVisible) {
-            // Video is visible - unmute and play
-            if (currentVideo.muted) {
-                currentVideo.muted = false;
-                updateSoundIndicator(currentVideo, true);
+                updatePlanCardWidth();
+                goToPlanSlide(0);
             }
-            if (currentVideo.paused && !currentVideo.ended) {
-                currentVideo.play().catch(e => console.log("Play error:", e));
-            }
-        } else {
-            // Video is NOT visible - mute and pause
-            if (!currentVideo.muted) {
-                currentVideo.muted = true;
-                updateSoundIndicator(currentVideo, false);
-            }
-            if (!currentVideo.paused && !currentVideo.ended) {
-                currentVideo.pause();
-            }
-        }
-    }
-    
-    function updateSoundIndicator(video, hasSound) {
-        const card = video.closest('.video-carousel-card');
-        if (card) {
-            const indicator = card.querySelector('.sound-indicator');
-            if (indicator) {
-                if (hasSound) {
-                    indicator.innerHTML = '<i class="fas fa-volume-up"></i> <span>Sound On</span>';
-                    indicator.style.background = 'rgba(3, 123, 228, 0.8)';
-                } else {
-                    indicator.innerHTML = '<i class="fas fa-volume-mute"></i> <span>Muted</span>';
-                    indicator.style.background = 'rgba(0, 0, 0, 0.7)';
-                }
-            }
-        }
-    }
-    
-    function playCurrentVideo() {
-        videos.forEach(video => {
-            video.pause();
-        });
-        
-        currentVideo = videos[currentIndex];
-        if (currentVideo) {
-            if (currentVideo.ended) {
-                currentVideo.currentTime = 0;
-            }
-            
-            const isVisible = checkIfCarouselVisible();
-            if (isVisible) {
-                currentVideo.muted = false;
-                updateSoundIndicator(currentVideo, true);
-            } else {
-                currentVideo.muted = true;
-                updateSoundIndicator(currentVideo, false);
-            }
-            
-            currentVideo.play().catch(e => console.log("Autoplay error:", e));
-            startProgressBar();
-        }
-    }
-    
-    function startProgressBar() {
-        if (!currentVideo || !progressBar) return;
-        
-        function updateProgress() {
-            if (currentVideo && !currentVideo.paused && currentVideo.duration) {
-                const progress = (currentVideo.currentTime / currentVideo.duration) * 100;
-                progressBar.style.width = `${progress}%`;
-                
-                if (!currentVideo.ended && !currentVideo.paused) {
-                    requestAnimationFrame(updateProgress);
-                }
-            }
-        }
-        
-        currentVideo.removeEventListener('timeupdate', updateProgress);
-        currentVideo.addEventListener('timeupdate', updateProgress);
-        
-        currentVideo.addEventListener('ended', () => {
-            progressBar.style.width = '0%';
-        }, { once: true });
-    }
-    
-    function checkIfCarouselVisible() {
-        if (!carouselContainer) return true;
-        const rect = carouselContainer.getBoundingClientRect();
-        const windowHeight = window.innerHeight || document.documentElement.clientHeight;
-        const visibleHeight = Math.min(rect.bottom, windowHeight) - Math.max(rect.top, 0);
-        const visibilityRatio = visibleHeight / rect.height;
-        return visibilityRatio >= 0.3;
-    }
-    
-    function goToNextVideo() {
-        if (isTransitioning) return;
-        isTransitioning = true;
-        
-        let nextIndex = currentIndex + 1;
-        if (nextIndex >= videoCards.length) {
-            nextIndex = 0;
-        }
-        
-        currentIndex = nextIndex;
-        updateCardPositions();
-        
-        setTimeout(() => {
-            playCurrentVideo();
-            isTransitioning = false;
-        }, 500);
-    }
-    
-    function goToVideo(index) {
-        if (isTransitioning || index === currentIndex) return;
-        isTransitioning = true;
-        
-        currentIndex = index;
-        updateCardPositions();
-        
-        setTimeout(() => {
-            playCurrentVideo();
-            isTransitioning = false;
-        }, 500);
-    }
-    
-    // Initialize
-    buildCarousel();
-})();
+        }, 250);
+    });
 
-// ================= LOAD PLANS DYNAMICALLY =================
+    // Auto-play
+    startPlanAutoPlay();
+
+    // Pause on hover
+    container.addEventListener('mouseenter', stopPlanAutoPlay);
+    container.addEventListener('mouseleave', startPlanAutoPlay);
+
+    // Set initial position
+    setTimeout(() => goToPlanSlide(0), 100);
+}
+
+function updatePlanCardWidth() {
+    const cards = plansCarousel.track.querySelectorAll('.plan-card');
+    const gap = 24;
+    const containerWidth = plansCarousel.container.clientWidth;
+    const cardWidth = (containerWidth - (plansCarousel.cardsPerView - 1) * gap) / plansCarousel.cardsPerView;
+    cards.forEach(card => {
+        card.style.flex = `0 0 ${cardWidth}px`;
+    });
+}
+
+function goToPlanSlide(index) {
+    if (plansCarousel.isTransitioning) return;
+    const totalDots = plansCarousel.dots.length;
+    if (totalDots === 0) return;
+
+    // Wrap around
+    if (index < 0) index = totalDots - 1;
+    if (index >= totalDots) index = 0;
+
+    plansCarousel.currentIndex = index;
+
+    // Calculate scroll position
+    const cards = plansCarousel.track.querySelectorAll('.plan-card');
+    if (cards.length === 0) return;
+
+    const cardWidth = cards[0].offsetWidth + 24; // width + gap
+    const scrollPosition = index * cardWidth * plansCarousel.cardsPerView;
+
+    plansCarousel.isTransitioning = true;
+    plansCarousel.track.style.transform = `translateX(-${scrollPosition}px)`;
+
+    // Update dots
+    plansCarousel.dots.forEach((dot, i) => {
+        dot.classList.toggle('active', i === index);
+    });
+
+    // Update buttons
+    const prevBtn = document.getElementById('plansPrevBtn');
+    const nextBtn = document.getElementById('plansNextBtn');
+    if (prevBtn) prevBtn.disabled = index === 0;
+    if (nextBtn) nextBtn.disabled = index === totalDots - 1;
+
+    setTimeout(() => {
+        plansCarousel.isTransitioning = false;
+    }, 500);
+}
+
+function startPlanAutoPlay() {
+    stopPlanAutoPlay();
+    plansCarousel.autoPlayInterval = setInterval(() => {
+        if (!plansCarousel.isTransitioning) {
+            const nextIndex = (plansCarousel.currentIndex + 1) % plansCarousel.dots.length;
+            goToPlanSlide(nextIndex);
+        }
+    }, 5000);
+}
+
+function stopPlanAutoPlay() {
+    if (plansCarousel.autoPlayInterval) {
+        clearInterval(plansCarousel.autoPlayInterval);
+        plansCarousel.autoPlayInterval = null;
+    }
+}
+
+       // ================= DYNAMIC PLANS LOADER (CAROUSEL VERSION) =================
 async function loadPlansDynamically() {
     try {
         const response = await fetch('/api/public/plans');
         const plans = await response.json();
-        
-        console.log('Plans loaded:', plans);
-        
-        if (plans.length === 0) {
-            console.log('No plans found');
-            return;
+        if (plans.length === 0) return;
+
+        // Fetch customer counts
+        const customerCounts = await fetchCustomerCounts();
+
+        // ---- Determine Most Popular Plan ----
+       const sortedPlans = [...plans].sort((a, b) => {
+
+            const aCount = customerCounts[a.name] || a.applicants || a.popularity || 0;
+            const bCount = customerCounts[b.name] || b.applicants || b.popularity || 0;
+            if (bCount !== aCount) return bCount - aCount;
+            return (b.price || 0) - (a.price || 0);
+        });
+        const mostPopularPlan = sortedPlans[0] || plans[0];
+
+        // ---- Determine Highest Speed ----
+        let maxSpeed = 0;
+        let maxSpeedPlan = null;
+        plans.forEach(plan => {
+            const speedNum = parseInt(plan.speed) || 0;
+            if (speedNum > maxSpeed) {
+                maxSpeed = speedNum;
+                maxSpeedPlan = plan;
+            }
+        });
+        const highestSpeed = maxSpeedPlan ? maxSpeedPlan.speed : '800 Mbps';
+
+        // ---- Update Hero Description ----
+        const heroDesc = document.getElementById('heroDescription');
+        if (heroDesc) {
+            const baseText = 'Delivering trusted cable and internet services since 1991. Choose from affordable plans with speeds up to ';
+            heroDesc.innerHTML = baseText + `<span id="heroMaxSpeed">${highestSpeed}</span>.`;
         }
-        
-        const carouselInner = document.querySelector('#heroCarousel .carousel-inner');
-        const thumbnailTrack = document.querySelector('.thumbnail-track');
-        
-        if (!carouselInner) return;
-        
-        // Build carousel items
-        carouselInner.innerHTML = plans.map((plan, index) => `
-            <div class="carousel-item ${index === 0 ? 'active' : ''}">
-                <div class="ad-card">
-                    ${plan.image ? `
-                    <img src="${plan.image}" class="ads-img" alt="${plan.name}" 
-                         onclick="window.open('/plans?selected=${encodeURIComponent(plan.name)}', '_blank')">
-                    ` : `
-                    <div class="ad-placeholder" onclick="window.open('/plans?selected=${encodeURIComponent(plan.name)}', '_blank')">
-                        <div class="placeholder-content">
-                            <h3>${escapeHtml(plan.name)}</h3>
-                            <p class="plan-price">₱${plan.price}/month</p>
-                            <p class="plan-speed">${escapeHtml(plan.speed)}</p>
-                            <span class="view-plan-btn">View Plan →</span>
-                        </div>
-                    </div>
-                    `}
-                    <div class="ad-overlay"></div>
+
+        // ---- Update Plans Carousel Track ----
+        const track = document.getElementById('plansCarouselTrack');
+        if (track) {
+            track.innerHTML = plans.map((plan, index) => {
+                const isPopular = (plan.id === mostPopularPlan.id) || plan.popular;
+                const hasFeatures = plan.features && plan.features.length > 0;
+                return `
+                <div class="plan-card ${isPopular ? 'featured' : ''}">
+                    ${isPopular ? '<span class="popular-badge">Most Popular</span>' : ''}
+                    ${plan.image ? `<div class="plan-image"><img src="${plan.image}" alt="${plan.name}"></div>` : ''}
+                    <div class="plan-name">${escapeHtml(plan.name)}</div>
+                    <div class="plan-speed">Up to ${escapeHtml(plan.speed)}</div>
+                    <div class="plan-price">₱${plan.price} <small>/mo</small></div>
+                    ${hasFeatures ? `<ul class="plan-features">${plan.features.map(f => `<li><i class="fas fa-check"></i> ${escapeHtml(f)}</li>`).join('')}</ul>` : ''}
+                    <button class="btn-plan" onclick="window.open('/plans?selected=${encodeURIComponent(plan.name)}', '_blank')">Get This Plan</button>
                 </div>
-            </div>
-        `).join('');
-        
-        // Build thumbnails
-        if (thumbnailTrack) {
-            thumbnailTrack.innerHTML = plans.map((plan, index) => `
-                <div class="thumbnail-wrapper" data-slide-to="${index}">
-                    ${plan.image ? 
-                        `<img src="${plan.image}" class="thumbnail" alt="${plan.name}">` : 
-                        `<div class="thumbnail-placeholder">${plan.name.substring(0, 2)}</div>`
-                    }
+            `}).join('');
+        }
+
+        // ---- Update Hero Mockup Card ----
+        if (mostPopularPlan) {
+            const heroPrice = document.getElementById('heroPlanPrice');
+            const heroSpeed = document.getElementById('heroPlanSpeed');
+            const heroFeatures = document.getElementById('heroPlanFeatures');
+            const heroBtn = document.getElementById('heroPlanBtn');
+            const heroBadge = document.querySelector('.mockup-card .plan-badge');
+            const mockupImage = document.getElementById('mockupPlanImage');
+
+            if (heroPrice) heroPrice.innerHTML = `₱${mostPopularPlan.price} <small>/mo</small>`;
+            if (heroSpeed) heroSpeed.textContent = `Up to ${mostPopularPlan.speed} • Fiber`;
+
+            if (mockupImage && mostPopularPlan.image) {
+                mockupImage.style.display = 'block';
+                mockupImage.querySelector('img').src = mostPopularPlan.image;
+                mockupImage.querySelector('img').alt = mostPopularPlan.name;
+            } else if (mockupImage) {
+                mockupImage.style.display = 'none';
+            }
+
+            if (heroFeatures) {
+                if (mostPopularPlan.features && mostPopularPlan.features.length > 0) {
+                    heroFeatures.innerHTML = mostPopularPlan.features.map(f =>
+                        `<li><i class="fas fa-check-circle"></i> ${escapeHtml(f)}</li>`
+                    ).join('');
+                    heroFeatures.style.display = 'block';
+                } else {
+                    heroFeatures.style.display = 'none';
+                }
+            }
+            if (heroBtn) heroBtn.href = `/plans?selected=${encodeURIComponent(mostPopularPlan.name)}`;
+            if (heroBadge) heroBadge.textContent = '⭐ Most Popular';
+        }
+
+        // ---- Update Why Choose Section ----
+        const whyGrid = document.getElementById('whyChooseGrid');
+        if (whyGrid && plans.length > 0) {
+            const allFeatures = new Set();
+            plans.forEach(plan => {
+                if (plan.features && Array.isArray(plan.features)) {
+                    plan.features.forEach(f => allFeatures.add(f));
+                }
+            });
+
+            const featureList = allFeatures.size > 0 ? Array.from(allFeatures) : ['Fast Internet Plans', 'Streaming', 'Chat Support'];
+            const featureIcons = ['fa-bolt', 'fa-play-circle', 'fa-comment-dots', 'fa-wifi', 'fa-shield-alt', 'fa-headset'];
+
+            whyGrid.innerHTML = featureList.slice(0, 6).map((feature, index) => `
+                <div class="why-card">
+                    <div class="icon-wrap"><i class="fas ${featureIcons[index % featureIcons.length]}"></i></div>
+                    <h4>${escapeHtml(feature)}</h4>
+                    <p>Experience ${escapeHtml(feature.toLowerCase())} with Cablevision's premium fiber internet service.</p>
                 </div>
             `).join('');
         }
-        
-        // Re-initialize carousel
-        const carouselElement = document.getElementById('heroCarousel');
-        if (carouselElement) {
-            // Destroy existing carousel instance if any
-            const existingCarousel = bootstrap.Carousel.getInstance(carouselElement);
-            if (existingCarousel) {
-                existingCarousel.dispose();
-            }
-            // Create new carousel instance
-            new bootstrap.Carousel(carouselElement, {
-                interval: 4000,
-                ride: 'carousel'
-            });
-        }
-        
-        // Reattach thumbnail click events
-        attachThumbnailEvents();
-        
-        console.log('Plans carousel rendered successfully');
+
+        // ---- Initialize Carousel ----
+        setTimeout(initPlansCarousel, 200);
+
+        console.log('Most Popular Plan:', mostPopularPlan.name, 'with', customerCounts[mostPopularPlan.id] || 0, 'customers');
+
     } catch (err) {
         console.error('Error loading plans:', err);
     }
 }
 
-function attachThumbnailEvents() {
-    const carousel = document.getElementById('heroCarousel');
-    const thumbWrappers = document.querySelectorAll('.thumbnail-wrapper');
-    
-    if (!carousel || !thumbWrappers.length) return;
-    
-    thumbWrappers.forEach((wrapper, index) => {
-        wrapper.onclick = () => {
-            const bsCarousel = bootstrap.Carousel.getInstance(carousel);
-            if (bsCarousel) bsCarousel.to(index);
-        };
-    });
+// ================= FETCH CUSTOMER COUNTS =================
+async function fetchCustomerCounts() {
+    try {
+        const response = await fetch('/api/public/customer-plan-counts');
+        if (response.ok) {
+            const data = await response.json();
+            return data;
+        }
+    } catch (error) {
+        console.log('Could not fetch customer counts, using fallback');
+    }
+    return {};
 }
+        // ================= DYNAMIC VIDEO CAROUSEL (REDESIGNED) =================
+        (async function() {
+            let videoSources = [];
+            let currentIndex = 0;
+            let videos = [];
+            let videoCards = [];
+            let isTransitioning = false;
+            let currentVideo = null;
+            const track = document.getElementById('videoCarouselTrack');
+            const dotsContainer = document.getElementById('videoCarouselDots');
+            const progressBar = document.getElementById('videoProgressBar');
+            const carouselContainer = document.querySelector('.video-carousel-container-modern');
+            if (!track) return;
 
-// Call this after DOM loads
-document.addEventListener('DOMContentLoaded', function() {
-    loadPlansDynamically();
-});
-
-function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/[&<>]/g, function(m) {
-        if (m === '&') return '&amp;';
-        if (m === '<') return '&lt;';
-        if (m === '>') return '&gt;';
-        return m;
-    });
-}
-
-// ================= INFINITE SCROLL GALLERY - CONTINUOUS MOVEMENT =================
-function initInfiniteGallery() {
-    const track = document.getElementById('imageGalleryTrack');
-    if (!track) return;
-    
-    // Get all rows
-    const rows = track.querySelectorAll('.gallery-row');
-    if (rows.length < 2) return;
-    
-    // For each row, duplicate the content to create infinite scroll effect
-    rows.forEach(row => {
-        const originalCards = Array.from(row.children);
-        // Clone each card and append to same row for seamless loop
-        originalCards.forEach(card => {
-            const clone = card.cloneNode(true);
-            row.appendChild(clone);
-        });
-    });
-    
-    // Add infinite scroll class
-    track.classList.add('infinite-scroll');
-    
-    // Adjust animation duration based on content width
-    function adjustAnimationDuration() {
-        rows.forEach((row, index) => {
-            const rowWidth = row.scrollWidth / 2; // Half because duplicated
-            // Duration between 15-40 seconds depending on width
-            const duration = Math.max(15, Math.min(40, rowWidth / 50));
-            row.style.animationDuration = `${duration}s`;
-            
-            // Alternate direction for second row
-            if (index === 1) {
-                row.style.animationDirection = 'normal';
+            try {
+                const response = await fetch('/api/public/advertisements');
+                if (response.ok) {
+                    const data = await response.json();
+                    const uploadedVideos = Array.isArray(data) ? data.filter(item => item.fileType === 'video') : [];
+                    if (uploadedVideos.length > 0) {
+                        videoSources = uploadedVideos.map(video => video.filePath);
+                    }
+                }
+            } catch (error) {
+                console.error('Error fetching videos:', error);
             }
-        });
-    }
-    
-    adjustAnimationDuration();
-    window.addEventListener('resize', adjustAnimationDuration);
-    
-    // Pause animation when user interacts with navigation buttons
-    const prevBtn = document.getElementById('galleryPrevBtn');
-    const nextBtn = document.getElementById('galleryNextBtn');
-    const wrapper = document.getElementById('galleryWrapper');
-    
-    let autoScrollTimeout;
-    
-    function pauseAnimation() {
-        track.classList.remove('infinite-scroll');
-        if (autoScrollTimeout) clearTimeout(autoScrollTimeout);
-        autoScrollTimeout = setTimeout(() => {
-            track.classList.add('infinite-scroll');
-        }, 3000);
-    }
-    
-    if (prevBtn) {
-        prevBtn.addEventListener('click', () => {
-            pauseAnimation();
-            wrapper.scrollBy({ left: -300, behavior: 'smooth' });
-        });
-    }
-    
-    if (nextBtn) {
-        nextBtn.addEventListener('click', () => {
-            pauseAnimation();
-            wrapper.scrollBy({ left: 300, behavior: 'smooth' });
-        });
-    }
-    
-    // Also pause on hover over the gallery
-    const gallerySection = document.querySelector('.image-gallery-section');
-    if (gallerySection) {
-        gallerySection.addEventListener('mouseenter', () => {
-            track.classList.remove('infinite-scroll');
-        });
-        
-        gallerySection.addEventListener('mouseleave', () => {
-            track.classList.add('infinite-scroll');
-        });
-    }
-}
 
+            if (videoSources.length === 0) {
+                track.innerHTML = `<div class="no-videos-message-modern" style="text-align:center;padding:60px;color:#94a3b8;width:100%;">
+                    <i class="fas fa-video" style="font-size:48px;margin-bottom:16px;color:#1a5bb5;opacity:0.3;"></i>
+                    <p>No videos uploaded yet</p>
+                    <small>Check back later for exciting content!</small>
+                </div>`;
+                if (dotsContainer) dotsContainer.innerHTML = '';
+                return;
+            }
 
-</script>
+            function buildCarousel() {
+                track.innerHTML = '';
+                dotsContainer.innerHTML = '';
+                videos = [];
+                videoCards = [];
+
+                videoSources.forEach((src, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'video-carousel-card-modern';
+                    card.setAttribute('data-index', index);
+
+                    const video = document.createElement('video');
+                    video.className = 'video-card-video';
+                    video.muted = true;
+                    video.playsInline = true;
+                    video.setAttribute('playsinline', '');
+                    video.innerHTML = `<source src="${src}" type="video/mp4">`;
+
+                    const soundIndicator = document.createElement('div');
+                    soundIndicator.className = 'sound-indicator-modern';
+                    soundIndicator.innerHTML = '<i class="fas fa-volume-mute"></i> <span>Muted</span>';
+                    card.appendChild(soundIndicator);
+                    card.appendChild(video);
+                    track.appendChild(card);
+
+                    videos.push(video);
+                    videoCards.push(card);
+
+                    const dot = document.createElement('div');
+                    dot.className = 'carousel-dot-modern';
+                    dot.onclick = () => goToVideo(index);
+                    dotsContainer.appendChild(dot);
+                });
+
+                updateCardPositions();
+                setupVideoListeners();
+                setupVisibilityHandler();
+                playCurrentVideo();
+            }
+
+            function updateCardPositions() {
+                const total = videoCards.length;
+                videoCards.forEach((card, index) => {
+                    card.classList.remove('active', 'prev', 'next', 'prev-far', 'next-far');
+                    let diff = index - currentIndex;
+                    if (diff === 0) card.classList.add('active');
+                    else if (diff === 1 || (currentIndex === total - 1 && index === 0)) card.classList.add('next');
+                    else if (diff === -1 || (currentIndex === 0 && index === total - 1)) card.classList.add('prev');
+                    else if (diff === 2 || (currentIndex === total - 2 && index === 0) || (currentIndex === total - 1 && index === 1)) card.classList.add('next-far');
+                    else if (diff === -2 || (currentIndex === 1 && index === total - 1) || (currentIndex === 0 && index === total - 2)) card.classList.add('prev-far');
+                });
+
+                const dots = document.querySelectorAll('.carousel-dot-modern');
+                dots.forEach((dot, i) => i === currentIndex ? dot.classList.add('active') : dot.classList.remove('active'));
+            }
+
+            function setupVideoListeners() {
+                videos.forEach((video, index) => {
+                    video.addEventListener('ended', () => {
+                        if (index === currentIndex && !isTransitioning) goToNextVideo();
+                    });
+                    video.addEventListener('play', () => {
+                        if (index !== currentIndex && !isTransitioning) { video.pause(); video.currentTime = 0; }
+                    });
+                });
+            }
+
+            function setupVisibilityHandler() {
+                window.addEventListener('scroll', handleVisibilityChange);
+                window.addEventListener('resize', handleVisibilityChange);
+                setTimeout(handleVisibilityChange, 100);
+            }
+
+            function handleVisibilityChange() {
+                if (!currentVideo) return;
+                const isVisible = checkIfCarouselVisible();
+                if (isVisible) {
+                    if (currentVideo.muted) { currentVideo.muted = false; updateSoundIndicator(currentVideo, true); }
+                    if (currentVideo.paused && !currentVideo.ended) currentVideo.play().catch(e => console.log("Play error:", e));
+                } else {
+                    if (!currentVideo.muted) { currentVideo.muted = true; updateSoundIndicator(currentVideo, false); }
+                    if (!currentVideo.paused && !currentVideo.ended) currentVideo.pause();
+                }
+            }
+
+            function updateSoundIndicator(video, hasSound) {
+                const card = video.closest('.video-carousel-card-modern');
+                if (card) {
+                    const indicator = card.querySelector('.sound-indicator-modern');
+                    if (indicator) {
+                        if (hasSound) {
+                            indicator.innerHTML = '<i class="fas fa-volume-up"></i> <span>Sound On</span>';
+                            indicator.style.background = 'rgba(26, 91, 181, 0.85)';
+                        } else {
+                            indicator.innerHTML = '<i class="fas fa-volume-mute"></i> <span>Muted</span>';
+                            indicator.style.background = 'rgba(0, 0, 0, 0.7)';
+                        }
+                    }
+                }
+            }
+
+            function checkIfCarouselVisible() {
+                if (!carouselContainer) return true;
+                const rect = carouselContainer.getBoundingClientRect();
+                const windowHeight = window.innerHeight || document.documentElement.clientHeight;
+                const visibleHeight = Math.min(rect.bottom, windowHeight) - Math.max(rect.top, 0);
+                return visibleHeight / rect.height >= 0.3;
+            }
+
+            function playCurrentVideo() {
+                videos.forEach(video => video.pause());
+                currentVideo = videos[currentIndex];
+                if (currentVideo) {
+                    if (currentVideo.ended) currentVideo.currentTime = 0;
+                    const isVisible = checkIfCarouselVisible();
+                    if (isVisible) { currentVideo.muted = false; updateSoundIndicator(currentVideo, true); }
+                    else { currentVideo.muted = true; updateSoundIndicator(currentVideo, false); }
+                    currentVideo.play().catch(e => console.log("Autoplay error:", e));
+                    startProgressBar();
+                }
+            }
+
+            function startProgressBar() {
+                if (!currentVideo || !progressBar) return;
+                function updateProgress() {
+                    if (currentVideo && !currentVideo.paused && currentVideo.duration) {
+                        progressBar.style.width = `${(currentVideo.currentTime / currentVideo.duration) * 100}%`;
+                        if (!currentVideo.ended && !currentVideo.paused) requestAnimationFrame(updateProgress);
+                    }
+                }
+                currentVideo.removeEventListener('timeupdate', updateProgress);
+                currentVideo.addEventListener('timeupdate', updateProgress);
+                currentVideo.addEventListener('ended', () => { progressBar.style.width = '0%'; }, { once: true });
+            }
+
+            function goToNextVideo() {
+                if (isTransitioning) return;
+                isTransitioning = true;
+                let nextIndex = currentIndex + 1;
+                if (nextIndex >= videoCards.length) nextIndex = 0;
+                currentIndex = nextIndex;
+                updateCardPositions();
+                setTimeout(() => { playCurrentVideo(); isTransitioning = false; }, 500);
+            }
+
+            function goToVideo(index) {
+                if (isTransitioning || index === currentIndex) return;
+                isTransitioning = true;
+                currentIndex = index;
+                updateCardPositions();
+                setTimeout(() => { playCurrentVideo(); isTransitioning = false; }, 500);
+            }
+
+            buildCarousel();
+        })();
+
+        // ================= DYNAMIC IMAGE GALLERY =================
+        let uploadedLogos = [];
+
+        async function fetchUploadedLogos() {
+            try {
+                const response = await fetch('/api/public/advertisements');
+                if (!response.ok) throw new Error('Failed to fetch');
+                const data = await response.json();
+                uploadedLogos = Array.isArray(data) ? data.filter(item => item.fileType === 'image') : [];
+                uploadedLogos.sort((a, b) => (a.id || 0) - (b.id || 0));
+                buildImageGalleryModern();
+            } catch (error) {
+                console.error('Error fetching logos:', error);
+                buildImageGalleryModern();
+            }
+        }
+
+        function buildImageGalleryModern() {
+            const track = document.getElementById('imageGalleryTrack');
+            if (!track) return;
+            track.innerHTML = '';
+
+            let allImages = uploadedLogos.map(logo => ({ src: logo.filePath, type: 'uploaded', id: logo.id }));
+
+            if (allImages.length === 0) {
+                track.innerHTML = `
+                    <div class="no-channels-message" style="text-align:center;padding:40px;color:#94a3b8;width:100%;">
+                        <i class="fas fa-tv" style="font-size:48px;margin-bottom:16px;display:block;color:#1a5bb5;opacity:0.3;"></i>
+                        <p>No channel logos uploaded yet</p>
+                        <small>Please upload channel logos in the admin panel</small>
+                    </div>
+                `;
+                return;
+            }
+
+            allImages.forEach(img => {
+                const card = document.createElement('div');
+                card.className = 'gallery-card-modern';
+                card.onclick = () => window.open(img.src, '_blank');
+                card.innerHTML = `<img src="${img.src}" alt="Channel Logo" loading="lazy" onerror="this.style.display='none'">`;
+                track.appendChild(card);
+            });
+        }
+
+        // ================= GALLERY NAVIGATION =================
+        function initGalleryNavigationModern() {
+            const wrapper = document.getElementById('galleryWrapper');
+            const prevBtn = document.getElementById('galleryPrevBtn');
+            const nextBtn = document.getElementById('galleryNextBtn');
+            if (!wrapper || !prevBtn || !nextBtn) return;
+            const scrollAmount = 300;
+            prevBtn.addEventListener('click', () => {
+                wrapper.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+                updateActiveStates();
+            });
+            nextBtn.addEventListener('click', () => {
+                wrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                updateActiveStates();
+            });
+
+            wrapper.addEventListener('scroll', updateActiveStates);
+            setTimeout(updateActiveStates, 100);
+        }
+
+        function updateActiveStates() {
+            const wrapper = document.getElementById('galleryWrapper');
+            const cards = document.querySelectorAll('.gallery-card-modern');
+            if (!wrapper || !cards.length) return;
+            const containerWidth = wrapper.clientWidth;
+            const scrollLeft = wrapper.scrollLeft;
+            cards.forEach((card, index) => {
+                const cardLeft = card.offsetLeft;
+                const cardCenter = cardLeft + card.offsetWidth / 2;
+                const viewportCenter = scrollLeft + containerWidth / 2;
+                const distance = Math.abs(cardCenter - viewportCenter);
+                const maxDistance = containerWidth / 2 + card.offsetWidth / 2;
+                const opacity = Math.max(0.4, 1 - (distance / maxDistance) * 0.6);
+                const scale = Math.max(0.85, 1 - (distance / maxDistance) * 0.15);
+                card.style.opacity = opacity;
+                card.style.transform = `scale(${scale})`;
+            });
+        }
+
+        // ================= ANNOUNCEMENTS =================
+        let allAnnouncements = [];
+
+        async function fetchActiveAnnouncements() {
+            try {
+                const res = await fetch("/api/public/announcements");
+                if (!res.ok) throw new Error("Failed to fetch");
+                const data = await res.json();
+                const currentTime = new Date();
+                return data.filter(a => !a.expirationDate || new Date(a.expirationDate) > currentTime);
+            } catch (err) {
+                console.error("Error fetching announcements:", err);
+                return [];
+            }
+        }
+
+        function renderAllAnnouncements(announcements) {
+            const container = document.getElementById("combinedAnnouncementsList");
+            if (!container) return;
+            if (announcements.length === 0) {
+                container.innerHTML = `<div class="empty-announcements"><i class="fas fa-bullhorn"></i><p>No announcements at this time.</p></div>`;
+            } else {
+                let html = '';
+                announcements.forEach(a => {
+                    const announcementDate = new Date(a.timestamp * 1000);
+                    const hoursDiff = (new Date() - announcementDate) / (1000 * 60 * 60);
+                    const isNew = hoursDiff < 24;
+                    const badgeClass = isNew ? 'new' : 'recent';
+                    const badgeText = isNew ? 'NEW POST' : 'RECENT POST';
+                    const timeAgo = getTimeAgo(announcementDate);
+                    const imageHtml = a.imageBase64 ? `
+                        <div class="combined-image-wrapper" onclick="openImagePreview('${a.imageBase64}')">
+                            <img src="${a.imageBase64}" alt="Announcement image">
+                        </div>
+                    ` : '';
+                    const hasTitle = a.title && a.title.trim() !== '';
+                    const hasMessage = a.message && a.message.trim() !== '';
+                    const hasImage = a.imageBase64 && a.imageBase64 !== '';
+                    const isImageOnly = !hasTitle && !hasMessage && hasImage;
+
+                    if (isImageOnly) {
+                        html += `
+                            <div class="combined-announcement-item image-only-announcement">
+                                <div class="combined-badge ${badgeClass}">${badgeText}</div>
+                                ${imageHtml}
+                                <div class="combined-date"><i class="fas fa-calendar-alt"></i> ${timeAgo}</div>
+                            </div>
+                        `;
+                    } else {
+                        html += `
+                            <div class="combined-announcement-item">
+                                <div class="combined-badge ${badgeClass}">${badgeText}</div>
+                                ${hasTitle ? `<div class="combined-title">${escapeHtml(a.title)}</div>` : ''}
+                                ${hasMessage ? `<div class="combined-message">${escapeHtml(a.message)}</div>` : ''}
+                                ${imageHtml}
+                                <div class="combined-date"><i class="fas fa-calendar-alt"></i> ${timeAgo}</div>
+                            </div>
+                        `;
+                    }
+                });
+                container.innerHTML = html;
+            }
+        }
+
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins} minute${diffMins > 1 ? 's' : ''} ago`;
+            if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+            if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+            return date.toLocaleDateString();
+        }
+
+        async function loadAndShowModal() {
+            const container = document.getElementById("combinedAnnouncementsList");
+            if (container) container.innerHTML = `<div class="loading-announcements">Loading announcements...</div>`;
+            const activeAnnouncements = await fetchActiveAnnouncements();
+            if (activeAnnouncements.length === 0) return;
+            allAnnouncements = activeAnnouncements;
+            renderAllAnnouncements(allAnnouncements);
+            const modalEl = document.getElementById('announcementsModal');
+            if (modalEl) {
+                const modal = new bootstrap.Modal(modalEl);
+                modal.show();
+            }
+        }
+
+        // ================= GCASH MODAL =================
+        function openModal(src) {
+            const modal = document.getElementById('gcashModal');
+            const img = document.getElementById('modalImage');
+            if (modal && img) {
+                img.src = src;
+                modal.style.display = 'flex';
+            }
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('gcashModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        document.addEventListener('click', function(e) {
+            const modal = document.getElementById('gcashModal');
+            if (e.target === modal) closeModal();
+        });
+
+        // ================= IMAGE PREVIEW =================
+        function openImagePreview(imgSrc) {
+            const modal = document.getElementById('imagePreviewModal');
+            const previewImg = document.getElementById('previewImage');
+            if (previewImg) previewImg.src = imgSrc;
+            if (modal) modal.style.display = 'flex';
+        }
+
+        function closeImagePreview() {
+            const modal = document.getElementById('imagePreviewModal');
+            if (modal) modal.style.display = 'none';
+        }
+
+        document.querySelector('.preview-close')?.addEventListener('click', closeImagePreview);
+        document.getElementById('imagePreviewModal')?.addEventListener('click', function(e) {
+            if (e.target === this) closeImagePreview();
+        });
+
+        // ================= INIT ALL =================
+        document.addEventListener('DOMContentLoaded', function() {
+            loadHeroStats();
+            loadPlansDynamically();
+            fetchUploadedLogos();
+            initGalleryNavigationModern();
+            loadAndShowModal();
+
+            document.querySelectorAll('.thumbnail-wrapper').forEach((w, i) => {
+                w.addEventListener('click', function() {
+                    document.querySelectorAll('.thumbnail-wrapper').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
+            });
+        });
+
+        console.log('Cablevision homepage loaded with redesigned sections.');
+        console.log('Most Popular Plan: Determined by customer count from database, tie-breaker by price.');
+    </script>
 </body>
 </html>
