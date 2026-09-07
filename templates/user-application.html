@@ -327,27 +327,39 @@ input[name="birthdate"]::placeholder {
 
 
     <!-- SPOUSE -->
-    <div class="form-card">
+    <div class="form-card" id="spouseInfoCard">
         <h4 class="section-title">Spouse Information</h4>
 
         <div class="form-group">
-            <label class="form-label">Name of Spouse <span class="optional-badge">(Optional)</span></label>
-            <input class="form-control" name="spouse_name">
+            <label class="form-label">Name of Spouse 
+                <span class="required-star" id="spouse_name_required" style="display:none;">*</span>
+                <span class="optional-badge" id="spouse_name_optional">(Optional)</span>
+            </label>
+            <input class="form-control" name="spouse_name" id="spouse_name">
         </div>
 
         <div class="form-group">
-            <label class="form-label">Occupation <span class="optional-badge">(Optional)</span></label>
-            <input class="form-control" name="spouse_occupation">
+            <label class="form-label">Occupation 
+                <span class="required-star" id="spouse_occupation_required" style="display:none;">*</span>
+                <span class="optional-badge" id="spouse_occupation_optional">(Optional)</span>
+            </label>
+            <input class="form-control" name="spouse_occupation" id="spouse_occupation">
         </div>
 
         <div class="form-group">
-            <label class="form-label">Employer <span class="optional-badge">(Optional)</span></label>
-            <input class="form-control" name="spouse_employer">
+            <label class="form-label">Employer 
+                <span class="required-star" id="spouse_employer_required" style="display:none;">*</span>
+                <span class="optional-badge" id="spouse_employer_optional">(Optional)</span>
+            </label>
+            <input class="form-control" name="spouse_employer" id="spouse_employer">
         </div>
 
         <div class="form-group">
-            <label class="form-label">Phone <span class="optional-badge">(Optional)</span></label>
-            <input class="form-control" name="spouse_phone">
+            <label class="form-label">Phone 
+                <span class="required-star" id="spouse_phone_required" style="display:none;">*</span>
+                <span class="optional-badge" id="spouse_phone_optional">(Optional)</span>
+            </label>
+            <input class="form-control" name="spouse_phone" id="spouse_phone">
         </div>
     </div>
 
@@ -358,13 +370,13 @@ input[name="birthdate"]::placeholder {
         <h4 class="section-title">Family Details</h4>
 
         <div class="form-group">
-            <label class="form-label">Father's Name <span class="optional-badge">(Optional)</span></label>
-            <input class="form-control" name="father_name">
+            <label class="form-label">Father's Name <span class="required-star">*</span></label>
+            <input class="form-control" name="father_name" id="father_name" required>
         </div>
 
         <div class="form-group">
-            <label class="form-label">Mother's Maiden Name <span class="optional-badge">(Optional)</span></label>
-            <input class="form-control" name="mother_maiden_name">
+            <label class="form-label">Mother's Maiden Name <span class="required-star">*</span></label>
+            <input class="form-control" name="mother_maiden_name" id="mother_maiden_name" required>
         </div>
     </div>
 
@@ -2861,6 +2873,67 @@ function showTemporaryMessage(message, type) {
 
     loadAreas();
 
+// ================= CONDITIONAL REQUIRED: SPOUSE INFO BASED ON CIVIL STATUS =================
+(function() {
+    const civilStatusSelect = document.querySelector('select[name="civil_status"]');
+    const spouseFields = ['spouse_name', 'spouse_occupation', 'spouse_employer', 'spouse_phone'];
+    const spouseRequiredStatuses = ['Married', 'Separated', 'Widow', 'Widower'];
+
+    function toggleSpouseRequired() {
+        const status = civilStatusSelect ? civilStatusSelect.value : '';
+        const isRequired = spouseRequiredStatuses.includes(status);
+
+        spouseFields.forEach(name => {
+            const field = document.getElementById(name);
+            const requiredStar = document.getElementById(`${name}_required`);
+            const optionalBadge = document.getElementById(`${name}_optional`);
+            if (!field) return;
+
+            if (isRequired) {
+                field.setAttribute('required', 'required');
+                if (requiredStar) requiredStar.style.display = 'inline';
+                if (optionalBadge) optionalBadge.style.display = 'none';
+            } else {
+                field.removeAttribute('required');
+                removeSpouseFieldError(field);
+                if (requiredStar) requiredStar.style.display = 'none';
+                if (optionalBadge) optionalBadge.style.display = 'inline';
+            }
+        });
+    }
+
+    function addSpouseFieldError(field, message) {
+        removeSpouseFieldError(field);
+        field.classList.add('field-error');
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.id = `error-${field.name}`;
+        errorDiv.textContent = message;
+        field.parentNode.insertBefore(errorDiv, field.nextSibling);
+        errorDiv.style.display = 'block';
+    }
+
+    function removeSpouseFieldError(field) {
+        field.classList.remove('field-error');
+        const existingError = document.getElementById(`error-${field.name}`);
+        if (existingError) existingError.remove();
+    }
+
+    if (civilStatusSelect) {
+        civilStatusSelect.addEventListener('change', toggleSpouseRequired);
+        toggleSpouseRequired(); // initial check on load
+    }
+
+    // Expose para magamit ng main validation function
+    window.isSpouseInfoRequired = function() {
+        const status = civilStatusSelect ? civilStatusSelect.value : '';
+        return spouseRequiredStatuses.includes(status);
+    };
+    window.addSpouseFieldError = addSpouseFieldError;
+    window.removeSpouseFieldError = removeSpouseFieldError;
+    window.spouseFieldNames = spouseFields;
+})();
+
 // ================= BIRTHDATE AUTO-FORMAT: MONTH-DAY-YEAR (MM-DD-YYYY) =================
 // May automatic day validation base sa kung ilang araw sa napiling buwan
 (function() {
@@ -3580,7 +3653,9 @@ function showTemporaryMessage(message, type) {
         { name: 'business_address', message: 'Business address is required' },
         { name: 'service_type', message: 'Please select service classification' },
         { name: 'installation_phone', message: 'Installation phone number is required' },
-        { name: 'installation_fee', message: 'Please select an installation fee option' }
+        { name: 'installation_fee', message: 'Please select an installation fee option' },
+        { name: 'father_name', message: "Father's Name is required" },
+        { name: 'mother_maiden_name', message: "Mother's Maiden Name is required" }
     ];
     
     // For re-apply, file uploads are optional (they can keep existing files)
@@ -3684,7 +3759,7 @@ function showTemporaryMessage(message, type) {
     function validateAllRequiredFields() {
         let allValid = true;
         
-        requiredFieldsConfig.forEach(config => {
+                requiredFieldsConfig.forEach(config => {
             const field = form.querySelector(`[name="${config.name}"]`);
             if (field) {
                 // For file inputs in re-apply mode, check existing image
@@ -3698,6 +3773,25 @@ function showTemporaryMessage(message, type) {
                 }
             }
         });
+        
+        // Conditional validation: Spouse Information (kapag Married/Separated/Widow/Widower)
+        if (typeof window.isSpouseInfoRequired === 'function' && window.isSpouseInfoRequired()) {
+            const spouseLabels = {
+                spouse_name: 'Name of Spouse is required',
+                spouse_occupation: "Spouse's occupation is required",
+                spouse_employer: "Spouse's employer is required",
+                spouse_phone: "Spouse's phone number is required"
+            };
+            window.spouseFieldNames.forEach(name => {
+                const field = document.getElementById(name);
+                if (field && (!field.value || field.value.trim() === '')) {
+                    window.addSpouseFieldError(field, spouseLabels[name]);
+                    allValid = false;
+                } else if (field) {
+                    window.removeSpouseFieldError(field);
+                }
+            });
+        }
         
         // Special validation for birthdate (already handled separately)
         const birthdateField = document.getElementById('birthdate');
