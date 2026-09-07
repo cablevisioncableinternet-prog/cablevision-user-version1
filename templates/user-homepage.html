@@ -1381,24 +1381,26 @@ async function fetchCustomerCounts() {
             });
         }
 
-        // ================= GALLERY NAVIGATION =================
+        // ================= GALLERY NAVIGATION - SMOOTH CONTINUOUS SCROLL =================
         let galleryAutoPlayInterval = null;
         let galleryAutoPlayPaused = false;
+        let galleryScrollAnimationId = null;
+        let galleryScrollSpeed = 1.5; // Adjust this for faster/slower scroll (higher = faster)
 
         function initGalleryNavigationModern() {
             const wrapper = document.getElementById('galleryWrapper');
             const prevBtn = document.getElementById('galleryPrevBtn');
             const nextBtn = document.getElementById('galleryNextBtn');
             if (!wrapper || !prevBtn || !nextBtn) return;
-            const scrollAmount = 300;
+            
             prevBtn.addEventListener('click', () => {
                 pauseGalleryAutoPlay();
-                wrapper.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+                wrapper.scrollBy({ left: -300, behavior: 'smooth' });
                 updateActiveStates();
             });
             nextBtn.addEventListener('click', () => {
                 pauseGalleryAutoPlay();
-                wrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+                wrapper.scrollBy({ left: 300, behavior: 'smooth' });
                 updateActiveStates();
             });
 
@@ -1416,20 +1418,50 @@ async function fetchCustomerCounts() {
 
         function startGalleryAutoPlay() {
             stopGalleryAutoPlay();
-            galleryAutoPlayInterval = setInterval(() => {
-                const wrapper = document.getElementById('galleryWrapper');
-                if (!wrapper || galleryAutoPlayPaused || wrapper.scrollWidth <= wrapper.clientWidth) return;
-
-                const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
-                if (wrapper.scrollLeft >= maxScroll - 8) {
-                    wrapper.scrollTo({ left: 0, behavior: 'smooth' });
-                } else {
-                    wrapper.scrollBy({ left: 140, behavior: 'smooth' });
+            
+            function smoothScrollStep() {
+                if (galleryAutoPlayPaused) {
+                    galleryScrollAnimationId = requestAnimationFrame(smoothScrollStep);
+                    return;
                 }
-            }, 4200);
+                
+                const wrapper = document.getElementById('galleryWrapper');
+                if (!wrapper) {
+                    galleryScrollAnimationId = requestAnimationFrame(smoothScrollStep);
+                    return;
+                }
+                
+                // Check if we can scroll right
+                const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
+                if (wrapper.scrollLeft >= maxScroll - 5) {
+                    // Smoothly reset to start
+                    wrapper.scrollTo({ left: 0, behavior: 'smooth' });
+                    // Wait for smooth scroll to complete then continue
+                    setTimeout(() => {
+                        if (!galleryAutoPlayPaused) {
+                            galleryScrollAnimationId = requestAnimationFrame(smoothScrollStep);
+                        }
+                    }, 600);
+                    return;
+                }
+                
+                // Continuous smooth scrolling (1.5px per frame at 60fps = 90px/sec)
+                wrapper.scrollLeft += galleryScrollSpeed;
+                updateActiveStates();
+                
+                // Continue the animation loop
+                galleryScrollAnimationId = requestAnimationFrame(smoothScrollStep);
+            }
+            
+            // Start the smooth scroll loop
+            galleryScrollAnimationId = requestAnimationFrame(smoothScrollStep);
         }
 
         function stopGalleryAutoPlay() {
+            if (galleryScrollAnimationId) {
+                cancelAnimationFrame(galleryScrollAnimationId);
+                galleryScrollAnimationId = null;
+            }
             if (galleryAutoPlayInterval) {
                 clearInterval(galleryAutoPlayInterval);
                 galleryAutoPlayInterval = null;
