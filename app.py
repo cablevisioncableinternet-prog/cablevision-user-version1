@@ -3476,18 +3476,14 @@ def download_pdf(application_number):
     draw_two_columns([
         ("Employer / Company", data.get("employer")),
         ("Business Phone", data.get("business_phone")),
-        ("Business Address", data.get("business_address")),
-        ("", ""),
+        ("Business Address", data.get("business_address"))
     ])
 
     civil_status = data.get("civil_status", "")
     if civil_status and civil_status.lower() in ["married", "Married"]:
         draw_section_title("V. SPOUSE INFORMATION")
         draw_two_columns([
-            ("Spouse Full Name", data.get("spouse_name")),
-            ("Spouse Occupation", data.get("spouse_occupation")),
-            ("Spouse Employer", data.get("spouse_employer")),
-            ("Spouse Phone", data.get("spouse_phone")),
+            ("Spouse Full Name", data.get("spouse_name"))
         ])
 
     draw_section_title("VI. SERVICE PLAN")
