@@ -638,6 +638,59 @@ document.addEventListener('DOMContentLoaded', function() {
     loadTwoColumnAnnouncements();
     setupImagePreviewModal();
     checkUserStatusAndDisableFeatures();
+    
+    // I-CHECK KUNG MAY EXISTING RECONNECT REQUEST AT MAGDAGDAG NG NOTE
+    setTimeout(() => {
+        fetch('/api/get-reconnect-info')
+            .then(r => r.json())
+            .then(data => {
+                if (data.already_requested) {
+                    reconnectAlreadyRequested = true;
+                    
+                    // I-DISABLE ANG RECONNECT BUTTON
+                    const reconnectBtn = document.getElementById('requestReconnectBtn');
+                    if (reconnectBtn) {
+                        reconnectBtn.disabled = true;
+                        reconnectBtn.textContent = 'Request Already Submitted';
+                    }
+                    
+                    // IDAGDAG ANG NOTE SA BANNER
+                    const banner = document.querySelector('.status-banner');
+                    if (banner) {
+                        let noteDiv = banner.querySelector('.reconnect-note-banner');
+                        if (!noteDiv) {
+                            noteDiv = document.createElement('div');
+                            noteDiv.className = 'reconnect-note-banner';
+                            noteDiv.style.cssText = `
+                                background: #fef3c7;
+                                border: 1px solid #fde68a;
+                                border-radius: 6px;
+                                padding: 6px 12px;
+                                margin-top: 8px;
+                                display: flex;
+                                align-items: center;
+                                gap: 8px;
+                                color: #92400e;
+                                font-size: 13px;
+                                font-weight: 500;
+                            `;
+                            noteDiv.innerHTML = `
+                                <i class="fas fa-info-circle" style="color: #92400e; font-size: 13px;"></i>
+                                <span>Your request will be updated the day after cut off</span>
+                            `;
+                            
+                            const contentDiv = banner.querySelector('div[style*="flex: 1"]');
+                            if (contentDiv) {
+                                contentDiv.appendChild(noteDiv);
+                            } else {
+                                banner.appendChild(noteDiv);
+                            }
+                        }
+                    }
+                }
+            })
+            .catch(() => {});
+    }, 500);
 });
 
 // ================= USER PROFILE API (if needed) =================
@@ -981,38 +1034,41 @@ async function loadReconnectPrefillData() {
       closeReconnectModal();
       
       // IDAGDAG ANG NOTE SA BANNER TUNGKOL SA CUT OFF
-      const banner = document.querySelector('.status-banner');
-      if (banner) {
-        let noteDiv = banner.querySelector('.reconnect-note-banner');
-        if (!noteDiv) {
-          noteDiv = document.createElement('div');
-          noteDiv.className = 'reconnect-note-banner';
-          noteDiv.style.cssText = `
-            background: #fef3c7;
-            border: 1px solid #fde68a;
-            border-radius: 6px;
-            padding: 6px 12px;
-            margin-top: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: #92400e;
-            font-size: 13px;
-            font-weight: 500;
-          `;
-          noteDiv.innerHTML = `
-            <i class="fas fa-info-circle" style="color: #92400e; font-size: 13px;"></i>
-            <span>Your request will be updated the day after cut off</span>
-          `;
-          
-          const contentDiv = banner.querySelector('div[style*="flex: 1"]');
-          if (contentDiv) {
-            contentDiv.appendChild(noteDiv);
-          } else {
-            banner.appendChild(noteDiv);
+      // GAMITIN ANG setTimeout PARA MASIGURO NA NA-LOAD NA ANG BANNER
+      setTimeout(() => {
+        const banner = document.querySelector('.status-banner');
+        if (banner) {
+          let noteDiv = banner.querySelector('.reconnect-note-banner');
+          if (!noteDiv) {
+            noteDiv = document.createElement('div');
+            noteDiv.className = 'reconnect-note-banner';
+            noteDiv.style.cssText = `
+              background: #fef3c7;
+              border: 1px solid #fde68a;
+              border-radius: 6px;
+              padding: 6px 12px;
+              margin-top: 8px;
+              display: flex;
+              align-items: center;
+              gap: 8px;
+              color: #92400e;
+              font-size: 13px;
+              font-weight: 500;
+            `;
+            noteDiv.innerHTML = `
+              <i class="fas fa-info-circle" style="color: #92400e; font-size: 13px;"></i>
+              <span>Your request will be updated the day after cut off</span>
+            `;
+            
+            const contentDiv = banner.querySelector('div[style*="flex: 1"]');
+            if (contentDiv) {
+              contentDiv.appendChild(noteDiv);
+            } else {
+              banner.appendChild(noteDiv);
+            }
           }
         }
-      }
+      }, 300);
       
       return;
     }
