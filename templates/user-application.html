@@ -4695,21 +4695,23 @@ function showTemporaryMessage(message, type) {
 
 
 // ==================================
-// PLACE OF BIRTH - ALLOW LETTERS, COMMA, DASH/HYPHEN, NUMBERS
+// RESTRICTED CHARACTER FIELDS: PLACE OF BIRTH, EMPLOYER, BUSINESS ADDRESS, BILLING ADDRESS
+// Allowed: Letters, Numbers, Spaces, at & . , - / ( )
 // ==================================
 (function() {
-    const field = document.querySelector('input[name="place_of_birth"]');
-    if (!field) return;
+    const restrictedFields = ['place_of_birth', 'employer', 'business_address', 'billing_address'];
 
-    // Letters, spaces, apostrophe, dot, comma, dash/hyphen, numbers - allowed
-    const allowedRegex = /^[A-Za-z\u00C0-\u00FF0-9\s'.,\-]+$/;
+    // Pattern ng mga PAYAG (letters, numbers, space, & . , - / ( ))
+    const allowedRegex = /^[A-Za-z0-9\u00C0-\u00FF\s&.,\-\/()]*$/;
+    // Pattern para sa mga BAWAL na characters (gagamitin sa pag-strip)
+    const stripRegex = /[^A-Za-z0-9\u00C0-\u00FF\s&.,\-\/()]/g;
 
-    function addPobError(message) {
-        removePobError();
+    function addFieldError(field, message) {
+        removeFieldError(field);
         field.classList.add('field-error');
         const errorDiv = document.createElement('div');
         errorDiv.className = 'error-message';
-        errorDiv.id = 'error-place_of_birth';
+        errorDiv.id = `error-restricted-${field.name}`;
         errorDiv.style.color = '#dc3545';
         errorDiv.style.fontSize = '12px';
         errorDiv.style.marginTop = '5px';
@@ -4718,24 +4720,52 @@ function showTemporaryMessage(message, type) {
         errorDiv.style.display = 'block';
     }
 
-    function removePobError() {
+    function removeFieldError(field) {
         field.classList.remove('field-error');
-        const existingError = document.getElementById('error-place_of_birth');
+        const existingError = document.getElementById(`error-restricted-${field.name}`);
         if (existingError) existingError.remove();
     }
 
-    function validatePob() {
-        const value = field.value;
-        if (value && !allowedRegex.test(value)) {
-            addPobError('Only letters, numbers, comma (,) and dash (-) are allowed.');
+    // Habang nagta-type, tinatanggal agad ang bawal na character
+    function filterInput(event) {
+        const input = event.target;
+        const cursorPos = input.selectionStart;
+        const oldValue = input.value;
+        const oldLength = oldValue.length;
+
+        if (stripRegex.test(oldValue)) {
+            const newValue = oldValue.replace(stripRegex, '');
+            input.value = newValue;
+
+            const newLength = newValue.length;
+            const newCursorPos = Math.max(0, cursorPos - (oldLength - newLength));
+            input.setSelectionRange(newCursorPos, newCursorPos);
+
+            addFieldError(input, 'Only letters, numbers, and & . , - / ( ) are allowed.');
+            clearTimeout(input._restrictedErrTimeout);
+            input._restrictedErrTimeout = setTimeout(() => removeFieldError(input), 2000);
         } else {
-            removePobError();
+            removeFieldError(input);
         }
     }
 
-    field.addEventListener('input', validatePob);
-    field.addEventListener('blur', validatePob);
-    field.addEventListener('change', validatePob);
+    // Final cleanup pag-alis sa field
+    function validateOnBlur(event) {
+        const input = event.target;
+        if (input.value && !allowedRegex.test(input.value)) {
+            input.value = input.value.replace(stripRegex, '');
+        }
+        removeFieldError(input);
+    }
+
+    restrictedFields.forEach(fieldName => {
+        const field = document.querySelector(`[name="${fieldName}"]`);
+        if (field) {
+            field.addEventListener('input', filterInput);
+            field.addEventListener('blur', validateOnBlur);
+            field.addEventListener('change', validateOnBlur);
+        }
+    });
 })();
 
 
