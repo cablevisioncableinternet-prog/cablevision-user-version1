@@ -6722,6 +6722,35 @@ def user_download_contract(contract_number):
         civil_status = contract_data.get('civil_status', '') or application_data.get('civil_status', '')
         address = contract_data.get('address', '') or f"{application_data.get('barangay', '')}, {application_data.get('city', '')}, {application_data.get('province', '')}".strip(', ')
         billing_date = contract_data.get('billing_date', '15th') or application_data.get('billing_date', '15th')
+        # ========== HELPER FUNCTION FOR ORDINAL SUFFIX ==========
+        def get_ordinal_suffix(day):
+            """Get ordinal suffix for a day number (1-31)"""
+            try:
+                day_num = int(day)
+                if 4 <= day_num <= 20 or 24 <= day_num <= 30:
+                    return f"{day_num}th"
+                else:
+                    suffixes = {1: 'st', 2: 'nd', 3: 'rd'}
+                    return f"{day_num}{suffixes.get(day_num % 10, 'th')}"
+            except:
+                return str(day)
+
+        # Format billing date with ordinal suffix
+        if billing_date:
+            # Check if billing_date already has suffix (e.g., "15th")
+            if billing_date[-2:] in ['st', 'nd', 'rd', 'th']:
+                ordinal_billing = billing_date
+            else:
+                # Try to extract number and add suffix
+                try:
+                    day_num = int(''.join(filter(str.isdigit, billing_date)))
+                    ordinal_billing = get_ordinal_suffix(day_num)
+                except:
+                    ordinal_billing = billing_date
+        else:
+            ordinal_billing = billing_date or '15th'
+
+
         date_submitted = contract_data.get('date_submitted', '') or application_data.get('date_submitted', '')
         installation_fee = contract_data.get('installation_fee', '') or application_data.get('installation_fee', '')
         first_installment = contract_data.get('first_installment_date', '') or application_data.get('first_installment_date', '')
@@ -6861,12 +6890,12 @@ def user_download_contract(contract_number):
         ))
         story.append(Spacer(1, 4))
         
-        # Payment section
+        # Payment section (using ordinal_billing with suffix)
         payment_text = (
             f"<strong>Payment:</strong> The subscriber shall pay a Non-Refundable connection fee of P 1800 and "
             f"cable in excess of 100 meters at P10.00 per meter. For CABLE/INTERNET BUNDLE subscriber, a one (1) "
             f"month subscription fee of P800 shall be paid upon installation and activation of the service. "
-            f"Succeeding monthly subscription fee is due and payable every <strong>{billing_date}</strong> of each month. "
+            f"Succeeding monthly subscription fee is due and payable every <strong>{ordinal_billing}</strong> of each month. "
             f"Failure to pay the monthly subscription fee on due date and after the grace period of 7 days will mean "
             f"automatic disconnection of cable/internet service. "
             f"The company shall have the right to discontinue/terminate/cancel and effect disconnection of Cable TV services "
