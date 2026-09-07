@@ -481,9 +481,15 @@
                     <div class="pending-badge">
                         <i class="fas fa-clock"></i> 
                         ${requestIdDisplay}
-                        You have a pending plan change request to ${pendingRequestData.plan} (${pendingRequestData.speed} Mbps)
+                        You have a pending plan change request to <strong>${pendingRequestData.plan}</strong> (${pendingRequestData.speed} Mbps)
                         <br><small>Submitted on: ${formatDateTime12Hour(pendingRequestData.requested_at)}</small>
                         <br><small>Status: Pending Approval</small>
+                        <div style="background: #fef3c7; border: 1px solid #fde68a; border-radius: 8px; padding: 8px 12px; margin-top: 10px; display: flex; align-items: center; gap: 8px;">
+                            <i class="fas fa-info-circle" style="color: #92400e; font-size: 14px;"></i>
+                            <span style="color: #92400e; font-size: 13px; font-weight: 500;">
+                                Your request will be approved the day after cut off
+                            </span>
+                        </div>
                     </div>
                 `;
             }
