@@ -4602,24 +4602,35 @@ img,
 
 
 /* ================= STATUS BANNER (Terminated/Inactive) - MOBILE RESPONSIVE FIX ================= */
-.status-banner {
-    flex-wrap: wrap;
+div.status-banner {
+    flex-wrap: wrap !important;
     position: relative !important;
+    display: flex !important;
 }
 
-.status-banner > div {
+div.status-banner > div {
     min-width: 0 !important;
+    flex: 1 1 auto !important;
 }
 
-/* X button - laging nakapako sa UPPER RIGHT CORNER ng card */
-.status-banner > button {
+/* X button - laging nakapako sa UPPER RIGHT CORNER ng card, kahit anong laki ng screen */
+div.status-banner > button,
+div.status-banner > button[onclick] {
     position: absolute !important;
-    top: 10px !important;
+    top: 12px !important;
     right: 12px !important;
-    margin-left: 0 !important;
+    left: auto !important;
+    bottom: auto !important;
+    margin: 0 !important;
+    padding: 4px !important;
     flex-shrink: 0 !important;
     align-self: auto !important;
-    z-index: 2;
+    z-index: 5 !important;
+    width: 24px !important;
+    height: 24px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
 }
 
 @media (max-width: 768px) {
