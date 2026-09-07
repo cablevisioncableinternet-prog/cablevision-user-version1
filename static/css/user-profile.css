@@ -4604,15 +4604,27 @@ img,
 /* ================= STATUS BANNER (Terminated/Inactive) - MOBILE RESPONSIVE FIX ================= */
 .status-banner {
     flex-wrap: wrap;
+    position: relative !important;
 }
 
 .status-banner > div {
     min-width: 0 !important;
 }
 
+/* X button - laging nakapako sa UPPER RIGHT CORNER ng card */
+.status-banner > button {
+    position: absolute !important;
+    top: 10px !important;
+    right: 12px !important;
+    margin-left: 0 !important;
+    flex-shrink: 0 !important;
+    align-self: auto !important;
+    z-index: 2;
+}
+
 @media (max-width: 768px) {
     .status-banner {
-        padding: 14px 16px !important;
+        padding: 16px 40px 16px 16px !important; /* extra right padding para di matakpan ng X */
         gap: 10px !important;
         align-items: flex-start !important;
     }
@@ -4639,17 +4651,16 @@ img,
     }
 
     .status-banner > button {
+        top: 10px !important;
+        right: 10px !important;
         font-size: 16px !important;
         padding: 0 !important;
-        margin-left: 8px !important;
-        flex-shrink: 0 !important;
-        align-self: flex-start !important;
     }
 }
 
 @media (max-width: 480px) {
     .status-banner {
-        padding: 12px 14px !important;
+        padding: 12px 36px 12px 14px !important;
         gap: 8px !important;
     }
 
@@ -4664,6 +4675,12 @@ img,
     .status-banner > div p {
         font-size: 11px !important;
         line-height: 1.5 !important;
+    }
+
+    .status-banner > button {
+        top: 8px !important;
+        right: 8px !important;
+        font-size: 15px !important;
     }
 }
 
