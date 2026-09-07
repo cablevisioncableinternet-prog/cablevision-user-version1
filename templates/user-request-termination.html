@@ -566,11 +566,6 @@ function showToast(message, type = 'info') {
                 pendingRequestData = null;
                 document.getElementById('submitTerminationBtn').disabled = false;
                 document.getElementById('submitTerminationBtn').innerHTML = '<i class="fas fa-times-circle"></i> Request Termination';
-            } else {
-                hasPendingRequest = false;
-                pendingRequestData = null;
-                document.getElementById('submitTerminationBtn').disabled = false;
-                document.getElementById('submitTerminationBtn').innerHTML = '<i class="fas fa-times-circle"></i> Request Termination';
             }
             
         } catch (error) {
