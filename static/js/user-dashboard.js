@@ -664,10 +664,10 @@ async function checkUserStatusAndDisableFeatures() {
         if (status === 'Terminated' || status === 'Inactive' || status === 'Deactivated') {
             console.log(` User status: ${status} - Disabling sidebar features only`);
             
-            // 1. DISABLE SIDEBAR LINKS ONLY (Except Dashboard)
+            // 1. DISABLE SIDEBAR LINKS ONLY (Except Dashboard AND Transactions)
             const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
             sidebarLinks.forEach(link => {
-                if (!link.href.includes('/user/dashboard')) {
+                if (!link.href.includes('/user/dashboard') && !link.href.includes('/user/transactions')) {
                     link.style.pointerEvents = 'none';
                     link.style.opacity = '0.5';
                     link.style.cursor = 'not-allowed';

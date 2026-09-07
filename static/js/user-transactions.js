@@ -466,12 +466,34 @@ function checkTerminatedStatus() {
     fetch('/api/get-user-status?tab_id=' + tabId)
         .then(res => res.json())
         .then(data => {
-            if (data.status === 'Terminated' || data.status === 'Inactive' || data.status === 'Deactivated') {
-                sessionStorage.setItem('terminated_redirect', 'true');
-                window.location.replace('/user/dashboard');
+            const status = data.status;
+            if (status === 'Terminated' || status === 'Inactive' || status === 'Deactivated') {
+                disableRestrictedSidebarLinks();
             }
         })
         .catch(err => console.error('Error checking status:', err));
+}
+
+// ==================== DISABLE CHANGE PLAN & TERMINATION LINKS ====================
+function disableRestrictedSidebarLinks() {
+    const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
+    sidebarLinks.forEach(link => {
+        if (!link.href.includes('/user/dashboard') && !link.href.includes('/user/transactions')) {
+            link.style.pointerEvents = 'none';
+            link.style.opacity = '0.5';
+            link.style.cursor = 'not-allowed';
+            link.title = 'This feature is disabled for your account status.';
+
+            if (!link.querySelector('.fa-lock')) {
+                const lockIcon = document.createElement('i');
+                lockIcon.className = 'fas fa-lock';
+                lockIcon.style.marginLeft = '8px';
+                lockIcon.style.fontSize = '12px';
+                lockIcon.style.color = '#dc2626';
+                link.appendChild(lockIcon);
+            }
+        }
+    });
 }
 
 // ==================== INITIALIZATION ====================

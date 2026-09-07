@@ -4834,7 +4834,7 @@ def dashboard():
     
     application_number = user_data.get("application_number") if user_data else None
     ga_enabled = bool(user_data.get("ga_enabled")) if user_data else False
-    ga_secret = user_data.get("ga_secret") if user_data else None
+    ga_secret = user_data.get("ga_secret") if user_data else Nonech
     if not ga_enabled and not ga_secret:
         ga_secret = session.get("ga_setup_secret")
     if not ga_secret and not ga_enabled:
