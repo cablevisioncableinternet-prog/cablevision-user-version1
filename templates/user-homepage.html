@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cablevision | Fast Fiber Internet</title>
+    <title>Cablevision | Homepage</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='cablevision.jpg') }}?v=123" type="image/jpeg" />
     <!-- Bootstrap 5 -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" />
@@ -57,8 +57,8 @@
         <div class="hero-bg-pattern"></div>
         <div class="container">
             <div class="hero-content">
-                <span class="section-label" style="background:rgba(255,255,255,0.12);color:#6aafff;border:none;">#1 Fiber Internet in Laguna</span>
-                <h1>Fast &amp; Reliable<br /><span class="accent">Fiber Internet</span> for Every Home</h1>
+                <span class="section-label" style="background:rgba(255,255,255,0.12);color:#6aafff;border:none;">#1 Cable-Internet in Laguna</span>
+                <h1>Fast &amp; Reliable<br /><span class="accent">Cable-Internet</span> for Every Home</h1>
                 <p id="heroDescription">Delivering trusted cable and internet services since 1991. Choose from affordable plans with speeds up to <span id="heroMaxSpeed">800 Mbps</span>.</p>
                 <div class="hero-buttons">
                     <a href="#plans" class="btn-primary-custom">View Plans <i class="fas fa-arrow-right"></i></a>
@@ -67,7 +67,6 @@
                 <div class="hero-stats">
                     <div class="stat-item"><strong id="statYears">30+</strong> <span id="statYearsLabel">Years of Trust</span></div>
                     <div class="stat-item"><strong id="statCities">4</strong> <span id="statCitiesLabel">Municipalities</span></div>
-                    <div class="stat-item"><strong id="statSupport">24/7</strong> <span id="statSupportLabel">Support</span></div>
                 </div>
             </div>
             <div class="hero-visual">
@@ -360,7 +359,7 @@
 
             <div class="footer-bottom">
                 <ul class="nav justify-content-center">
-                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="/plans">Plans</a></li>
                     <li class="nav-item"><a class="nav-link" href="/contact-us">Contact</a></li>
                     <li class="nav-item"><a class="nav-link" href="/coverage">Coverage</a></li>
@@ -1383,6 +1382,9 @@ async function fetchCustomerCounts() {
         }
 
         // ================= GALLERY NAVIGATION =================
+        let galleryAutoPlayInterval = null;
+        let galleryAutoPlayPaused = false;
+
         function initGalleryNavigationModern() {
             const wrapper = document.getElementById('galleryWrapper');
             const prevBtn = document.getElementById('galleryPrevBtn');
@@ -1390,16 +1392,56 @@ async function fetchCustomerCounts() {
             if (!wrapper || !prevBtn || !nextBtn) return;
             const scrollAmount = 300;
             prevBtn.addEventListener('click', () => {
+                pauseGalleryAutoPlay();
                 wrapper.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
                 updateActiveStates();
             });
             nextBtn.addEventListener('click', () => {
+                pauseGalleryAutoPlay();
                 wrapper.scrollBy({ left: scrollAmount, behavior: 'smooth' });
                 updateActiveStates();
             });
 
             wrapper.addEventListener('scroll', updateActiveStates);
+            wrapper.addEventListener('mouseenter', () => { galleryAutoPlayPaused = true; });
+            wrapper.addEventListener('mouseleave', () => { galleryAutoPlayPaused = false; });
+            wrapper.addEventListener('focusin', () => { galleryAutoPlayPaused = true; });
+            wrapper.addEventListener('focusout', () => { galleryAutoPlayPaused = false; });
+            wrapper.addEventListener('touchstart', () => { galleryAutoPlayPaused = true; }, { passive: true });
+            wrapper.addEventListener('touchend', () => { galleryAutoPlayPaused = false; }, { passive: true });
+
+            startGalleryAutoPlay();
             setTimeout(updateActiveStates, 100);
+        }
+
+        function startGalleryAutoPlay() {
+            stopGalleryAutoPlay();
+            galleryAutoPlayInterval = setInterval(() => {
+                const wrapper = document.getElementById('galleryWrapper');
+                if (!wrapper || galleryAutoPlayPaused || wrapper.scrollWidth <= wrapper.clientWidth) return;
+
+                const maxScroll = wrapper.scrollWidth - wrapper.clientWidth;
+                if (wrapper.scrollLeft >= maxScroll - 8) {
+                    wrapper.scrollTo({ left: 0, behavior: 'smooth' });
+                } else {
+                    wrapper.scrollBy({ left: 220, behavior: 'smooth' });
+                }
+            }, 2800);
+        }
+
+        function stopGalleryAutoPlay() {
+            if (galleryAutoPlayInterval) {
+                clearInterval(galleryAutoPlayInterval);
+                galleryAutoPlayInterval = null;
+            }
+        }
+
+        function pauseGalleryAutoPlay() {
+            galleryAutoPlayPaused = true;
+            clearTimeout(window.galleryResumeTimer);
+            window.galleryResumeTimer = setTimeout(() => {
+                galleryAutoPlayPaused = false;
+            }, 4500);
         }
 
         function updateActiveStates() {

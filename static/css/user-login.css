@@ -10,7 +10,7 @@ body {
     margin: 0;
     padding: 0;
     font-family: 'Poppins', 'Inter', sans-serif;
-    background: linear-gradient(135deg, rgba(1, 13, 68, 0.88), rgba(36, 85, 158, 0.88)), url("/static/background1.jpg");
+    background: linear-gradient(135deg, rgba(4, 18, 48, 0.86), rgba(16, 61, 112, 0.78)), url("/static/cv office.jpg");
     background-size: cover;
     background-position: center center;
     background-repeat: no-repeat;
@@ -1696,5 +1696,119 @@ body::before {
     
     .forgot-timer-label {
         font-size: 9px;  /* ✅ PINALIIT: 10px → 9px */
+    }
+}
+
+/* ============================================================
+   CABLEVISION MODERN LOGIN OVERRIDES
+   ============================================================ */
+body {
+    background-position: center;
+    background-attachment: fixed;
+}
+
+body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background:
+        radial-gradient(circle at 15% 20%, rgba(106, 175, 255, 0.16), transparent 32%),
+        linear-gradient(135deg, transparent 0%, rgba(2, 18, 45, 0.18) 100%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.login-container {
+    max-width: 430px;
+    padding: 36px 34px 28px;
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    border-radius: 26px;
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 28px 70px rgba(3, 15, 40, 0.38), 0 1px 0 rgba(255, 255, 255, 0.8) inset;
+}
+
+.brand-header {
+    margin-bottom: 28px;
+}
+.brand-image {
+    height: 70px;
+    margin-bottom: 12px;
+}
+.brand-title {
+    font-size: clamp(24px, 5vw, 30px);
+    letter-spacing: 0.8px;
+    background: linear-gradient(135deg, #071d3d, #1a5bb5);
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+.brand-subtitle {
+    color: #64748b;
+    letter-spacing: 2.5px;
+}
+
+.input-group {
+    margin-bottom: 14px;
+}
+.input-group input {
+    min-height: 52px;
+    border-color: #dbe4ef;
+    background: #f8faff;
+    box-shadow: none;
+}
+.input-group input:hover {
+    border-color: #b8cce0;
+}
+.input-group input:focus {
+    border-color: #1a5bb5;
+    background: #fff;
+    box-shadow: 0 0 0 4px rgba(26, 91, 181, 0.1);
+}
+.input-group > i {
+    color: #64748b;
+}
+.input-group:focus-within > i {
+    color: #1a5bb5;
+}
+
+.login-btn {
+    min-height: 52px;
+    margin-top: 6px;
+    background: linear-gradient(135deg, #071d3d, #1a5bb5);
+    box-shadow: 0 10px 24px rgba(10, 46, 98, 0.25);
+}
+.login-btn:hover {
+    background: linear-gradient(135deg, #0b2c59, #2874c7);
+    box-shadow: 0 14px 30px rgba(10, 46, 98, 0.32);
+}
+.forgot-password-link {
+    color: #52677f;
+}
+.forgot-password-link:hover {
+    color: #1a5bb5;
+}
+.footer-text {
+    color: #718198;
+}
+
+@media (max-width: 480px) {
+    .login-container {
+        padding: 28px 18px 22px;
+        border-radius: 22px;
+    }
+    .brand-image {
+        height: 56px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body::after,
+    .login-container,
+    .brand-image,
+    .brand-title,
+    .brand-subtitle,
+    .input-group,
+    .login-btn,
+    .footer-text {
+        animation: none !important;
     }
 }

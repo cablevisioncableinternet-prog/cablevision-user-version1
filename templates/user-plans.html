@@ -6,328 +6,337 @@
 <title>Cablevision | Internet Plans</title>
 <link rel="shortcut icon" href="{{ url_for('static', filename='cablevision.jpg') }}?v=123" type="image/jpeg">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user-homepage.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/user-plans.css') }}">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
 <body>
 
-<!-- NAVBAR -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
-<div class="container">
+<!-- ============================================================
+NAVBAR — REDESIGNED, CONVERGE-INSPIRED
+============================================================ -->
+<nav class="navbar-custom" id="mainNav">
+    <div class="container">
+        <a class="brand" href="/">
+            <img src="{{ url_for('static', filename='logo1.png') }}" alt="Cablevision" />
+            <span>Cablevision Systems Corporation</span>
+        </a>
 
-<a class="navbar-brand brand-logo" href="/">
-    <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo">
-    <span>CABLEVISION SYSTEMS CORPORATION</span>
-</a>
+        <button class="hamburger" id="hamburgerBtn" aria-label="Menu">
+            <span></span><span></span><span></span>
+        </button>
 
-<!--  hamburger button  -->
-<button class="hamburger" id="hamburgerBtn" type="button" aria-label="Menu">
-  <span></span>
-  <span></span>
-  <span></span>
-</button>
-
-<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-<span class="navbar-toggler-icon"></span>
-</button>
-
-<div class="collapse navbar-collapse" id="navMenu">
-  <ul class="navbar-nav ms-auto">
-    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-    <li class="nav-item"><a class="nav-link active" href="/plans">Plans</a></li>
-    <li class="nav-item"><a class="nav-link" href="/contact-us">Contact</a></li>
-    <li class="nav-item"><a class="nav-link" href="/coverage">Coverage</a></li>
-
-    <!-- Dropdown for More (next to Coverage) -->
-    <li class="nav-item dropdown">
-      <a class="nav-link dropdown-toggle" href="#" id="moreDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-        More
-      </a>
-      <ul class="dropdown-menu" aria-labelledby="moreDropdown">
-      <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#aboutUsModal">About Us</a></li>
-      <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#missionModal">Mission</a></li>
-      <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#visionModal">Vision</a></li>
-      </ul>
-    </li>
-
-    <!-- Login -->
-<li class="nav-item">
-    <a class="nav-link" href="/login" target="_blank">Login</a>
-</li>
-  </ul>
-</div>
-
-</div>
+        <ul class="nav-links" id="navMenu">
+            <li><a href="/">Home</a></li>
+            <li><a href="/plans" class="active">Plans</a></li>
+            <li><a href="/contact-us">Contact</a></li>
+            <li><a href="/coverage">Coverage</a></li>
+            <li class="dropdown">
+                <a class="dropdown-toggle" href="#" id="moreDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">More</a>
+                <ul class="dropdown-menu" aria-labelledby="moreDropdown">
+                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#aboutUsModal">About Us</a></li>
+                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#missionModal">Mission</a></li>
+                    <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#visionModal">Vision</a></li>
+                </ul>
+            </li>
+            <li><a href="/login" class="login-link" target="_blank">Login</a></li>
+        </ul>
+    </div>
 </nav>
 
-<!-- PLANS HERO SECTION -->
-<section class="plans-hero">
-    <div class="container text-center">
-      
-      <h2>Choose Your Internet Plan</h2>
-      
-      <!-- Animated Underline -->
-      <div class="title-underline"></div>
-      
-      <p>Reliable fiber internet powered by Cablevision Systems Corporation.</p>
-      
-      <!-- Scroll Indicator - FIXED: removed duplicate div -->
-      <div class="scroll-indicator" id="scrollToPlans">
-        <span>Internet Plans Below</span>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M12 5V19M12 19L5 12M12 19L19 12" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-        </svg>
-      </div>
-      
+<!-- ============================================================
+PLANS HERO — MATCHES HOMEPAGE DESIGN
+============================================================ -->
+<section class="hero-cablevision plans-hero-modern">
+    <div class="hero-bg-pattern"></div>
+    <div class="container">
+        <div class="hero-content">
+            <span class="section-label">Internet Plans</span>
+            <h1>Choose Your <span class="accent">Perfect Speed</span></h1>
+            <p>Reliable fiber internet powered by Cablevision Systems Corporation. Find the plan that fits your needs.</p>
+            <div class="hero-buttons">
+                <a href="#plans" class="btn-primary-custom">View Plans <i class="fas fa-arrow-down"></i></a>
+                  <a href="/coverage" class="btn-outline-light">View Coverage</a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat-item"><strong>{{ plans|length }}</strong> <span>Available Plans</span></div>
+                <div class="stat-item"><strong id="maxPlanSpeed">Loading...</strong> <span>Maximum Speed</span></div>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="mockup-card plans-hero-card">
+                <div class="plan-badge"><i class="fas fa-wifi"></i> Fiber Internet</div>
+                <div class="hero-card-icon"><i class="fas fa-bolt"></i></div>
+                <div class="price">Fast <small>&amp; reliable</small></div>
+                <div class="speed">Internet for every home</div>
+                <ul class="feature-list">
+                    <li><i class="fas fa-check"></i> Stable fiber connection</li>
+                    <li><i class="fas fa-check"></i> Flexible plans for every need</li>
+                    <li><i class="fas fa-check"></i> Local customer support</li>
+                </ul>
+                <a href="#plans" class="btn-sm-custom">Explore Plans <i class="fas fa-arrow-right"></i></a>
+            </div>
+        </div>
     </div>
 </section>
 
-<!-- MAIN SECTION -->
-<div class="container mt-5 mb-5">
-  <div class="row g-4 plans-row">
+<!-- ============================================================
+MAIN PLANS SECTION — REDESIGNED WITH CONVERGE STYLE
+============================================================ -->
+<div class="plans-main-section" id="plans">
+    <div class="container">
+        <div class="plans-layout">
 
-    <!-- LEFT SIDE: Plans List -->
-    <div class="col-md-5">
-      <div class="plans-list-wrapper">
-        <div id="plansContainer">
-          {% for plan in plans %}
-          <div class="card plan-card"
-              onclick="selectPlan(this,'{{ plan.name }}','{{ plan.speed }}','{{ plan.price }}','{{ plan.image }}')">
-            <div class="card-body d-flex align-items-center">
-              <!-- ICON -->
-              <div class="plan-icon">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-                </svg>
-              </div>
-              <!-- PLAN DETAILS -->
-              <div class="plan-info">
-                <h5 class="plan-name">{{ plan.name }}</h5>
-                <p class="plan-speed-text">{{ plan.speed }}</p>
-              </div>
-              <!-- PRICE -->
-              <div class="ms-auto plan-price">
-                <strong>₱{{ "%.2f"|format(plan.price) }}</strong>
-              </div>
+            <!-- LEFT: Plans List -->
+            <div class="plans-list-wrapper">
+                <div class="plans-list-header">
+                    <span class="list-title">Our Fiber Plans</span>
+                    <span class="list-count">{{ plans|length }} plans available</span>
+                </div>
+                <div id="plansContainer">
+                    {% for plan in plans %}
+                    <div class="plan-card-modern" 
+                         onclick="selectPlan(this, '{{ plan.name }}', '{{ plan.speed }}', '{{ plan.price }}', '{{ plan.image }}')"
+                         data-plan="{{ plan.name }}">
+                        <div class="plan-card-content">
+                            <div class="plan-icon-wrapper">
+                                <div class="plan-icon">
+                                    <i class="fas fa-wifi"></i>
+                                </div>
+                            </div>
+                            <div class="plan-info">
+                                <div class="plan-name">{{ plan.name }}</div>
+                                <div class="plan-speed-tag">{{ plan.speed }}</div>
+                            </div>
+                            <div class="plan-price-tag">
+                                <span class="price-amount">₱{{ "%.2f"|format(plan.price) }}</span>
+                                <span class="price-period">/mo</span>
+                            </div>
+                        </div>
+                        <div class="plan-select-indicator">
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
-          </div>
-          {% endfor %}
+
+            <!-- RIGHT: Plan Details -->
+            <div class="plan-details-wrapper">
+                <div class="plan-details-card-modern" id="planDetailsCard">
+                    
+                    <!-- Empty State -->
+                    <div id="emptyState" class="empty-state-modern">
+                        <div class="empty-icon-wrapper">
+                            <i class="fas fa-hand-pointer"></i>
+                        </div>
+                        <h3>Select a Plan</h3>
+                        <p>Choose a plan from the list to see its details and apply.</p>
+                        <div class="empty-hint">
+                            <i class="fas fa-arrow-left"></i>
+                            <span>Click any plan on the left</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Plan Content -->
+                    <div id="planContent" style="display: none;">
+                        <!-- Plan Image -->
+                        <div class="plan-image-section" data-bs-toggle="modal" data-bs-target="#planImageModal">
+                            <img id="detailImage" src="" alt="Plan Image" class="plan-detail-image">
+                            <div class="plan-image-overlay">
+                                <i class="fas fa-expand"></i>
+                                <span>Click to enlarge</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Plan Details -->
+                        <div class="plan-details-section-modern">
+                            <div class="detail-row">
+                                <span class="detail-label">Plan Name</span>
+                                <span id="detailName" class="detail-value plan-name-value"></span>
+                            </div>
+                            <div class="detail-row">
+                                <span class="detail-label">Internet Speed</span>
+                                <span id="detailSpeed" class="detail-value speed-value"></span>
+                            </div>
+                            <div class="detail-row price-row-modern">
+                                <span class="detail-label">Monthly Subscription</span>
+                                <span id="detailPrice" class="detail-value price-value"></span>
+                            </div>
+                            <button class="apply-btn-modern" onclick="applyPlan()">
+                                <i class="fas fa-wifi"></i> Apply for this Plan
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
-      </div>
     </div>
-
-    <!-- RIGHT SIDE: Plan Details -->
-    <div class="col-md-7">
-      <div id="planDetails" class="plan-details-card">
-        
-        <!-- Empty State -->
-        <div id="emptyState" class="empty-state">
-          <div class="empty-icon">
-            <svg width="80" height="80" viewBox="0 0 24 24" fill="none">
-              <path d="M20 7H4C2.9 7 2 7.9 2 9V19C2 20.1 2.9 21 4 21H20C21.1 21 22 20.1 22 19V9C22 7.9 21.1 7 20 7Z" stroke="#001f3f" stroke-width="1.5" fill="none"/>
-              <path d="M16 21V5C16 3.9 15.1 3 14 3H10C8.9 3 8 3.9 8 5V21" stroke="#001f3f" stroke-width="1.5" fill="none"/>
-              <path d="M12 7H12.01" stroke="#001f3f" stroke-width="2" stroke-linecap="round"/>
-              <path d="M12 11H12.01" stroke="#001f3f" stroke-width="2" stroke-linecap="round"/>
-              <path d="M12 15H12.01" stroke="#001f3f" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <h3>No Plan Selected</h3>
-          <p>Click on any internet plan from the left panel to view details</p>
-          <div class="empty-hint">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-              <path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="#001f3f" stroke-width="1.5" stroke-linecap="round"/>
-            </svg>
-            <span>Select a plan to get started</span>
-          </div>
-        </div>
-        
-        <!-- Plan Content -->
-        <div id="planContent" style="display: none;">
-          <!-- LARGE IMAGE SECTION -->
-          <div class="plan-image-section" data-bs-toggle="modal" data-bs-target="#planImageModal">
-            <img id="detailImage" src="" alt="Plan Image" class="plan-detail-image">
-            <div class="plan-image-overlay">
-              <span>Click to view full image</span>
-            </div>
-          </div>
-          
-          <!-- COMPACT DETAILS SECTION -->
-          <div class="plan-details-section">
-            <div class="detail-row">
-              <span class="detail-label">Plan Name</span>
-              <span id="detailName" class="detail-value plan-name-value"></span>
-            </div>
-            
-            <div class="detail-row">
-              <span class="detail-label">Internet Speed</span>
-              <span id="detailSpeed" class="detail-value speed-value"></span>
-            </div>
-            
-            <div class="detail-row price-row">
-              <span class="detail-label">Monthly Subscription</span>
-              <span id="detailPrice" class="detail-value price-value"></span>
-            </div>
-            
-            <button class="apply-btn" onclick="applyPlan()"> <i class="fas fa-wifi"></i> Apply for this Plan</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-  </div> 
 </div>
 
 <!-- Plan Image Modal -->
 <div class="modal fade" id="planImageModal" tabindex="-1" aria-labelledby="planImageModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-dialog-centered modal-xl">
-    <div class="modal-content bg-transparent border-0">
-      <div class="modal-header border-0 justify-content-end">
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body p-0 text-center">
-        <img id="planImageModalImg" src="" alt="Full plan image" class="img-fluid rounded" style="max-height: 80vh; width: auto;">
-      </div>
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content bg-transparent border-0">
+            <div class="modal-header border-0 justify-content-end">
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0 text-center">
+                <img id="planImageModalImg" src="" alt="Full plan image" class="img-fluid rounded" style="max-height: 80vh; width: auto;">
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 
-<!-- FOOTER -->
-<footer class="footer bg-dark text-white py-5">
-  <div class="container">
-    <div class="row">
-      <!-- Company Info -->
-      <div class="col-md-4 mb-4">
-        <h5 class="footer-heading">Cablevision Systems Corporation</h5>
-        <p class="footer-text">Delivering trusted cable and internet services since 1991. Fast, reliable internet for homes and businesses.</p>
-        <a href="https://www.facebook.com/mycv.cablevision" target="_blank" class="footer-link">
-          <img src="{{ url_for('static', filename='fb.png') }}" alt="Facebook" class="footer-icon">
-          <span>Follow us on Facebook</span>
-        </a>
-      </div>
+ <!-- ============================================================
+    FOOTER — RESTORED ORIGINAL DETAILS WITH ICONS
+    ============================================================ -->
+    <footer class="footer-cablevision">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5 class="footer-heading">Cablevision Systems Corporation</h5>
+                    <p class="footer-text">Delivering trusted cable and internet services since 1991. Fast, reliable internet for homes and businesses.</p>
+                    <a href="https://www.facebook.com/mycv.cablevision" target="_blank" class="footer-link">
+                        <i class="fab fa-facebook-f"></i> Follow us on Facebook
+                    </a>
+                </div>
 
-      <!-- Contact Info -->
-      <div class="col-md-4 mb-4">
-        <h5 class="footer-heading">Contact Us</h5>
-        <p class="footer-text">
-          <img src="{{ url_for('static', filename='contact-us.png') }}" alt="Contact" class="footer-icon-small">
-          <span>0917-838-8447 | 0917-310-7948</span>
-        </p>
-        <p class="footer-text">For inquiries, support, and service requests, please contact us.</p>
-      </div>
+                <div class="col-md-4 mb-4">
+                    <h5 class="footer-heading">Contact Us</h5>
+                    <p class="footer-text">
+                        <i class="fas fa-phone-alt"></i> 0917-838-8447 | 0917-310-7948
+                    </p>
+                    <p class="footer-text">For inquiries, support, and service requests, please contact us.</p>
+                </div>
 
-      <!-- Service Areas -->
-      <div class="col-md-4 mb-4">
-        <h5 class="footer-heading">Service Areas</h5>
-        <p class="footer-text">
-          <img src="{{ url_for('static', filename='pin.png') }}" alt="Location" class="footer-icon-small">
-          <span>Santa Cruz, Pagsanjan, Magdalena, Pila</span>
-        </p>
-        <p class="footer-text">Providing services in these locations.</p>
-      </div>
+                <div class="col-md-4 mb-4">
+                    <h5 class="footer-heading">Service Areas</h5>
+                    <p class="footer-text">
+                        <i class="fas fa-map-marker-alt"></i> Santa Cruz, Pagsanjan, Magdalena, Pila
+                    </p>
+                    <p class="footer-text">Providing services in these locations.</p>
+                </div>
+            </div>
+
+            <hr class="footer-divider">
+
+            <div class="footer-bottom">
+                <ul class="nav justify-content-center">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/plans">Plans</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/contact-us">Contact</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/coverage">Coverage</a></li>
+                </ul>
+                <p class="text-center mt-3 footer-copyright">&copy; 2026 Cablevision Systems Corporation All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+      <!-- ============================================================
+    MODALS (About, Mission, Vision) — WITH PROPER PARAGRAPH SPACING
+    ============================================================ -->
+    <div class="modal fade" id="aboutUsModal" tabindex="-1" aria-labelledby="aboutUsLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content about-modal">
+                <div class="about-modal-header position-relative">
+                    <div class="header-content d-inline-flex align-items-center">
+                        <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo" class="about-modal-logo me-2">
+                        <h5 class="modal-title mb-0" id="aboutUsLabel">About Us</h5>
+                    </div>
+                    <button type="button" class="btn-close about-modal-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="about-modal-body px-4 py-3">
+                    <p>Cablevision Systems Corporation was conceptualized by five classmates from Class 1960 of Pedro Guevara Memorial High School. It was founded and registered with the Securities and Exchange Commission on October 10, 1991. The company was established to operate CATV Systems primarily in Sta. Cruz, Laguna and adjacent municipalities.</p>
+
+                    <p>The Municipal Board of Sta. Cruz, Laguna granted Cablevision's first CATV franchise on 12/14/91. The National Telecommunications Commission awarded the corresponding Provisional Authority six months later which enabled the company to begin CATV operations and connect subscribers. The company started with 12 television channels feeding regular off-the-air TV signals plus Satellite Television channels from free-to-air transmission all over the world. One television channel is made available for community access in accordance with its CATV mandate.</p>
+
+                    <p>Two years later, the municipal board of Pagsanjan, Laguna awarded the company's second CATV franchise in recognition of its ability to fulfill its commitment to the community.</p>
+
+                    <p>The first office and CATV center was located at Mabini Street, Sta. Cruz Laguna, where the CATV headend and two Satellite TVRO Systems were installed. Three years later, the whole operation was transferred to Pagsawitan, still in Sta. Cruz, right next to the boundary of two towns it is serving.</p>
+
+                    <p>The success of Cablevision throughout the years of each operation enabled us to expand and go beyond cable TV service. In July 2012, MyCV Broadband (Cable Internet) was launched. Since then our cable internet performance has been known as a very good compared to competition. This coming April 2014 the Company will be launching the prepaid cable internet.</p>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <hr class="footer-divider">
-
-    <!-- Footer Navigation -->
-    <div class="footer-bottom">
-      <ul class="nav justify-content-center">
-        <li class="nav-item"><a class="nav-link text-white" href="/">Home</a></li>
-        <li class="nav-item"><a class="nav-link text-white active" href="/plans">Plans</a></li>
-        <li class="nav-item"><a class="nav-link text-white" href="/contact-us">Contact</a></li>
-        <li class="nav-item"><a class="nav-link text-white" href="/coverage">Coverage</a></li>
-      </ul>
-      <p class="text-center mt-3 footer-copyright">&copy; 2026 Cablevision Systems Corporation All rights reserved.</p>
+    <div class="modal fade" id="missionModal" tabindex="-1" aria-labelledby="missionLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content about-modal">
+                <div class="about-modal-header position-relative">
+                    <div class="header-content d-inline-flex align-items-center">
+                        <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo" class="about-modal-logo me-2">
+                        <h5 class="modal-title mb-0" id="missionLabel">Mission</h5>
+                    </div>
+                    <button type="button" class="btn-close about-modal-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="about-modal-body px-4 py-3">
+                    <p>To make available the benefits of CATV Technology to the largest numbers of subscribers possible.</p>
+                    <p>To be a model company where shareholders, management as well as workers fully participate in the development and share in the benefits of the company's operations.</p>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</footer>
 
-
-
-
-<!-- About Us Modal -->
-<div class="modal fade" id="aboutUsModal" tabindex="-1" aria-labelledby="aboutUsLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content about-modal">
-      
-      <!-- Modal Header with Logo and Title Centered -->
-      <div class="modal-header about-modal-header">
-        <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo" class="about-modal-logo">
-        <h5 class="modal-title" id="aboutUsLabel">About Us</h5>
-        <button type="button" class="btn-close about-modal-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-
-      <!-- Modal Body -->
-      <div class="modal-body about-modal-body">
-        Cablevision Systems Corporation was conceptualized by five classmates from Class 1960 of Pedro Guevara Memorial High School. It was founded and registered with the Securities and Exchange Commission on October 10, 1991. The company was established to operate CATV Systems primarily in Sta. Cruz, Laguna and adjacent municipalities.
-
-        The Municipal Board of Sta. Cruz, Laguna granted Cablevision’s first CATV franchise on 12/14/91. The National Telecommunications Commission awarded the corresponding Provisional Authority six months later which enabled the company to begin CATV operations and connect subscribers. The company started with 12 television channels feeding regular off-the-air TV signals plus Satellite Television channels from free-to-air transmission all over the world. One television channel is made available for community access in accordance with its CATV mandate.
-
-        Two years later, the municipal board of Pagsanjan, Laguna awarded the company’s second CATV franchise in recognition of its ability to fulfill its commitment to the community.
-
-        The first office and CATV center was located at Mabini Street, Sta. Cruz Laguna, where the CATV headend and two Satellite TVRO Systems were installed. Three years later, the whole operation was transferred to Pagsawitan, still in Sta. Cruz, right next to the boundary of two towns it is serving.
-
-        The success of Cablevision throughout the years of each operation enabled us to expand and go beyond cable TV service. In July 2012, MyCV Broadband (Cable Internet) was launched. Since then our cable internet performance has been known as a very good compared to competition. This coming April 2014 the Company will be launching the prepaid cable internet.
-      </div>
+    <div class="modal fade" id="visionModal" tabindex="-1" aria-labelledby="visionLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content about-modal">
+                <div class="about-modal-header position-relative">
+                    <div class="header-content d-inline-flex align-items-center">
+                        <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo" class="about-modal-logo me-2">
+                        <h5 class="modal-title mb-0" id="visionLabel">Vision</h5>
+                    </div>
+                    <button type="button" class="btn-close about-modal-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="about-modal-body px-4 py-3">
+                    <p>To be a relevant, dynamic telecommunications organization serving the information, entertainment and cultural needs of the community.</p>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
-<!-- Mission Modal -->
-<div class="modal fade" id="missionModal" tabindex="-1" aria-labelledby="missionLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content about-modal">
-      
-      <!-- Modal Header with Logo and Title Centered -->
-      <div class="modal-header about-modal-header">
-        <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo" class="about-modal-logo">
-        <h5 class="modal-title" id="missionLabel">Mission</h5>
-        <button type="button" class="btn-close about-modal-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-
-      <!-- Modal Body -->
-      <div class="modal-body about-modal-body">
-        To make available the benefits of CATV Technology to the largest numbers of subscribers possible.
-
-        To be a model company where shareholders, management as well as workers fully participate in the development and share in the benefits of the company’s operations.
-      </div>
-      
-    </div>
-  </div>
-</div>
-
-<!-- Vision Modal -->
-<div class="modal fade" id="visionModal" tabindex="-1" aria-labelledby="visionLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content about-modal">
-      
-      <!-- Modal Header with Logo and Title Centered -->
-      <div class="modal-header about-modal-header">
-        <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo" class="about-modal-logo">
-        <h5 class="modal-title" id="visionLabel">Vision</h5>
-        <button type="button" class="btn-close about-modal-close" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-
-      <!-- Modal Body -->
-      <div class="modal-body about-modal-body">
-        To be a relevant, dynamic telecommunications organization serving the information, entertainment and cultural needs of the community.
-      </div>
-    </div>
-  </div>
-</div>
-
+<!-- ============================================================
+SCRIPTS
+============================================================ -->
 <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
 <script>
 let selectedPlan = "";
 
+async function loadMaximumPlanSpeed() {
+    const maxSpeedElement = document.getElementById('maxPlanSpeed');
+    if (!maxSpeedElement) return;
+
+    try {
+        const response = await fetch('/api/public/plans');
+        if (!response.ok) throw new Error('Failed to load plans');
+
+        const plans = await response.json();
+        let maxSpeed = 0;
+        let maximumSpeed = '';
+
+        plans.forEach(plan => {
+            const speedValue = parseInt(plan.speed, 10) || 0;
+            if (speedValue > maxSpeed) {
+                maxSpeed = speedValue;
+                maximumSpeed = plan.speed;
+            }
+        });
+
+        maxSpeedElement.textContent = maximumSpeed || 'N/A';
+    } catch (error) {
+        console.error('Unable to load maximum plan speed:', error);
+        maxSpeedElement.textContent = 'N/A';
+    }
+}
+
 function selectPlan(card, name, speed, price, image) {
     // Remove selected class from all cards
-    document.querySelectorAll(".plan-card").forEach(c => {
-        c.classList.remove("plan-selected");
+    document.querySelectorAll(".plan-card-modern").forEach(c => {
+        c.classList.remove("selected");
     });
-    card.classList.add("plan-selected");
+    card.classList.add("selected");
     
     selectedPlan = name;
     
@@ -335,9 +344,9 @@ function selectPlan(card, name, speed, price, image) {
     const emptyState = document.getElementById('emptyState');
     const planContent = document.getElementById('planContent');
     
-if (emptyState && planContent) {
+    if (emptyState && planContent) {
         emptyState.style.display = 'none';
-        planContent.style.display = 'flex';
+        planContent.style.display = 'block';
     }
     
     // Update plan details
@@ -346,13 +355,11 @@ if (emptyState && planContent) {
     let formattedPrice = parseFloat(price).toFixed(2);
     document.getElementById("detailPrice").innerHTML = "₱" + formattedPrice + " / month";
     
-    // FIXED: Image handling - use the URL directly (no base64 conversion)
+    // Handle image
     const img = document.getElementById("detailImage");
     if (image && image !== '' && image !== 'None') {
-        // Use the image URL directly (it's already a correct path like /shared-uploads/plans/xxx.jpg)
         img.src = image;
         img.style.display = "block";
-        console.log("Image URL:", image); // Debug
     } else {
         img.src = "/static/placeholder.jpg";
         img.style.display = "block";
@@ -364,14 +371,14 @@ if (emptyState && planContent) {
         modalImg.alt = `Full view of ${name}`;
     }
     
+    // Scroll to details on mobile
     if (window.innerWidth <= 768) {
-        const rightPanel = document.querySelector('.plan-details-card');
+        const rightPanel = document.querySelector('.plan-details-wrapper');
         if (rightPanel) {
             setTimeout(() => {
                 rightPanel.scrollIntoView({ 
                     behavior: 'smooth', 
-                    block: 'center',
-                    inline: 'nearest'
+                    block: 'center'
                 });
             }, 100);
         }
@@ -383,179 +390,97 @@ function applyPlan() {
         alert("Please select a plan first");
         return;
     }
-    // Encode spaces and special characters
-    const encodedPlan = encodeURIComponent(selectedPlan);
-    window.open("/apply/" + encodedPlan, "_blank");
+    window.open("/apply/" + encodeURIComponent(selectedPlan), "_blank");
 }
 
-// Initialize on page load - show empty state, hide plan content
-document.addEventListener('DOMContentLoaded', function() {
-    const emptyState = document.getElementById('emptyState');
-    const planContent = document.getElementById('planContent');
-    
-    if (emptyState && planContent) {
-        emptyState.style.display = 'flex';
-        planContent.style.display = 'none';
-    }
-    
-    // Optional: Hide planDetails initially if needed
-    const planDetails = document.getElementById('planDetails');
-    if (planDetails) {
-        planDetails.style.display = 'flex';
-    }
-    
-    // FIXED: Scroll to plans section (the main content area)
-    const scrollIndicator = document.getElementById('scrollToPlans');
-    if (scrollIndicator) {
-        scrollIndicator.addEventListener('click', function() {
-            // Scroll to the main plans section (the container with the plans)
-            const plansSection = document.querySelector('.plans-row, .plans-list-wrapper, #plansContainer');
-            if (plansSection) {
-                plansSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            } else {
-                // Fallback: scroll to the container
-                const container = document.querySelector('.container.mt-5');
-                if (container) {
-                    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }
-            }
-        });
-        
-        // Make it keyboard accessible
-        scrollIndicator.setAttribute('tabindex', '0');
-        scrollIndicator.setAttribute('role', 'button');
-    }
-});
-
-document.addEventListener('DOMContentLoaded', function() {
-    const selectedPlanName = "{{ selected_plan }}";  // Flask variable
-
-    if (selectedPlanName) {
-        // Hanapin ang card na may tamang plan name
-        const card = Array.from(document.querySelectorAll('.plan-card'))
-                          .find(c => c.querySelector('.plan-name').innerText.trim() === selectedPlanName.trim());
-
-        if (card) {
-            const name = card.querySelector('.plan-name').innerText;
-            const speed = card.querySelector('.plan-speed-text').innerText;
-            const price = card.querySelector('.plan-price strong').innerText.replace('₱', '').replace(' / month','');
-
-            // Kunin ang image mula sa rendered plan (sa card) o fallback sa data attribute
-            const onclickAttr = card.getAttribute('onclick');
-            let image = "";
-            if (onclickAttr) {
-                const matches = onclickAttr.match(/'(.+?)'/g);
-                if (matches && matches[3]) image = matches[3].replace(/'/g,'');
-            }
-
-            // Trigger selectPlan
-            selectPlan(card, name, speed, price, image);
-            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }
-    }
-});
-
-// Toggle ng mobile menu gamit ang tatlong guhit
-document.addEventListener('DOMContentLoaded', function() {
-  const hamburger = document.getElementById('hamburgerBtn');
-  const navMenu = document.getElementById('navMenu');
-  
-  if (hamburger && navMenu) {
-    hamburger.addEventListener('click', function() {
-      // Toggle Bootstrap collapse
-      const bsCollapse = bootstrap.Collapse.getInstance(navMenu);
-      if (bsCollapse) {
-        bsCollapse.toggle();
-      } else {
-        new bootstrap.Collapse(navMenu, { toggle: true });
-      }
-    });
-  }
-});
-
-// Auto-select plan batay sa URL parameter ?selected=
+// Auto-select plan from URL parameter
 function autoSelectPlanFromURL() {
     const urlParams = new URLSearchParams(window.location.search);
     const selectedPlanName = urlParams.get('selected');
     if (!selectedPlanName) return;
 
-    // I-decode ang URL encoded string (hal. Budget%20Friendly -> Budget Friendly)
     const decodedPlanName = decodeURIComponent(selectedPlanName);
-    
-    // Hanapin ang card na may eksaktong plan name
-    const cards = document.querySelectorAll('.plan-card');
-    let targetCard = null;
-    let targetName = '';
+    const cards = document.querySelectorAll('.plan-card-modern');
     
     for (let card of cards) {
         const nameElem = card.querySelector('.plan-name');
         if (nameElem && nameElem.innerText.trim().toLowerCase() === decodedPlanName.trim().toLowerCase()) {
-            targetCard = card;
-            targetName = nameElem.innerText.trim();
-            break;
-        }
-    }
-    
-    if (targetCard) {
-        // Kunin ang speed at price mula sa card
-        const speedElem = targetCard.querySelector('.plan-speed-text');
-        const priceElem = targetCard.querySelector('.plan-price strong');
-        const speed = speedElem ? speedElem.innerText : '';
-        let price = priceElem ? priceElem.innerText.replace('₱', '').replace('/month', '').trim() : '';
-        // Siguruhing ang price ay may .00 format
-        if (price && !price.includes('.')) {
-            price = parseFloat(price).toFixed(2);
-        }
-        
-        // Kunin ang image (kung mayroon sa onclick attribute o kung nakaimbak sa data)
-        let image = '';
-        const onclickAttr = targetCard.getAttribute('onclick');
-        if (onclickAttr) {
-            // Hanapin ang ika-5 parameter (image) sa selectPlan call
-            const match = onclickAttr.match(/selectPlan\([^,]+,[^,]+,[^,]+,[^,]+,'([^']*)'/);
-            if (match && match[1]) image = match[1];
-        }
-        
-        // Tawagin ang umiiral na selectPlan function
-        if (typeof selectPlan === 'function') {
-            selectPlan(targetCard, targetName, speed, price, image);
-        } else {
-            // Fallback: i-click na lang ang card
-            targetCard.click();
-        }
-        
-        // I-scroll sa napiling plan
-        targetCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        
-        // Optional: magdagdag ng highlight effect
-        targetCard.style.transition = 'all 0.3s';
-        targetCard.style.boxShadow = '0 0 0 3px #ff6b6b';
-        setTimeout(() => {
-            targetCard.style.boxShadow = '';
-        }, 1500);
-    } else {
-        console.warn(`Plan not found: "${decodedPlanName}"`);
-        // Ipakita ang mensahe sa empty state kung gusto
-        const emptyState = document.getElementById('emptyState');
-        if (emptyState) {
-            const originalContent = emptyState.innerHTML;
-            emptyState.innerHTML = `<div class="alert alert-warning"> Plan "${decodedPlanName}" not found. Please select a plan from the list.</div>`;
+            const speedElem = card.querySelector('.plan-speed-tag');
+            const priceElem = card.querySelector('.price-amount');
+            const speed = speedElem ? speedElem.innerText : '';
+            let price = priceElem ? priceElem.innerText.replace('₱', '').trim() : '';
+            if (price && !price.includes('.')) {
+                price = parseFloat(price).toFixed(2);
+            }
+            
+            // Get image from onclick attribute
+            let image = '';
+            const onclickAttr = card.getAttribute('onclick');
+            if (onclickAttr) {
+                const match = onclickAttr.match(/selectPlan\([^,]+,[^,]+,[^,]+,[^,]+,'([^']*)'/);
+                if (match && match[1]) image = match[1];
+            }
+            
+            if (typeof selectPlan === 'function') {
+                selectPlan(card, decodedPlanName, speed, price, image);
+            } else {
+                card.click();
+            }
+            
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            card.style.transition = 'all 0.3s';
+            card.style.boxShadow = '0 0 0 3px #6aafff';
             setTimeout(() => {
-                emptyState.innerHTML = originalContent;
-            }, 3000);
+                card.style.boxShadow = '';
+            }, 1500);
+            break;
         }
     }
 }
 
-// Tiyaking tatakbo ito pagkatapos mag-load ang DOM
-// Pagsamahin sa iyong existing DOMContentLoaded event listener
+// Hamburger toggle
+document.getElementById('hamburgerBtn').addEventListener('click', function() {
+    document.getElementById('navMenu').classList.toggle('open');
+    this.classList.toggle('active');
+});
+
+// Close hamburger when clicking outside
+document.addEventListener('click', function(e) {
+    const nav = document.getElementById('mainNav');
+    const hamburger = document.getElementById('hamburgerBtn');
+    const navMenu = document.getElementById('navMenu');
+    if (!nav.contains(e.target) && navMenu.classList.contains('open')) {
+        navMenu.classList.remove('open');
+        hamburger.classList.remove('active');
+    }
+});
+
+// Initialize
 document.addEventListener('DOMContentLoaded', function() {
-    // ... (i-preserve ang iyong existing code, huwag tanggalin)
+    loadMaximumPlanSpeed();
+
+    // Show empty state initially
+    const emptyState = document.getElementById('emptyState');
+    const planContent = document.getElementById('planContent');
+    if (emptyState && planContent) {
+        emptyState.style.display = 'flex';
+        planContent.style.display = 'none';
+    }
     
-    // Idagdag ang auto-select
+    // Scroll to plans section
+    const scrollIndicator = document.getElementById('scrollToPlans');
+    if (scrollIndicator) {
+        scrollIndicator.addEventListener('click', function() {
+            const plansSection = document.querySelector('.plans-layout');
+            if (plansSection) {
+                plansSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        });
+    }
+    
+    // Auto-select plan from URL
     autoSelectPlanFromURL();
 });
 </script>
-
 </body>
 </html>

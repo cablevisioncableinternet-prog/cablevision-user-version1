@@ -10,10 +10,9 @@
 
 <!-- Bootstrap CSS -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
-<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user-homepage.css') }}">
 <link rel="stylesheet" href="{{ url_for('static', filename='css/user-coverage.css') }}">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
 <!-- Leaflet CSS -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -29,70 +28,69 @@
 
 <body>
 
-<!-- ================= NAVBAR FROM HOMEPAGE ================= -->
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm">
-<div class="container">
-
-<a class="navbar-brand brand-logo" href="/">
-    <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo">
-    <span>CABLEVISION SYSTEMS CORPORATION</span>
-</a>
-
-<!--  hamburger button  -->
-<button class="hamburger" id="hamburgerBtn" type="button" aria-label="Menu">
-  <span></span>
-  <span></span>
-  <span></span>
-</button>
-
-<button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-<span class="navbar-toggler-icon"></span>
-</button>
-
-<div class="collapse navbar-collapse" id="navMenu">
-  <ul class="navbar-nav ms-auto">
-    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
-    <li class="nav-item"><a class="nav-link" href="/plans">Plans</a></li>
-    <li class="nav-item"><a class="nav-link" href="/contact-us">Contact</a></li>
-    <li class="nav-item"><a class="nav-link active" href="/coverage">Coverage</a></li>
-
-    <li class="nav-item dropdown">
-      <a class="nav-link dropdown-toggle" href="#" id="moreDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-        More
-      </a>
-      <ul class="dropdown-menu" aria-labelledby="moreDropdown">
-        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#aboutUsModal">About Us</a></li>
-        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#missionModal">Mission</a></li>
-        <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#visionModal">Vision</a></li>
-      </ul>
-    </li>
-
-<li class="nav-item">
-    <a class="nav-link" href="/login" target="_blank">Login</a>
-</li>
-  </ul>
-</div>
-
-</div>
+<!-- ================= NAVBAR ================= -->
+<nav class="navbar-custom" id="mainNav">
+  <div class="container">
+    <a class="brand" href="/">
+      <img src="{{ url_for('static', filename='logo1.png') }}" alt="Cablevision">
+      <span>Cablevision Systems Corporation</span>
+    </a>
+    <button class="hamburger" id="hamburgerBtn" type="button" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+    <ul class="nav-links" id="navMenu">
+      <li><a href="/">Home</a></li>
+      <li><a href="/plans">Plans</a></li>
+      <li><a href="/contact-us">Contact</a></li>
+      <li><a href="/coverage" class="active">Coverage</a></li>
+      <li class="dropdown">
+        <a class="dropdown-toggle" href="#" id="moreDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">More</a>
+        <ul class="dropdown-menu" aria-labelledby="moreDropdown">
+          <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#aboutUsModal">About Us</a></li>
+          <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#missionModal">Mission</a></li>
+          <li><a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#visionModal">Vision</a></li>
+        </ul>
+      </li>
+      <li><a href="/login" class="login-link" target="_blank">Login</a></li>
+    </ul>
+  </div>
 </nav>
 
-<section class="coverage-hero">
-    <div class="container text-center">
-        <h2>Cablevision Coverage</h2>
-        <p>Cablevision delivers fast, reliable fiber internet in Magdalena, Pila, Santa Cruz, and Pagsanjan.</p>
-        
-        <!-- Scroll Indicator -->
-        <div class="scroll-indicator" id="scrollToCoverage">
-            <span>View Coverage Areas Below</span>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <path d="M12 5V19M12 19L5 12M12 19L19 12" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
-            </svg>
+<section class="hero-cablevision coverage-hero">
+    <div class="hero-bg-pattern"></div>
+    <div class="container">
+        <div class="hero-content">
+            <span class="section-label">Service Coverage</span>
+            <h1>Find Cablevision <span class="accent">Near You</span></h1>
+            <p>Cablevision delivers fast, reliable fiber internet in Magdalena, Pila, Santa Cruz, and Pagsanjan.</p>
+            <div class="hero-buttons">
+                <a href="#coverageMap" class="btn-primary-custom">View Coverage <i class="fas fa-arrow-down"></i></a>
+                <a href="/contact-us" class="btn-outline-light">Contact Us</a>
+            </div>
+            <div class="hero-stats">
+                <div class="stat-item"><strong>4</strong> <span>Municipalities</span></div>
+                <div class="stat-item"><strong>5</strong> <span>Local Offices</span></div>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="mockup-card coverage-hero-card">
+                <div class="plan-badge"><i class="fas fa-map-marker-alt"></i> Cablevision Coverage</div>
+                <div class="hero-card-icon"><i class="fas fa-map-marked-alt"></i></div>
+                <div class="price">We're <small>in your area</small></div>
+                <div class="speed">Explore our offices and service locations</div>
+                <ul class="feature-list">
+                    <li><i class="fas fa-check"></i> Santa Cruz and Pagsawitan</li>
+                    <li><i class="fas fa-check"></i> Magdalena and Pila</li>
+                    <li><i class="fas fa-check"></i> Pagsanjan covered area</li>
+                </ul>
+                <a href="#coverageMap" class="btn-sm-custom">Open the Map <i class="fas fa-arrow-right"></i></a>
+            </div>
         </div>
     </div>
 </section>
 
 <!-- ================= MAP SECTION ================= -->
-<section class="coverage-map">
+<section class="coverage-map" id="coverageMap">
   <div class="container">
     
     <!-- Map Title with Decorative Element -->
@@ -327,7 +325,7 @@
 
 <!-- ================= FOOTER FROM HOMEPAGE ================= -->
 <!-- FOOTER -->
-<footer class="footer bg-dark text-white py-5">
+<footer class="footer-cablevision">
   <div class="container">
     <div class="row">
       <!-- Company Info -->
@@ -377,72 +375,68 @@
 </footer>
 
 
-<!-- About Us Modal -->
-<div class="modal fade" id="aboutUsModal" tabindex="-1" aria-labelledby="aboutUsLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content about-modal">
-      
-      <div class="modal-header about-modal-header">
-        <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo" class="about-modal-logo">
-        <h5 class="modal-title" id="aboutUsLabel">About Us</h5>
-        <button type="button" class="btn-close about-modal-close" data-bs-dismiss="modal"></button>
-      </div>
+   <!-- ============================================================
+    MODALS (About, Mission, Vision) — WITH PROPER PARAGRAPH SPACING
+    ============================================================ -->
+    <div class="modal fade" id="aboutUsModal" tabindex="-1" aria-labelledby="aboutUsLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content about-modal">
+                <div class="about-modal-header position-relative">
+                    <div class="header-content d-inline-flex align-items-center">
+                        <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo" class="about-modal-logo me-2">
+                        <h5 class="modal-title mb-0" id="aboutUsLabel">About Us</h5>
+                    </div>
+                    <button type="button" class="btn-close about-modal-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="about-modal-body px-4 py-3">
+                    <p>Cablevision Systems Corporation was conceptualized by five classmates from Class 1960 of Pedro Guevara Memorial High School. It was founded and registered with the Securities and Exchange Commission on October 10, 1991. The company was established to operate CATV Systems primarily in Sta. Cruz, Laguna and adjacent municipalities.</p>
 
-      <div class="modal-body about-modal-body">
-         Cablevision Systems Corporation was conceptualized by five classmates from Class 1960 of Pedro Guevara Memorial High School. It was founded and registered with the Securities and Exchange Commission on October 10, 1991. The company was established to operate CATV Systems primarily in Sta. Cruz, Laguna and adjacent municipalities.
+                    <p>The Municipal Board of Sta. Cruz, Laguna granted Cablevision's first CATV franchise on 12/14/91. The National Telecommunications Commission awarded the corresponding Provisional Authority six months later which enabled the company to begin CATV operations and connect subscribers. The company started with 12 television channels feeding regular off-the-air TV signals plus Satellite Television channels from free-to-air transmission all over the world. One television channel is made available for community access in accordance with its CATV mandate.</p>
 
-        The Municipal Board of Sta. Cruz, Laguna granted Cablevision's first CATV franchise on 12/14/91. The National Telecommunications Commission awarded the corresponding Provisional Authority six months later which enabled the company to begin CATV operations and connect subscribers. The company started with 12 television channels feeding regular off-the-air TV signals plus Satellite Television channels from free-to-air transmission all over the world. One television channel is made available for community access in accordance with its CATV mandate.
+                    <p>Two years later, the municipal board of Pagsanjan, Laguna awarded the company's second CATV franchise in recognition of its ability to fulfill its commitment to the community.</p>
 
-        Two years later, the municipal board of Pagsanjan, Laguna awarded the company's second CATV franchise in recognition of its ability to fulfill its commitment to the community.
+                    <p>The first office and CATV center was located at Mabini Street, Sta. Cruz Laguna, where the CATV headend and two Satellite TVRO Systems were installed. Three years later, the whole operation was transferred to Pagsawitan, still in Sta. Cruz, right next to the boundary of two towns it is serving.</p>
 
-        The first office and CATV center was located at Mabini Street, Sta. Cruz Laguna, where the CATV headend and two Satellite TVRO Systems were installed. Three years later, the whole operation was transferred to Pagsawitan, still in Sta. Cruz, right next to the boundary of two towns it is serving.
-
-        The success of Cablevision throughout the years of each operation enabled us to expand and go beyond cable TV service. In July 2012, MyCV Broadband (Cable Internet) was launched. Since then our cable internet performance has been known as a very good compared to competition. This coming April 2014 the Company will be launching the prepaid cable internet.
-      </div>
-
+                    <p>The success of Cablevision throughout the years of each operation enabled us to expand and go beyond cable TV service. In July 2012, MyCV Broadband (Cable Internet) was launched. Since then our cable internet performance has been known as a very good compared to competition. This coming April 2014 the Company will be launching the prepaid cable internet.</p>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
-<!-- Mission Modal -->
-<div class="modal fade" id="missionModal" tabindex="-1" aria-labelledby="missionLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content about-modal">
-      
-      <div class="modal-header about-modal-header">
-        <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo" class="about-modal-logo">
-        <h5 class="modal-title" id="missionLabel">Mission</h5>
-        <button type="button" class="btn-close about-modal-close" data-bs-dismiss="modal"></button>
-      </div>
-
-      <div class="modal-body about-modal-body">
-        To make available the benefits of CATV Technology to the largest numbers of subscribers possible.
-
-        To be a model company where shareholders, management, and workers participate in development and share in its benefits.
-      </div>
-
+    <div class="modal fade" id="missionModal" tabindex="-1" aria-labelledby="missionLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content about-modal">
+                <div class="about-modal-header position-relative">
+                    <div class="header-content d-inline-flex align-items-center">
+                        <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo" class="about-modal-logo me-2">
+                        <h5 class="modal-title mb-0" id="missionLabel">Mission</h5>
+                    </div>
+                    <button type="button" class="btn-close about-modal-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="about-modal-body px-4 py-3">
+                    <p>To make available the benefits of CATV Technology to the largest numbers of subscribers possible.</p>
+                    <p>To be a model company where shareholders, management as well as workers fully participate in the development and share in the benefits of the company's operations.</p>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
-<!-- Vision Modal -->
-<div class="modal fade" id="visionModal" tabindex="-1" aria-labelledby="visionLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content about-modal">
-      
-      <div class="modal-header about-modal-header">
-        <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo" class="about-modal-logo">
-        <h5 class="modal-title" id="visionLabel">Vision</h5>
-        <button type="button" class="btn-close about-modal-close" data-bs-dismiss="modal"></button>
-      </div>
-
-      <div class="modal-body about-modal-body">
-        To be a relevant, dynamic telecommunications organization serving the information, entertainment and cultural needs of the community.
-      </div>
-
+    <div class="modal fade" id="visionModal" tabindex="-1" aria-labelledby="visionLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content about-modal">
+                <div class="about-modal-header position-relative">
+                    <div class="header-content d-inline-flex align-items-center">
+                        <img src="{{ url_for('static', filename='logo1.png') }}" alt="CableVision Logo" class="about-modal-logo me-2">
+                        <h5 class="modal-title mb-0" id="visionLabel">Vision</h5>
+                    </div>
+                    <button type="button" class="btn-close about-modal-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="about-modal-body px-4 py-3">
+                    <p>To be a relevant, dynamic telecommunications organization serving the information, entertainment and cultural needs of the community.</p>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
 
 
 <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
@@ -720,13 +714,17 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (hamburger && navMenu) {
         hamburger.addEventListener('click', function() {
-            const bsCollapse = bootstrap.Collapse.getInstance(navMenu);
-            if (bsCollapse) {
-                bsCollapse.toggle();
-            } else {
-                new bootstrap.Collapse(navMenu, { toggle: true });
-            }
+        navMenu.classList.toggle('open');
+        hamburger.classList.toggle('active');
         });
+
+      document.addEventListener('click', function(event) {
+        const nav = document.getElementById('mainNav');
+        if (!nav.contains(event.target) && navMenu.classList.contains('open')) {
+          navMenu.classList.remove('open');
+          hamburger.classList.remove('active');
+        }
+      });
     }
 });
 

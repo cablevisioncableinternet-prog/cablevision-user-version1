@@ -1,580 +1,624 @@
-/* BODY */
-body{
-    background:#e4e4e4;
-    font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+/* ============================================================
+   USER-PLANS.CSS — REDESIGNED PLANS PAGE
+   Converge-inspired, fully responsive
+   ============================================================ */
+
+/* ----- RESET & BASE ----- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-/* ================= ENHANCED PLANS HERO ================= */
-.plans-hero {
-    /* Background image + overlay gradient - Enhanced */
-    background: linear-gradient(135deg, rgba(1,13,68,0.92), rgba(36,85,158,0.88)), url("/static/background.jpg");
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    background-attachment: fixed;
-    
-    /* Enhanced styling */
-    padding: 120px 20px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-    isolation: isolate;
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    color: #1a1a2e;
+    background: #f8fafc;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
 }
 
-/* Animated Background Pattern */
-.plans-hero::before {
-    content: '';
-    position: absolute;
+a {
+    text-decoration: none;
+}
+
+/* ============================================================
+   NAVBAR — CONVERGE-INSPIRED
+   ============================================================ */
+.navbar-custom {
+    background: #ffffff;
+    padding: 14px 0;
+    box-shadow: 0 2px 20px rgba(0, 0, 0, 0.04);
+    position: sticky;
     top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-    opacity: 0.3;
-    pointer-events: none;
-    z-index: 0;
+    z-index: 1030;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+}
+.navbar-custom .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.navbar-custom .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.navbar-custom .brand img {
+    height: 48px;
+    width: auto;
+}
+.navbar-custom .brand span {
+    font-weight: 800;
+    font-size: 20px;
+    color: #0a1a3a;
+    letter-spacing: -0.3px;
+}
+.navbar-custom .brand span .highlight {
+    color: #1a5bb5;
 }
 
-/* Floating Circles Animation */
-.plans-hero::after {
+.nav-links {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.nav-links li a {
+    padding: 8px 18px;
+    font-weight: 500;
+    font-size: 14px;
+    color: #2d3748;
+    border-radius: 30px;
+    transition: all 0.2s ease;
+}
+.nav-links li a:hover {
+    background: #f0f4ff;
+    color: #1a5bb5;
+}
+.nav-links li a.active {
+    background: #0a1a3a;
+    color: #fff;
+}
+.nav-links li a.active:hover {
+    background: #0a1a3a;
+    color: #fff;
+}
+.nav-links .dropdown-toggle {
+    cursor: pointer;
+}
+.nav-links .dropdown-menu {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+    padding: 8px 0;
+    min-width: 180px;
+}
+.nav-links .dropdown-item {
+    padding: 10px 24px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1a1a2e;
+    transition: all 0.15s ease;
+}
+.nav-links .dropdown-item:hover {
+    background: #f0f4ff;
+    color: #1a5bb5;
+}
+.nav-links .login-link {
+    background: #0a1a3a;
+    color: #fff !important;
+    padding: 8px 22px !important;
+    border-radius: 30px;
+    font-weight: 600;
+    margin-left: 6px;
+}
+.nav-links .login-link:hover {
+    background: #1a3a7a;
+    color: #fff !important;
+}
+
+/* Hamburger (mobile) */
+.hamburger {
+    display: none;
+    flex-direction: column;
+    gap: 5px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    z-index: 1040;
+    border-radius: 8px;
+    transition: background 0.2s ease;
+}
+.hamburger:hover {
+    background: rgba(0, 0, 0, 0.04);
+}
+.hamburger span {
+    display: block;
+    width: 26px;
+    height: 2.5px;
+    background: #0a1a3a;
+    border-radius: 4px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    transform-origin: center;
+}
+.hamburger.active span:nth-child(1) {
+    transform: translateY(8px) rotate(45deg);
+}
+.hamburger.active span:nth-child(2) {
+    opacity: 0;
+    transform: scaleX(0);
+}
+.hamburger.active span:nth-child(3) {
+    transform: translateY(-8px) rotate(-45deg);
+}
+
+/* Mobile Navigation */
+@media (max-width: 992px) {
+    .hamburger {
+        display: flex;
+    }
+
+    .nav-links {
+        display: none;
+        flex-direction: column;
+        background: #ffffff;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        padding: 20px 24px 30px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        border-radius: 0 0 20px 20px;
+        gap: 2px;
+        border-top: 2px solid #0a1a3a;
+        max-height: calc(100vh - 80px);
+        overflow-y: auto;
+    }
+    .nav-links.open {
+        display: flex;
+        animation: slideDown 0.3s ease;
+    }
+    @keyframes slideDown {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .nav-links li {
+        width: 100%;
+    }
+    .nav-links li a {
+        padding: 12px 16px;
+        width: 100%;
+        border-radius: 12px;
+        font-size: 15px;
+        color: #0a1a3a;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .nav-links li a:hover {
+        background: #f0f4ff;
+        color: #1a5bb5;
+    }
+    .nav-links li a.active {
+        background: #0a1a3a;
+        color: #fff;
+    }
+    .nav-links .login-link {
+        background: #0a1a3a;
+        color: #fff !important;
+        margin-left: 0;
+        text-align: center;
+        justify-content: center;
+        margin-top: 8px;
+    }
+    .nav-links .dropdown-menu {
+        position: static !important;
+        box-shadow: none;
+        border: none;
+        background: #f8fafc;
+        border-radius: 12px;
+        padding: 4px 0;
+        margin-top: 4px;
+        width: 100%;
+    }
+    .nav-links .dropdown-menu .dropdown-item {
+        padding: 10px 16px;
+        font-size: 14px;
+        border-radius: 8px;
+    }
+    .nav-links .dropdown-menu .dropdown-item:hover {
+        background: #eef2f6;
+    }
+    .nav-links .dropdown-toggle::after {
+        float: right;
+        margin-top: 6px;
+    }
+}
+
+/* ============================================================
+   PLANS HERO — CONVERGE-INSPIRED
+   ============================================================ */
+.plans-hero-modern {
+    position: relative;
+    min-height: 50vh;
+    display: flex;
+    align-items: center;
+    background: linear-gradient(135deg, #06122e 0%, #0d284a 40%, #1a3a6a 100%);
+    overflow: hidden;
+    padding: 80px 0 60px;
+}
+.plans-hero-modern::before {
     content: '';
     position: absolute;
-    top: -50%;
-    left: -10%;
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-    border-radius: 50%;
-    animation: floatCircle 20s infinite ease-in-out;
-    z-index: 0;
+    top: -40%;
+    right: -10%;
+    width: 70%;
+    height: 120%;
+    background: radial-gradient(ellipse at 70% 50%, rgba(30, 80, 180, 0.15) 0%, transparent 70%);
+    pointer-events: none;
 }
-
-@keyframes floatCircle {
-    0%, 100% {
-        transform: translate(0, 0) scale(1);
-    }
-    50% {
-        transform: translate(100px, 50px) scale(1.1);
-    }
+.plans-hero-modern .hero-bg-pattern {
+    position: absolute;
+    inset: 0;
+    background-image:
+        radial-gradient(circle at 20% 80%, rgba(255, 255, 255, 0.03) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.02) 0%, transparent 50%);
+    pointer-events: none;
 }
-
-/* Container */
-.plans-hero .container {
+.plans-hero-modern .container {
     position: relative;
     z-index: 2;
-    max-width: 900px;
+    text-align: center;
+}
+.plans-hero-modern .hero-content {
+    max-width: 800px;
     margin: 0 auto;
 }
-/* Heading */
-.plans-hero h2 {
-    font-weight: 800;
-    font-size: clamp(2rem, 6vw, 48px);
-    color: #ffffff;
-    margin-bottom: 1rem;
-    line-height: 1.2;
-    letter-spacing: -0.5px;
-    position: relative;
+.plans-hero-modern .section-badge {
     display: inline-block;
-    background: linear-gradient(135deg, #ffffff, #e0e8ff);
+    background: rgba(255, 255, 255, 0.12);
+    color: #6aafff;
+    padding: 6px 18px;
+    border-radius: 50px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.plans-hero-modern h1 {
+    font-size: clamp(2.6rem, 5.5vw, 4.2rem);
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    margin-bottom: 16px;
+}
+.plans-hero-modern h1 .accent {
+    background: linear-gradient(135deg, #6aafff, #3b82f6);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    animation: fadeInUp 0.7s ease-out;
 }
-
-/* Animated Underline */
-.title-underline {
-    width: 80px;
-    height: 3px;
-    background: linear-gradient(90deg, transparent, #ffffff, rgba(255,255,255,0.5), transparent);
-    margin: 0 auto 1.5rem auto;
-    border-radius: 3px;
-    animation: expandWidth 0.8s ease-out;
-}
-
-@keyframes expandWidth {
-    from {
-        width: 0;
-        opacity: 0;
-    }
-    to {
-        width: 80px;
-        opacity: 1;
-    }
-}
-
-/* Subheading / paragraph */
-.plans-hero p {
-       font-size: clamp(0.95rem, 3vw, 1.1rem);
+.plans-hero-modern p {
+    font-size: clamp(1rem, 1.4vw, 1.2rem);
+    color: rgba(255, 255, 255, 0.8);
+    max-width: 580px;
+    margin: 0 auto 30px;
     line-height: 1.7;
-    color: rgba(255, 255, 255, 0.92);
-    max-width: 600px;
-    margin: 0 auto 1rem auto;
-    background: rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(8px);
-    padding: 0.7rem 1.5rem;
-    border-radius: 50px;
-    display: block; /* Changed from inline-block to block */
-    width: fit-content; /* Keeps the background only around the text */
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    animation: fadeInUp 0.8s ease-out;
 }
-
-/* Scroll Indicator - Below paragraph */
-.scroll-indicator {
-    display: flex; /* Changed from inline-flex to flex */
+.plans-hero-modern .scroll-indicator {
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    gap: 0.8rem;
-    width: fit-content;
-    margin: 0.5rem auto 0 auto; /* Center horizontally */
-    padding: 0.6rem 1.2rem;
-    background: rgba(255, 255, 255, 0.1);
+    gap: 12px;
+    padding: 10px 24px;
+    background: rgba(255, 255, 255, 0.08);
     backdrop-filter: blur(8px);
     border-radius: 50px;
     cursor: pointer;
     transition: all 0.3s ease;
-    animation: fadeInUp 1s ease-out;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 14px;
+    font-weight: 500;
 }
-
-.scroll-indicator span {
-    font-size: 0.8rem;
-    color: white;
-    letter-spacing: 0.5px;
-}
-
-.scroll-indicator svg {
-    transition: transform 0.3s ease;
-}
-
-.scroll-indicator:hover {
-    background: rgba(255, 255, 255, 0.2);
+.plans-hero-modern .scroll-indicator:hover {
+    background: rgba(255, 255, 255, 0.15);
     transform: translateY(3px);
+    color: #fff;
+}
+.plans-hero-modern .scroll-indicator i {
+    font-size: 16px;
+    animation: bounceArrow 2s infinite;
+}
+@keyframes bounceArrow {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(4px); }
 }
 
-.scroll-indicator:hover svg {
-    transform: translateY(3px);
+/* ============================================================
+   MAIN PLANS SECTION
+   ============================================================ */
+.plans-main-section {
+    padding: 60px 0 80px;
+    background: #f8fafc;
+}
+.plans-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 40px;
+    align-items: start;
 }
 
-
-/* Animations */
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .plans-hero {
-        padding: 80px 20px;
-    }
-    
-    .hero-badge {
-        font-size: 0.7rem;
-        padding: 0.4rem 1rem;
-        margin-bottom: 1rem;
-    }
-    
-    .plans-hero h2 {
-        font-size: 1.8rem;
-    }
-    
-    .title-underline {
-        width: 60px;
-        height: 2px;
-    }
-    
-    .plans-hero p {
-        font-size: 0.9rem;
-        padding: 0.6rem 1.2rem;
-        margin-bottom: 1.5rem;
-    }
-    
-    .hero-stats {
-        gap: 1rem;
-    }
-    
-    .stat-number {
-        font-size: 1.1rem;
-    }
-    
-    .stat-label {
-        font-size: 0.65rem;
-    }
-    
-    .stat-divider {
-        height: 25px;
-    }
-    
-    .scroll-indicator {
-        margin-top: 1rem;
-        padding: 0.5rem 1rem;
-    }
-    
-    .scroll-indicator span {
-        font-size: 0.7rem;
-    }
-
-}
-
-@media (max-width: 480px) {
-    .plans-hero {
-        padding: 60px 15px;
-    }
-    
-    .plans-hero h2 {
-        font-size: 1.5rem;
-    }
-    
-    .hero-stats {
-        flex-direction: column;
-        gap: 0.8rem;
-    }
-    
-    .stat-divider {
-        display: none;
-    }
-    
-    .stat {
-        width: 100%;
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(8px);
-        padding: 0.8rem;
-        border-radius: 12px;
-    }
-    
-    .plans-hero p {
-        font-size: 0.85rem;
-        padding: 0.5rem 1rem;
-    }
-    
-    .scroll-indicator {
-        margin-top: 1.2rem;
-    }
-}
-
-/* Optional: Add smooth scroll behavior */
-html {
-    scroll-behavior: smooth;
-}
-
-.main-content {
-    margin-bottom: 80px;
-}
-
-/* ================= MAIN LAYOUT ================= */
-.plans-row {
-    align-items: stretch;
-}
-
+/* ============================================================
+   LEFT: PLANS LIST
+   ============================================================ */
 .plans-list-wrapper {
-    height: 100%;
-}
-
-/* ================= PLAN CARDS ================= */
-.plan-card {
     background: #ffffff;
     border-radius: 20px;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    margin-bottom: 20px;
-    font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif;
-    border: 1px solid rgba(0, 31, 63, 0.08);
-    position: relative;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e8edf4;
     overflow: hidden;
+    position: sticky;
+    top: 110px;
+}
+.plans-list-header {
+    padding: 20px 24px;
+    background: #f8faff;
+    border-bottom: 1px solid #e8edf4;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.plans-list-header .list-title {
+    font-weight: 700;
+    font-size: 16px;
+    color: #0a1a3a;
+}
+.plans-list-header .list-count {
+    font-size: 12px;
+    color: #64748b;
+    background: #eef2f6;
+    padding: 4px 12px;
+    border-radius: 20px;
+}
+#plansContainer {
+    padding: 8px;
 }
 
-.plan-card:last-child {
+/* Plan Card — Modern */
+.plan-card-modern {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 16px 18px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    border: 1px solid transparent;
+    position: relative;
+}
+.plan-card-modern:last-child {
     margin-bottom: 0;
 }
-
-.plan-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 4px;
-    height: 100%;
-    background: linear-gradient(135deg, #001f3f, #037be4);
-    opacity: 0;
-    transition: opacity 0.3s ease;
+.plan-card-modern:hover {
+    background: #f8faff;
+    border-color: #dce3ef;
+    transform: translateX(4px);
 }
-
-.plan-card:hover::before {
+.plan-card-modern.selected {
+    background: #0a1a3a;
+    border-color: #0a1a3a;
+    box-shadow: 0 8px 24px rgba(10, 26, 58, 0.12);
+}
+.plan-card-modern.selected .plan-name,
+.plan-card-modern.selected .plan-speed-tag,
+.plan-card-modern.selected .price-amount,
+.plan-card-modern.selected .price-period {
+    color: #ffffff;
+}
+.plan-card-modern.selected .plan-icon {
+    background: rgba(255, 255, 255, 0.15);
+    color: #6aafff;
+}
+.plan-card-modern.selected .plan-select-indicator {
     opacity: 1;
+    transform: scale(1);
 }
 
-.plan-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 35px rgba(0, 31, 63, 0.1);
-    border-color: transparent;
+.plan-card-content {
+    display: flex;
+    align-items: center;
+    gap: 14px;
 }
-
-.plan-selected {
-    background: linear-gradient(135deg, #001f3f, #037be4) !important;
-    color: #ffffff !important;
-    border: none;
+.plan-icon-wrapper {
+    flex-shrink: 0;
 }
-
-.plan-selected::before {
-    opacity: 1;
-    background: white;
-}
-
 .plan-icon {
-    width: 50px;
-    height: 50px;
-    background: rgba(0, 31, 63, 0.08);
-    border-radius: 16px;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #eef4ff;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-right: 15px;
+    color: #1a5bb5;
+    font-size: 18px;
     transition: all 0.3s ease;
+}
+.plan-card-modern:hover .plan-icon {
+    background: #dce8f5;
+}
+.plan-info {
+    flex: 1;
+    min-width: 0;
+}
+.plan-name {
+    font-weight: 700;
+    font-size: 16px;
+    color: #0a1a3a;
+    margin-bottom: 2px;
+    transition: color 0.3s ease;
+}
+.plan-speed-tag {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+.plan-price-tag {
+    text-align: right;
     flex-shrink: 0;
 }
-
-.plan-selected .plan-icon {
-    background: rgba(255, 255, 255, 0.2);
-}
-
-.plan-icon svg {
-    stroke: #001f3f;
-    transition: all 0.3s ease;
-}
-
-.plan-selected .plan-icon svg {
-    stroke: white;
-}
-
-.plan-card:hover .plan-icon {
-    transform: scale(1.05);
-}
-
-.plan-card h5 {
+.plan-price-tag .price-amount {
+    font-weight: 700;
     font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 5px;
-    color: #001f3f;
+    color: #0a1a3a;
+    transition: color 0.3s ease;
+}
+.plan-price-tag .price-period {
+    font-size: 12px;
+    color: #64748b;
+    font-weight: 500;
     transition: color 0.3s ease;
 }
 
-.plan-card p {
-    font-size: 13px;
-    color: #6c757d;
-    margin-bottom: 0;
-    transition: color 0.3s ease;
-}
-
-.plan-card strong {
+.plan-select-indicator {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%) scale(0);
+    opacity: 0;
+    transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+    color: #6aafff;
     font-size: 20px;
-    font-weight: 700;
-    color: #001f3f;
-    transition: color 0.3s ease;
+}
+.plan-card-modern.selected .plan-select-indicator {
+    opacity: 1;
+    transform: translateY(-50%) scale(1);
 }
 
-.plan-selected h5,
-.plan-selected p,
-.plan-selected strong {
-    color: #ffffff !important;
+/* ============================================================
+   RIGHT: PLAN DETAILS
+   ============================================================ */
+.plan-details-wrapper {
+    position: sticky;
+    top: 110px;
 }
-
-.card-body {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    padding: 18px 20px;
-}
-
-.ms-auto {
-    margin-left: auto;
-}
-
-/* ================= RIGHT PANEL CARD ================= */
-.plan-details-card {
-    border-radius: 24px;
-    overflow: hidden;
+.plan-details-card-modern {
     background: #ffffff;
-    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(0, 31, 63, 0.08);
-    height: 100%;
-    width: 86%;
-    margin-left: 95px;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e8edf4;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
 }
 
-/* ================= EMPTY STATE ================= */
-.empty-state {
+/* Empty State */
+.empty-state-modern {
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
-    padding: 50px 30px;
-    background: linear-gradient(135deg, #f8faff 0%, #ffffff 100%);
-    flex: 1;
+    padding: 60px 30px;
+    min-height: 400px;
 }
-
-.empty-icon {
-    width: 100px;
-    height: 100px;
-    background: rgba(0, 31, 63, 0.05);
+.empty-icon-wrapper {
+    width: 80px;
+    height: 80px;
+    background: #eef4ff;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    font-size: 32px;
+    color: #1a5bb5;
     margin-bottom: 20px;
-    animation: pulseEmpty 2s infinite;
 }
-
-@keyframes pulseEmpty {
-    0%, 100% {
-        transform: scale(1);
-        opacity: 1;
-    }
-    50% {
-        transform: scale(1.05);
-        opacity: 0.8;
-    }
-}
-
-.empty-state h3 {
+.empty-state-modern h3 {
     font-size: 22px;
     font-weight: 700;
-    color: #001f3f;
-    margin-bottom: 10px;
-    font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+    color: #0a1a3a;
+    margin-bottom: 8px;
 }
-
-.empty-state p {
+.empty-state-modern p {
     font-size: 14px;
-    color: #6c757d;
-    margin-bottom: 18px;
-    max-width: 260px;
-    line-height: 1.5;
+    color: #64748b;
+    max-width: 280px;
+    margin: 0 auto 16px;
+    line-height: 1.6;
 }
-
 .empty-hint {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 6px 14px;
-    background: rgba(0, 31, 63, 0.05);
-    border-radius: 50px;
-    font-size: 12px;
-    color: #001f3f;
+    padding: 6px 16px;
+    background: #eef4ff;
+    border-radius: 30px;
+    font-size: 13px;
+    color: #1a5bb5;
     font-weight: 500;
 }
-
-.empty-hint svg {
-    stroke: #001f3f;
-    width: 14px;
-    height: 14px;
+.empty-hint i {
+    font-size: 14px;
 }
 
-/* ================= PLAN CONTENT (IMAGE DETERMINES CARD HEIGHT) ================= */
+/* Plan Content */
 #planContent {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
+    display: none;
 }
 
+/* Plan Image */
 .plan-image-section {
     width: 100%;
     background: linear-gradient(135deg, #f0f4fa, #e8edf5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
     position: relative;
-    flex: 1 1 auto;   /* grows to fill whatever space is left in the card */
-    min-height: 260px;
     cursor: zoom-in;
+    overflow: hidden;
+    min-height: 280px;
 }
-
 .plan-detail-image {
     width: 100%;
-    height: 100%;      /* fills the section completely, no leftover gap */
-    object-fit: cover; /* fills space (crops slightly instead of leaving air) */
+    height: 280px;
+    object-fit: cover;
     display: block;
     transition: transform 0.4s ease;
 }
-
+.plan-image-section:hover .plan-detail-image {
+    transform: scale(1.03);
+}
 .plan-image-overlay {
     position: absolute;
     inset: 0;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    pointer-events: none;
-    color: rgba(255, 255, 255, 0.98);
-    font-size: 0.95rem;
-    font-weight: 600;
-    text-shadow: 0 0 14px rgba(0, 0, 0, 0.75);
-    background: rgba(0, 0, 0, 0.25);
+    gap: 8px;
+    background: rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    color: #fff;
+    font-weight: 500;
+    font-size: 14px;
+}
+.plan-image-section:hover .plan-image-overlay {
     opacity: 1;
 }
-
-.plan-image-section:hover .plan-detail-image {
-    transform: scale(1.02);
+.plan-image-overlay i {
+    font-size: 24px;
 }
 
-/* Optional gradient overlay at bottom (adjust if needed) */
-.plan-image-section::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 40px;
-    background: linear-gradient(to top, rgba(0,0,0,0.03), transparent);
-    pointer-events: none;
+/* Plan Details Section */
+.plan-details-section-modern {
+    padding: 20px 24px 24px;
 }
-
-/* Responsive adjustments */
-@media (max-width: 992px) {
-    .plan-image-section {
-        min-height: 220px;
-    }
-}
-
-@media (max-width: 768px) {
-    .plan-image-section {
-        min-height: 200px;
-    }
-    .plan-detail-image {
-        width: 100% !important;
-        height: 100% !important;
-        object-fit: cover !important;
-    }
-}
-
-@media (max-width: 480px) {
-    .plan-image-section {
-        min-height: 160px;
-    }
-    .plan-detail-image {
-        width: 100% !important;
-        height: 100% !important;
-        object-fit: cover !important;
-    }
-}
-
-/* COMPACT DETAILS SECTION */
-.plan-details-section {
-    padding: 16px 24px 20px 24px;
-    background: #ffffff;
-    flex-shrink: 0;
-}
-
 .detail-row {
     display: flex;
     justify-content: space-between;
@@ -582,40 +626,31 @@ html {
     padding: 10px 0;
     border-bottom: 1px solid #eef2f6;
 }
-
 .detail-row:last-of-type {
     border-bottom: none;
 }
-
 .detail-label {
     font-size: 12px;
     font-weight: 500;
-    color: #6c757d;
+    color: #64748b;
     text-transform: uppercase;
     letter-spacing: 0.8px;
 }
-
 .detail-value {
     font-size: 16px;
     font-weight: 600;
-    color: #001f3f;
+    color: #0a1a3a;
 }
-
 .plan-name-value {
     font-size: 20px;
     font-weight: 700;
-    color: #001f3f;
 }
-
 .speed-value {
+    color: #1a5bb5;
     font-size: 18px;
-    font-weight: 600;
-    color: #037be4;
 }
-
-.price-row {
-    padding-top: 12px;
-    padding-bottom: 12px;
+.price-row-modern {
+    padding: 12px 0;
     margin-top: 4px;
     background: #f8faff;
     margin-left: -24px;
@@ -623,2196 +658,460 @@ html {
     padding-left: 24px;
     padding-right: 24px;
     border-bottom: none;
-    border-radius: 12px;
+}
+.price-value {
+    font-size: 28px;
+    font-weight: 800;
+    color: #0a1a3a;
 }
 
-/* APPLY BUTTON */
-.apply-btn {
+/* Apply Button */
+.apply-btn-modern {
     width: 100%;
-    background: linear-gradient(135deg, #001f3f, #037be4);
-    color: white;
+    background: linear-gradient(135deg, #0a1a3a, #1a3a7a);
+    color: #fff;
     border: none;
-    padding: 12px;
+    padding: 14px;
     border-radius: 50px;
-    font-size: 15px;
+    font-size: 16px;
     font-weight: 600;
-    font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif;
     transition: all 0.3s ease;
     cursor: pointer;
     margin-top: 16px;
-    position: relative;
-    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
 }
-
-.apply-btn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-    transition: left 0.5s ease;
-}
-
-.apply-btn:hover {
+.apply-btn-modern:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(3, 123, 228, 0.3);
+    box-shadow: 0 8px 24px rgba(10, 26, 58, 0.3);
+    background: linear-gradient(135deg, #0f264a, #224a8a);
+}
+.apply-btn-modern i {
+    font-size: 18px;
 }
 
-.apply-btn:hover::before {
-    left: 100%;
-}
-
-/* Responsive */
-@media (max-width: 992px) {
-    .plan-image-section {
-        height: 240px;
-    }
-    
-    .plan-details-section {
-        padding: 14px 20px 18px 20px;
-    }
-    
-    .price-value {
-        font-size: 26px;
-    }
-    
-    .plan-name-value {
-        font-size: 18px;
-    }
-    
-    .speed-value {
-        font-size: 16px;
-    }
-}
-
-@media (max-width: 768px) {
-    .plan-image-section {
-        height: 220px;
-    }
-    
-    .plan-details-section {
-        padding: 12px 16px 16px 16px;
-    }
-    
-    .detail-row {
-        padding: 8px 0;
-    }
-    
-    .detail-label {
-        font-size: 11px;
-    }
-    
-    .detail-value {
-        font-size: 14px;
-    }
-    
-    .plan-name-value {
-        font-size: 16px;
-    }
-    
-    .speed-value {
-        font-size: 15px;
-    }
-    
-    .price-value {
-        font-size: 24px;
-    }
-    
-    .price-value::before {
-        font-size: 18px;
-    }
-    
-    .price-row {
-        margin-left: -16px;
-        margin-right: -16px;
-        padding-left: 16px;
-        padding-right: 16px;
-    }
-    
-    .apply-btn {
-        padding: 10px;
-        font-size: 14px;
-        margin-top: 12px;
-    }
-    
-    .plan-card h5 {
-        font-size: 16px;
-    }
-    
-    .plan-card strong {
-        font-size: 18px;
-    }
-}
-
-@media (max-width: 480px) {
-    .plan-image-section {
-        height: 180px;
-    }
-    
-    .plan-details-section {
-        padding: 10px 12px 14px 12px;
-    }
-    
-    .detail-label {
-        font-size: 10px;
-    }
-    
-    .detail-value {
-        font-size: 13px;
-    }
-    
-    .plan-name-value {
-        font-size: 15px;
-    }
-    
-    .speed-value {
-        font-size: 14px;
-    }
-    
-    .price-value {
-        font-size: 22px;
-    }
-    
-    .price-value::before {
-        font-size: 16px;
-    }
-    
-    .price-row {
-        margin-left: -12px;
-        margin-right: -12px;
-        padding-left: 12px;
-        padding-right: 12px;
-    }
-    
-    .apply-btn {
-        padding: 8px;
-        font-size: 13px;
-    }
-    
-    .plan-card .card-body {
-        padding: 12px 15px;
-    }
-    
-    .plan-icon {
-        width: 40px;
-        height: 40px;
-        margin-right: 10px;
-    }
-}
-
-
-/* ===== NAVBAR LOGO ===== */
-
-
-/* Navbar height */
-.navbar {
-    height: 100px;
-}
-
-/* Brand styling */
-.navbar-brand {
-    display: flex;
-    align-items: center;
-    font-weight: 600;
-    font-size: 20px;
-    letter-spacing: 0.5px;
-}
-
-.navbar-brand img {
-    height: 80px !important;  /* pinapalakas ang override */
-    width: auto !important;    /* para proportional ang width */
-    margin-right: 15px;
-    margin-left: -60px;
-}
-
-/* Cablevision text - Poppins Bold */
-.navbar-brand.brand-logo span {
-    color: #001f3f;                   
-    font-family: 'Poppins', sans-serif;
-    font-weight: 700;
-}
-
-/* Hamburger button - tatlong guhit */
-.hamburger {
-  display: none;          /* nakatago sa desktop */
-  flex-direction: column;
-  justify-content: space-between;
-  width: 28px;
-  height: 22px;
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0;
-  z-index: 1030;
-}
-
-.hamburger span {
-  width: 100%;
-  height: 3px;
-  background: #001f3f;
-  border-radius: 10px;
-  transition: all 0.2s ease;
-}
-
-/* Sa mobile, ipakita ang hamburger */
-@media (max-width: 991.98px) {
-  .hamburger {
-    display: flex;
-  }
-}
-
-/* ===== FOOTER ===== */
-.footer {
-    background: #001f3f;
-    color: #ffffff;
-    font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif;
+/* ============================================================
+   FOOTER — CABLEVISION STYLE
+   ============================================================ */
+.footer-cablevision {
+    background: #0a1a3a;
+    color: rgba(255, 255, 255, 0.8);
     padding: 60px 0 20px;
+    font-family: 'Inter', sans-serif;
 }
-
-.footer-heading {
-    font-size: 1.25rem;
-    font-weight: 700;
-    margin-bottom: 1rem;
-    color: #ffffff;
+.footer-cablevision .brand img {
+    height: 44px;
 }
-
-.footer-text {
-    font-size: 0.95rem;
-    line-height: 1.6;
-    margin-bottom: 1rem;
-    color: rgba(255, 255, 255, 0.9);
+.footer-cablevision .brand span {
+    font-weight: 800;
+    font-size: 18px;
+    color: #fff;
 }
-
-.footer-icon {
-    width: 30px;
-    height: 30px;
-    object-fit: contain;
-    margin-right: 10px;
-}
-
-.footer-icon-small {
-    width: 20px;
-    height: 20px;
-    object-fit: contain;
-    margin-right: 8px;
-    vertical-align: middle;
-}
-
-.footer-link {
-    display: inline-flex;
-    align-items: center;
-    color: #ffffff;
-    text-decoration: none;
-    font-weight: 500;
-    transition: color 0.3s ease;
-}
-
-.footer-link:hover {
-    color: #037be4;
-}
-
-.footer-divider {
-    border-color: rgba(255, 255, 255, 0.2);
-    margin: 2rem 0;
-}
-
-.footer-bottom .nav-link {
-    margin: 0 15px;
-    font-size: 0.9rem;
-    opacity: 0.9;
-    color: #ffffff;
-    text-decoration: none;
-    padding-bottom: 4px;
-    transition: all 0.3s ease;
-}
-
-.footer-bottom .nav-link:hover {
-    opacity: 1;
-    text-decoration: underline;
-}
-
-.footer-bottom .nav-link.active {
-    border-bottom: 2px solid #ffffff;
-    opacity: 1;
-}
-
-.footer-copyright {
-    font-size: 0.85rem;
+.footer-cablevision a {
     color: rgba(255, 255, 255, 0.7);
+    transition: color 0.2s ease;
+}
+.footer-cablevision a:hover {
+    color: #fff;
+}
+.footer-cablevision .footer-links {
+    list-style: none;
+    padding: 0;
     margin: 0;
 }
-
-.footer .dropdown-menu {
-    background-color: #ffffff;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+.footer-cablevision .footer-links li {
+    margin-bottom: 8px;
 }
-
-.footer .dropdown-item {
-    color: #000000;
-}
-
-.footer .dropdown-item:hover {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #037be4;
-}
-
-/* NAVBAR ACTIVE LINK */
-.navbar-nav .nav-link.active{
-    background: #001f3f;        /* Navy blue background */
-    border-radius: 20px;        /* Oval shape */
-    padding: 8px 12px;          /* Padding for oval appearance */
-    color:#ffffff !important;   /* White text */
-}
-
-.navbar-nav .nav-link{
-    color:#001f3f; 
-    font-family: 'Poppins', sans-serif;
-    font-size:15px;
-    
-    font-weight:700;
-}
-
-.navbar-nav .nav-link:hover{
-    color:#037be4 !important;
-}
-
-/* Login link separator */
-.navbar-nav .nav-link.login {
-    border-left: 1px solid rgba(255, 255, 255, 0.3);
-    margin-left: 20px;
-    padding-left: 20px;
-}
-
-
-/* Footer nav link base style */
-.footer-bottom .nav-link {
-    margin: 0 15px;
+.footer-cablevision .footer-links li a {
     font-size: 14px;
-    opacity: 0.9;
-    color: #ffffff;
-    text-decoration: none;
-    padding-bottom: 4px;      /* space for border */
-    transition: all 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
 }
-
-/* Hover effect */
-.footer-bottom .nav-link:hover {
-    opacity: 1;
-    color: #037be4;
+.footer-cablevision .social-icons {
+    display: flex;
+    gap: 16px;
+    justify-content: flex-end;
 }
-
-/* Active link with background highlight */
-.footer-bottom .nav-link.active {
-    opacity: 1;
-    color: #037be4;
-}
-
-
-
-
-
-/* ===== FORMAL BRAND LOGO ===== */
-.brand-logo{
-    display:flex;
-    align-items:center;
-    gap:10px;
-    font-size:25px;
-    font-weight:700;
-    letter-spacing:0.5px;
-    color:#ffffff;
-}
-
-.brand-logo img{
-    height:40px;
-    width:auto;
-    object-fit:contain;
-}
-
-.brand-logo span{
-    font-family: "Inter", sans-serif;
-}
-
-
-/* NAVBAR ACTIVE LINK */
-.navbar-nav .nav-link.active{
-    color:#001f3f; 
-    border-bottom:2px solid #001f3f; 
-}
-
-.navbar-nav .nav-link{
-    color:#001f3f; 
-    font-family: 'Poppins', sans-serif;
-    font-size:15px;
-    font-weight:700;
-}
-
-.navbar-nav .nav-link:hover{
-    color:#001f3f; 
-}
-
-/* ===== RIGHT SIDE PLAN DETAILS ===== */
-.plan-details {
-    display: none;                         /* hidden initially */
-    border-radius: 20px;                   /* smooth corners */
-    background: #ffffff;                   /* clean white card */
-    box-shadow: 0 8px 25px rgba(0,0,0,0.08); /* elegant shadow */
-    padding: 40px 30px;                    /* ample spacing */
-    font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-.plan-details:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 30px rgba(0,0,0,0.12);
-}
-
-/* Plan title */
-.plan-title {
-    font-weight: 700;
-    font-size: 28px;
-    color: #001f3f;
-    margin-bottom: 12px;
-}
-
-/* Plan speed / subtitle */
-.plan-speed {
-    font-size: 16px;
-    color: #6c757d;          /* subtle gray */
-    margin-bottom: 20px;
-}
-
-/* Big price */
-/* BIG PRICE - Simple Formal */
-.big-price {
-    font-size: 32px;             /* clear, legible size */
-    font-weight: 700;            /* strong emphasis */
-    color: #001f3f;              /* formal dark blue */
-    margin-bottom: 20px;
-    font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif;
-}
-
-
-/* Features list */
-.plan-features {
-    border-radius: 12px;
-    overflow: hidden;
-}
-
-.plan-features .list-group-item {
-    font-size: 16px;
-    color: #002244;
-    border: none;
-    padding: 15px 20px;
-    background: #f8f9fa;
-    transition: background 0.3s ease;
-}
-
-.plan-features .list-group-item:hover {
-    background: #e2e6ea;
-}
-
-/* Apply button */
-.apply-btn {
-    background: #001f3f;
-    color: #ffffff;
-    font-weight: 600;
-    font-size: 18px;
-    padding: 14px;
-    border-radius: 12px;
-    border: none;
-    box-shadow: 0 6px 16px rgba(0,0,0,0.2);
-    transition: all 0.3s ease;
-}
-
-.apply-btn:hover {
-    background: #037be4;
-    color:#ffffff;
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-}
-
-
-/* Modal overall styling */
-.about-modal {
-    border-radius: 12px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-    font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif;
-}
-
-/* Header with logo and centered title */
-.about-modal-header {
+.footer-cablevision .social-icons a {
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.06);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
     justify-content: center;
-    border-bottom: 1px solid #dee2e6;
-    position: relative;
-    padding: 20px 40px;
+    font-size: 18px;
+    transition: all 0.3s ease;
+}
+.footer-cablevision .social-icons a:hover {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-2px);
+}
+.footer-cablevision .divider {
+    border-color: rgba(255, 255, 255, 0.06);
+    margin: 30px 0 20px;
 }
 
+/* ============================================================
+   MODALS (About, Mission, Vision) — IMPROVED SPACING
+   ============================================================ */
+.about-modal {
+    border-radius: 16px;
+    box-shadow: 0 20px 48px rgba(0,0,0,0.15);
+}
+.about-modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 40px;
+    border-bottom: 1px solid #e8edf4;
+    position: relative;
+}
 .about-modal-logo {
     height: 50px;
     margin-right: 10px;
 }
-
 .about-modal-header .modal-title {
-    text-align: center;
-    font-weight: 600;
-    font-size: 1.4rem;
+    font-weight: 700;
+    font-size: 1.3rem;
+    color: #0a1a3a;
 }
-
-/* Close button at top-right corner */
 .about-modal-close {
     position: absolute;
     top: 15px;
     right: 15px;
 }
-
-/* Body text justified */
 .about-modal-body {
-    text-align: justify;
-    white-space: pre-line;
-    padding: 20px 40px;
-    line-height: 1.7;
-    color: #333;
+    padding: 24px 40px;
     font-size: 0.95rem;
+    line-height: 1.8;
+    color: #2d3748;
+    text-align: justify;
+}
+.about-modal-body p {
+    margin-bottom: 16px;
+}
+.about-modal-body p:last-child {
+    margin-bottom: 0;
 }
 
-/* Footer centered */
-.about-modal-footer {
-    justify-content: center;
-    border-top: 1px solid #dee2e6;
-    padding: 15px 0;
-}
-
-/* ================= MODALS - MOBILE RESPONSIVE (AYOS) ================= */
-
-/* Tablet at Mobile Landscape (max-width: 768px) */
-@media (max-width: 768px) {
-    .about-modal {
-        width: 90%;
-        margin: 1rem auto;
-    }
-    
-    .about-modal-header {
-        padding: 15px 20px;
-        flex-direction: row !important;  /* ITO ANG PAGBABAGO - pilitin na row para magkatabi */
-        gap: 10px;
-        justify-content: center;
-        align-items: center;
-    }
-    
-    .about-modal-logo {
-        height: 40px;
-        margin-right: 0;
-    }
-    
-    .about-modal-header .modal-title {
-        font-size: 1.2rem;
-        margin: 0;
-    }
-    
-    .about-modal-close {
-        top: 10px;
-        right: 10px;
-    }
-    
-    .about-modal-body {
-        padding: 16px 20px;
-        font-size: 0.85rem;
-        line-height: 1.6;
-        max-height: 60vh;
-        overflow-y: auto;
-    }
-    
-    .about-modal-footer {
-        padding: 12px 0;
-    }
-}
-
-/* Mobile Portrait (max-width: 576px) */
-@media (max-width: 576px) {
-    .about-modal {
-        width: 92%;
-        margin: 0.8rem auto;
-    }
-    
-    .about-modal-header {
-        padding: 12px 16px;
-        flex-direction: row !important;  /* PANATILIHING ROW */
-        gap: 8px;
-    }
-    
-    .about-modal-logo {
-        height: 35px;
-    }
-    
-    .about-modal-header .modal-title {
-        font-size: 1.1rem;
-    }
-    
-    .about-modal-body {
-        padding: 14px 16px;
-        font-size: 0.8rem;
-    }
-    
-    .about-modal-footer {
-        padding: 10px 0;
-    }
-    
-    .about-modal-footer .btn {
-        padding: 6px 16px;
-        font-size: 0.8rem;
-    }
-}
-
-/* Small Mobile (max-width: 480px) */
-@media (max-width: 480px) {
-    .about-modal {
-        width: 94%;
-        margin: 0.5rem auto;
-    }
-    
-    .about-modal-header {
-        padding: 10px 14px;
-        flex-direction: row !important;  /* PANATILIHING ROW - magkatabi */
-        gap: 8px;
-    }
-    
-    .about-modal-logo {
-        height: 30px;
-    }
-    
-    .about-modal-header .modal-title {
-        font-size: 1rem;
-    }
-    
-    .about-modal-body {
-        padding: 12px 14px;
-        font-size: 0.75rem;
-    }
-    
-    .about-modal-close {
-        top: 8px;
-        right: 8px;
-    }
-    
-    .about-modal-close .btn-close {
-        width: 28px;
-        height: 28px;
-        font-size: 12px;
-    }
-}
-
-/* Extra Small Mobile (max-width: 380px) */
-@media (max-width: 380px) {
-    .about-modal {
-        width: 96%;
-        margin: 0.3rem auto;
-    }
-    
-    .about-modal-header {
-        padding: 8px 12px;
-        flex-direction: row !important;  /* PANATILIHING ROW */
-        gap: 6px;
-    }
-    
-    .about-modal-logo {
-        height: 28px;
-    }
-    
-    .about-modal-header .modal-title {
-        font-size: 0.95rem;
-    }
-    
-    .about-modal-body {
-        padding: 10px 12px;
-        font-size: 0.7rem;
-    }
-}
-
-/* Landscape orientation sa mobile */
-@media (max-width: 768px) and (orientation: landscape) {
-    .about-modal {
-        width: 90%;
-        margin: 0.5rem auto;
-    }
-    
-    .about-modal-header {
-        flex-direction: row !important;  /* PANATILIHING ROW */
-        padding: 10px 20px;
-    }
-    
-    .about-modal-body {
-        max-height: 50vh;
-    }
-}
-
-
-
-.navbar .dropdown-menu,
-.navbar .dropdown-item {
-    font-family: 'IBM Plex Sans', 'Segoe UI', sans-serif;
-}
-
-.modal-backdrop {
-    background-color: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(8px);
-}
-
-.modal-backdrop.fade {
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.modal-backdrop.show {
-    opacity: 1;
-}
-
-/* ================= PAGE FADE FROM LEFT ================= */
-
-body:not(.modal-open){
-    opacity:0;
-    animation: pageFadeLeft 0.7s ease forwards;
-}
-
-@keyframes pageFadeLeft{
-    from{
-        opacity:0;
-        transform: translateX(-25px);
-    }
-    to{
-        opacity:1;
-        transform: translateX(0);
-    }
-}
-
-
-/* ================= HERO SECTION ANIMATION ================= */
-
-.plans-hero h2,
-.plans-hero p{
-    opacity:0;
-    transform: translateX(-30px);
-    animation: heroFadeLeft 0.8s ease forwards;
-}
-
-.plans-hero h2{
-    animation-delay:0.3s;
-}
-
-.plans-hero p{
-    animation-delay:0.6s;
-}
-
-@keyframes heroFadeLeft{
-    from{
-        opacity:0;
-        transform: translateX(-30px);
-    }
-    to{
-        opacity:1;
-        transform: translateX(0);
-    }
-}
-
-
-/* ================= PLAN CARDS ANIMATION ================= */
-
-.plan-card{
-    opacity:0;
-    transform: translateX(-25px);
-    animation: cardFadeLeft 0.7s ease forwards;
-}
-
-.plan-card:nth-child(1){ animation-delay:0.3s; }
-.plan-card:nth-child(2){ animation-delay:0.5s; }
-.plan-card:nth-child(3){ animation-delay:0.7s; }
-.plan-card:nth-child(4){ animation-delay:0.9s; }
-
-@keyframes cardFadeLeft{
-    from{
-        opacity:0;
-        transform: translateX(-25px);
-    }
-    to{
-        opacity:1;
-        transform: translateX(0);
-    }
-}
-
-/* ================= RESPONSIVE (FULL ENHANCED) ================= */
-
-/* ===== BODY FONT ADJUSTMENT ===== */
-@media (max-width: 768px) {
-    body {
-        font-size: 14px;
-        line-height: 1.5;
-    }
-}
-
-/* ===== HERO SECTION ===== */
-@media (max-width: 768px) {
-    .plans-hero {
-        padding: 80px 15px;
-        text-align: center;
-    }
-    .plans-hero h2 {
-        font-size: 28px;
-        margin-bottom: 15px;
-    }
-    .plans-hero p {
-        font-size: 14px;
-        max-width: 90%;
-        margin-left: auto;
-        margin-right: auto;
-        line-height: 1.5;
-    }
-}
-
-@media (max-width: 576px) {
-    .plans-hero h2 {
-        font-size: 24px;
-    }
-    .plans-hero p {
-        font-size: 13px;
-    }
-}
-
-/* ===== SECTION TITLE (Optional Plan Section Titles) ===== */
-@media (max-width: 768px) {
-    .section-title {
-        font-size: 18px;
-        padding: 10px 20px;
-    }
-}
-@media (max-width: 576px) {
-    .section-title {
-        font-size: 16px;
-        padding: 8px 16px;
-    }
-}
-
-/* ===== NAVBAR (POSITION PAREHAS SA CONTACT) ===== */
-@media (max-width: 768px) {
-    .navbar {
-        height: auto;
-        padding: 15px 10px;
-    }
-    .navbar-brand {
-        font-size: 18px;
-        display: flex;
-        align-items: center;
-        flex-wrap: wrap; /* responsive wrap */
-        justify-content: flex-start; /* katulad sa contact */
-    }
-    .navbar-brand img {
-        height: 60px !important;
-        margin-left: 0; /* align left sa tablet */
-        margin-right: 10px;
-    }
-    .navbar-brand.brand-logo span {
-        font-size: 20px;
-    }
-
-    /* Navbar links including login */
-    .navbar-nav .nav-link {
-        font-size: 14px;
-        margin: 5px 0;
-        display: block; /* ensure stacked in collapsed menu */
-    }
-}
-
-@media (max-width: 576px) {
-    .navbar-brand img {
-        height: 50px !important;
-        margin-left: 0; /* align left sa mobile */
-        margin-right: 8px;
-    }
-    .navbar-brand.brand-logo span {
-        font-size: 18px; /* mobile scale down */
-    }
-
-    /* Navbar links including login */
-    .navbar-nav .nav-link {
-        font-size: 13px;
-        margin: 5px 0;
-        display: block;
-    }
-}
-
-/* ===== PLAN CARDS ===== */
-@media (max-width: 768px) {
-    .plan-card {
-        padding: 25px 20px;
-        margin-bottom: 20px;
-    }
-    .plan-card h5 {
-        font-size: 18px;
-    }
-    .plan-card p, .plan-info-block .plan-value {
-        font-size: 15px;
-    }
-    .plan-icon {
-        font-size: 28px;
-        margin-bottom: 10px;
-    }
-    .big-price, .plan-header .plan-value, .plan-price-block .plan-value {
-        font-size: 28px;
-    }
-    .plan-title {
-        font-size: 24px;
-    }
-    .plan-value {
-        font-size: 18px;
-    }
-}
-
-@media (max-width: 576px) {
-    .plan-card h5 {
-        font-size: 16px;
-    }
-    .plan-card p, .plan-info-block .plan-value {
-        font-size: 14px;
-    }
-    .plan-icon {
-        font-size: 24px;
-    }
-    .big-price, .plan-header .plan-value, .plan-price-block .plan-value {
-        font-size: 24px;
-    }
-    .plan-title {
-        font-size: 20px;
-    }
-}
-
-/* ===== CARD BODY FLEX ===== */
-@media (max-width: 768px) {
-    .card-body {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    .ms-auto {
-        margin-left: 0 !important;
-        margin-top: 10px;
-    }
-}
-
-/* ===== PLAN DETAILS PANEL ===== */
-@media (max-width: 768px) {
-    .plan-details {
-        padding: 30px 20px;
-    }
-}
-
-/* ===== APPLY BUTTON ===== */
-@media (max-width: 768px) {
-    .apply-btn {
-        font-size: 16px;
-        padding: 12px;
-    }
-}
-
-/* ===== RESPONSIVE FOOTER ===== */
-@media (max-width: 768px) {
-    .footer {
-        padding: 40px 0 15px;
-    }
-    .footer-heading {
-        font-size: 1.1rem;
-    }
-    .footer-text {
-        font-size: 0.9rem;
-    }
-    .footer-bottom .nav-link {
-        margin: 0 10px;
-        font-size: 0.85rem;
-    }
-}
-
-@media (max-width: 576px) {
-    .footer {
-        text-align: center;
-    }
-    .footer-heading {
-        font-size: 1rem;
-    }
-    .footer-text {
-        font-size: 0.85rem;
-    }
-    .footer-icon, .footer-icon-small {
-        margin-bottom: 5px;
-    }
-}
-
-/* ===== FOOTER ===== */
-@media (max-width: 768px) {
-    .footer {
-        padding: 30px 15px;
-        font-size: 14px;
-    }
-    .footer-icon {
-        width: 24px;
-        height: 24px;
-    }
-}
-@media (max-width: 576px) {
-    .footer, .footer-link, .footer-bottom .nav-link {
-        font-size: 13px;
-    }
-}
-
-/* ===== ABOUT MODAL ===== */
-@media (max-width: 768px) {
-    .about-modal-header {
-        padding: 15px 20px;
-    }
-    .about-modal-body {
-        padding: 15px 20px;
-        font-size: 0.9rem;
-    }
-    .about-modal-footer {
-        padding: 10px 0;
-    }
-    .about-modal-logo {
-        height: 40px;
-    }
-    .about-modal-header .modal-title {
-        font-size: 1.2rem;
-    }
-}
-
-/* ===== BRAND LOGO ===== */
-@media (max-width: 768px) {
-    .brand-logo {
-        font-size: 20px;
-        gap: 6px;
-    }
-    .brand-logo img {
-        height: 30px;
-    }
-}
-
-/* ================= ADDITIONAL RESPONSIVE FIXES FOR PLANS PAGE ================= */
-
-/* Tablet and below (max-width: 992px) */
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
 @media (max-width: 992px) {
-    /* Fix right panel margin and width */
-    .plan-details-card {
-        width: 100% !important;
-        margin-left: 0 !important;
+    .plans-layout {
+        grid-template-columns: 1fr;
+        gap: 30px;
     }
-    
-    /* Ensure equal spacing between left and right columns */
-    .plans-row {
+    .plans-list-wrapper,
+    .plan-details-wrapper {
+        position: static;
+    }
+    .plan-details-card-modern {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    .plan-image-section {
+        min-height: 220px;
+    }
+    .plan-detail-image {
+        height: 220px;
+    }
+}
+
+@media (max-width: 768px) {
+    .plans-hero-modern {
+        min-height: 40vh;
+        padding: 60px 0 40px;
+    }
+    .plans-hero-modern h1 {
+        font-size: 2rem;
+    }
+    .plans-main-section {
+        padding: 40px 0 60px;
+    }
+    .plans-layout {
         gap: 24px;
     }
-}
-
-/* Mobile devices (max-width: 768px) */
-@media (max-width: 768px) {
-    /* Stack columns vertically with proper spacing */
-    .plans-row {
-        flex-direction: column;
-        gap: 32px;
-    }
-    
-    /* Left side plans list - full width */
-    .col-md-5 {
-        width: 100%;
-        padding: 0 12px;
-    }
-    
-    /* Right side details panel - full width */
-    .col-md-7 {
-        width: 100%;
-        padding: 0 12px;
-    }
-    
-    /* Remove any left margin on details card */
-    .plan-details-card {
-        width: 100% !important;
-        margin-left: 0 !important;
-        margin-top: 0;
-    }
-    
-    /* Adjust plan card body layout for mobile */
-    .plan-card .card-body {
-        flex-direction: row !important; /* Keep row on mobile to save space */
-        align-items: center;
-        padding: 12px 15px;
+    .plan-card-content {
         gap: 12px;
     }
-    
-    /* Ensure plan icon stays left */
     .plan-icon {
-        margin-right: 0;
-        width: 45px;
-        height: 45px;
-    }
-    
-    /* Plan info takes remaining space */
-    .plan-info {
-        flex: 1;
-    }
-    
-    /* Price stays on right */
-    .ms-auto {
-        margin-left: auto !important;
-        margin-top: 0 !important;
-    }
-    
-    /* Adjust plan name font size */
-    .plan-name {
+        width: 38px;
+        height: 38px;
         font-size: 15px;
-        margin-bottom: 2px;
     }
-    
-    .plan-speed-text {
+    .plan-name {
+        font-size: 14px;
+    }
+    .plan-speed-tag {
         font-size: 11px;
     }
-    
-    .plan-card strong {
+    .plan-price-tag .price-amount {
         font-size: 16px;
     }
-    
-    /* Empty state adjustments */
-    .empty-state {
-        padding: 40px 20px;
+    .plan-details-section-modern {
+        padding: 16px 18px 20px;
     }
-    
-    .empty-icon {
-        width: 80px;
-        height: 80px;
-    }
-    
-    .empty-state h3 {
-        font-size: 18px;
-    }
-    
-    .empty-state p {
-        font-size: 13px;
-        max-width: 220px;
-    }
-    
-    /* Plan image section */
     .plan-image-section {
+        min-height: 200px;
+    }
+    .plan-detail-image {
         height: 200px;
     }
-    
-    /* Details section padding */
-    .plan-details-section {
-        padding: 16px 16px 20px;
+    .price-value {
+        font-size: 24px;
     }
-    
-    .detail-row {
-        padding: 8px 0;
-    }
-    
-    .detail-label {
-        font-size: 11px;
-    }
-    
-    .detail-value {
-        font-size: 14px;
-    }
-    
     .plan-name-value {
         font-size: 18px;
     }
-    
-    .speed-value {
-        font-size: 16px;
-    }
-    
-    .price-value {
-        font-size: 22px;
-    }
-    
-    .price-row {
-        margin-left: -16px;
-        margin-right: -16px;
-        padding-left: 16px;
-        padding-right: 16px;
-    }
-    
-    .apply-btn {
+    .apply-btn-modern {
         padding: 12px;
         font-size: 14px;
     }
+    .empty-state-modern {
+        padding: 40px 20px;
+        min-height: 300px;
+    }
+    .empty-icon-wrapper {
+        width: 64px;
+        height: 64px;
+        font-size: 26px;
+    }
+    .empty-state-modern h3 {
+        font-size: 18px;
+    }
+    .footer-cablevision .social-icons {
+        justify-content: center;
+        margin-top: 16px;
+    }
 }
 
-/* Small mobile devices (max-width: 576px) */
-@media (max-width: 576px) {
-    /* Plan cards: stack icon, info, price vertically? But row is fine, just reduce padding */
-    .plan-card .card-body {
-        padding: 10px 12px;
-        gap: 10px;
+@media (max-width: 480px) {
+    .plans-hero-modern h1 {
+        font-size: 1.6rem;
     }
-    
-    .plan-icon {
-        width: 38px;
-        height: 38px;
+    .plans-hero-modern p {
+        font-size: 0.9rem;
     }
-    
-    .plan-icon svg {
-        width: 24px;
-        height: 24px;
-    }
-    
-    .plan-name {
-        font-size: 14px;
-    }
-    
-    .plan-speed-text {
-        font-size: 10px;
-    }
-    
-    .plan-card strong {
-        font-size: 15px;
-    }
-    
-    /* Empty state */
-    .empty-state {
-        padding: 30px 15px;
-    }
-    
-    .empty-icon {
-        width: 70px;
-        height: 70px;
-    }
-    
-    .empty-state h3 {
-        font-size: 16px;
-    }
-    
-    .empty-state p {
+    .plans-hero-modern .scroll-indicator {
+        padding: 8px 16px;
         font-size: 12px;
     }
-    
+    .plan-card-content {
+        gap: 10px;
+    }
+    .plan-icon {
+        width: 34px;
+        height: 34px;
+        font-size: 13px;
+    }
+    .plan-name {
+        font-size: 13px;
+    }
+    .plan-price-tag .price-amount {
+        font-size: 14px;
+    }
+    .price-period {
+        font-size: 10px;
+    }
+    .plan-details-section-modern {
+        padding: 12px 14px 16px;
+    }
+    .plan-image-section {
+        min-height: 160px;
+    }
+    .plan-detail-image {
+        height: 160px;
+    }
+    .price-value {
+        font-size: 20px;
+    }
+    .detail-label {
+        font-size: 10px;
+    }
+    .detail-value {
+        font-size: 13px;
+    }
+    .plan-name-value {
+        font-size: 16px;
+    }
+    .apply-btn-modern {
+        padding: 10px;
+        font-size: 13px;
+    }
+    .price-row-modern {
+        margin-left: -14px;
+        margin-right: -14px;
+        padding-left: 14px;
+        padding-right: 14px;
+    }
+    .empty-state-modern {
+        padding: 30px 16px;
+        min-height: 250px;
+    }
+    .empty-icon-wrapper {
+        width: 56px;
+        height: 56px;
+        font-size: 22px;
+    }
+    .empty-state-modern h3 {
+        font-size: 16px;
+    }
+    .empty-state-modern p {
+        font-size: 12px;
+    }
     .empty-hint {
         font-size: 11px;
         padding: 4px 12px;
     }
-    
-    /* Plan image */
-    .plan-image-section {
-        height: 160px;
+    .plans-list-header {
+        padding: 14px 16px;
     }
-    
-    /* Details section */
-    .plan-details-section {
-        padding: 12px 12px 16px;
+    .plans-list-header .list-title {
+        font-size: 14px;
     }
-    
-    .detail-label {
+    .plans-list-header .list-count {
         font-size: 10px;
+        padding: 2px 10px;
     }
-    
-    .detail-value {
-        font-size: 13px;
+    #plansContainer {
+        padding: 4px;
     }
-    
-    .plan-name-value {
-        font-size: 16px;
+    .plan-card-modern {
+        padding: 12px 14px;
+        margin-bottom: 4px;
     }
-    
-    .speed-value {
-        font-size: 14px;
-    }
-    
-    .price-value {
-        font-size: 20px;
-    }
-    
-    .price-row {
-        margin-left: -12px;
-        margin-right: -12px;
-        padding-left: 12px;
-        padding-right: 12px;
-    }
-    
-    .apply-btn {
-        padding: 10px;
-        font-size: 13px;
-    }
-}
-
-/* ================= RESPONSIVE MOBILE FIXES (PLANS PAGE) ================= */
-/* Ilagay ito sa dulo ng iyong CSS file */
-
-/* Para maiwasan ang horizontal scroll sa buong page */
-body {
-    overflow-x: hidden;
-    width: 100%;
-}
-
-/* Tablet at smaller desktop */
-@media (max-width: 991.98px) {
-    .hamburger {
-        display: flex;
-    }
-    
-    .navbar-brand img {
-        height: 60px !important;
-        margin-left: 0 !important;  /* tanggal ang negative margin */
-    }
-    
-    /* Ayusin ang right panel margin */
-    .plan-details-card {
-        width: 100% !important;
-        margin-left: 0 !important;
-    }
-}
-
-/* Mobile phones (tablet pababa) */
-@media (max-width: 768px) {
-    body {
-        font-size: 14px;
-        line-height: 1.5;
-    }
-    
-    /* ===== NAVBAR ===== */
-    .navbar {
-        height: auto;
-        padding: 10px;
-    }
-    
-    .navbar-brand img {
-        height: 50px !important;
-        margin-left: 0 !important;
-        margin-right: 8px;
-    }
-    
-    .navbar-brand.brand-logo span {
-        font-size: 16px;
-    }
-    
-    .navbar-nav .nav-link {
-        font-size: 14px;
-        margin: 5px 0;
-    }
-    
-    /* ===== PLANS HERO ===== */
-    .plans-hero {
-        background-attachment: scroll;  /* mas maganda sa mobile, iwas lag */
-        padding: 60px 15px;
-    }
-    
-    .plans-hero h2 {
-        font-size: 28px;
-        margin-bottom: 15px;
-    }
-    
-    .plans-hero p {
-        font-size: 14px;
-        padding: 0.5rem 1rem;
-        max-width: 90%;
-        margin-left: auto;
-        margin-right: auto;
-    }
-    
-    .title-underline {
-        width: 60px;
-        height: 2px;
-    }
-    
-    .scroll-indicator {
-        padding: 0.5rem 1rem;
-        margin-top: 0.4rem;
-    }
-    
-    .scroll-indicator span {
-        font-size: 0.7rem;
-    }
-    
-    /* ===== LAYOUT - STACK COLUMNS ===== */
-    .plans-row {
-        flex-direction: column;
-        gap: 32px;
-    }
-    
-    .col-md-5, .col-md-7 {
-        width: 100%;
-        padding: 0 12px;
-    }
-    
-    /* ===== PLAN CARDS ===== */
-    .plan-card .card-body {
-        flex-direction: row !important;
-        align-items: center;
-        padding: 12px 15px;
-        gap: 12px;
-    }
-    
-    .plan-icon {
-        width: 45px;
-        height: 45px;
-        margin-right: 0;
-    }
-    
-    .plan-icon svg {
-        width: 28px;
-        height: 28px;
-    }
-    
-    .plan-info {
-        flex: 1;
-    }
-    
-    .plan-card h5 {
-        font-size: 15px;
-        margin-bottom: 2px;
-    }
-    
-    .plan-card p {
-        font-size: 11px;
-    }
-    
-    .plan-card strong {
-        font-size: 16px;
-    }
-    
-    .ms-auto {
-        margin-left: auto !important;
-        margin-top: 0 !important;
-    }
-    
-    /* ===== RIGHT PANEL DETAILS CARD ===== */
-    .plan-details-card {
-        width: 100% !important;
-        margin-left: 0 !important;
-        margin-top: 0;
-    }
-    
-    /* ===== PLAN IMAGE SECTION ===== */
-    .plan-image-section {
-        height: auto !important;
-        min-height: auto !important;
-    }
-    
-    .plan-detail-image {
-        width: 100% !important;
-        height: auto !important;
-        max-height: none !important;
-        object-fit: contain !important;
-    }
-    
-    /* ===== PLAN DETAILS SECTION ===== */
-    .plan-details-section {
-        padding: 16px 16px 20px;
-    }
-    
-    .detail-row {
-        padding: 8px 0;
-    }
-    
-    .detail-label {
-        font-size: 11px;
-    }
-    
-    .detail-value {
-        font-size: 14px;
-    }
-    
-    .plan-name-value {
-        font-size: 18px;
-    }
-    
-    .speed-value {
-        font-size: 16px;
-    }
-    
-    .price-value {
-        font-size: 22px;
-    }
-    
-    .price-row {
-        margin-left: -16px;
-        margin-right: -16px;
-        padding-left: 16px;
-        padding-right: 16px;
-    }
-    
-    /* ===== APPLY BUTTON ===== */
-    .apply-btn {
-        padding: 12px;
-        font-size: 14px;
-    }
-    
-    /* ===== EMPTY STATE ===== */
-    .empty-state {
-        padding: 40px 20px;
-    }
-    
-    .empty-icon {
-        width: 80px;
-        height: 80px;
-    }
-    
-    .empty-state h3 {
-        font-size: 18px;
-    }
-    
-    .empty-state p {
-        font-size: 13px;
-        max-width: 220px;
-    }
-    
-    /* ===== FOOTER ===== */
-    .footer {
-        padding: 40px 15px;
-        text-align: center;
-    }
-    
-    .footer-heading {
-        font-size: 1.1rem;
-    }
-    
-    .footer-text {
-        font-size: 0.9rem;
-    }
-    
-    .footer-bottom .nav-link {
-        margin: 0 10px;
-        font-size: 0.85rem;
-    }
-    
-    .footer-icon, .footer-icon-small {
-        margin-bottom: 5px;
-    }
-    
-    /* ===== MODALS ===== */
     .about-modal-header {
         padding: 15px 20px;
     }
-    
     .about-modal-body {
         padding: 15px 20px;
         font-size: 0.9rem;
     }
-    
     .about-modal-logo {
         height: 40px;
     }
-    
     .about-modal-header .modal-title {
-        font-size: 1.2rem;
-    }
-    
-    /* ===== BRAND LOGO ===== */
-    .brand-logo {
-        font-size: 20px;
-        gap: 6px;
-    }
-    
-    .brand-logo img {
-        height: 30px;
+        font-size: 1.1rem;
     }
 }
 
-/* Maliit na phone (max 576px) */
-@media (max-width: 576px) {
-    .plans-hero {
-        padding: 50px 15px;
-    }
-    
-    .plans-hero h2 {
-        font-size: 24px;
-    }
-    
-    .plans-hero p {
-        font-size: 13px;
-    }
-    
-    .scroll-indicator {
-        padding: 0.4rem 0.9rem;
-    }
-    
-    .scroll-indicator span {
-        font-size: 0.65rem;
-    }
-    
-    /* Plan cards */
-    .plan-card .card-body {
-        padding: 10px 12px;
-        gap: 10px;
-    }
-    
-    .plan-icon {
-        width: 38px;
-        height: 38px;
-    }
-    
-    .plan-icon svg {
-        width: 24px;
-        height: 24px;
-    }
-    
-    .plan-card h5 {
-        font-size: 14px;
-    }
-    
-    .plan-card p {
-        font-size: 10px;
-    }
-    
-    .plan-card strong {
-        font-size: 15px;
-    }
-    
-    /* Plan details */
-    .plan-details-section {
-        padding: 12px 12px 16px;
-    }
-    
-    .detail-label {
-        font-size: 10px;
-    }
-    
-    .detail-value {
-        font-size: 13px;
-    }
-    
-    .plan-name-value {
-        font-size: 16px;
-    }
-    
-    .speed-value {
-        font-size: 14px;
-    }
-    
-    .price-value {
-        font-size: 20px;
-    }
-    
-    .price-row {
-        margin-left: -12px;
-        margin-right: -12px;
-        padding-left: 12px;
-        padding-right: 12px;
-    }
-    
-    .apply-btn {
-        padding: 10px;
-        font-size: 13px;
-    }
-    
-    /* Empty state */
-    .empty-state {
-        padding: 30px 15px;
-    }
-    
-    .empty-icon {
-        width: 70px;
-        height: 70px;
-    }
-    
-    .empty-state h3 {
-        font-size: 16px;
-    }
-    
-    .empty-state p {
-        font-size: 12px;
-    }
-    
-    .empty-hint {
-        font-size: 11px;
-        padding: 4px 12px;
-    }
-    
-    .navbar-brand img {
-        height: 40px !important;
-    }
-    
-    .navbar-brand.brand-logo span {
-        font-size: 14px;
-    }
+/* Reduced Motion */
+/* ============================================================
+   HOMEPAGE-MATCHING HERO OVERRIDES
+   ============================================================ */
+.plans-hero-modern {
+    min-height: 90vh;
+    background:
+        linear-gradient(135deg, rgba(10, 26, 58, 0.85) 0%, rgba(20, 50, 100, 0.8) 40%, rgba(30, 70, 140, 0.7) 100%),
+        url("/static/cv office.jpg");
+    background-size: cover;
+    background-position: center;
+    padding: 80px 0 60px;
+}
+.plans-hero-modern .container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: center;
+    text-align: left;
+}
+.plans-hero-modern .hero-content {
+    max-width: 560px;
+    margin: 0;
+}
+.plans-hero-modern .section-label {
+    color: #6aafff;
+    background: rgba(255, 255, 255, 0.12);
+}
+.plans-hero-modern .hero-content p {
+    max-width: 480px;
+    margin: 0 0 32px;
+}
+.plans-hero-modern .hero-buttons {
+    margin-bottom: 40px;
+}
+.plans-hero-modern .hero-buttons .btn-primary-custom {
+    background: linear-gradient(135deg, #fff, #e8edf5);
+    color: #0a1a3a;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+}
+.plans-hero-modern .hero-buttons .btn-primary-custom:hover {
+    background: #fff;
+    color: #0a1a3a;
+}
+.plans-hero-card {
+    max-width: 440px;
+    margin: 0 auto;
+}
+.hero-card-icon {
+    width: 86px;
+    height: 86px;
+    margin: 8px auto 18px;
+    border-radius: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6aafff;
+    background: rgba(255, 255, 255, 0.12);
+    font-size: 42px;
+}
+.plans-main-section {
+    background: #ffffff;
+    padding: 80px 0 100px;
 }
 
-/* Landscape orientation sa mobile */
-@media (orientation: landscape) and (max-height: 600px) {
-    .plans-hero {
-        padding: 40px 15px;
+@media (max-width: 992px) {
+    .plans-hero-modern {
+        min-height: auto;
     }
-    
-    .plan-card .card-body {
-        padding: 8px 12px;
+    .plans-hero-modern .container {
+        grid-template-columns: 1fr;
+        gap: 40px;
+        text-align: center;
     }
-    
-    .plan-details-section {
-        padding: 10px 12px;
+    .plans-hero-modern .hero-content {
+        max-width: 100%;
+        margin: 0 auto;
     }
-}
-
-/* Hover effects - para sa desktop lang, hindi sa mobile */
-@media (hover: hover) {
-    .plan-card:hover {
-        transform: translateY(-5px);
-    }
-    
-    .apply-btn:hover {
-        transform: translateY(-2px);
-    }
-    
-    .scroll-indicator:hover {
-        background: rgba(255, 255, 255, 0.2);
-        transform: translateY(3px);
-    }
-}
-
-/* Para sa touch devices (mobile) - active state imbes na hover */
-@media (hover: none) {
-    .plan-card:active {
-        transform: translateY(-3px);
-        transition: transform 0.1s;
-    }
-    
-    .apply-btn:active {
-        transform: translateY(-1px);
-    }
-    
-    .scroll-indicator:active {
-        background: rgba(255, 255, 255, 0.2);
-        transform: translateY(2px);
-    }
-}
-
-/* Iwasan ang page flicker sa mobile dahil sa body animation */
-@media (max-width: 768px) {
-    body:not(.modal-open) {
-        animation: none;
-        opacity: 1;
-        transform: none;
-    }
-    
-    /* Para sa desktop lang ang page fade animation */
-    @media (min-width: 769px) {
-        body:not(.modal-open) {
-            opacity: 0;
-            animation: pageFadeLeft 0.7s ease forwards;
-        }
-    }
-}
-
-/* ================= HAMBURGER ICON - ILAGAY SA KANANG BAHAGI ================= */
-
-/* Para sa mobile, i-adjust ang navbar container para nasa kanan ang hamburger */
-@media (max-width: 768px) {
-    .navbar .container {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-    }
-    
-    /* Siguraduhing ang brand ay nasa kaliwa */
-    .navbar-brand {
-        margin-right: auto;  /* itulak ang lahat sa kanan */
-    }
-    
-    /* Ang hamburger button ay nasa kanan, katabi ng navbar toggler kung mayroon */
-    .hamburger {
-        display: flex;
-        order: 2;            /* ilagay sa kanang dulo */
-        margin-left: auto;   /* itulak sa kanan */
-        margin-right: 0;
-    }
-    
-    /* Kung may navbar-toggler (Bootstrap default), itago ito at gamitin ang hamburger */
-    .navbar-toggler {
-        display: none !important;
-    }
-    
-    /* Siguraduhing maayos ang spacing */
-    .navbar .container {
-        position: relative;
-    }
-}
-
-/* Para sa sobrang liit na screen, panatilihin ang tama */
-@media (max-width: 576px) {
-    .hamburger {
-        width: 28px;
-        height: 22px;
-    }
-}
-
-/* ================= NAVBAR RESPONSIVE ================= */
-
-/* Tablet and below (max-width: 991.98px) */
-@media (max-width: 991.98px) {
-    /* Show hamburger */
-    .hamburger {
-        display: flex !important;
+    .plans-hero-modern .hero-content p {
+        max-width: 100%;
         margin-left: auto;
-        order: 2;
-    }
-    
-    /* Navbar container */
-    .navbar .container {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        width: 100%;
-        padding: 0 15px;
-        position: relative;
-    }
-    
-    /* Brand logo */
-    .navbar-brand {
-        display: flex;
-        align-items: center;
-        gap: 10px;
         margin-right: auto;
-        order: 1;
     }
-    
-    .navbar-brand img {
-        height: 50px !important;
-        width: auto !important;
-        margin-left: 0 !important;
-        margin-right: 10px;
-    }
-    
-    .navbar-brand.brand-logo span {
-        font-size: 16px;
-    }
-    
-    /* Hide Bootstrap toggler */
-    .navbar-toggler {
-        display: none !important;
-    }
-    
-    /* Navigation collapse */
-    .navbar-collapse {
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        background: white;
-        padding: 0 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-        border-radius: 0 0 12px 12px;
-        z-index: 1029;
-        max-height: 0;
-        overflow: hidden;
-        visibility: hidden;
-        opacity: 0;
-        transition: all 0.3s ease;
-        border-top: 2px solid #001f3f;
-    }
-    
-    .navbar-collapse.show {
-        max-height: 600px;
-        padding: 20px;
-        visibility: visible;
-        opacity: 1;
-    }
-    
-    .navbar-nav {
-        flex-direction: column;
-        gap: 5px;
-        margin: 0;
-        padding: 0;
-        list-style: none;
-    }
-    
-    .navbar-nav .nav-item {
-        width: 100%;
-    }
-    
-    .navbar-nav .nav-link {
-        display: block;
-        padding: 10px 15px;
-        font-size: 15px;
-        color: #001f3f !important;
-        border-radius: 8px;
-        transition: all 0.2s ease;
-        font-weight: 600;
-    }
-    
-    .navbar-nav .nav-link:hover {
-        background: #f0f4fa;
-        color: #037be4 !important;
-    }
-    
-    .navbar-nav .nav-link.active {
-        background: #001f3f !important;
-        color: white !important;
-        border-radius: 8px;
-    }
-    
-    /* Dropdown menu sa mobile */
-    .navbar-nav .dropdown-menu {
-        position: static !important;
-        float: none !important;
-        width: 100%;
-        background: #f8fafc;
-        border: none;
-        box-shadow: none;
-        padding: 0;
-        margin-top: 5px;
-        border-radius: 8px;
-    }
-    
-    .navbar-nav .dropdown-item {
-        padding: 10px 15px;
-        font-size: 14px;
-        color: #001f3f;
-        border-radius: 8px;
-    }
-    
-    .navbar-nav .dropdown-item:hover {
-        background: #e8edf4;
-        color: #037be4;
-    }
-    
-    .navbar-nav .nav-link.login {
-        border-left: none;
-        margin-left: 0;
-        padding-left: 15px;
-    }
-    
-    .navbar-nav .dropdown-toggle::after {
-        float: right;
-        margin-top: 8px;
+    .plans-hero-modern .hero-buttons,
+    .plans-hero-modern .hero-stats {
+        justify-content: center;
     }
 }
 
-/* Mobile phones (max-width: 768px) */
-@media (max-width: 768px) {
-    .navbar {
-        padding: 8px 0;
-        height: auto;
+@media (max-width: 640px) {
+    .plans-hero-modern {
+        padding: 60px 0 40px;
     }
-    
-    .navbar-brand img {
-        height: 40px !important;
+    .plans-hero-modern h1 {
+        font-size: 2rem;
     }
-    
-    .navbar-brand.brand-logo span {
-        font-size: 14px;
+    .plans-hero-modern .hero-stats {
+        flex-wrap: wrap;
+        gap: 20px;
     }
-    
-    .hamburger {
-        width: 26px;
-        height: 20px;
+    .plans-hero-card {
+        padding: 30px 22px;
     }
-    
-    .hamburger span {
-        height: 2.5px;
-    }
-    
-    .navbar-nav .nav-link {
-        font-size: 14px;
-        padding: 8px 12px;
+    .plans-main-section {
+        padding: 60px 0 80px;
     }
 }
 
-/* Small mobile (max-width: 576px) */
-@media (max-width: 576px) {
-    .navbar-brand img {
-        height: 35px !important;
-        margin-right: 8px;
-    }
-    
-    .navbar-brand.brand-logo span {
-        font-size: 12px;
-    }
-    
-    .hamburger {
-        width: 24px;
-        height: 18px;
-    }
-    
-    .hamburger span {
-        height: 2px;
-    }
-    
-    .navbar-nav .nav-link {
-        font-size: 13px;
-        padding: 6px 10px;
-    }
-    
-    .navbar-collapse.show {
-        padding: 15px;
-        max-height: 500px;
-    }
-}
-
-/* Extra small mobile (max-width: 380px) */
-@media (max-width: 380px) {
-    .navbar-brand img {
-        height: 30px !important;
-        margin-right: 6px;
-    }
-    
-    .navbar-brand.brand-logo span {
-        font-size: 11px;
-    }
-    
-    .hamburger {
-        width: 22px;
-        height: 16px;
-    }
-    
-    .hamburger span {
-        height: 2px;
-    }
-    
-    .navbar-nav .nav-link {
-        font-size: 12px;
-        padding: 5px 8px;
-    }
-}
-
-/* Landscape orientation on mobile */
-@media (max-width: 768px) and (orientation: landscape) {
-    .navbar-collapse {
-        max-height: 300px;
-        overflow-y: auto;
-    }
-    
-    .navbar-collapse.show {
-        max-height: 300px;
-        padding: 15px;
-    }
-    
-    .navbar-nav .nav-link {
-        padding: 5px 10px;
-        font-size: 13px;
-    }
-    
-    .navbar-brand img {
-        height: 35px !important;
-    }
-}
-
-/* Desktop - hide hamburger and show full menu */
-@media (min-width: 992px) {
-    .hamburger {
-        display: none !important;
-    }
-    
-    .navbar-toggler {
-        display: none !important;
-    }
-    
-    .navbar-collapse {
-        display: flex !important;
-        position: static;
-        background: transparent;
-        padding: 0;
-        box-shadow: none;
-        max-height: none;
-        overflow: visible;
-        visibility: visible;
-        opacity: 1;
-        border-top: none;
-    }
-    
-    .navbar-nav {
-        flex-direction: row;
-        gap: 0;
-        align-items: center;
-    }
-    
-    .navbar-nav .nav-link {
-        padding: 8px 16px;
-        font-size: 15px;
-        color: #001f3f !important;
-        border-radius: 20px;
-    }
-    
-    .navbar-nav .nav-link:hover {
-        background: transparent;
-        color: #037be4 !important;
-    }
-    
-    .navbar-nav .nav-link.active {
-        background: #001f3f !important;
-        color: white !important;
-        border-radius: 20px;
-    }
-    
-    .navbar-nav .nav-link.login {
-        border-left: 1px solid rgba(0, 0, 0, 0.15);
-        margin-left: 20px;
-        padding-left: 20px;
-    }
-    
-    .navbar-nav .dropdown-menu {
-        position: absolute !important;
-        background: white;
-        border: 1px solid #e5e7eb;
-        border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        padding: 8px 0;
-        min-width: 200px;
-    }
-    
-    .navbar-nav .dropdown-item {
-        padding: 10px 20px;
-        font-size: 14px;
-        color: #001f3f;
-        transition: all 0.2s ease;
-    }
-    
-    .navbar-nav .dropdown-item:hover {
-        background: #f0f4fa;
-        color: #037be4;
-    }
-    
-    .navbar-nav .dropdown-toggle::after {
-        margin-left: 8px;
-    }
-}
-
-/* Hamburger animation - active state */
-.hamburger.active span:nth-child(1) {
-    transform: rotate(45deg) translate(5px, 5px);
-}
-
-.hamburger.active span:nth-child(2) {
-    opacity: 0;
-}
-
-.hamburger.active span:nth-child(3) {
-    transform: rotate(-45deg) translate(5px, -5px);
-}
-
-/* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-    .navbar-collapse,
-    .hamburger span,
-    .navbar-nav .nav-link {
-        transition: none !important;
-    }
-}
-
-/* Intermediate widths: reflow content before the browser becomes cramped. */
-@media (min-width: 769px) and (max-width: 991.98px) {
-    .main-content {
-        padding-left: 20px;
-        padding-right: 20px;
-    }
-
-    .plans-row {
-        flex-direction: column;
-        gap: 24px;
-    }
-
-    .plans-row > .col-md-5,
-    .plans-row > .col-md-7 {
-        width: 100%;
-    }
-
-    .plan-details-card {
-        width: 100% !important;
-        margin-left: 0 !important;
-    }
-
-    .plan-image-section {
-        min-height: 240px;
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
     }
 }
