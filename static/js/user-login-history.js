@@ -144,7 +144,40 @@ document.addEventListener('DOMContentLoaded', async () => {
     loadProfile();
     loadLoginHistory();
     initModalEvents();
+    checkUserStatusAndDisableFeatures();
 });
+
+// ================= LOCK CHANGE PLAN & REQUEST TERMINATION ONLY =================
+async function checkUserStatusAndDisableFeatures() {
+    try {
+        const response = await fetch('/api/get-user-status?tab_id=' + currentTabId);
+        const data = await response.json();
+        const status = data.status || 'Active';
+
+        if (status === 'Terminated' || status === 'Inactive' || status === 'Deactivated') {
+            const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
+            sidebarLinks.forEach(link => {
+                if (link.href.includes('/user/change-plan') || link.href.includes('/user/request-termination')) {
+                    link.style.pointerEvents = 'none';
+                    link.style.opacity = '0.5';
+                    link.style.cursor = 'not-allowed';
+                    link.title = 'This feature is disabled for your account status.';
+
+                    if (!link.querySelector('.fa-lock')) {
+                        const lockIcon = document.createElement('i');
+                        lockIcon.className = 'fas fa-lock';
+                        lockIcon.style.marginLeft = '8px';
+                        lockIcon.style.fontSize = '12px';
+                        lockIcon.style.color = '#dc2626';
+                        link.appendChild(lockIcon);
+                    }
+                }
+            });
+        }
+    } catch (error) {
+        console.error('Error checking user status:', error);
+    }
+}
 
 async function syncSessionWithBackend() {
     const username = sessionStorage.getItem('username');

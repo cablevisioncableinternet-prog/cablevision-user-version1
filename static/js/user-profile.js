@@ -1022,7 +1022,10 @@ document.addEventListener('DOMContentLoaded', () => {
 // ================= CHECK USER STATUS AND DISABLE FEATURES =================
 async function checkUserStatusAndDisableFeatures() {
     try {
+        // 👇 KUNIN ANG TAB ID MULA SA SESSION STORAGE
         const tabId = sessionStorage.getItem('tab_id');
+        
+        // 👇 ISAMA ANG TAB ID SA FETCH REQUEST
         const response = await fetch('/api/get-user-status?tab_id=' + tabId);
         const data = await response.json();
         const status = data.status || 'Active';
@@ -1042,15 +1045,41 @@ async function checkUserStatusAndDisableFeatures() {
                 editBtn.title = 'Profile editing is disabled for your account status.';
             }
             
-            // Disable password fields
+                        // Disable password fields
             const passwordFields = document.querySelectorAll('input[name="new_password"], input[name="confirm_password"]');
             passwordFields.forEach(field => {
                 field.disabled = true;
                 field.style.opacity = '0.5';
                 field.style.cursor = 'not-allowed';
             });
+
+            // Disable ONLY Change Plan and Request Termination (Dashboard & Transactions stay open)
+            const sidebarLinks = document.querySelectorAll('.sidebar-menu a');
+            sidebarLinks.forEach(link => {
+                if (link.href.includes('/user/change-plan') || link.href.includes('/user/request-termination')) {
+                    link.style.pointerEvents = 'none';
+                    link.style.opacity = '0.5';
+                    link.style.cursor = 'not-allowed';
+                    link.title = 'This feature is disabled for your account status.';
+
+                    if (!link.querySelector('.fa-lock')) {
+                        const lockIcon = document.createElement('i');
+                        lockIcon.className = 'fas fa-lock';
+                        lockIcon.style.marginLeft = '8px';
+                        lockIcon.style.fontSize = '12px';
+                        lockIcon.style.color = '#dc2626';
+                        link.appendChild(lockIcon);
+                    }
+                }
+            });
             
-            // 🔥 IBAHIN ANG BANNER BATAY SA STATUS - MAS COMPACT NA VERSION
+            // Disable View Application button (optional)
+            const viewAppBtn = document.querySelector('.view-app-btn');
+            if (viewAppBtn) {
+                viewAppBtn.title = 'You can view your application but cannot make changes.';
+            }
+            
+            // 🔥 IBAHIN ANG BANNER BATAY SA STATUS
             const mainContent = document.querySelector('.main-content');
             if (mainContent) {
                 // Remove existing banner
@@ -1065,30 +1094,24 @@ async function checkUserStatusAndDisableFeatures() {
                 let bannerTitle = '';
                 let bannerMessage = '';
                 let bannerIcon = '';
-                let iconBgColor = '';
-                let iconColor = '';
+                let bannerColor = '';
                 let bannerBg = '';
                 let bannerBorder = '';
-                let textColor = '';
                 
                 if (status === 'Terminated') {
                     bannerTitle = 'Account Terminated';
-                    bannerMessage = 'Your account has been terminated. You can view your profile but cannot make changes.';
+                    bannerMessage = 'Your account has been terminated. You can view your profile but cannot make changes. Sidebar features are disabled.';
                     bannerIcon = 'fa-exclamation-circle';
-                    iconBgColor = '#fecaca';
-                    iconColor = '#dc2626';
+                    bannerColor = '#dc2626';
                     bannerBg = '#fef2f2';
                     bannerBorder = '#fecaca';
-                    textColor = '#991b1b';
                 } else if (status === 'Inactive' || status === 'Deactivated') {
                     bannerTitle = 'Account Inactive';
-                    bannerMessage = 'Your account is currently inactive. Visit our office to settle your balance.';
+                    bannerMessage = 'Your account is currently inactive. Please visit our office to settle your outstanding balance. Once payment is confirmed, your account will be reactivated. You can view your profile but cannot make changes. Sidebar features are disabled.';
                     bannerIcon = 'fa-info-circle';
-                    iconBgColor = '#fde68a';
-                    iconColor = '#d97706';
+                    bannerColor = '#d97706';
                     bannerBg = '#fffbeb';
                     bannerBorder = '#fde68a';
-                    textColor = '#92400e';
                 }
                 
                 banner.style.cssText = `
@@ -1100,37 +1123,24 @@ async function checkUserStatusAndDisableFeatures() {
                     display: flex;
                     align-items: center;
                     gap: 12px;
+                    color: ${bannerColor};
                     animation: slideInDown 0.5s ease;
-                    width: 100%;
-                    box-sizing: border-box;
                 `;
                 
                 banner.innerHTML = `
-                    <div class="banner-icon" style="
-                        flex-shrink: 0;
-                        width: 40px;
-                        height: 40px;
-                        border-radius: 50%;
-                        background: ${iconBgColor};
-                        display: flex;
-                        align-items: center;
-                        justify-content: center;
-                    ">
-                        <i class="fas ${bannerIcon}" style="font-size: 20px; color: ${iconColor};"></i>
+                    <i class="fas ${bannerIcon}" style="font-size: 24px; flex-shrink: 0; color: ${bannerColor};"></i>
+                    <div style="flex: 1;">
+                        <strong style="font-size: 16px;">${bannerTitle}</strong>
+                        <p style="margin: 4px 0 0 0; font-size: 14px; color: #666;">${bannerMessage}</p>
                     </div>
-                    <div class="banner-content" style="flex: 1; min-width: 0;">
-                        <strong class="banner-title" style="font-size: 16px; color: ${textColor}; display: block; margin-bottom: 2px;">${bannerTitle}</strong>
-                        <p class="banner-message" style="margin: 0; font-size: 14px; color: #666; line-height: 1.4;">${bannerMessage}</p>
-                    </div>
-                    <button class="banner-close" onclick="this.parentElement.remove()" style="
+                    <button onclick="this.parentElement.remove()" style="
                         background: none;
                         border: none;
                         font-size: 20px;
                         cursor: pointer;
-                        color: ${textColor};
+                        color: ${bannerColor};
+                        margin-left: auto;
                         padding: 0 8px;
-                        flex-shrink: 0;
-                        opacity: 0.7;
                     ">&times;</button>
                 `;
                 

@@ -4600,265 +4600,79 @@ img,
   }
 }
 
-/* ================= STATUS BANNER - RESPONSIVE FIX ================= */
 
-/* Default desktop styles */
+/* ================= STATUS BANNER (Terminated/Inactive) - MOBILE RESPONSIVE FIX ================= */
 .status-banner {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 16px 20px;
-    border-radius: 12px;
-    margin-bottom: 20px;
-    animation: slideInDown 0.5s ease;
-    width: 100%;
-    box-sizing: border-box;
+    flex-wrap: wrap;
 }
 
-.status-banner .banner-icon {
-    flex-shrink: 0;
-    font-size: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
+.status-banner > div {
+    min-width: 0 !important;
 }
 
-.status-banner .banner-content {
-    flex: 1;
-    min-width: 0; /* Para gumana ang text truncation */
-}
-
-.status-banner .banner-title {
-    font-size: 16px;
-    font-weight: 700;
-    display: block;
-    margin-bottom: 2px;
-}
-
-.status-banner .banner-message {
-    font-size: 14px;
-    margin: 0;
-    line-height: 1.4;
-}
-
-.status-banner .banner-close {
-    background: none;
-    border: none;
-    font-size: 20px;
-    cursor: pointer;
-    padding: 0 8px;
-    flex-shrink: 0;
-    opacity: 0.7;
-    transition: opacity 0.2s ease;
-}
-
-.status-banner .banner-close:hover {
-    opacity: 1;
-}
-
-/* ===== MOBILE RESPONSIVE BREAKPOINTS ===== */
-
-/* Tablet (768px - 992px) */
-@media (max-width: 992px) {
-    .status-banner {
-        padding: 14px 18px;
-        gap: 10px;
-    }
-    
-    .status-banner .banner-icon {
-        font-size: 20px;
-        width: 36px;
-        height: 36px;
-    }
-    
-    .status-banner .banner-title {
-        font-size: 15px;
-    }
-    
-    .status-banner .banner-message {
-        font-size: 13px;
-    }
-}
-
-/* Mobile Landscape (576px - 768px) */
 @media (max-width: 768px) {
     .status-banner {
-        padding: 12px 16px;
-        gap: 10px;
-        border-radius: 10px;
-        margin-bottom: 16px;
-        flex-wrap: nowrap;
+        padding: 14px 16px !important;
+        gap: 10px !important;
+        align-items: flex-start !important;
     }
-    
-    .status-banner .banner-icon {
-        font-size: 18px;
-        width: 32px;
-        height: 32px;
+
+    .status-banner > i {
+        font-size: 20px !important;
+        margin-top: 2px !important;
     }
-    
-    .status-banner .banner-title {
-        font-size: 14px;
-        margin-bottom: 1px;
+
+    .status-banner > div {
+        flex: 1 1 0% !important;
+        width: auto !important;
     }
-    
-    .status-banner .banner-message {
-        font-size: 12px;
-        line-height: 1.3;
+
+    .status-banner > div strong {
+        font-size: 14px !important;
+        line-height: 1.4 !important;
     }
-    
-    .status-banner .banner-close {
-        font-size: 18px;
-        padding: 0 4px;
+
+    .status-banner > div p {
+        font-size: 12px !important;
+        line-height: 1.5 !important;
+        margin-top: 4px !important;
+    }
+
+    .status-banner > button {
+        font-size: 16px !important;
+        padding: 0 !important;
+        margin-left: 8px !important;
+        flex-shrink: 0 !important;
+        align-self: flex-start !important;
     }
 }
 
-/* Mobile Portrait (max-width: 576px) - PINAKAIMPORTANTE */
-@media (max-width: 576px) {
-    .status-banner {
-        padding: 10px 14px;
-        gap: 8px;
-        border-radius: 8px;
-        margin-bottom: 14px;
-        flex-wrap: nowrap;
-        align-items: flex-start;
-    }
-    
-    .status-banner .banner-icon {
-        font-size: 16px;
-        width: 28px;
-        height: 28px;
-        margin-top: 2px;
-    }
-    
-    .status-banner .banner-content {
-        flex: 1;
-        min-width: 0;
-    }
-    
-    .status-banner .banner-title {
-        font-size: 13px;
-        display: block;
-        margin-bottom: 1px;
-    }
-    
-    .status-banner .banner-message {
-        font-size: 11px;
-        line-height: 1.3;
-        display: block;
-        /* Optional: limit to 2 lines with ellipsis */
-        /* display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden; */
-    }
-    
-    .status-banner .banner-close {
-        font-size: 16px;
-        padding: 0 4px;
-        margin-top: -2px;
-    }
-}
-
-/* Small Mobile (max-width: 480px) */
 @media (max-width: 480px) {
     .status-banner {
-        padding: 8px 12px;
-        gap: 6px;
-        border-radius: 6px;
-        margin-bottom: 12px;
+        padding: 12px 14px !important;
+        gap: 8px !important;
     }
-    
-    .status-banner .banner-icon {
-        font-size: 14px;
-        width: 24px;
-        height: 24px;
+
+    .status-banner > i {
+        font-size: 18px !important;
     }
-    
-    .status-banner .banner-title {
-        font-size: 12px;
+
+    .status-banner > div strong {
+        font-size: 13px !important;
     }
-    
-    .status-banner .banner-message {
-        font-size: 10px;
-        line-height: 1.2;
-    }
-    
-    .status-banner .banner-close {
-        font-size: 14px;
-        padding: 0 2px;
+
+    .status-banner > div p {
+        font-size: 11px !important;
+        line-height: 1.5 !important;
     }
 }
 
-/* Extra Small Mobile (max-width: 380px) */
 @media (max-width: 380px) {
-    .status-banner {
-        padding: 6px 10px;
-        gap: 4px;
-        border-radius: 4px;
-        margin-bottom: 10px;
+    .status-banner > div strong {
+        font-size: 12px !important;
     }
-    
-    .status-banner .banner-icon {
-        font-size: 12px;
-        width: 20px;
-        height: 20px;
-    }
-    
-    .status-banner .banner-title {
-        font-size: 10px;
-    }
-    
-    .status-banner .banner-message {
-        font-size: 9px;
-        line-height: 1.2;
-    }
-    
-    .status-banner .banner-close {
-        font-size: 12px;
-        padding: 0 2px;
-    }
-}
 
-/* Landscape mode for mobile */
-@media (max-width: 850px) and (orientation: landscape) {
-    .status-banner {
-        padding: 10px 16px;
-        gap: 10px;
-    }
-    
-    .status-banner .banner-icon {
-        font-size: 16px;
-        width: 28px;
-        height: 28px;
-    }
-    
-    .status-banner .banner-title {
-        font-size: 13px;
-    }
-    
-    .status-banner .banner-message {
-        font-size: 11px;
-    }
-}
-
-/* Animation */
-@keyframes slideInDown {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Reduced Motion */
-@media (prefers-reduced-motion: reduce) {
-    .status-banner {
-        animation: none !important;
+    .status-banner > div p {
+        font-size: 10px !important;
     }
 }
