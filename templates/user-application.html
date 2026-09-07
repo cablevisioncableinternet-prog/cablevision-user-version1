@@ -2873,6 +2873,46 @@ function showTemporaryMessage(message, type) {
 
     loadAreas();
 
+
+// ==================================
+// AUTO-FILL INSTALLATION PHONE FROM PRIMARY MOBILE NUMBER
+// ==================================
+(function() {
+    const mobileField = document.querySelector('input[name="mobile"]');
+    const installationPhoneField = document.querySelector('input[name="installation_phone"]');
+    
+    if (!mobileField || !installationPhoneField) return;
+
+    let isSyncing = false;
+    let userEditedInstallationPhone = false;
+
+    // Detect kung manual na na-edit ng user ang installation phone
+    installationPhoneField.addEventListener('input', function() {
+        if (!isSyncing) {
+            userEditedInstallationPhone = true;
+        }
+    });
+
+    // Kapag nag-type sa Primary Mobile Number, i-sync sa Installation Phone
+    mobileField.addEventListener('input', function() {
+        if (userEditedInstallationPhone) return; // Huwag i-override kung na-edit na manually
+
+        isSyncing = true;
+        installationPhoneField.value = mobileField.value;
+        // I-trigger ang existing na phone formatting/validation ng installation_phone
+        installationPhoneField.dispatchEvent(new Event('input', { bubbles: true }));
+        isSyncing = false;
+    });
+
+    // Kapag ni-clear ang installation phone habang blangko rin ang mobile, i-reset ang flag
+    installationPhoneField.addEventListener('blur', function() {
+        if (installationPhoneField.value.trim() === '') {
+            userEditedInstallationPhone = false;
+        }
+    });
+})();
+
+
 // ================= CONDITIONAL REQUIRED: SPOUSE NAME ONLY BASED ON CIVIL STATUS =================
 (function() {
     const civilStatusSelect = document.querySelector('select[name="civil_status"]');
@@ -4549,10 +4589,8 @@ function showTemporaryMessage(message, type) {
         'first_name',
         'middle_name', 
         'last_name',
-        'place_of_birth',
         'citizenship',
         'occupation',
-        'employer',
         'spouse_name',
         'spouse_occupation',
         'spouse_employer',
@@ -4654,6 +4692,54 @@ function showTemporaryMessage(message, type) {
         }
     });
 })();
+
+
+// ==================================
+// PLACE OF BIRTH - ALLOW LETTERS, COMMA, DASH/HYPHEN, NUMBERS
+// ==================================
+(function() {
+    const field = document.querySelector('input[name="place_of_birth"]');
+    if (!field) return;
+
+    // Letters, spaces, apostrophe, dot, comma, dash/hyphen, numbers - allowed
+    const allowedRegex = /^[A-Za-z\u00C0-\u00FF0-9\s'.,\-]+$/;
+
+    function addPobError(message) {
+        removePobError();
+        field.classList.add('field-error');
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'error-message';
+        errorDiv.id = 'error-place_of_birth';
+        errorDiv.style.color = '#dc3545';
+        errorDiv.style.fontSize = '12px';
+        errorDiv.style.marginTop = '5px';
+        errorDiv.textContent = message;
+        field.parentNode.insertBefore(errorDiv, field.nextSibling);
+        errorDiv.style.display = 'block';
+    }
+
+    function removePobError() {
+        field.classList.remove('field-error');
+        const existingError = document.getElementById('error-place_of_birth');
+        if (existingError) existingError.remove();
+    }
+
+    function validatePob() {
+        const value = field.value;
+        if (value && !allowedRegex.test(value)) {
+            addPobError('Only letters, numbers, comma (,) and dash (-) are allowed.');
+        } else {
+            removePobError();
+        }
+    }
+
+    field.addEventListener('input', validatePob);
+    field.addEventListener('blur', validatePob);
+    field.addEventListener('change', validatePob);
+})();
+
+
+
 
 
 // ================= RETURN TO CURRENT LOCATION =================
