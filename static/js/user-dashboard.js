@@ -934,7 +934,40 @@ function showReconnectSuccessView(requestId, data) {
     }
   }
 
-  if (successView) successView.style.display = 'flex';
+  if (successView) {
+    successView.style.display = 'flex';
+    
+    // IDAGDAG ANG NOTE TUNGKOL SA CUT OFF
+    let noteDiv = successView.querySelector('.reconnect-note');
+    if (!noteDiv) {
+      noteDiv = document.createElement('div');
+      noteDiv.className = 'reconnect-note';
+      noteDiv.style.cssText = `
+        background: #fef3c7;
+        border: 1px solid #fde68a;
+        border-radius: 8px;
+        padding: 10px 14px;
+        margin-top: 14px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: #92400e;
+        font-size: 14px;
+        font-weight: 500;
+      `;
+      noteDiv.innerHTML = `
+        <i class="fas fa-info-circle" style="color: #92400e; font-size: 16px; flex-shrink: 0;"></i>
+        <span>Your request will be updated the day after cut off</span>
+      `;
+      
+      const actionsDiv = successView.querySelector('.reconnect-success-actions');
+      if (actionsDiv) {
+        successView.insertBefore(noteDiv, actionsDiv);
+      } else {
+        successView.appendChild(noteDiv);
+      }
+    }
+  }
 }
 
 async function loadReconnectPrefillData() {
@@ -946,6 +979,41 @@ async function loadReconnectPrefillData() {
       reconnectAlreadyRequested = true;
       showToast('You already have a reconnect request on file.', 'info');
       closeReconnectModal();
+      
+      // IDAGDAG ANG NOTE SA BANNER TUNGKOL SA CUT OFF
+      const banner = document.querySelector('.status-banner');
+      if (banner) {
+        let noteDiv = banner.querySelector('.reconnect-note-banner');
+        if (!noteDiv) {
+          noteDiv = document.createElement('div');
+          noteDiv.className = 'reconnect-note-banner';
+          noteDiv.style.cssText = `
+            background: #fef3c7;
+            border: 1px solid #fde68a;
+            border-radius: 6px;
+            padding: 6px 12px;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #92400e;
+            font-size: 13px;
+            font-weight: 500;
+          `;
+          noteDiv.innerHTML = `
+            <i class="fas fa-info-circle" style="color: #92400e; font-size: 13px;"></i>
+            <span>Your request will be updated the day after cut off</span>
+          `;
+          
+          const contentDiv = banner.querySelector('div[style*="flex: 1"]');
+          if (contentDiv) {
+            contentDiv.appendChild(noteDiv);
+          } else {
+            banner.appendChild(noteDiv);
+          }
+        }
+      }
+      
       return;
     }
 
@@ -1432,27 +1500,100 @@ document.addEventListener('DOMContentLoaded', function() {
                 console.log(' Response:', result);
 
                 if (res.ok && result.success) {
-                    reconnectAlreadyRequested = true;
-                    showReconnectSuccessView(result.request_id, {
-                        current_plan: result.current_plan,
-                        new_plan: result.new_plan,
-                        change_plan: result.change_plan
-                    });
-                    const reconnectBtn = document.getElementById('requestReconnectBtn');
-                    if (reconnectBtn) {
-                        reconnectBtn.disabled = true;
-                        reconnectBtn.textContent = 'Request Already Submitted';
+                  reconnectAlreadyRequested = true;
+                  showReconnectSuccessView(result.request_id, {
+                      current_plan: result.current_plan,
+                      new_plan: result.new_plan,
+                      change_plan: result.change_plan
+                  });
+                  const reconnectBtn = document.getElementById('requestReconnectBtn');
+                  if (reconnectBtn) {
+                      reconnectBtn.disabled = true;
+                      reconnectBtn.textContent = 'Request Already Submitted';
+                  }
+                  
+                  // IDAGDAG ANG NOTE SA BANNER
+                  setTimeout(() => {
+                    const banner = document.querySelector('.status-banner');
+                    if (banner) {
+                      let noteDiv = banner.querySelector('.reconnect-note-banner');
+                      if (!noteDiv) {
+                        noteDiv = document.createElement('div');
+                        noteDiv.className = 'reconnect-note-banner';
+                        noteDiv.style.cssText = `
+                          background: #fef3c7;
+                          border: 1px solid #fde68a;
+                          border-radius: 6px;
+                          padding: 6px 12px;
+                          margin-top: 8px;
+                          display: flex;
+                          align-items: center;
+                          gap: 8px;
+                          color: #92400e;
+                          font-size: 13px;
+                          font-weight: 500;
+                        `;
+                        noteDiv.innerHTML = `
+                          <i class="fas fa-info-circle" style="color: #92400e; font-size: 13px;"></i>
+                          <span>Your request will be updated the day after cut off</span>
+                        `;
+                        
+                        const contentDiv = banner.querySelector('div[style*="flex: 1"]');
+                        if (contentDiv) {
+                          contentDiv.appendChild(noteDiv);
+                        } else {
+                          banner.appendChild(noteDiv);
+                        }
+                      }
                     }
-                } else if (res.status === 409) {
-                    showToast(result.error || 'You already have a reconnect request on file.', 'error');
-                    reconnectAlreadyRequested = true;
-                    closeReconnectModal();
-                    const reconnectBtn = document.getElementById('requestReconnectBtn');
-                    if (reconnectBtn) {
-                        reconnectBtn.disabled = true;
-                        reconnectBtn.textContent = 'Request Already Submitted';
+                  }, 500);
+                  
+              } else if (res.status === 409) {
+                  showToast(result.error || 'You already have a reconnect request on file.', 'error');
+                  reconnectAlreadyRequested = true;
+                  closeReconnectModal();
+                  const reconnectBtn = document.getElementById('requestReconnectBtn');
+                  if (reconnectBtn) {
+                      reconnectBtn.disabled = true;
+                      reconnectBtn.textContent = 'Request Already Submitted';
+                  }
+                  
+                  // IDAGDAG ANG NOTE SA BANNER
+                  setTimeout(() => {
+                    const banner = document.querySelector('.status-banner');
+                    if (banner) {
+                      let noteDiv = banner.querySelector('.reconnect-note-banner');
+                      if (!noteDiv) {
+                        noteDiv = document.createElement('div');
+                        noteDiv.className = 'reconnect-note-banner';
+                        noteDiv.style.cssText = `
+                          background: #fef3c7;
+                          border: 1px solid #fde68a;
+                          border-radius: 6px;
+                          padding: 6px 12px;
+                          margin-top: 8px;
+                          display: flex;
+                          align-items: center;
+                          gap: 8px;
+                          color: #92400e;
+                          font-size: 13px;
+                          font-weight: 500;
+                        `;
+                        noteDiv.innerHTML = `
+                          <i class="fas fa-info-circle" style="color: #92400e; font-size: 13px;"></i>
+                          <span>Your request will be updated the day after cut off</span>
+                        `;
+                        
+                        const contentDiv = banner.querySelector('div[style*="flex: 1"]');
+                        if (contentDiv) {
+                          contentDiv.appendChild(noteDiv);
+                        } else {
+                          banner.appendChild(noteDiv);
+                        }
+                      }
                     }
-                } else {
+                  }, 500);
+              } else {
                     showToast(result.error || 'Something went wrong.', 'error');
                     console.error(' Error response:', result);
                 }
