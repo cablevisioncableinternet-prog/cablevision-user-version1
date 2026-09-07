@@ -2873,10 +2873,10 @@ function showTemporaryMessage(message, type) {
 
     loadAreas();
 
-// ================= CONDITIONAL REQUIRED: SPOUSE INFO BASED ON CIVIL STATUS =================
+// ================= CONDITIONAL REQUIRED: SPOUSE NAME ONLY BASED ON CIVIL STATUS =================
 (function() {
     const civilStatusSelect = document.querySelector('select[name="civil_status"]');
-    const spouseFields = ['spouse_name', 'spouse_occupation', 'spouse_employer', 'spouse_phone'];
+    const spouseFields = ['spouse_name']; // spouse_name na lang ang conditional required
     const spouseRequiredStatuses = ['Married', 'Separated', 'Widow', 'Widower'];
 
     function toggleSpouseRequired() {
@@ -2931,7 +2931,7 @@ function showTemporaryMessage(message, type) {
     };
     window.addSpouseFieldError = addSpouseFieldError;
     window.removeSpouseFieldError = removeSpouseFieldError;
-    window.spouseFieldNames = spouseFields;
+    window.spouseFieldNames = spouseFields; // ['spouse_name'] na lang
 })();
 
 // ================= BIRTHDATE AUTO-FORMAT: MONTH-DAY-YEAR (MM-DD-YYYY) =================
