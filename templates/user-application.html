@@ -984,14 +984,14 @@ input[name="birthdate"]::placeholder {
         let html = `
         <div class="row mb-2">
             <div class="col"><input name="tv_qty[]" class="form-control" placeholder="Qty"></div>
-            // <div class="col"><input name="tv_brand[]" class="form-control" placeholder="Brand/Model"></div>
-            // <div class="col">
-            //     <select name="tv_type[]" class="form-control">
-            //         <option value="" disabled selected>TV Viewing Type</option>
-            //         <option>Colored</option>
-            //         <option>B&W</option>
-            //     </select>
-            // </div>
+        <!--<div class="col"><input name="tv_brand[]" class="form-control" placeholder="Brand/Model"></div> -->
+            <div class="col">
+                <select name="tv_type[]" class="form-control">
+                    <option value="" disabled selected>TV Viewing Type</option>
+                    <option>Colored</option>
+                    <option>B&W</option>
+                </select>
+            </div>
         </div>`;
         document.getElementById("tv-container").innerHTML += html;
     }
