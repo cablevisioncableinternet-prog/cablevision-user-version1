@@ -1501,7 +1501,7 @@ a {
 }
 
 .gallery-track-one-row.infinite-scroll {
-    animation: scrollRightToLeft 25s linear infinite;
+    animation: scrollRightToLeft 50s linear infinite;
 }
 
 .gallery-track-one-row:hover {
