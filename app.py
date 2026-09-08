@@ -1602,10 +1602,24 @@ def submit_application():
     tv_brand = get_tv_field_values('tv_brand', tv_count)
     tv_type = get_tv_field_values('tv_type', tv_count)
     
-    # I-convert sa JSON (para sa database)
-    tv_qty_json = json.dumps(tv_qty) if tv_qty and any(tv_qty) else None
-    tv_brand_json = json.dumps(tv_brand) if tv_brand and any(tv_brand) else None
-    tv_type_json = json.dumps(tv_type) if tv_type and any(tv_type) else None
+    # I-convert sa JSON (para sa database) — laging may laman, kahit walang input
+    def clean_tv_list(values):
+        """Palitan ang blangko/None na entries ng '-', at kung talagang walang laman ang buong list, ibalik ang ['-']"""
+        if not values:
+            return ["-"]
+        cleaned = [(v.strip() if isinstance(v, str) and v.strip() else "-") for v in values]
+        # Kung lahat ng entries ay "-" (walang totoong input), i-collapse sa iisang ["-"]
+        if all(v == "-" for v in cleaned):
+            return ["-"]
+        return cleaned
+
+    tv_qty_clean = clean_tv_list(tv_qty)
+    tv_brand_clean = clean_tv_list(tv_brand)
+    tv_type_clean = clean_tv_list(tv_type)
+
+    tv_qty_json = json.dumps(tv_qty_clean)
+    tv_brand_json = json.dumps(tv_brand_clean)
+    tv_type_json = json.dumps(tv_type_clean)
     
     # ========== I-PRINT PARA MAKITA KUNG GUMAWA ==========
     print("\n" + "="*50)
