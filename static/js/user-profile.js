@@ -935,9 +935,6 @@ document.addEventListener('DOMContentLoaded', () => {
         setInputValue('app_businessAddress', getDataValue('business-address'));
         setInputValue('app_businessPhone', getDataValue('business-phone'));
         setInputValue('app_spouseName', getDataValue('spouse-name'));
-        setInputValue('app_spouseOccupation', getDataValue('spouse-occupation'));
-        setInputValue('app_spouseEmployer', getDataValue('spouse-employer'));
-        setInputValue('app_spousePhone', getDataValue('spouse-phone'));
         setInputValue('app_fatherName', getDataValue('father-name'));
         setInputValue('app_installationAddress', getDataValue('installation-address'));
         setInputValue('app_installationPhone', getDataValue('installation-phone'));
