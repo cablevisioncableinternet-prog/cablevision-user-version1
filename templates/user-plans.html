@@ -413,13 +413,8 @@ function autoSelectPlanFromURL() {
                 price = parseFloat(price).toFixed(2);
             }
             
-            // Get image from onclick attribute
-            let image = '';
-            const onclickAttr = card.getAttribute('onclick');
-            if (onclickAttr) {
-                const match = onclickAttr.match(/selectPlan\([^,]+,[^,]+,[^,]+,[^,]+,'([^']*)'/);
-                if (match && match[1]) image = match[1];
-            }
+            // Read the image directly instead of parsing the onclick string.
+            const image = card.dataset.planImage || '';
             
             if (typeof selectPlan === 'function') {
                 selectPlan(card, decodedPlanName, speed, price, image);

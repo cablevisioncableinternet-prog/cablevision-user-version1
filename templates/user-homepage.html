@@ -190,9 +190,9 @@
         </div>
     </section>
 
-<!-- ============================================================
-     IMAGE GALLERY — INFINITE SCROLL (1 ROW)
-     ============================================================ -->
+    <!-- ============================================================
+    IMAGE GALLERY — REDESIGNED "EXPLORE OUR CABLE CHANNELS"
+    ============================================================ -->
     <section class="image-gallery-section reveal-on-scroll">
         <div class="container">
             <div class="gallery-header">
@@ -202,15 +202,27 @@
             </div>
 
             <div class="gallery-wrapper-modern">
+                <button class="gallery-nav-btn prev-btn" id="galleryPrevBtn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                </button>
+
                 <div class="horizontal-gallery-wrapper" id="galleryWrapper">
-                    <div class="gallery-track-one-row infinite-scroll" id="imageGalleryTrack">
-                        <!-- DYNAMIC: Populated by JavaScript -->
+                    <div class="gallery-track-modern" id="imageGalleryTrack">
+                        <!-- DYNAMIC: Populated by JavaScript from /api/public/advertisements -->
                         <div class="no-channels-message" style="text-align:center;padding:40px;color:#94a3b8;width:100%;">
                             <i class="fas fa-tv" style="font-size:48px;margin-bottom:16px;display:block;color:#1a5bb5;opacity:0.3;"></i>
                             <p>Loading channel logos...</p>
                         </div>
                     </div>
                 </div>
+
+                <button class="gallery-nav-btn next-btn" id="galleryNextBtn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </button>
             </div>
         </div>
     </section>
@@ -223,7 +235,7 @@
             <div class="experience-content">
                 <div class="experience-text">
                     <span class="section-badge-modern">Our Story</span>
-                    <h2 class="experience-title">Experience <span class="highlight">Cablevision</span></h2>
+                    <h2 class="experience-title">Experience <span class="highlight">CableVision</span></h2>
                     <div class="experience-divider"></div>
                     <p class="experience-subtitle">
                         Explore the journey of Cablevision Systems Corporation — from its founding in 1991 by five visionaries,
@@ -253,7 +265,7 @@
     <!-- ============================================================
     GCASH PAYMENT GUIDE — 7 STEPS
     ============================================================ -->
-    <section class="gcash-section reveal-on-scroll">
+    <section class="gcash-section reveal-on-scroll" id="payment-guide">
         <div class="container text-center">
             <span class="section-label">Online Payment</span>
             <h2 class="section-title-lg">How to Pay via <span class="highlight">GCash</span></h2>
@@ -423,7 +435,7 @@
     <!-- ============================================================
     CHATBOT — FULL FUNCTIONALITY
     ============================================================ -->
-    <button class="chatbot-toggle" onclick="toggleChat()">
+    <button class="chatbot-toggle" onclick="toggleChat()" aria-label="Open Cablevision chat support" title="Chat with Cablevision">
         <svg class="chat-icon" width="28" height="28" viewBox="0 0 24 24" fill="none">
             <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="white"/>
             <circle cx="8" cy="10" r="2" fill="#001f3f"/>
@@ -442,6 +454,7 @@
                 </div>
                 <div class="header-text">
                     <span class="header-title">Cablevision Chat Support</span>
+                    <span class="header-subtitle">Your connection starts here</span>
                 </div>
             </div>
             <div class="close-btn" onclick="toggleChat()">
@@ -1360,122 +1373,14 @@ async function fetchCustomerCounts() {
                 return;
             }
 
-            // Duplicate the images for seamless infinite scroll
-            const duplicatedImages = [...allImages, ...allImages, ...allImages];
-
-            duplicatedImages.forEach(img => {
+            allImages.forEach(img => {
                 const card = document.createElement('div');
                 card.className = 'gallery-card-modern';
                 card.onclick = () => window.open(img.src, '_blank');
                 card.innerHTML = `<img src="${img.src}" alt="Channel Logo" loading="lazy" onerror="this.style.display='none'">`;
                 track.appendChild(card);
             });
-
-            // Start the infinite scroll animation
-            track.classList.add('infinite-scroll');
         }
-
-        // ============================================================
-        // INFINITE SCROLL GALLERY — DRAG TO VIEW MANUALLY
-        // ============================================================
-        function initDragGallery() {
-            const wrapper = document.getElementById('galleryWrapper');
-            const track = document.getElementById('imageGalleryTrack');
-
-            if (!wrapper || !track) return;
-
-            let isDragging = false;
-            let startX = 0;
-            let scrollLeft = 0;
-
-            // Pause animation while dragging
-            const pauseAnimation = () => {
-                track.classList.remove('infinite-scroll');
-            };
-
-            const resumeAnimation = () => {
-                // Resume after a small delay to avoid flicker
-                setTimeout(() => {
-                    track.classList.add('infinite-scroll');
-                }, 100);
-            };
-
-            // --- MOUSE DRAG ---
-            const onMouseDown = (e) => {
-                isDragging = true;
-                startX = e.pageX;
-                scrollLeft = wrapper.scrollLeft;
-                wrapper.style.cursor = 'grabbing';
-                pauseAnimation();
-                // Prevent text selection
-                document.body.style.userSelect = 'none';
-            };
-
-            const onMouseMove = (e) => {
-                if (!isDragging) return;
-                e.preventDefault();
-                const walk = (e.pageX - startX) * 1.5;
-                wrapper.scrollLeft = scrollLeft - walk;
-            };
-
-            const onMouseUp = () => {
-                if (isDragging) {
-                    isDragging = false;
-                    wrapper.style.cursor = 'grab';
-                    document.body.style.userSelect = '';
-                    resumeAnimation();
-                }
-            };
-
-            // --- TOUCH DRAG ---
-            const onTouchStart = (e) => {
-                const touch = e.touches[0];
-                isDragging = true;
-                startX = touch.pageX;
-                scrollLeft = wrapper.scrollLeft;
-                pauseAnimation();
-            };
-
-            const onTouchMove = (e) => {
-                if (!isDragging) return;
-                const touch = e.touches[0];
-                const walk = (touch.pageX - startX) * 1.5;
-                wrapper.scrollLeft = scrollLeft - walk;
-                // Prevent page scroll while dragging
-                e.preventDefault();
-            };
-
-            const onTouchEnd = () => {
-                if (isDragging) {
-                    isDragging = false;
-                    resumeAnimation();
-                }
-            };
-
-            // --- Attach events ---
-            wrapper.addEventListener('mousedown', onMouseDown);
-            window.addEventListener('mousemove', onMouseMove);
-            window.addEventListener('mouseup', onMouseUp);
-
-            wrapper.addEventListener('touchstart', onTouchStart, { passive: true });
-            window.addEventListener('touchmove', onTouchMove, { passive: false });
-            window.addEventListener('touchend', onTouchEnd);
-
-            // Prevent default drag behavior on images
-            wrapper.addEventListener('dragstart', (e) => e.preventDefault());
-
-            // Set initial cursor
-            wrapper.style.cursor = 'grab';
-
-            console.log('Drag gallery initialized');
-        }
-
-        // Tawagin ito sa loob ng DOMContentLoaded
-        document.addEventListener('DOMContentLoaded', function() {
-            // ... your existing code ...
-
-            initDragGallery(); // <-- idagdag ito
-        });
 
         // ================= GALLERY NAVIGATION =================
         let galleryAutoPlayInterval = null;
@@ -1688,6 +1593,7 @@ async function fetchCustomerCounts() {
             if (e.target === this) closeImagePreview();
         });
 
+        // ================= INIT ALL =================
         document.addEventListener('DOMContentLoaded', function() {
             loadHeroStats();
             loadPlansDynamically();
@@ -1699,20 +1605,6 @@ async function fetchCustomerCounts() {
                 w.addEventListener('click', function() {
                     document.querySelectorAll('.thumbnail-wrapper').forEach(t => t.classList.remove('active'));
                     this.classList.add('active');
-                });
-            });
-
-            // ===== BAGONG CODE PARA SA CHATBOT AT MODAL OVERLAP =====
-            const chatbotToggle = document.querySelector('.chatbot-toggle');
-            const chatbotContainer = document.querySelector('.chatbot-container');
-
-            document.querySelectorAll('.modal').forEach(function(modal) {
-                modal.addEventListener('show.bs.modal', function() {
-                    if (chatbotToggle) chatbotToggle.style.display = 'none';
-                    if (chatbotContainer) chatbotContainer.classList.remove('show');
-                });
-                modal.addEventListener('hidden.bs.modal', function() {
-                    if (chatbotToggle) chatbotToggle.style.display = 'flex';
                 });
             });
         });

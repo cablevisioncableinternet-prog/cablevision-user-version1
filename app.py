@@ -8518,6 +8518,22 @@ def chat():
             'success': True
         })
 
+    # Keep payment answers focused on the homepage guide and physical option.
+    payment_keywords = [
+        'payment', 'payments', 'pay', 'bayad', 'magbayad', 'pagbayad',
+        'paano magbayad', 'how to pay', 'gcash', 'physical payment',
+        'pay at office', 'bayad sa office'
+    ]
+    if any(keyword in message_lower for keyword in payment_keywords):
+        return jsonify({
+            'response': (
+                'Good day, Ka-CV! Please view the step-by-step payment guide on the homepage: '
+                '/#payment-guide\n\n'
+                'You may also pay physically at a Cablevision office.'
+            ),
+            'success': True
+        })
+
     # Cache check for identical queries
     cache_key = user_message.lower()
     if cache_key in response_cache:
@@ -8564,6 +8580,11 @@ PROHIBITED RESPONSES:
 - DO NOT write "Please note that our coverage areas are subject to change" or any disclaimer.
 - DO NOT write "However, I can provide..." when refusing an unrelated question.
 - DO NOT tell users to visit an office in person to apply.
+
+PAYMENT QUESTIONS:
+- Direct payment questions to the homepage payment guide at /#payment-guide.
+- State only that physical payment is available at a Cablevision office.
+- Do not reproduce payment steps or add unrelated billing details, contacts, links, or recommendations.
 
 HOW TO APPLY (ONLINE ONLY):
 When asked how to apply or for application steps, provide these step-by-step instructions in English:
