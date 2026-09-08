@@ -273,7 +273,7 @@ input[name="birthdate"]::placeholder {
             <div class="col-md-6">
                 <div class="form-group">
                     <label class="form-label">Email Address <span class="required-star">*</span></label>
-                    <input class="form-control" name="email" placeholder="only @gmail.com" required>
+                    <input class="form-control" name="email" placeholder="only @gmail.com or @yahoo.com" required>
                     <div id="email-duplicate-error" class="error-message" style="display: none;"></div>
                 </div>
             </div>
@@ -4462,8 +4462,9 @@ function showTemporaryMessage(message, type) {
         let localPart = parts[0];
         let domain = parts[1];
         
-        // Rule 3: Domain must be exactly "gmail.com"
-        if (domain !== 'gmail.com') return false;
+        // Rule 3: Domain must be gmail.com or yahoo.com
+        const allowedDomains = ['gmail.com', 'yahoo.com'];
+        if (!allowedDomains.includes(domain)) return false;
         
         // Rule 4: Local part cannot be empty
         if (localPart.length === 0) return false;
@@ -4545,7 +4546,7 @@ function showTemporaryMessage(message, type) {
             removeEmailError();
             return true;
         } else {
-            addEmailError('Please enter a valid email address. Only @gmail.com is allowed. Format: username@gmail.com (username can contain letters, numbers, dots, underscores, plus, hyphens, but cannot start/end with special characters or have consecutive dots)');
+                        addEmailError('Please enter a valid email address. Only @gmail.com or @yahoo.com is allowed. Format: username@gmail.com or username@yahoo.com (username can contain letters, numbers, dots, underscores, plus, hyphens, but cannot start/end with special characters or have consecutive dots)');
             return false;
         }
     }
