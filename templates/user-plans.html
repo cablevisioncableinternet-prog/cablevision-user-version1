@@ -98,7 +98,8 @@ MAIN PLANS SECTION — REDESIGNED WITH CONVERGE STYLE
                     {% for plan in plans %}
                     <div class="plan-card-modern" 
                          onclick="selectPlan(this, '{{ plan.name }}', '{{ plan.speed }}', '{{ plan.price }}', '{{ plan.image }}')"
-                         data-plan="{{ plan.name }}">
+                         data-plan="{{ plan.name }}"
+                         data-plan-image="{{ plan.image }}">
                         <div class="plan-card-content">
                             <div class="plan-icon-wrapper">
                                 <div class="plan-icon">
