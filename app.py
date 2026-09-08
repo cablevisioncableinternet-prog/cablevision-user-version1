@@ -3150,24 +3150,37 @@ def download_pdf(application_number):
         # ================= GET APPLICATION NUMBER AS FOLDER NAME =================
         app_folder = str(application_number)
         
-        # Parse JSON fields
-        if data.get('tv_qty'):
-            try:
-                data['tv_qty'] = json.loads(data['tv_qty'])
-            except:
-                data['tv_qty'] = []
-        
-        if data.get('tv_brand'):
-            try:
-                data['tv_brand'] = json.loads(data['tv_brand'])
-            except:
-                data['tv_brand'] = []
-        
-        if data.get('tv_type'):
-            try:
-                data['tv_type'] = json.loads(data['tv_type'])
-            except:
-                data['tv_type'] = []
+        # Parse JSON fields (bulletproof against NULL, empty string, non-list JSON, etc.)
+        def parse_tv_field(raw_value):
+            """Always returns a list, no matter what's in the DB (None, '', 'null', bad JSON, single value)"""
+            if raw_value is None:
+                return []
+            if isinstance(raw_value, (bytes, bytearray)):
+                try:
+                    raw_value = raw_value.decode('utf-8', errors='ignore')
+                except Exception:
+                    return []
+            if isinstance(raw_value, list):
+                return raw_value
+            if isinstance(raw_value, str):
+                raw_value = raw_value.strip()
+                if not raw_value or raw_value.lower() == 'null':
+                    return []
+                try:
+                    parsed = json.loads(raw_value)
+                    if isinstance(parsed, list):
+                        return parsed
+                    elif parsed is None:
+                        return []
+                    else:
+                        return [parsed]
+                except Exception:
+                    return []
+            return []
+
+        data['tv_qty'] = parse_tv_field(data.get('tv_qty'))
+        data['tv_brand'] = parse_tv_field(data.get('tv_brand'))
+        data['tv_type'] = parse_tv_field(data.get('tv_type'))
 
         buffer = io.BytesIO()
         p = canvas.Canvas(buffer, pagesize=letter)
