@@ -3138,7 +3138,7 @@ def verify_email_code():
 
 
 @app.route('/download/pdf/<application_number>')
-def download_pdf_user_side(application_number):
+def download_pdf(application_number):
     import io, base64, os, traceback
     from reportlab.pdfgen import canvas
     from reportlab.lib.pagesizes import letter
