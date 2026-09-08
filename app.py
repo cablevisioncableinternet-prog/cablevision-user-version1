@@ -3608,11 +3608,26 @@ def download_pdf(application_number):
     y -= 5
 
     # TV SET DETAILS
-    tv_qty = data.get("tv_qty", [])
-    tv_brand = data.get("tv_brand", [])
-    tv_type = data.get("tv_type", [])
-    
-    if tv_qty and any(tv_qty):
+    tv_qty = data.get("tv_qty", []) or []
+    tv_brand = data.get("tv_brand", []) or []
+    tv_type = data.get("tv_type", []) or []
+
+    def safe_str(value):
+        """Convert any value to a safe display string"""
+        if value is None:
+            return "-"
+        s = str(value).strip()
+        return s if s and s.lower() != "none" else "-"
+
+    max_rows = max(len(tv_qty), len(tv_brand), len(tv_type))
+
+    has_tv_data = any(
+        safe_str(v) != "-"
+        for arr in (tv_qty, tv_brand, tv_type)
+        for v in arr
+    )
+
+    if has_tv_data:
         draw_section_title("VII. TV SET DETAILS")
         ensure_space(40)
         
@@ -3623,15 +3638,17 @@ def download_pdf(application_number):
         y -= 15
         
         p.setFont("Helvetica", 9)
-        for i in range(min(len(tv_qty), 5)):
+        for i in range(min(max_rows, 5)):
             if y < 120:
                 break
-            qty = str(tv_qty[i]) if i < len(tv_qty) else "-"
-            brand = tv_brand[i] if i < len(tv_brand) else "-"
+
+            qty = safe_str(tv_qty[i]) if i < len(tv_qty) else "-"
+            brand = safe_str(tv_brand[i]) if i < len(tv_brand) else "-"
+            tv_t = safe_str(tv_type[i]) if i < len(tv_type) else "-"
+
             if len(brand) > 25:
                 brand = brand[:22] + "..."
-            tv_t = tv_type[i] if i < len(tv_type) else "-"
-            
+
             p.drawString(50, y, qty)
             p.drawString(120, y, brand)
             p.drawString(320, y, tv_t)
