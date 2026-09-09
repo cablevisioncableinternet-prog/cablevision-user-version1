@@ -52,7 +52,7 @@ HERO HEADER — LARGE, WITH cv office.jpg, NO NAVBAR
 <!-- ============================================================
 MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
 ============================================================ -->
-<div class="application-main-section" id="applicationForm">
+<div class="application-main-section" id="applicationFormSection">
     <div class="container">
 
         <form method="POST" action="/submit_application" enctype="multipart/form-data" id="applicationForm" novalidate>
@@ -6160,9 +6160,17 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
                 
                 setTimeout(() => {
                     const form = document.getElementById('applicationForm');
-                    if (form) {
+                    if (form && typeof form.submit === 'function') {
                         closeModal();
                         form.submit();
+                    } else {
+                        console.error('applicationForm element not found or is not a form:', form);
+                        closeModal();
+                        showAlertModal('May naganap na error. Pakisubukan muli o i-refresh ang page.');
+                        if (verifyBtn) {
+                            verifyBtn.disabled = false;
+                            verifyBtn.textContent = 'Verify & Submit';
+                        }
                     }
                 }, 1000);
             } else {
@@ -6234,6 +6242,16 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
         clearCodeDigits();
         errorDiv.style.display = 'none';
         successDiv.style.display = 'none';
+
+        // I-reset ang button state kada magbukas ng modal
+        if (verifyBtn) {
+            verifyBtn.disabled = false;
+            verifyBtn.textContent = 'Verify & Submit';
+        }
+        if (resendBtn) {
+            resendBtn.disabled = false;
+            resendBtn.textContent = 'Resend Code';
+        }
         
         modal.style.display = 'block';
         document.body.style.overflow = 'hidden';
