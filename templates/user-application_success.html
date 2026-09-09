@@ -16,28 +16,43 @@
 <body>
 
 <!-- ============================================================
-     HERO HEADER — SUCCESS STATE (same visual language as application form)
+     HERO HEADER — SAME STRUCTURE AS user-application.html
+     (bg image + overlay, two-column grid, hero-top-row, hero-visual card)
      ============================================================ -->
 <section class="success-hero-modern">
     <div class="hero-bg-pattern"></div>
     <div class="container">
-        <div class="hero-content-center">
-            <div class="success-icon-badge"><i class="fas fa-check"></i></div>
-            <span class="section-label">Application Received</span>
-            <h1>Application <span class="accent">Submitted Successfully</span></h1>
-            <p>Your application has been received and is now being processed by our team.</p>
-
-            <div class="app-number-badge">
-                Application Number <strong>{{ application_number or 'N/A' }}</strong>
+        <div class="hero-content">
+            <div class="hero-top-row">
+                <a href="{{ url_for('plans') }}" class="hero-back-link">
+                    <i class="fas fa-arrow-left"></i> Back to Plans
+                </a>
+                <span class="section-label">Application Received</span>
             </div>
+            <h1>Application <span class="accent">Submitted Successfully</span></h1>
+            <p>Your application has been received and is now being processed by our team. You'll get an email once there's an update.</p>
 
             <div class="hero-header-actions">
                 <a href="{{ url_for('download_pdf', application_number=application_number) }}" class="btn-hero-primary" target="_blank">
                     <i class="fas fa-download"></i> Download PDF
                 </a>
-                <a href="{{ url_for('plans') }}" class="btn-hero-secondary">
-                    <i class="fas fa-arrow-left"></i> Back to Plans
-                </a>
+            </div>
+        </div>
+
+        <div class="hero-visual">
+            <div class="success-hero-card">
+                <div class="success-icon-badge"><i class="fas fa-check"></i></div>
+                <div class="app-number-display">Application Number</div>
+                <div class="app-number-value">{{ application_number or 'N/A' }}</div>
+                {% if status %}
+                <div class="status-badge-bottom status-badge-{{ status|lower }}">
+                    <i class="fas fa-circle"></i> {{ status|capitalize }}
+                </div>
+                {% else %}
+                <div class="status-badge-bottom status-badge-pending">
+                    <i class="fas fa-check-circle"></i> Received
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
