@@ -45,13 +45,19 @@ body {
    ============================================================ */
 .success-hero-modern {
     position: relative;
+    min-height: 85vh;
     display: flex;
     align-items: center;
-    justify-content: center;
-    background: linear-gradient(135deg, #0a1a3a 0%, #14336a 45%, #1e468c 100%);
+    background: 
+        linear-gradient(135deg, rgba(10, 26, 58, 0.80) 0%, rgba(20, 50, 100, 0.75) 40%, rgba(30, 70, 140, 0.70) 100%),
+        url("/static/cv office.jpg");
+    background-size: cover;
+    background-position: center;
     overflow: hidden;
-    padding: 90px 0 70px;
+    padding: 80px 0 60px;
 }
+
+
 .success-hero-modern .hero-bg-pattern {
     position: absolute;
     inset: 0;
