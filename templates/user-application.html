@@ -10,72 +10,14 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/user-application.css') }}">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<!-- VectorGrid plugin para sa malalaking GeoJSON data -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.vectorgrid@latest/dist/Leaflet.VectorGrid.bundled.js"></script>
-<style>
-#map {
-    height: 350px;
-    width: 100%;
-    border-radius: 12px;
-
-}
-
-/* Error message styling for required fields */
-.error-message {
-    color: #dc3545;
-    font-size: 12px;
-    margin-top: 5px;
-    display: none;
-}
-
-.field-error {
-    border-color: #dc3545 !important;
-}
-
-.form-control.error {
-    border-color: #dc3545;
-}
-
-
-/* Re-apply banner styles */
-.alert-warning, .alert-info {
-    animation: slideDown 0.3s ease-out;
-}
-
-@keyframes slideDown {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Highlight effect for re-apply */
-.form-card {
-    transition: all 0.2s ease;
-}
-
-/* Date input styling for re-apply */
-input[name="birthdate"] {
-    font-family: 'IBM Plex Sans', sans-serif;
-}
-
-input[name="birthdate"]::placeholder {
-    color: #94a3b8;
-}
-
-</style>
-
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/consbio/Leaflet.Basemaps@main/L.Control.Basemaps.css" />
+<script src="https://cdn.jsdelivr.net/gh/consbio/Leaflet.Basemaps@main/L.Control.Basemaps-min.js"></script>
 </head>
-
 <body>
 
 <!-- ============================================================
@@ -107,640 +49,621 @@ HERO HEADER — LARGE, WITH cv office.jpg, NO NAVBAR
     </div>
 </section>
 
-<div class="container mt-5">
+<!-- ============================================================
+MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
+============================================================ -->
+<div class="application-main-section" id="applicationFormSection">
+    <div class="container">
 
-<form method="POST" action="/submit_application" enctype="multipart/form-data" id="applicationForm">
+        <form method="POST" action="/submit_application" enctype="multipart/form-data" id="applicationForm" novalidate>
 
-<!-- PLAN - Nasa header na ito, hidden fields na lang -->
-<div class="form-card-modern" style="display: none;">
-    <input type="hidden" name="plan" value="{{ plan_name }}">
-    <input type="hidden" name="plan_speed" value="{{ plan_speed }}">
-    <input type="hidden" name="plan_price" value="{{ plan_price }}">
-</div>
+            <!-- Hidden fields for plan (nasa header na ang display) -->
+            <input type="hidden" name="plan" value="{{ plan_name }}">
+            <input type="hidden" name="plan_speed" value="{{ plan_speed }}">
+            <input type="hidden" name="plan_price" value="{{ plan_price }}">
 
-<!-- Hidden fields for existing images (re-apply) -->
-<!-- Hidden fields for NAP Box and Location (Re-apply) -->
-{% if is_reapply and form_data %}
-    <!-- Location -->
-    {% if form_data.latitude %}
-        <input type="hidden" name="reapply_latitude" value="{{ form_data.latitude }}">
-    {% endif %}
-    {% if form_data.longitude %}
-        <input type="hidden" name="reapply_longitude" value="{{ form_data.longitude }}">
-    {% endif %}
-    
-    <!-- Preferred NAP Box -->
-    {% if form_data.preferred_napbox_id %}
-        <input type="hidden" name="reapply_preferred_napbox_id" value="{{ form_data.preferred_napbox_id }}">
-    {% endif %}
-    {% if form_data.preferred_napbox_name %}
-        <input type="hidden" name="reapply_preferred_napbox_name" value="{{ form_data.preferred_napbox_name }}">
-    {% endif %}
-    
-    <!-- Assigned NAP Box -->
-    {% if form_data.assigned_napbox_id %}
-        <input type="hidden" name="reapply_assigned_napbox_id" value="{{ form_data.assigned_napbox_id }}">
-    {% endif %}
-    {% if form_data.assigned_napbox_name %}
-        <input type="hidden" name="reapply_assigned_napbox_name" value="{{ form_data.assigned_napbox_name }}">
-    {% endif %}
-{% endif %}
-
-<!-- PROFILE PHOTO UPLOAD -->
-<div class="form-card">
-    <h4 class="section-title">Profile Photo</h4>
-
-    <!-- Profile Photo Guide -->
-    <div class="profile-guide">
-        <i class="fas fa-camera"></i>
-        <span>Upload a clear, recent photo of yourself. White or plain background recommended.</span>
-    </div>
-
-    <!-- Profile Photo Upload Row - Side by Side -->
-    <div class="profile-upload-row">
-        <div class="profile-upload-left">
-            <label class="profile-label">Upload Profile Photo (JPG/PNG)<span class="required-star">*</span></label>
-            <input type="file" id="profile_photo" name="profile_photo" accept="image/png, image/jpeg" class="form-control profile-input">
-            <p class="file-hint">Upload JPG or PNG file. Clear, well-lit photo recommended.</p>
-
-            <!-- Existing image preview (for re-apply) -->
-            {% if is_reapply and form_data and form_data.existing_profile_photo %}
-                <div class="existing-profile">
-                    <label>Current Profile Photo:</label>
-                    <div class="profile-box-small">
-                        <img src="{{ form_data.existing_profile_photo }}" class="profile-img-small">
-                    </div>
-                    <p class="text-muted small">Leave empty to keep current photo, or upload a new one to replace.</p>
-                </div>
+            <!-- Hidden fields for re-apply -->
+            {% if is_reapply and form_data %}
+                {% if form_data.latitude %}
+                    <input type="hidden" name="reapply_latitude" value="{{ form_data.latitude }}">
+                {% endif %}
+                {% if form_data.longitude %}
+                    <input type="hidden" name="reapply_longitude" value="{{ form_data.longitude }}">
+                {% endif %}
+                {% if form_data.preferred_napbox_id %}
+                    <input type="hidden" name="reapply_preferred_napbox_id" value="{{ form_data.preferred_napbox_id }}">
+                {% endif %}
+                {% if form_data.preferred_napbox_name %}
+                    <input type="hidden" name="reapply_preferred_napbox_name" value="{{ form_data.preferred_napbox_name }}">
+                {% endif %}
+                {% if form_data.assigned_napbox_id %}
+                    <input type="hidden" name="reapply_assigned_napbox_id" value="{{ form_data.assigned_napbox_id }}">
+                {% endif %}
+                {% if form_data.assigned_napbox_name %}
+                    <input type="hidden" name="reapply_assigned_napbox_name" value="{{ form_data.assigned_napbox_name }}">
+                {% endif %}
             {% endif %}
-        </div>
 
-        <div class="profile-upload-right">
-            <label class="profile-label">Preview:</label>
-            <div class="profile-preview-box" id="profile-preview-container">
-                <div class="preview-placeholder" id="profile-placeholder">
-                    <i class="fas fa-user-circle"></i>
-                    <p>Profile photo preview will appear here</p>
+            <!-- PROFILE PHOTO -->
+            <div class="form-card-modern">
+                <div class="form-card-header">
+                    <div class="form-card-icon"><i class="fas fa-user-circle"></i></div>
+                    <h4 class="form-card-title">Profile Photo</h4>
                 </div>
-                <img id="preview_profile_photo" class="profile-preview-img" style="display: none;">
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- PERSONAL INFORMATION -->
-<div class="form-card">
-    <h4 class="section-title">Personal Information</h4>
-
-    <!-- ROW 1: First Name, Middle Name, Last Name, Suffix -->
-    <div class="row">
-        <div class="col-md-3">
-            <div class="form-group">
-                <label class="form-label">First Name <span class="required-star">*</span></label>
-                <input class="form-control" name="first_name" required>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="form-group">
-                <label class="form-label">Middle Name <span class="optional-badge">(Optional)</span></label>
-                <input class="form-control" name="middle_name">
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="form-group">
-                <label class="form-label">Last Name <span class="required-star">*</span></label>
-                <input class="form-control" name="last_name" required>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="form-group">
-                <label class="form-label">Suffix <span class="optional-badge">(Optional)</span></label>
-                <input class="form-control" name="suffix" placeholder="e.g., Jr., Sr.">
-            </div>
-        </div>
-    </div>
-
-    <!-- ROW 2: Birthdate, Place of Birth, Citizenship -->
-    <div class="row">
-        <div class="col-md-4">
-            <div class="form-group">
-                <label class="form-label">Birthdate <span class="required-star">*</span></label>
-                <input type="text" id="birthdate" name="birthdate" class="form-control birthdate-auto-format" 
-                    placeholder="MM-DD-YYYY" autocomplete="off" inputmode="numeric" required>
-                <small class="form-hint">Format: Month-Day-Year (e.g., 05-15-1990) • Must be 18 years or older</small>
-                <div class="birthdate-error" id="birthdateError" style="display: none; color: #dc3545; font-size: 12px; margin-top: 5px;"></div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="form-group">
-                <label class="form-label">Place of Birth <span class="required-star">*</span></label>
-                <input class="form-control" name="place_of_birth" required>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="form-group">
-                <label class="form-label">Citizenship <span class="required-star">*</span></label>
-                <input class="form-control" name="citizenship" required>
-            </div>
-        </div>
-    </div>
-
-    <!-- ROW 3: Sex, Civil Status, Occupation -->
-    <div class="row">
-        <div class="col-md-4">
-            <div class="form-group">
-                <label class="form-label">Sex <span class="required-star">*</span></label>
-                <select name="sex" class="form-control" required>
-                    <option value="" disabled selected>Select Sex</option>
-                    <option>Male</option>
-                    <option>Female</option>
-                </select>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="form-group">
-                <label class="form-label">Civil Status <span class="required-star">*</span></label>
-                <select name="civil_status" class="form-control" required>
-                    <option value="" disabled selected>Civil Status</option>
-                    <option>Single</option>
-                    <option>Married</option>
-                    <option>Separated</option>
-                    <option>Widow</option>
-                    <option>Widower</option>
-                </select>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="form-group">
-                <label class="form-label">Occupation <span class="required-star">*</span></label>
-                <input class="form-control" name="occupation" required>
-            </div>
-        </div>
-    </div>
-</div>
-
-
-    <!-- CONTACT -->
-    <div class="form-card">
-        <h4 class="section-title">Contact Details</h4>
-        
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label class="form-label">Email Address <span class="required-star">*</span></label>
-                    <input class="form-control" name="email" placeholder="only @gmail.com or @yahoo.com" required>
-                    <div id="email-duplicate-error" class="error-message" style="display: none;"></div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label class="form-label">Primary Mobile Number <span class="required-star">*</span></label>
-                    <input class="form-control" name="mobile" placeholder="09123456789" required>
-                    <small class="form-hint">11 digits starting with 09</small>
-                </div>
-            </div>
-        </div>
-        
-        <div class="row">
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label class="form-label">Secondary Mobile Number <span class="optional-badge">(Optional)</span></label>
-                    <input class="form-control" name="secondary_mobile">
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="form-group">
-                    <label class="form-label">Phone (Landline) <span class="optional-badge">(Optional)</span></label>
-                    <input class="form-control" name="phone">
-                </div>
-            </div>
-        </div>
-    </div> 
-
-
-
-    <!-- EMPLOYMENT -->
-    <div class="form-card">
-        <h4 class="section-title">Employment Details</h4>
-
-        <div class="form-group">
-            <label class="form-label">Company / Employer <span class="required-star">*</span></label>
-            <input class="form-control" name="employer" required>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">Business Address <span class="required-star">*</span></label>
-            <input class="form-control" name="business_address" required>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">Business Phone <span class="optional-badge">(Optional)</span></label>
-            <input class="form-control" name="business_phone">
-        </div>
-    </div>
-
-
-
-    <!-- SPOUSE -->
-    <div class="form-card" id="spouseInfoCard">
-        <h4 class="section-title">Spouse Information</h4>
-
-        <div class="form-group">
-            <label class="form-label">Name of Spouse 
-                <span class="required-star" id="spouse_name_required" style="display:none;">*</span>
-                <span class="optional-badge" id="spouse_name_optional">(Optional)</span>
-            </label>
-            <input class="form-control" name="spouse_name" id="spouse_name">
-        </div>
-
-    <!--<div class="form-group">
-            <label class="form-label">Occupation 
-                <span class="required-star" id="spouse_occupation_required" style="display:none;">*</span>
-                <span class="optional-badge" id="spouse_occupation_optional">(Optional)</span>
-            </label>
-            <input class="form-control" name="spouse_occupation" id="spouse_occupation">
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">Employer 
-                <span class="required-star" id="spouse_employer_required" style="display:none;">*</span>
-                <span class="optional-badge" id="spouse_employer_optional">(Optional)</span>
-            </label>
-            <input class="form-control" name="spouse_employer" id="spouse_employer">
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">Phone 
-                <span class="required-star" id="spouse_phone_required" style="display:none;">*</span>
-                <span class="optional-badge" id="spouse_phone_optional">(Optional)</span>
-            </label>
-            <input class="form-control" name="spouse_phone" id="spouse_phone">
-        </div>-->
-    </div>
-
-
-
-    <!-- FAMILY -->
-    <div class="form-card">
-        <h4 class="section-title">Family Details</h4>
-
-        <div class="form-group">
-            <label class="form-label">Father's Name <span class="required-star">*</span></label>
-            <input class="form-control" name="father_name" id="father_name" required>
-        </div>
-
-        <div class="form-group">
-            <label class="form-label">Mother's Maiden Name <span class="required-star">*</span></label>
-            <input class="form-control" name="mother_maiden_name" id="mother_maiden_name" required>
-        </div>
-    </div>
-
-
-
-    <!-- SERVICE -->
-    <div class="form-card">
-        <h4 class="section-title">Service Classification</h4>
-
-        <div class="form-group">
-            <label class="form-label">Service Type <span class="required-star">*</span></label>
-            <select name="service_type" class="form-control" required>
-                <option value="" disabled selected>Select Service Classification</option>
-                <option>Residential</option>
-                <option>Business</option>
-            </select>
-        </div>
-    </div>
-
-    <!-- TV DETAILS -->
-    <div class="form-card">
-        <h4 class="section-title">TV Set Details</h4>
-
-        <div id="tv-container"></div>
-
-        <button type="button" onclick="addTV()" class="btn btn-secondary">Add TV</button>
-    </div>
-
-
-
-    <!-- DOCUMENT UPLOADS -->
-    <div class="form-card">
-        <h4 class="section-title">Required Documents</h4>
-
-        <!-- Document Upload Guide -->
-        <div class="document-guide">
-            <i class="fas fa-camera"></i>
-            <div>
-                <strong>Photo Tips for Clear Images:</strong>
-                <ul>
-                    <li>Use good lighting (natural light is best)</li>
-                    <li>Place document on a flat white surface</li>
-                    <li>Hold camera steady and parallel to the document</li>
-                    <li>Make sure all text is readable and not blurred</li>
-                    <li>Avoid shadows and glare</li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- ID FRONT -->
-        <div class="document-upload-row">
-            <div class="document-upload-left">
-                <label class="document-label">Valid ID - Front <span class="required-star">*</span></label>
-                <input type="file" id="id_front" name="id_front" accept="image/png, image/jpeg" class="form-control document-input">
-                <p class="file-hint">Upload JPG or PNG file. Clear, well-lit photo recommended.</p>
-                
-                {% if is_reapply and form_data and form_data.existing_id_front %}
-                    <div class="existing-document">
-                        <label>Current ID Front:</label>
-                        <div class="document-preview-box">
-                            <img src="{{ form_data.existing_id_front }}" class="document-preview-img">
+                <div class="form-card-body">
+                    <div class="profile-guide-modern">
+                        <i class="fas fa-camera"></i>
+                        <span>Upload a clear, recent photo of yourself. White or plain background recommended.</span>
+                    </div>
+                    <div class="profile-upload-grid">
+                        <div class="profile-upload-left">
+                            <label class="form-label-modern">Upload Profile Photo (JPG/PNG) <span class="required-star">*</span></label>
+                            <input type="file" id="profile_photo" name="profile_photo" accept="image/png, image/jpeg" class="form-control-modern">
+                            <p class="file-hint-modern">Upload JPG or PNG file. Make sure na malinaw ang photo.</p>
+                            {% if is_reapply and form_data and form_data.existing_profile_photo %}
+                                <div class="existing-file-modern">
+                                    <label>Current Profile Photo:</label>
+                                    <div class="file-preview-box">
+                                        <img src="{{ form_data.existing_profile_photo }}" class="file-preview-img">
+                                    </div>
+                                    <p class="text-muted small">Leave empty to keep current photo, or upload a new one to replace.</p>
+                                </div>
+                            {% endif %}
                         </div>
-                        <p class="text-muted small">Leave empty to keep current, upload to replace.</p>
-                    </div>
-                {% endif %}
-            </div>
-            
-            <div class="document-upload-right">
-                <div class="preview-box" id="preview-box-front">
-                    <div class="preview-placeholder" id="placeholder-front">
-                        <i class="fas fa-id-card"></i>
-                        <p>ID Front preview</p>
-                    </div>
-                    <img id="preview_id_front" class="preview-img" style="display: none;">
-                </div>
-            </div>
-        </div>
-
-        <!-- ID BACK -->
-        <div class="document-upload-row">
-            <div class="document-upload-left">
-                <label class="document-label">Valid ID - Back <span class="required-star">*</span></label>
-                <input type="file" id="id_back" name="id_back" accept="image/png, image/jpeg" class="form-control document-input">
-                <p class="file-hint">Upload JPG or PNG file. Clear, well-lit photo recommended.</p>
-                
-                {% if is_reapply and form_data and form_data.existing_id_back %}
-                    <div class="existing-document">
-                        <label>Current ID Back:</label>
-                        <div class="document-preview-box">
-                            <img src="{{ form_data.existing_id_back }}" class="document-preview-img">
+                        <div class="profile-upload-right">
+                            <label class="form-label-modern">Preview:</label>
+                            <div class="preview-box-modern" id="profile-preview-container">
+                                <div class="preview-placeholder-modern" id="profile-placeholder">
+                                    <i class="fas fa-user-circle"></i>
+                                    <p>Profile photo preview</p>
+                                </div>
+                                <img id="preview_profile_photo" class="preview-img-modern" style="display: none;">
+                            </div>
                         </div>
-                        <p class="text-muted small">Leave empty to keep current, upload to replace.</p>
                     </div>
-                {% endif %}
-            </div>
-            
-            <div class="document-upload-right">
-                <div class="preview-box" id="preview-box-back">
-                    <div class="preview-placeholder" id="placeholder-back">
-                        <i class="fas fa-id-card"></i>
-                        <p>ID Back preview</p>
-                    </div>
-                    <img id="preview_id_back" class="preview-img" style="display: none;">
                 </div>
             </div>
-        </div>
 
-        <!-- PROOF OF BILLING -->
-        <div class="document-upload-row">
-            <div class="document-upload-left">
-                <label class="document-label">Proof of Billing <span class="required-star">*</span></label>
-                <input type="file" id="proof_billing" name="proof_billing" accept="image/png, image/jpeg" class="form-control document-input">
-                <p class="file-hint">Upload recent utility bill (electricity, water, internet) or bank statement.</p>
-                
-                {% if is_reapply and form_data and form_data.existing_proof_billing %}
-                    <div class="existing-document">
-                        <label>Current Proof of Billing:</label>
-                        <div class="document-preview-box">
-                            <img src="{{ form_data.existing_proof_billing }}" class="document-preview-img">
+            <!-- PERSONAL INFORMATION — 10 equal fields, properly aligned -->
+            <div class="form-card-modern">
+                <div class="form-card-header">
+                    <div class="form-card-icon"><i class="fas fa-id-card"></i></div>
+                    <h4 class="form-card-title">Personal Information</h4>
+                </div>
+                <div class="form-card-body">
+                    <!-- ROW 1: 4 fields (First, Middle, Last, Suffix) — 25% each -->
+                    <div class="row g-3">
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">First Name <span class="required-star">*</span></label>
+                                <input class="form-control-modern" name="first_name" required>
+                            </div>
                         </div>
-                        <p class="text-muted small">Leave empty to keep current, upload to replace.</p>
-                    </div>
-                {% endif %}
-            </div>
-            
-            <div class="document-upload-right">
-                <div class="preview-box" id="preview-box-billing">
-                    <div class="preview-placeholder" id="placeholder-billing">
-                        <i class="fas fa-file-invoice"></i>
-                        <p>Proof of Billing preview</p>
-                    </div>
-                    <img id="preview_billing" class="preview-img" style="display: none;">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- E-SIGNATURE -->
-    <div class="form-card">
-        <h4 class="section-title">E-Signature</h4>
-
-        <div class="signature-guide">
-            <i class="fas fa-info-circle"></i> 
-            <span>Use a white or transparent background. Sign on white paper and take a clear photo.</span>
-        </div>
-
-        <!-- Signature Upload Row - Side by Side -->
-        <div class="signature-upload-row">
-            <div class="signature-upload-left">
-                <label class="signature-label">Upload Signature (JPG/PNG) - White background recommended <span class="required-star">*</span></label>
-                <input type="file" id="signature_upload" name="signature_upload" accept="image/png, image/jpeg" class="form-control signature-input">
-
-                {% if is_reapply and form_data and form_data.existing_signature %}
-                    <div class="current-signature">
-                        <label>Current Signature:</label>
-                        <div class="signature-box-small">
-                            <img src="{{ form_data.existing_signature }}" class="signature-img-small">
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Middle Name <span class="optional-badge">(Optional)</span></label>
+                                <input class="form-control-modern" name="middle_name">
+                            </div>
                         </div>
-                        <p class="text-muted small">Leave empty to keep current signature, or upload a new one to replace.</p>
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Last Name <span class="required-star">*</span></label>
+                                <input class="form-control-modern" name="last_name" required>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Suffix <span class="optional-badge">(Optional)</span></label>
+                                <input class="form-control-modern" name="suffix" placeholder="e.g., Jr., Sr.">
+                            </div>
+                        </div>
                     </div>
-                {% endif %}
-            </div>
 
-            <div class="signature-upload-right">
-                <label class="signature-label">Preview:</label>
-                <div class="signature-preview-box" id="signature-preview-container">
-                    <div class="preview-placeholder" id="signature-placeholder">
-                        <i class="fas fa-signature"></i>
-                        <p>Signature preview will appear here</p>
+                    <!-- ROW 2: 3 fields (Birthdate, Place, Citizenship) — centered, 33.33% each -->
+                    <div class="row g-3 mt-1 justify-content-center">
+                        <div class="col-12 col-sm-6 col-md-4">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Birthdate <span class="required-star">*</span></label>
+                                <input type="text" id="birthdate" name="birthdate" class="form-control-modern birthdate-auto-format" 
+                                    placeholder="MM-DD-YYYY" autocomplete="off" inputmode="numeric" required>
+                                <small class="form-hint-modern">Format: Month-Day-Year (e.g., 05-15-1990) • Must be 18 years or older</small>
+                                <div class="birthdate-error" id="birthdateError" style="display: none; color: #dc3545; font-size: 12px; margin-top: 5px;"></div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-md-4">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Place of Birth <span class="required-star">*</span></label>
+                                <input class="form-control-modern" name="place_of_birth" required>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-md-4">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Citizenship <span class="required-star">*</span></label>
+                                <input class="form-control-modern" name="citizenship" required>
+                            </div>
+                        </div>
                     </div>
-                    <img id="signature-preview" class="signature-preview-img" style="display: none;">
-                </div>
-            </div>
-        </div>
 
-        <input type="hidden" name="signature_drawn" id="signature_drawn">
-    </div>
-
-
-
-    <!-- ADDRESS -->
-    <div class="form-card">
-        <h4 class="section-title">Installation Address</h4>
-        
-        <div class="row">
-            <div class="col-md-3">
-                <div class="form-group">
-                    <label class="form-label">Province <span class="required-star">*</span></label>
-                    <select class="form-control" id="province" name="province" required>
-                        <option value="">Select Province</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="col-md-3">
-                <div class="form-group">
-                    <label class="form-label">Municipality <span class="required-star">*</span></label>
-                    <select class="form-control" id="city" name="city" required>
-                        <option value="">Select Municipality</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="col-md-3">
-                <div class="form-group">
-                    <label class="form-label">Barangay <span class="required-star">*</span></label>
-                    <select class="form-control" id="barangay" name="barangay" required>
-                        <option value="">Select Barangay</option>
-                    </select>
+                    <!-- ROW 3: 3 fields (Sex, Civil Status, Occupation) — centered, 33.33% each -->
+                    <div class="row g-3 mt-1 justify-content-center">
+                        <div class="col-12 col-sm-6 col-md-4">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Sex <span class="required-star">*</span></label>
+                                <select name="sex" class="form-control-modern" required>
+                                    <option value="" disabled selected>Select Sex</option>
+                                    <option>Male</option>
+                                    <option>Female</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-md-4">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Civil Status <span class="required-star">*</span></label>
+                                <select name="civil_status" class="form-control-modern" required>
+                                    <option value="" disabled selected>Civil Status</option>
+                                    <option>Single</option>
+                                    <option>Married</option>
+                                    <option>Separated</option>
+                                    <option>Widow</option>
+                                    <option>Widower</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-md-4">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Occupation <span class="required-star">*</span></label>
+                                <input class="form-control-modern" name="occupation" required>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <div class="col-md-3">
-                <div class="form-group">
-                    <label class="form-label">Zip Code <span class="required-star">*</span></label>
-                    <input class="form-control" name="zip" id="zip" readonly>
+            <!-- CONTACT -->
+            <div class="form-card-modern">
+                <div class="form-card-header">
+                    <div class="form-card-icon"><i class="fas fa-envelope"></i></div>
+                    <h4 class="form-card-title">Contact Details</h4>
+                </div>
+                <div class="form-card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Email Address <span class="required-star">*</span></label>
+                                <input class="form-control-modern" name="email" placeholder="only @gmail.com or @yahoo.com" required>
+                                <div id="email-duplicate-error" class="error-message" style="display: none;"></div>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Primary Mobile Number <span class="required-star">*</span></label>
+                                <input class="form-control-modern" name="mobile" placeholder="09123456789" required>
+                                <small class="form-hint-modern">11 digits starting with 09</small>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-1">
+                        <div class="col-12 col-md-6">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Secondary Mobile Number <span class="optional-badge">(Optional)</span></label>
+                                <input class="form-control-modern" name="secondary_mobile">
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Phone (Landline) <span class="optional-badge">(Optional)</span></label>
+                                <input class="form-control-modern" name="phone">
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="row">
-            <div class="col-md-3">
-                <div class="form-group">
-                    <label class="form-label">Street / Village <span class="optional-badge">(Optional)</span></label>
-                    <input class="form-control" name="address">
+            <!-- EMPLOYMENT -->
+            <div class="form-card-modern">
+                <div class="form-card-header">
+                    <div class="form-card-icon"><i class="fas fa-briefcase"></i></div>
+                    <h4 class="form-card-title">Employment Details</h4>
+                </div>
+                <div class="form-card-body">
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Company / Employer <span class="required-star">*</span></label>
+                        <input class="form-control-modern" name="employer" required>
+                    </div>
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Business Address <span class="required-star">*</span></label>
+                        <input class="form-control-modern" name="business_address" required>
+                    </div>
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Business Phone <span class="optional-badge">(Optional)</span></label>
+                        <input class="form-control-modern" name="business_phone">
+                    </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="form-group">
-                    <label class="form-label">House Number <span class="optional-badge">(Optional)</span></label>
-                    <input class="form-control" name="house_number">
+
+            <!-- SPOUSE -->
+            <div class="form-card-modern" id="spouseInfoCard">
+                <div class="form-card-header">
+                    <div class="form-card-icon"><i class="fas fa-user-friends"></i></div>
+                    <h4 class="form-card-title">Spouse Information</h4>
+                </div>
+                <div class="form-card-body">
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Name of Spouse 
+                            <span class="required-star" id="spouse_name_required" style="display:none;">*</span>
+                            <span class="optional-badge" id="spouse_name_optional">(Optional)</span>
+                        </label>
+                        <input class="form-control-modern" name="spouse_name" id="spouse_name">
+                    </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="form-group">
-                    <label class="form-label">Home Ownership <span class="required-star">*</span></label>
-                    <select name="home_ownership" class="form-control" required>
-                        <option value="" disabled selected>Home Ownership</option>
-                        <option>Owned</option>
-                        <option>Rental</option>
-                    </select>
+
+            <!-- FAMILY -->
+            <div class="form-card-modern">
+                <div class="form-card-header">
+                    <div class="form-card-icon"><i class="fas fa-users"></i></div>
+                    <h4 class="form-card-title">Family Details</h4>
+                </div>
+                <div class="form-card-body">
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Father's Name <span class="required-star">*</span></label>
+                        <input class="form-control-modern" name="father_name" id="father_name" required>
+                    </div>
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Mother's Maiden Name <span class="required-star">*</span></label>
+                        <input class="form-control-modern" name="mother_maiden_name" id="mother_maiden_name" required>
+                    </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="form-group">
-                    <label class="form-label">Nearest Landmark <span class="required-star">*</span></label>
-                    <input class="form-control" name="landmark" required>
+
+            <!-- SERVICE -->
+            <div class="form-card-modern">
+                <div class="form-card-header">
+                    <div class="form-card-icon"><i class="fas fa-tag"></i></div>
+                    <h4 class="form-card-title">Service Classification</h4>
+                </div>
+                <div class="form-card-body">
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Service Type <span class="required-star">*</span></label>
+                        <select name="service_type" class="form-control-modern" required>
+                            <option value="" disabled selected>Select Service Classification</option>
+                            <option>Residential</option>
+                            <option>Business</option>
+                        </select>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="row">
-            <div class="col-md-12">
-                <div class="form-group">
-                    <label class="form-label">Billing Address <span class="required-star">*</span></label>
-                    <input class="form-control" name="billing_address" required>
+            <!-- TV DETAILS -->
+            <div class="form-card-modern">
+                <div class="form-card-header">
+                    <div class="form-card-icon"><i class="fas fa-tv"></i></div>
+                    <h4 class="form-card-title">TV Set Details</h4>
+                </div>
+                <div class="form-card-body">
+                    <div id="tv-container"></div>
+                    <button type="button" onclick="addTV()" class="btn-secondary-modern">Add TV</button>
                 </div>
             </div>
-        </div>
-    </div>
 
- <div class="form-card">
-    <!-- MAP -->
-    <h4 class="section-title mt-3">
-        <i class="fas fa-map-marker-alt"></i> Pin Your Location <span class="required-star">*</span>
-    </h4>
+            <!-- DOCUMENT UPLOADS -->
+            <div class="form-card-modern">
+                <div class="form-card-header">
+                    <div class="form-card-icon"><i class="fas fa-file-alt"></i></div>
+                    <h4 class="form-card-title">Required Documents</h4>
+                </div>
+                <div class="form-card-body">
+                    <div class="document-guide-modern">
+                        <i class="fas fa-camera"></i>
+                        <div>
+                            <strong>Photo Tips for Clear Images:</strong>
+                            <ul style="margin: 6px 0 0 18px; font-size: 0.85rem;">
+                                <li>Use good lighting (natural light is best)</li>
+                                <li>Place document on a flat white surface</li>
+                                <li>Hold camera steady and parallel to the document</li>
+                                <li>Make sure all text is readable and not blurred</li>
+                                <li>Avoid shadows and glare</li>
+                            </ul>
+                        </div>
+                    </div>
 
-    <!-- BULLET INSTRUCTION - ENGLISH (UPDATED) -->
-    <ul class="pin-instruction">
-        <li>First, select your <strong>Province → Municipality → Barangay</strong> above.</li>
-        <li>Once you select the <strong>Municipality</strong>, you will see the <strong>boundary</strong> on the map.</li>
-        <li>After selecting your <strong>Barangay</strong>, you can now pin your location.</li>
-    </ul>
+                    <!-- ID FRONT -->
+                    <div class="document-upload-grid">
+                        <div class="document-upload-left">
+                            <label class="form-label-modern">Valid ID - Front <span class="required-star">*</span></label>
+                            <input type="file" id="id_front" name="id_front" accept="image/png, image/jpeg" class="form-control-modern">
+                            <p class="file-hint-modern">Upload JPG or PNG file. Make sure na sakop ng picture yung buong id.</p>
+                            {% if is_reapply and form_data and form_data.existing_id_front %}
+                                <div class="existing-file-modern">
+                                    <label>Current ID Front:</label>
+                                    <div class="file-preview-box">
+                                        <img src="{{ form_data.existing_id_front }}" class="file-preview-img">
+                                    </div>
+                                    <p class="text-muted small">Leave empty to keep current, upload to replace.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="document-upload-right">
+                            <label class="form-label-modern">Preview:</label>
+                            <div class="document-preview-box-modern" id="preview-box-front">
+                                <div class="preview-placeholder-modern" id="placeholder-front">
+                                    <i class="fas fa-id-card"></i>
+                                    <p>ID Front preview</p>
+                                </div>
+                                <img id="preview_id_front" class="document-preview-img-modern" style="display: none;">
+                            </div>
+                        </div>
+                    </div>
 
-    <!-- BULLET INSTRUCTION - TAGALOG (UPDATED) -->
-    <ul class="pin-instruction tagalog">
-        <li>Una, piliin ang <strong>Province → Municipality → Barangay</strong> sa itaas.</li>
-        <li>Kapag napili na ang <strong>Municipality</strong>, makikita ang <strong>boundary</strong> sa mapa.</li>
-        <li>Pagkatapos mapili ang <strong>Barangay</strong>, pwede ka nang i-pin ang lokasyon.</li>
-    
-    </ul>
+                    <!-- ID BACK -->
+                    <div class="document-upload-grid" style="margin-top: 20px;">
+                        <div class="document-upload-left">
+                            <label class="form-label-modern">Valid ID - Back <span class="required-star">*</span></label>
+                            <input type="file" id="id_back" name="id_back" accept="image/png, image/jpeg" class="form-control-modern">
+                            <p class="file-hint-modern">Upload JPG or PNG file. Make sure na sakop ng picture yung buong id.</p>
+                            {% if is_reapply and form_data and form_data.existing_id_back %}
+                                <div class="existing-file-modern">
+                                    <label>Current ID Back:</label>
+                                    <div class="file-preview-box">
+                                        <img src="{{ form_data.existing_id_back }}" class="file-preview-img">
+                                    </div>
+                                    <p class="text-muted small">Leave empty to keep current, upload to replace.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="document-upload-right">
+                            <label class="form-label-modern">Preview:</label>
+                            <div class="document-preview-box-modern" id="preview-box-back">
+                                <div class="preview-placeholder-modern" id="placeholder-back">
+                                    <i class="fas fa-id-card"></i>
+                                    <p>ID Back preview</p>
+                                </div>
+                                <img id="preview_id_back" class="document-preview-img-modern" style="display: none;">
+                            </div>
+                        </div>
+                    </div>
 
-    <div id="map"></div>
+                    <!-- PROOF OF BILLING -->
+                    <div class="document-upload-grid" style="margin-top: 20px;">
+                        <div class="document-upload-left">
+                            <label class="form-label-modern">Proof of Billing <span class="required-star">*</span></label>
+                            <input type="file" id="proof_billing" name="proof_billing" accept="image/png, image/jpeg" class="form-control-modern">
+                            <p class="file-hint-modern">Upload recent utility bill (electricity, water, internet). Make sure na sakop ng picture yung buong proof of billing.</p>
+                            {% if is_reapply and form_data and form_data.existing_proof_billing %}
+                                <div class="existing-file-modern">
+                                    <label>Current Proof of Billing:</label>
+                                    <div class="file-preview-box">
+                                        <img src="{{ form_data.existing_proof_billing }}" class="file-preview-img">
+                                    </div>
+                                    <p class="text-muted small">Leave empty to keep current, upload to replace.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="document-upload-right">
+                            <label class="form-label-modern">Preview:</label>
+                            <div class="document-preview-box-modern" id="preview-box-billing">
+                                <div class="preview-placeholder-modern" id="placeholder-billing">
+                                    <i class="fas fa-file-invoice"></i>
+                                    <p>Proof of Billing preview</p>
+                                </div>
+                                <img id="preview_billing" class="document-preview-img-modern" style="display: none;">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
-    <!-- HIDDEN FIELDS - IDAGDAG ANG preferred_napbox_id AT preferred_napbox_name -->
-    <input type="hidden" name="latitude" id="latitude">
-    <input type="hidden" name="longitude" id="longitude">
-    <input type="hidden" name="assigned_napbox_id" id="assigned_napbox_id">
-    <input type="hidden" name="assigned_napbox_name" id="assigned_napbox_name">
-    
-    <!-- BAGONG HIDDEN FIELDS PARA SA PREFERRED NAP BOX -->
-    <input type="hidden" name="preferred_napbox_id" id="preferred_napbox_id">
-    <input type="hidden" name="preferred_napbox_name" id="preferred_napbox_name">
+            <!-- E-SIGNATURE -->
+            <div class="form-card-modern">
+                <div class="form-card-header">
+                    <div class="form-card-icon"><i class="fas fa-pen"></i></div>
+                    <h4 class="form-card-title">E-Signature</h4>
+                </div>
+                <div class="form-card-body">
+                <div class="signature-guide-modern">
+                    <i class="fas fa-info-circle"></i> 
+                    <span>Use a white or transparent background. Sign on white paper and take a clear photo.</span>
+                </div>
 
-    <!-- MAP BUTTONS -->
-    <div style="display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap;">
-        <button type="button" id="returnToLocationBtn" onclick="returnToCurrentLocation()" 
-            style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; border: 1px solid #ced4da; 
-                background: #fff; color: #333; font-size: 14px; cursor: pointer;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2a8 8 0 0 0-8 8c0 4 8 12 8 12s8-8 8-12a8 8 0 0 0-8-8z"/>
-                <circle cx="12" cy="10" r="3"/>
-            </svg>
-            Return to Current Location
-        </button>
+                <div class="signature-sample-modern" style="text-align:center; margin: 14px 0 18px;">
+                    <label class="form-label-modern" style="display:block; margin-bottom: 8px;">
+                        Example / Sample Format:
+                    </label>
+                    <img src="{{ url_for('static', filename='samplesignature.png') }}"
+                         alt="Sample signature format"
+                         style="max-width: 320px; width: 100%; border: 1px solid #dce3ef; border-radius: 10px; padding: 10px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                    <p class="text-muted small" style="margin-top: 6px;">
+                        Sample lang ito ng tamang format ng signature — white background, malinaw, walang shadow.
+                    </p>
+                </div>
+                    <div class="profile-upload-grid">
+                        <div class="profile-upload-left">
+                            <label class="form-label-modern">Upload Signature (JPG/PNG) - White background recommended <span class="required-star">*</span></label>
+                            <input type="file" id="signature_upload" name="signature_upload" accept="image/png, image/jpeg" class="form-control-modern">
+                            {% if is_reapply and form_data and form_data.existing_signature %}
+                                <div class="existing-file-modern">
+                                    <label>Current Signature:</label>
+                                    <div class="file-preview-box">
+                                        <img src="{{ url_for('static', filename='samplesignature.png') }}" class="file-preview-img">
+                                    </div>
+                                    <p class="text-muted small">Leave empty to keep current signature, or upload a new one to replace.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="profile-upload-right">
+                            <label class="form-label-modern">Preview:</label>
+                            <div class="preview-box-modern" id="signature-preview-container">
+                                <div class="preview-placeholder-modern" id="signature-placeholder">
+                                    <i class="fas fa-signature"></i>
+                                    <p>Signature preview</p>
+                                </div>
+                                <img id="signature-preview" class="preview-img-modern" style="display: none;">
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" name="signature_drawn" id="signature_drawn">
+                </div>
+            </div>
 
-        <button type="button" id="returnToPinBtn" onclick="returnToPinLocation()" 
-            style="display: flex; align-items: center; gap: 8px; padding: 8px 16px; border-radius: 8px; border: 1px solid #ced4da; 
-                background: #fff; color: #333; font-size: 14px; cursor: pointer; opacity: 0.5; pointer-events: none;">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2a8 8 0 0 0-8 8c0 4 8 12 8 12s8-8 8-12a8 8 0 0 0-8-8z"/>
-                <circle cx="12" cy="10" r="3"/>
-            </svg>
-            Return to My Pin Location
-        </button>
-    </div>
-</div>
+            <!-- ADDRESS -->
+            <div class="form-card-modern">
+                <div class="form-card-header">
+                    <div class="form-card-icon"><i class="fas fa-map-pin"></i></div>
+                    <h4 class="form-card-title">Installation Address</h4>
+                </div>
+                <div class="form-card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Province <span class="required-star">*</span></label>
+                                <select class="form-control-modern" id="province" name="province" required>
+                                    <option value="">Select Province</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Municipality <span class="required-star">*</span></label>
+                                <select class="form-control-modern" id="city" name="city" required>
+                                    <option value="">Select Municipality</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Barangay <span class="required-star">*</span></label>
+                                <select class="form-control-modern" id="barangay" name="barangay" required>
+                                    <option value="">Select Barangay</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Zip Code <span class="required-star">*</span></label>
+                                <input class="form-control-modern" name="zip" id="zip" readonly>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-1">
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Street / Village <span class="optional-badge">(Optional)</span></label>
+                                <input class="form-control-modern" name="address">
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">House Number <span class="optional-badge">(Optional)</span></label>
+                                <input class="form-control-modern" name="house_number">
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Home Ownership <span class="required-star">*</span></label>
+                                <select name="home_ownership" class="form-control-modern" required>
+                                    <option value="" disabled selected>Home Ownership</option>
+                                    <option>Owned</option>
+                                    <option>Rental</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Nearest Landmark <span class="required-star">*</span></label>
+                                <input class="form-control-modern" name="landmark" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-1">
+                        <div class="col-12">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Billing Address <span class="required-star">*</span></label>
+                                <input class="form-control-modern" name="billing_address" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
+            <!-- MAP -->
+            <div class="form-card-modern">
+                <div class="form-card-header">
+                    <div class="form-card-icon"><i class="fas fa-map-marker-alt"></i></div>
+                    <h4 class="form-card-title">Pin Your Location <span class="required-star">*</span></h4>
+                </div>
+                <div class="form-card-body">
+                    <ul class="pin-instruction" style="padding-left:20px; font-size:0.9rem;">
+                        <li>First, select your <strong>Province → Municipality → Barangay</strong> above.</li>
+                        <li>Once you select the <strong>Municipality</strong>, you will see the <strong>boundary</strong> on the map.</li>
+                        <li>After selecting your <strong>Barangay</strong>, you can now pin your location.</li>
+                    </ul>
+                    <ul class="pin-instruction tagalog" style="padding-left:20px; font-size:0.9rem; color:#4b5563;">
+                        <li>Una, piliin ang <strong>Province → Municipality → Barangay</strong> sa itaas.</li>
+                        <li>Kapag napili na ang <strong>Municipality</strong>, makikita ang <strong>boundary</strong> sa mapa.</li>
+                        <li>Pagkatapos mapili ang <strong>Barangay</strong>, pwede ka nang i-pin ang lokasyon.</li>
+                    </ul>
+                    <div id="map"></div>
 
-    <!-- INSTALLATION DETAILS -->
-    <div class="form-card">
-        <h4 class="section-title">Installation Details</h4>
+                    <input type="hidden" name="latitude" id="latitude">
+                    <input type="hidden" name="longitude" id="longitude">
+                    <input type="hidden" name="assigned_napbox_id" id="assigned_napbox_id">
+                    <input type="hidden" name="assigned_napbox_name" id="assigned_napbox_name">
+                    <input type="hidden" name="preferred_napbox_id" id="preferred_napbox_id">
+                    <input type="hidden" name="preferred_napbox_name" id="preferred_napbox_name">
 
-        <div class="form-group">
-            <label class="form-label">Complete Installation Address <span class="required-star">*</span></label>
-            <input class="form-control" name="installation_address" id="installation_address" readonly style="background-color: #f8f9fa;">
-        </div>
+                    <div style="display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap;">
+                        <button type="button" id="returnToLocationBtn" onclick="returnToCurrentLocation()" 
+                            style="display: flex; align-items: center; gap: 8px; padding: 8px 18px; border-radius: 30px; border: 1px solid #dce3ef; 
+                                background: #fff; color: #0a1a3a; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.2s;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2a8 8 0 0 0-8 8c0 4 8 12 8 12s8-8 8-12a8 8 0 0 0-8-8z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                            Return to Current Location
+                        </button>
+                        <button type="button" id="returnToPinBtn" onclick="returnToPinLocation()" 
+                            style="display: flex; align-items: center; gap: 8px; padding: 8px 18px; border-radius: 30px; border: 1px solid #dce3ef; 
+                                background: #fff; color: #0a1a3a; font-size: 0.9rem; font-weight: 500; cursor: pointer; opacity: 0.5; pointer-events: none; transition: all 0.2s;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2a8 8 0 0 0-8 8c0 4 8 12 8 12s8-8 8-12a8 8 0 0 0-8-8z"/>
+                                <circle cx="12" cy="10" r="3"/>
+                            </svg>
+                            Return to My Pin Location
+                        </button>
+                    </div>
+                </div>
+            </div>
 
-        <div class="form-group">
-            <label class="form-label">Installation Phone <span class="required-star">*</span></label>
-            <input class="form-control" name="installation_phone" placeholder="09123456789" required>
-            <small class="form-hint">11 digits starting with 09</small>
-        </div>
+            <!-- INSTALLATION DETAILS -->
+            <div class="form-card-modern">
+                <div class="form-card-header">
+                    <div class="form-card-icon"><i class="fas fa-tools"></i></div>
+                    <h4 class="form-card-title">Installation Details</h4>
+                </div>
+                <div class="form-card-body">
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Complete Installation Address <span class="required-star">*</span></label>
+                        <input class="form-control-modern" name="installation_address" id="installation_address" readonly style="background-color: #f8f9fa;">
+                    </div>
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Installation Phone <span class="required-star">*</span></label>
+                        <input class="form-control-modern" name="installation_phone" placeholder="09123456789" required>
+                        <small class="form-hint-modern">11 digits starting with 09</small>
+                    </div>
+                    <div class="form-group-modern">
+                        <label class="form-label-modern">Installation Fee Option <span class="required-star">*</span></label>
+                        <select name="installation_fee" class="form-control-modern" required>
+                            <option value="" disabled selected>Select Installation Fee Option</option>
+                            <option value="Cash">Cash (Full payment upon installation)</option>
+                            <option value="Installment - 3 Months">Installment - 3 Months</option>
+                            <option value="Installment - 6 Months">Installment - 6 Months</option>
+                            <option value="Installment - 9 Months">Installment - 9 Months</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
 
-        <div class="form-group">
-            <label class="form-label">Installation Fee Option <span class="required-star">*</span></label>
-            <select name="installation_fee" class="form-control" required>
-                <option value="" disabled selected>Select Installation Fee Option</option>
-                <option value="Cash">Cash (Full payment upon installation)</option>
-                <option value="Installment - 3 Months">Installment - 3 Months</option>
-                <option value="Installment - 6 Months">Installment - 6 Months</option>
-                <option value="Installment - 9 Months">Installment - 9 Months</option>
-            </select>
-        </div>
-    </div>
-
-
-
-    <div class="form-card">
+  <div class="form-card">
         <div class="terms-container">
             <div class="terms-checkbox-wrapper">
                 <input type="checkbox" id="termsCheckbox" class="terms-checkbox" disabled>
@@ -766,6 +689,7 @@ HERO HEADER — LARGE, WITH cv office.jpg, NO NAVBAR
 
 </form>
 </div>
+
 
 <!-- FLOATING TERMS MODAL -->
 <div id="termsModal" class="floating-modal">
@@ -6236,9 +6160,17 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
                 
                 setTimeout(() => {
                     const form = document.getElementById('applicationForm');
-                    if (form) {
+                    if (form && typeof form.submit === 'function') {
                         closeModal();
                         form.submit();
+                    } else {
+                        console.error('applicationForm element not found or is not a form:', form);
+                        closeModal();
+                        showAlertModal('May naganap na error. Pakisubukan muli o i-refresh ang page.');
+                        if (verifyBtn) {
+                            verifyBtn.disabled = false;
+                            verifyBtn.textContent = 'Verify & Submit';
+                        }
                     }
                 }, 1000);
             } else {
@@ -6310,6 +6242,16 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
         clearCodeDigits();
         errorDiv.style.display = 'none';
         successDiv.style.display = 'none';
+
+        // I-reset ang button state kada magbukas ng modal
+        if (verifyBtn) {
+            verifyBtn.disabled = false;
+            verifyBtn.textContent = 'Verify & Submit';
+        }
+        if (resendBtn) {
+            resendBtn.disabled = false;
+            resendBtn.textContent = 'Resend Code';
+        }
         
         modal.style.display = 'block';
         document.body.style.overflow = 'hidden';
