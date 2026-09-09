@@ -6067,22 +6067,11 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
                     verificationTimer = null;
                 }
                 
-                // ================= FIXED: SUBMIT FORM =================
                 setTimeout(() => {
                     const form = document.getElementById('applicationForm');
                     if (form) {
-                        console.log('✅ Email verified! Submitting form...');
-                        try {
-                            closeModal();
-                            // Use native submit to bypass event listeners
-                            HTMLFormElement.prototype.submit.call(form);
-                        } catch (err) {
-                            console.error('❌ Submit error:', err);
-                            showToast('Error submitting form. Please try again.', 'error');
-                        }
-                    } else {
-                        console.error('❌ Form not found!');
-                        showToast('Form not found. Please refresh and try again.', 'error');
+                        closeModal();
+                        form.submit();
                     }
                 }, 1000);
             } else {
