@@ -5982,7 +5982,7 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
 // ================= EMAIL VERIFICATION SYSTEM (UPDATED - CENTERED) =================
 (function() {
     let verificationTimer = null;
-    let timeLeft = 300; // 5 minutes in seconds
+    let timeLeft = 300;
     let isVerified = false;
     let currentEmail = '';
     
@@ -5997,7 +5997,6 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
     const step1 = document.getElementById('verificationStep1');
     const step2 = document.getElementById('verificationStep2');
     
-    // Code digit inputs
     const digits = [
         document.getElementById('codeDigit1'),
         document.getElementById('codeDigit2'),
@@ -6007,11 +6006,9 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
         document.getElementById('codeDigit6')
     ];
     
-    // Auto-tab between digits
     function setupCodeDigits() {
         digits.forEach((digit, index) => {
             if (!digit) return;
-            
             digit.addEventListener('input', function(e) {
                 if (this.value.length === 1) {
                     if (index < 5 && digits[index + 1]) {
@@ -6019,7 +6016,6 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
                     }
                 }
             });
-            
             digit.addEventListener('keydown', function(e) {
                 if (e.key === 'Backspace' && this.value.length === 0) {
                     if (index > 0 && digits[index - 1]) {
@@ -6030,7 +6026,6 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
         });
     }
     
-    // Get full code from digits
     function getFullCode() {
         let code = '';
         for (let i = 0; i < digits.length; i++) {
@@ -6041,7 +6036,6 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
         return code;
     }
     
-    // Clear code digits
     function clearCodeDigits() {
         digits.forEach(digit => {
             if (digit) digit.value = '';
@@ -6049,12 +6043,10 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
         if (digits[0]) digits[0].focus();
     }
     
-    // Update timer display
     function updateTimerDisplay() {
         const minutes = Math.floor(timeLeft / 60);
         const seconds = timeLeft % 60;
         timerDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-        
         if (timeLeft <= 60) {
             timerDisplay.style.color = '#dc2626';
         } else {
@@ -6062,31 +6054,25 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
         }
     }
     
-    // Start countdown timer – resend button stays disabled until timer expires
     function startTimer() {
         if (verificationTimer) clearInterval(verificationTimer);
-        
         timeLeft = 300;
         updateTimerDisplay();
-        
         if (resendBtn) {
             resendBtn.disabled = true;
             resendBtn.textContent = 'Resend Code';
         }
-        
         verificationTimer = setInterval(() => {
             if (timeLeft <= 1) {
                 clearInterval(verificationTimer);
                 verificationTimer = null;
                 timeLeft = 0;
                 updateTimerDisplay();
-                
                 if (verifyBtn) verifyBtn.disabled = true;
                 if (resendBtn) {
                     resendBtn.disabled = false;
                     resendBtn.textContent = 'Resend Code';
                 }
-                
                 errorDiv.style.display = 'block';
                 errorDiv.textContent = 'Verification code has expired. Please click "Resend Code" to get a new one.';
             } else {
@@ -6096,7 +6082,6 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
         }, 1000);
     }
     
-    // Send verification code (with re-apply flags)
     async function sendVerificationCode(email, isResend = false) {
         try {
             if (verifyBtn) verifyBtn.disabled = true;
@@ -6104,11 +6089,9 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
                 resendBtn.disabled = true;
                 resendBtn.textContent = 'Sending...';
             }
-            
             errorDiv.style.display = 'none';
             successDiv.style.display = 'none';
             
-            // Include re-apply information in the request
             const requestBody = {
                 email: email,
                 is_reapply: window.isReapplyGlobal || false,
@@ -6150,7 +6133,7 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
         }
     }
     
-    // Verify code
+    // ========== VERIFY CODE - NAAYOS NA ==========
     async function verifyCode() {
         if (!currentEmail) {
             errorDiv.style.display = 'block';
@@ -6193,13 +6176,21 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
                     verificationTimer = null;
                 }
                 
+                // ========== CRITICAL FIX: SUBMIT FORM AFTER VERIFICATION ==========
                 setTimeout(() => {
                     const form = document.getElementById('applicationForm');
                     if (form) {
-                        closeModal();
+                        // Isara ang modal
+                        modal.style.display = 'none';
+                        document.body.style.overflow = '';
+                        // I-submit ang form
                         form.submit();
+                    } else {
+                        console.error('Form not found!');
+                        showToast('Error submitting form. Please try again.', 'error');
                     }
-                }, 1000);
+                }, 800);
+                
             } else {
                 errorDiv.style.display = 'block';
                 errorDiv.textContent = data.message || 'Invalid verification code. Please try again.';
@@ -6227,11 +6218,11 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
         }
     }
     
-    // Show modal with flexbox centering
+    // ========== SHOW MODAL ==========
     async function showEmailVerification() {
         const emailInput = document.querySelector('input[name="email"]');
         if (!emailInput || !emailInput.value) {
-            alert('Please enter your email address first.');
+            showToast('Please enter your email address first.', 'error');
             emailInput.focus();
             return false;
         }
@@ -6246,7 +6237,6 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
         errorDiv.style.display = 'none';
         successDiv.style.display = 'none';
         
-        // Remove any leftover inline styles that might break centering
         const modalContent = document.querySelector('.email-verification-modal-content');
         if (modalContent) {
             modalContent.style.top = '';
@@ -6259,7 +6249,6 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
         modal.style.display = 'flex';
         document.body.style.overflow = 'hidden';
         
-        // Focus on first digit after a short delay
         setTimeout(() => {
             if (digits[0]) digits[0].focus();
         }, 100);
@@ -6267,15 +6256,15 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
         await sendVerificationCode(currentEmail, false);
         return true;
     }
-
-    // Close modal
+    
+    // ========== CLOSE MODAL ==========
     function closeModal() {
         modal.style.display = 'none';
         document.body.style.overflow = '';
         if (verificationTimer) clearInterval(verificationTimer);
     }
     
-    // Resend code
+    // ========== RESEND CODE ==========
     async function resendCode() {
         if (!currentEmail) return;
         if (verificationTimer) clearInterval(verificationTimer);
@@ -6285,7 +6274,7 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
         await sendVerificationCode(currentEmail, true);
     }
     
-    // Event listeners
+    // ========== EVENT LISTENERS ==========
     if (closeBtn) closeBtn.addEventListener('click', closeModal);
     if (resendBtn) resendBtn.addEventListener('click', resendCode);
     if (verifyBtn) verifyBtn.addEventListener('click', verifyCode);
@@ -6298,8 +6287,11 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
     
     setupCodeDigits();
     
+    // ========== FORM SUBMIT HANDLER - NAAYOS NA ==========
     const form = document.getElementById('applicationForm');
     if (form) {
+        // I-remove ang existing listeners para maiwasan ang duplication
+        // (gumamit ng bagong listener na hindi na-prevent ang default)
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
             e.stopPropagation();
@@ -6308,7 +6300,7 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
             const latitude = document.getElementById("latitude").value;
             const longitude = document.getElementById("longitude").value;
             const hasPinnedLocation = Boolean(latitude && longitude);
-
+            
             if (!hasPinnedLocation) {
                 showToast("Please pin your location on the map. The pin must be within the selected barangay.", "error");
                 const mapElement = document.getElementById('map');
@@ -6344,7 +6336,7 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
             // Check email duplicate
             const dupErrorDiv = document.getElementById('email-duplicate-error');
             if (dupErrorDiv && dupErrorDiv.style.display === 'block') {
-                alert('This email is already used. Please use a different email or re-apply.');
+                showToast('This email is already used. Please use a different email or re-apply.', 'error');
                 document.querySelector('input[name="email"]').focus();
                 return false;
             }
@@ -6352,7 +6344,10 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
             // Validate required fields
             if (typeof validateAllRequiredFields === 'function') {
                 const isValid = validateAllRequiredFields();
-                if (!isValid) return false;
+                if (!isValid) {
+                    showToast('Please complete all required fields.', 'error');
+                    return false;
+                }
             } else {
                 const requiredFields = ['first_name', 'last_name', 'email', 'mobile'];
                 let allValid = true;
@@ -6364,7 +6359,7 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
                     }
                 });
                 if (!allValid) {
-                    alert('Please fill in all required fields.');
+                    showToast('Please fill in all required fields.', 'error');
                     return false;
                 }
             }
@@ -6372,7 +6367,7 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
             // Show email verification modal
             await showEmailVerification();
             return false;
-        });
+        }, true); // Use capture to ensure it runs before other listeners
     }
 })();
 
