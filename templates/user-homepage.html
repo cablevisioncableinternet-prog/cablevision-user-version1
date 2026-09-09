@@ -209,7 +209,7 @@
                 </button>
 
                 <div class="horizontal-gallery-wrapper" id="galleryWrapper">
-                    <div class="gallery-track-modern" id="imageGalleryTrack">
+                    <div class="gallery-track-one-row infinite-scroll" id="imageGalleryTrack">
                         <!-- DYNAMIC: Populated by JavaScript from /api/public/advertisements -->
                         <div class="no-channels-message" style="text-align:center;padding:40px;color:#94a3b8;width:100%;">
                             <i class="fas fa-tv" style="font-size:48px;margin-bottom:16px;display:block;color:#1a5bb5;opacity:0.3;"></i>
@@ -1355,7 +1355,7 @@ async function fetchCustomerCounts() {
             }
         }
 
-        function buildImageGalleryModern() {
+       function buildImageGalleryModern() {
             const track = document.getElementById('imageGalleryTrack');
             if (!track) return;
             track.innerHTML = '';
@@ -1370,16 +1370,100 @@ async function fetchCustomerCounts() {
                         <small>Please upload channel logos in the admin panel</small>
                     </div>
                 `;
+                // Alisin ang infinite-scroll class para hindi gumalaw ang empty track
+                track.classList.remove('infinite-scroll');
                 return;
             }
 
-            allImages.forEach(img => {
+        // ================= DRAG GALLERY (Infinite Scroll + Manual Drag) =================
+        function initDragGallery() {
+            const wrapper = document.getElementById('galleryWrapper');
+            const track = document.getElementById('imageGalleryTrack');
+
+            if (!wrapper || !track) return;
+
+            let isDragging = false;
+            let startX = 0;
+            let scrollLeft = 0;
+
+            const pauseAnimation = () => {
+                track.classList.remove('infinite-scroll');
+            };
+
+            const resumeAnimation = () => {
+                setTimeout(() => {
+                    track.classList.add('infinite-scroll');
+                }, 100);
+            };
+
+            // Mouse events
+            wrapper.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startX = e.pageX;
+                scrollLeft = wrapper.scrollLeft;
+                wrapper.style.cursor = 'grabbing';
+                document.body.style.userSelect = 'none';
+                pauseAnimation();
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                const walk = (e.pageX - startX) * 1.5;
+                wrapper.scrollLeft = scrollLeft - walk;
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    wrapper.style.cursor = 'grab';
+                    document.body.style.userSelect = '';
+                    resumeAnimation();
+                }
+            });
+
+            // Touch events
+            wrapper.addEventListener('touchstart', (e) => {
+                const touch = e.touches[0];
+                isDragging = true;
+                startX = touch.pageX;
+                scrollLeft = wrapper.scrollLeft;
+                pauseAnimation();
+            }, { passive: true });
+
+            window.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                const touch = e.touches[0];
+                const walk = (touch.pageX - startX) * 1.5;
+                wrapper.scrollLeft = scrollLeft - walk;
+                e.preventDefault();
+            }, { passive: false });
+
+            window.addEventListener('touchend', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    resumeAnimation();
+                }
+            });
+
+            wrapper.addEventListener('dragstart', (e) => e.preventDefault());
+            wrapper.style.cursor = 'grab';
+            console.log('Drag gallery initialized');
+        }    
+
+            // I-duplicate para walang putol ang infinite scroll
+            const duplicatedImages = [...allImages, ...allImages, ...allImages];
+
+            duplicatedImages.forEach(img => {
                 const card = document.createElement('div');
                 card.className = 'gallery-card-modern';
                 card.onclick = () => window.open(img.src, '_blank');
                 card.innerHTML = `<img src="${img.src}" alt="Channel Logo" loading="lazy" onerror="this.style.display='none'">`;
                 track.appendChild(card);
             });
+
+            // Siguraduhing may infinite-scroll class
+            track.classList.add('infinite-scroll');
         }
 
         // ================= GALLERY NAVIGATION =================
@@ -1598,7 +1682,7 @@ async function fetchCustomerCounts() {
             loadHeroStats();
             loadPlansDynamically();
             fetchUploadedLogos();
-            initGalleryNavigationModern();
+            initDragGallery();
             loadAndShowModal();
 
             document.querySelectorAll('.thumbnail-wrapper').forEach((w, i) => {
