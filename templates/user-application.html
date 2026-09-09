@@ -78,26 +78,41 @@ input[name="birthdate"]::placeholder {
 
 <body>
 
-<div class="header">
-    <a href="{{ url_for('plans') }}" class="back-btn"> <i class="fas fa-arrow-left"></i> Back to Plans</a>
-    <h2>Cablevision Application</h2>
-    <p>Apply online for fast and reliable fiber internet.</p>
-</div>
+<!-- ============================================================
+HERO HEADER — LARGE, WITH cv office.jpg, NO NAVBAR
+============================================================ -->
+<section class="application-hero-modern">
+    <div class="hero-bg-pattern"></div>
+    <div class="container">
+        <div class="hero-content">
+            <!-- Back link at section label — magkatabi, maayos -->
+            <div class="hero-top-row">
+                <a href="{{ url_for('plans') }}" class="hero-back-link">
+                    <i class="fas fa-arrow-left"></i> Back to Plans
+                </a>
+                <span class="section-label">Application</span>
+            </div>
+            <h1>Apply for <span class="accent">Fiber Internet</span></h1>
+            <p>Complete the form below to apply for fast and reliable fiber internet from Cablevision Systems Corporation.</p>
+        </div>
+
+        <div class="hero-visual">
+            <div class="application-hero-card">
+                <div class="plan-name-display">{{ plan_name }}</div>
+                <div class="plan-speed-display">{{ plan_speed }}</div>
+                <div class="plan-price-display">{{ plan_price }}</div>
+                <div class="plan-badge-bottom"><i class="fas fa-check-circle"></i> You are applying for this plan</div>
+            </div>
+        </div>
+    </div>
+</section>
 
 <div class="container mt-5">
 
 <form method="POST" action="/submit_application" enctype="multipart/form-data" id="applicationForm">
 
-<!-- PLAN -->
-<div class="form-card">
-    <h4 class="section-title">Selected Plan</h4>
-    <div class="plan-box">
-        <div class="plan-name">{{ plan_name }}</div>
-        <div class="plan-details">
-            <span class="plan-speed">{{ plan_speed }}</span>
-            <span class="plan-price">{{ plan_price }}</span>
-        </div>
-    </div>
+<!-- PLAN - Nasa header na ito, hidden fields na lang -->
+<div class="form-card-modern" style="display: none;">
     <input type="hidden" name="plan" value="{{ plan_name }}">
     <input type="hidden" name="plan_speed" value="{{ plan_speed }}">
     <input type="hidden" name="plan_price" value="{{ plan_price }}">
