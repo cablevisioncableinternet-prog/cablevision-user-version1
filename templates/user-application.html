@@ -1900,26 +1900,27 @@ map.on('click', async function (e) {
     
     // Enable return to pin button
     const pinLocationBtn = document.getElementById('returnToPinBtn');
-    if (pinLocationBtn) {
-        pinLocationBtn.disabled = false;
-        pinLocationBtn.style.opacity = '1';
-        pinLocationBtn.style.pointerEvents = 'auto';
-    }
-    
-    // Disable current location button
-    const currentLocationBtn = document.getElementById('returnToLocationBtn');
-    if (currentLocationBtn) {
-        currentLocationBtn.disabled = true;
-        currentLocationBtn.style.opacity = '0.5';
-        currentLocationBtn.style.cursor = 'not-allowed';
-    }
-    
-    setTimeout(() => {
-        if (marker && marker.isPopupOpen()) {
-            marker.closePopup();
+        if (pinLocationBtn) {
+            pinLocationBtn.disabled = false;
+            pinLocationBtn.style.opacity = '1';
+            pinLocationBtn.style.pointerEvents = 'auto';
+            pinLocationBtn.style.cursor = 'pointer';
         }
-    }, 5000);
-});
+        
+        // Disable current location button
+        const currentLocationBtn = document.getElementById('returnToLocationBtn');
+        if (currentLocationBtn) {
+            currentLocationBtn.disabled = true;
+            currentLocationBtn.style.opacity = '0.5';
+            currentLocationBtn.style.cursor = 'not-allowed';
+        }
+        
+        setTimeout(() => {
+            if (marker && marker.isPopupOpen()) {
+                marker.closePopup();
+            }
+        }, 5000);
+    });
 
 // Function to find the nearest NAP Box with available slots
 // ================= FIND NEAREST NAP BOX =================
@@ -5806,7 +5807,7 @@ async function zoomToBarangay(barangayName, cityName) {
                             isCustomLocationPinned = true;
                         }
                         
-                        // Disable current location button
+                                                // Disable current location button
                         const currentLocationBtn = document.getElementById('returnToLocationBtn');
                         if (currentLocationBtn) {
                             currentLocationBtn.disabled = true;
@@ -5820,6 +5821,7 @@ async function zoomToBarangay(barangayName, cityName) {
                             pinLocationBtn.disabled = false;
                             pinLocationBtn.style.opacity = '1';
                             pinLocationBtn.style.pointerEvents = 'auto';
+                            pinLocationBtn.style.cursor = 'pointer';
                         }
                     }
                 }, 1000);
@@ -7001,6 +7003,7 @@ function prefillNapboxAndLocation() {
                 pinLocationBtn.disabled = false;
                 pinLocationBtn.style.opacity = '1';
                 pinLocationBtn.style.pointerEvents = 'auto';
+                pinLocationBtn.style.cursor = 'pointer';
             }
             
             // Disable current location button
