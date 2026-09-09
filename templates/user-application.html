@@ -3277,8 +3277,9 @@ function showTemporaryMessage(message, type) {
                     if (!successMsg) {
                         successMsg = document.createElement('div');
                         successMsg.className = 'terms-success-message';
-                        successMsg.textContent = ' Terms agreed successfully!';
-                        termsCheckbox.closest('.terms-container').appendChild(successMsg);
+                        successMsg.textContent = '✅ Terms agreed successfully!';
+                        // PALITAN: .terms-container -> .terms-container-modern
+                        termsCheckbox.closest('.terms-container-modern').appendChild(successMsg);
                     }
                     successMsg.style.display = 'block';
                     
@@ -3295,12 +3296,15 @@ function showTemporaryMessage(message, type) {
                     
                     closeModal();
                 } else {
+                    showToast('Failed to save agreement. Please try again.', 'error');
+                    
                     let errorMsg = document.querySelector('.terms-error-message');
                     if (!errorMsg) {
                         errorMsg = document.createElement('div');
                         errorMsg.className = 'terms-error-message';
                         errorMsg.textContent = 'Failed to save agreement. Please try again.';
-                        termsCheckbox.closest('.terms-container').appendChild(errorMsg);
+                        // PALITAN: .terms-container -> .terms-container-modern
+                        termsCheckbox.closest('.terms-container-modern').appendChild(errorMsg);
                     }
                     errorMsg.style.display = 'block';
                     setTimeout(() => {
@@ -3309,7 +3313,7 @@ function showTemporaryMessage(message, type) {
                 }
             } catch (error) {
                 console.error('Error in agreeToTerms:', error);
-                alert('There was an error saving your agreement. Please try again.');
+                showToast('There was an error saving your agreement. Please check your details and try again.', 'error');
             } finally {
                 agreeBtn.textContent = originalButtonText;
                 agreeBtn.disabled = false;
@@ -3326,7 +3330,8 @@ function showTemporaryMessage(message, type) {
                 errorMsg = document.createElement('div');
                 errorMsg.className = 'terms-error-message';
                 errorMsg.textContent = 'You must agree to the Terms and Conditions before submitting';
-                termsCheckbox.closest('.terms-container').appendChild(errorMsg);
+                // PALITAN: .terms-container -> .terms-container-modern
+                termsCheckbox.closest('.terms-container-modern').appendChild(errorMsg);
             }
             errorMsg.style.display = 'block';
             
