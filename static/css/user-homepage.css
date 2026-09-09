@@ -1387,15 +1387,14 @@ a {
 .horizontal-gallery-wrapper {
     overflow-x: auto;
     overflow-y: hidden;
-    scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
     border-radius: 20px;
     flex: 1;
     padding: 10px 0;
-    scroll-snap-type: x mandatory;
     -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
     mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
 }
+
 .horizontal-gallery-wrapper::-webkit-scrollbar {
     height: 4px;
 }
@@ -1428,10 +1427,10 @@ a {
     align-items: center;
     justify-content: center;
     border: 1px solid rgba(0, 0, 0, 0.04);
-    scroll-snap-align: center;
     height: 160px;
     position: relative;
 }
+
 .gallery-card-modern::after {
     content: '';
     position: absolute;

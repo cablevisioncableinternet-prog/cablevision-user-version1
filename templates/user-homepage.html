@@ -1347,7 +1347,7 @@ async function fetchCustomerCounts() {
             }
         }
 
-        function buildImageGalleryModern() {
+       function buildImageGalleryModern() {
             const track = document.getElementById('imageGalleryTrack');
             if (!track) return;
             track.innerHTML = '';
@@ -1362,61 +1362,47 @@ async function fetchCustomerCounts() {
                         <small>Please upload channel logos in the admin panel</small>
                     </div>
                 `;
+                // Alisin ang infinite-scroll class para hindi gumalaw ang empty track
+                track.classList.remove('infinite-scroll');
                 return;
             }
 
-        // ================= AUTO-SCROLL GALLERY (JS-driven, iisang source of truth) =================
-        function initAutoScrollGallery() {
+        // ================= DRAG GALLERY (Infinite Scroll + Manual Drag) =================
+        function initDragGallery() {
             const wrapper = document.getElementById('galleryWrapper');
             const track = document.getElementById('imageGalleryTrack');
+
             if (!wrapper || !track) return;
 
             let isDragging = false;
-            let isPaused = false;
             let startX = 0;
-            let scrollLeftStart = 0;
-            let rafId = null;
-            let resumeTimeout = null;
-            const speed = 0.6; // px per frame — i-adjust bilis dito
+            let scrollLeft = 0;
 
-            function autoScrollStep() {
-                if (!isPaused && !isDragging) {
-                    wrapper.scrollLeft += speed;
-                    const oneThird = track.scrollWidth / 3;
-                    if (wrapper.scrollLeft >= oneThird * 2) {
-                        wrapper.scrollLeft -= oneThird; // walang visible jump dahil tripled ang laman
-                    } else if (wrapper.scrollLeft <= 0) {
-                        wrapper.scrollLeft += oneThird;
-                    }
-                }
-                rafId = requestAnimationFrame(autoScrollStep);
-            }
+            const pauseAnimation = () => {
+                track.classList.remove('infinite-scroll');
+            };
 
-            function pause() {
-                isPaused = true;
-                clearTimeout(resumeTimeout);
-            }
+            const resumeAnimation = () => {
+                setTimeout(() => {
+                    track.classList.add('infinite-scroll');
+                }, 100);
+            };
 
-            function scheduleResume(delay = 800) {
-                clearTimeout(resumeTimeout);
-                resumeTimeout = setTimeout(() => { isPaused = false; }, delay);
-            }
-
-            // Mouse drag
+            // Mouse events
             wrapper.addEventListener('mousedown', (e) => {
                 isDragging = true;
                 startX = e.pageX;
-                scrollLeftStart = wrapper.scrollLeft;
+                scrollLeft = wrapper.scrollLeft;
                 wrapper.style.cursor = 'grabbing';
                 document.body.style.userSelect = 'none';
-                pause();
+                pauseAnimation();
             });
 
             window.addEventListener('mousemove', (e) => {
                 if (!isDragging) return;
                 e.preventDefault();
                 const walk = (e.pageX - startX) * 1.5;
-                wrapper.scrollLeft = scrollLeftStart - walk;
+                wrapper.scrollLeft = scrollLeft - walk;
             });
 
             window.addEventListener('mouseup', () => {
@@ -1424,58 +1410,43 @@ async function fetchCustomerCounts() {
                     isDragging = false;
                     wrapper.style.cursor = 'grab';
                     document.body.style.userSelect = '';
-                    scheduleResume();
+                    resumeAnimation();
                 }
             });
 
-            // Touch drag
+            // Touch events
             wrapper.addEventListener('touchstart', (e) => {
                 const touch = e.touches[0];
                 isDragging = true;
                 startX = touch.pageX;
-                scrollLeftStart = wrapper.scrollLeft;
-                pause();
+                scrollLeft = wrapper.scrollLeft;
+                pauseAnimation();
             }, { passive: true });
 
             window.addEventListener('touchmove', (e) => {
                 if (!isDragging) return;
                 const touch = e.touches[0];
                 const walk = (touch.pageX - startX) * 1.5;
-                wrapper.scrollLeft = scrollLeftStart - walk;
+                wrapper.scrollLeft = scrollLeft - walk;
                 e.preventDefault();
             }, { passive: false });
 
             window.addEventListener('touchend', () => {
                 if (isDragging) {
                     isDragging = false;
-                    scheduleResume();
+                    resumeAnimation();
                 }
             });
 
-            // Native scrollbar / trackpad scroll — ito yung dating hindi na-detect
-            wrapper.addEventListener('scroll', () => {
-                if (isDragging) return; // huwag i-double-handle habang nagd-drag
-                pause();
-                scheduleResume();
-            });
-
-            wrapper.addEventListener('mouseenter', pause);
-            wrapper.addEventListener('mouseleave', scheduleResume);
             wrapper.addEventListener('dragstart', (e) => e.preventDefault());
             wrapper.style.cursor = 'grab';
-
-            // Simulan sa gitna ng 3x na laman para may puwang pumunta sa magkabilang direksyon
-            wrapper.scrollLeft = track.scrollWidth / 3;
-
-            cancelAnimationFrame(rafId);
-            autoScrollStep();
-            console.log('Auto-scroll gallery initialized');
+            console.log('Drag gallery initialized');
         }    
 
             // I-duplicate para walang putol ang infinite scroll
             const duplicatedImages = [...allImages, ...allImages, ...allImages];
 
-                duplicatedImages.forEach(img => {
+            duplicatedImages.forEach(img => {
                 const card = document.createElement('div');
                 card.className = 'gallery-card-modern';
                 card.onclick = () => window.open(img.src, '_blank');
@@ -1483,7 +1454,8 @@ async function fetchCustomerCounts() {
                 track.appendChild(card);
             });
 
-            initAutoScrollGallery();
+            // Siguraduhing may infinite-scroll class
+            track.classList.add('infinite-scroll');
         }
 
         // ================= GALLERY NAVIGATION =================
@@ -1702,6 +1674,7 @@ async function fetchCustomerCounts() {
             loadHeroStats();
             loadPlansDynamically();
             fetchUploadedLogos();
+            initDragGallery();
             loadAndShowModal();
 
             document.querySelectorAll('.thumbnail-wrapper').forEach((w, i) => {
