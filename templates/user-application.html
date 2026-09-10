@@ -484,7 +484,7 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                                 <div class="existing-file-modern">
                                     <label>Current Signature:</label>
                                     <div class="file-preview-box">
-                                        <img src="{{ url_for('static', filename='samplesignature.png') }}" class="file-preview-img">
+                                        <img src="{{ form_data.existing_signature }}" class="file-preview-img">
                                     </div>
                                     <p class="text-muted small">Leave empty to keep current signature, or upload a new one to replace.</p>
                                 </div>
@@ -5826,6 +5826,28 @@ async function zoomToBarangay(barangayName, cityName) {
             }
         }
         
+        // ========== PRE-FILL PREVIEW BOXES WITH EXISTING IMAGES ==========
+        (function() {
+            function showExistingPreview(previewImgId, placeholderId, url) {
+                if (!url || url === 'none' || url === '') return;
+                const img = document.getElementById(previewImgId);
+                const placeholder = document.getElementById(placeholderId);
+                if (img) {
+                    img.src = url;
+                    img.style.display = 'block';
+                }
+                if (placeholder) {
+                    placeholder.style.display = 'none';
+                }
+            }
+
+            showExistingPreview('preview_profile_photo', 'profile-placeholder', formData.existing_profile_photo);
+            showExistingPreview('preview_id_front', 'placeholder-front', formData.existing_id_front);
+            showExistingPreview('preview_id_back', 'placeholder-back', formData.existing_id_back);
+            showExistingPreview('preview_billing', 'placeholder-billing', formData.existing_proof_billing);
+            showExistingPreview('signature-preview', 'signature-placeholder', formData.existing_signature);
+        })();
+
         // Add a success message
         const form = document.getElementById('applicationForm');
         if (form) {
