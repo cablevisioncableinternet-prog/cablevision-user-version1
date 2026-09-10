@@ -372,7 +372,7 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                         <div class="document-upload-left">
                             <label class="form-label-modern">Valid ID - Front <span class="required-star">*</span></label>
                             <input type="file" id="id_front" name="id_front" accept="image/png, image/jpeg" class="form-control-modern">
-                            <p class="file-hint-modern">Upload JPG or PNG file. Make sure na sakop ng picture yung buong id.</p>
+                            <p class="file-hint-modern">Upload JPG or PNG file. Make sure na sakop ng picture yung buong id. (Landscape only)</p>
                             {% if is_reapply and form_data and form_data.existing_id_front %}
                                 <div class="existing-file-modern">
                                     <label>Current ID Front:</label>
@@ -400,7 +400,7 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                         <div class="document-upload-left">
                             <label class="form-label-modern">Valid ID - Back <span class="required-star">*</span></label>
                             <input type="file" id="id_back" name="id_back" accept="image/png, image/jpeg" class="form-control-modern">
-                            <p class="file-hint-modern">Upload JPG or PNG file. Make sure na sakop ng picture yung buong id.</p>
+                            <p class="file-hint-modern">Upload JPG or PNG file. Make sure na sakop ng picture yung buong id. (Landscape only)</p>
                             {% if is_reapply and form_data and form_data.existing_id_back %}
                                 <div class="existing-file-modern">
                                     <label>Current ID Back:</label>
@@ -428,7 +428,7 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                         <div class="document-upload-left">
                             <label class="form-label-modern">Proof of Billing <span class="required-star">*</span></label>
                             <input type="file" id="proof_billing" name="proof_billing" accept="image/png, image/jpeg" class="form-control-modern">
-                            <p class="file-hint-modern">Upload recent utility bill (electricity, water, internet). Make sure na sakop ng picture yung buong proof of billing.</p>
+                            <p class="file-hint-modern">Upload recent utility bill (electricity, water, internet). Make sure na sakop ng picture yung buong proof of billing. (Portrait only)</p>
                             {% if is_reapply and form_data and form_data.existing_proof_billing %}
                                 <div class="existing-file-modern">
                                     <label>Current Proof of Billing:</label>
@@ -478,7 +478,7 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                 </div>
                     <div class="profile-upload-grid">
                         <div class="profile-upload-left">
-                            <label class="form-label-modern">Upload Signature (JPG/PNG) - White background recommended <span class="required-star">*</span></label>
+                            <label class="form-label-modern">Upload Signature (JPG/PNG) - White background recommended. (Landscape only) <span class="required-star">*</span></label>
                             <input type="file" id="signature_upload" name="signature_upload" accept="image/png, image/jpeg" class="form-control-modern">
                             {% if is_reapply and form_data and form_data.existing_signature %}
                                 <div class="existing-file-modern">
@@ -645,11 +645,13 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                         <label class="form-label-modern">Complete Installation Address <span class="required-star">*</span></label>
                         <input class="form-control-modern" name="installation_address" id="installation_address" readonly style="background-color: #f8f9fa;">
                     </div>
-                    <div class="form-group-modern">
-                        <label class="form-label-modern">Installation Phone <span class="required-star">*</span></label>
-                        <input class="form-control-modern" name="installation_phone" placeholder="09123456789" required>
-                        <small class="form-hint-modern">11 digits starting with 09</small>
-                    </div>
+                        <div class="form-group-modern">
+                            <label class="form-label-modern">Installation Phone <span class="required-star">*</span></label>
+                            <input class="form-control-modern" name="installation_phone" id="installation_phone" 
+                                placeholder="Auto-filled from Primary Mobile Number" readonly required 
+                                style="background-color: #f8f9fa;">
+                            <small class="form-hint-modern">Auto-filled from Primary Mobile Number</small>
+                        </div>
                     <div class="form-group-modern">
                         <label class="form-label-modern">Installation Fee Option <span class="required-star">*</span></label>
                         <select name="installation_fee" class="form-control-modern" required>
@@ -845,7 +847,6 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
     </div>
 </div>
 
-<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
 <script>
 
@@ -1270,11 +1271,10 @@ document.getElementById("barangay").addEventListener("change", function () {
 
     var map = L.map('map').fitBounds(allowedBounds);
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19
-    }).addTo(map);
-
       let marker;
+
+    let cityBoundaryLayer = null;
+    let currentCity = null;  
 
     // ================= WATER DETECTION VIA GEORISK API =================
     let lastCursorState = null;
@@ -1346,176 +1346,52 @@ document.getElementById("barangay").addEventListener("change", function () {
         }, 400); // 400ms debounce para hindi mabilang ng rate limit ang GeoRisk
     });
 
-    var SatelliteControl = L.Control.extend({
-    options: {
-        position: 'topright'
-    },
-    
-    onAdd: function(map) {
-        var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
-        container.style.backgroundColor = 'white';
-        container.style.width = '30px';
-        container.style.height = '30px';
-        container.style.borderRadius = '4px';
-        container.style.cursor = 'pointer';
-        container.style.display = 'flex';
-        container.style.alignItems = 'center';
-        container.style.justifyContent = 'center';
-        container.style.fontSize = '16px';
-        container.style.transition = 'all 0.2s ease';
-        
-        container.innerHTML = `
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2">
-                <circle cx="12" cy="12" r="3"/>
-                <path d="M19.9 2.307a.5.5 0 0 1 .707 0l1.086 1.086a.5.5 0 0 1 0 .707l-1.086 1.086a.5.5 0 0 1-.707 0l-1.086-1.086a.5.5 0 0 1 0-.707z"/>
-                <path d="M2.307 19.9a.5.5 0 0 1 0-.707l1.086-1.086a.5.5 0 0 1 .707 0l1.086 1.086a.5.5 0 0 1 0 .707l-1.086 1.086a.5.5 0 0 1-.707 0z"/>
-                <circle cx="12" cy="12" r="9"/>
-            </svg>
-        `;
-        
-        container.title = 'Satellite View';
-        
-        // IMPORTANT: Pigilan ang event propagation para hindi ma-trigger ang map click
-        container.onclick = function(e) {
-            L.DomEvent.stopPropagation(e);  // Stop event from bubbling to map
-            toggleSatelliteView();
-        };
-        
-        container.onmouseenter = function() {
-            container.style.backgroundColor = '#f0f0f0';
-        };
-        container.onmouseleave = function() {
-            container.style.backgroundColor = 'white';
-        };
-        
-        return container;
-    }
+    // ================= BASEMAP TOGGLE (Leaflet.Basemaps plugin) =================
+const streetMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    label: 'Street Map'
 });
 
-// Add satellite control
-var satelliteControl = new SatelliteControl();
-satelliteControl.addTo(map);
+const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+    maxZoom: 19,
+    label: 'Satellite'
+});
 
-let currentTileLayer = null;
+let currentTileLayer = streetMapLayer;
 let isSatelliteView = false;
 
-// Base street map
-const streetMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19
-});
+// ✅ IDAGDAG ITO: I-add ang street layer para may laman ang mapa sa simula
+streetMapLayer.addTo(map);
 
-// Satellite layers
-const satelliteLayers = [
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-        maxZoom: 19
-    }),
-    L.tileLayer('https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
-        maxZoom: 20,
-        subdomains: ['mt1', 'mt2', 'mt3']
-    })
-];
+// Exactly 2 basemaps = automatic "toggle mode" (single preview-thumbnail button)
+// tileX/Y/Z dito ay tugma sa Laguna area (~z8) para tama yung preview thumbnail
+map.addControl(L.control.basemaps({
+    basemaps: [streetMapLayer, satelliteLayer],
+    tileX: 214,
+    tileY: 117,
+    tileZ: 8,
+    position: 'topright'
+}));
 
-let currentSatelliteIndex = 0;
-
-// Toggle function - NO ALERTS
-function toggleSatelliteView() {
-    const btn = document.querySelector('.leaflet-control-custom');
-    
-    if (!isSatelliteView) {
-        // Switch to Satellite
-        if (currentTileLayer) {
-            map.removeLayer(currentTileLayer);
-        }
-        
-        trySatelliteLayer(0);
+// Sinusubaybayan kung alin ang active basemap tuwing pinapalitan ito ng plugin
+map.on('layeradd', function(e) {
+    if (e.layer === satelliteLayer) {
+        currentTileLayer = satelliteLayer;
         isSatelliteView = true;
-
-        if (cityBoundaryLayer && map.hasLayer(cityBoundaryLayer)) {
-    cityBoundaryLayer.setStyle({
-        color: "#FFFFFF",
-        weight: 4
-    });
-}
-        
-        if (btn) {
-            btn.style.backgroundColor = '#28a745';
-            btn.innerHTML = `
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
-                    <path d="M12 3a6 6 0 0 0-6 6c0 4 6 9 6 9s6-5 6-9a6 6 0 0 0-6-6z"/>
-                    <circle cx="12" cy="9" r="2.5"/>
-                </svg>
-            `;
-            btn.title = 'Street View';
-        }
-        
+    } else if (e.layer === streetMapLayer) {
+        currentTileLayer = streetMapLayer;
+        isSatelliteView = false;
     } else {
-        // Switch to Street View
-        if (currentTileLayer) {
-            map.removeLayer(currentTileLayer);
-        }
-        
-        streetMapLayer.addTo(map);
-        currentTileLayer = streetMapLayer;
-        isSatelliteView = false;
-
-        if (cityBoundaryLayer && map.hasLayer(cityBoundaryLayer)) {
-    cityBoundaryLayer.setStyle({
-        color: "#000000",
-        weight: 3
-    });
-}
-        
-        if (btn) {
-            btn.style.backgroundColor = 'white';
-            btn.innerHTML = `
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2">
-                    <circle cx="12" cy="12" r="3"/>
-                    <path d="M19.9 2.307a.5.5 0 0 1 .707 0l1.086 1.086a.5.5 0 0 1 0 .707l-1.086 1.086a.5.5 0 0 1-.707 0l-1.086-1.086a.5.5 0 0 1 0-.707z"/>
-                    <path d="M2.307 19.9a.5.5 0 0 1 0-.707l1.086-1.086a.5.5 0 0 1 .707 0l1.086 1.086a.5.5 0 0 1 0 .707l-1.086 1.086a.5.5 0 0 1-.707 0z"/>
-                    <circle cx="12" cy="12" r="9"/>
-                </svg>
-            `;
-            btn.title = 'Satellite View';
-        }
-    }
-}
-
-function trySatelliteLayer(index) {
-    if (index >= satelliteLayers.length) {
-        streetMapLayer.addTo(map);
-        currentTileLayer = streetMapLayer;
-        isSatelliteView = false;
-        
-        const btn = document.querySelector('.leaflet-control-custom');
-        if (btn) {
-            btn.style.backgroundColor = 'white';
-            btn.innerHTML = `
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#333" stroke-width="2">
-                    <circle cx="12" cy="12" r="3"/>
-                    <path d="M19.9 2.307a.5.5 0 0 1 .707 0l1.086 1.086a.5.5 0 0 1 0 .707l-1.086 1.086a.5.5 0 0 1-.707 0l-1.086-1.086a.5.5 0 0 1 0-.707z"/>
-                    <path d="M2.307 19.9a.5.5 0 0 1 0-.707l1.086-1.086a.5.5 0 0 1 .707 0l1.086 1.086a.5.5 0 0 1 0 .707l-1.086 1.086a.5.5 0 0 1-.707 0z"/>
-                    <circle cx="12" cy="12" r="9"/>
-                </svg>
-            `;
-            btn.title = 'Satellite View';
-        }
         return;
     }
-    
-    const layer = satelliteLayers[index];
-    
-    layer.on('error', function() {
-        map.removeLayer(layer);
-        trySatelliteLayer(index + 1);
-    });
-    
-    layer.addTo(map);
-    currentTileLayer = layer;
-}
 
-// Initialize with street view
-streetMapLayer.addTo(map);
-currentTileLayer = streetMapLayer;
+    if (cityBoundaryLayer && map.hasLayer(cityBoundaryLayer)) {
+        cityBoundaryLayer.setStyle({
+            color: isSatelliteView ? "#FFFFFF" : "#000000",
+            weight: isSatelliteView ? 4 : 3
+        });
+    }
+});
 
     
 
@@ -2812,41 +2688,40 @@ function showTemporaryMessage(message, type) {
 
 
 // ==================================
-// AUTO-FILL INSTALLATION PHONE FROM PRIMARY MOBILE NUMBER
+// AUTO-FILL INSTALLATION PHONE FROM PRIMARY MOBILE NUMBER (READONLY - ALWAYS SYNCED)
 // ==================================
 (function() {
     const mobileField = document.querySelector('input[name="mobile"]');
-    const installationPhoneField = document.querySelector('input[name="installation_phone"]');
+    const installationPhoneField = document.getElementById('installation_phone');
     
     if (!mobileField || !installationPhoneField) return;
 
-    let isSyncing = false;
-    let userEditedInstallationPhone = false;
+    // Sync function — kinokopya ang value mula mobile papuntang installation_phone
+    function syncInstallationPhone() {
+        // Kunin ang mobile value, i-clean ang non-digits, limit sa 11
+        let mobileValue = mobileField.value.replace(/\D/g, '');
+        if (mobileValue.length > 11) mobileValue = mobileValue.substring(0, 11);
+        
+        // I-set ang value sa installation_phone
+        installationPhoneField.value = mobileValue;
+        
+        // I-clear ang custom validity para hindi ma-block ang submit
+        installationPhoneField.setCustomValidity('');
+    }
 
-    // Detect kung manual na na-edit ng user ang installation phone
-    installationPhoneField.addEventListener('input', function() {
-        if (!isSyncing) {
-            userEditedInstallationPhone = true;
-        }
-    });
+    // Sync habang nagta-type sa mobile
+    mobileField.addEventListener('input', syncInstallationPhone);
+    
+    // Sync kapag nag-blur (para sigurado)
+    mobileField.addEventListener('change', syncInstallationPhone);
+    mobileField.addEventListener('blur', syncInstallationPhone);
 
-    // Kapag nag-type sa Primary Mobile Number, i-sync sa Installation Phone
-    mobileField.addEventListener('input', function() {
-        if (userEditedInstallationPhone) return; // Huwag i-override kung na-edit na manually
-
-        isSyncing = true;
-        installationPhoneField.value = mobileField.value;
-        // I-trigger ang existing na phone formatting/validation ng installation_phone
-        installationPhoneField.dispatchEvent(new Event('input', { bubbles: true }));
-        isSyncing = false;
-    });
-
-    // Kapag ni-clear ang installation phone habang blangko rin ang mobile, i-reset ang flag
-    installationPhoneField.addEventListener('blur', function() {
-        if (installationPhoneField.value.trim() === '') {
-            userEditedInstallationPhone = false;
-        }
-    });
+    // Initial sync kapag nag-load ang page (kung may existing value na)
+    syncInstallationPhone();
+    
+    // Kapag nag-re-reapply, i-sync pagkatapos ma-set ang mobile value
+    setTimeout(syncInstallationPhone, 1500);
+    setTimeout(syncInstallationPhone, 2500);
 })();
 
 
@@ -3235,12 +3110,15 @@ function showTemporaryMessage(message, type) {
         }
     }
     
-    // Function to enable checkbox, check it, and save to database
+// Function to enable checkbox, check it, and save to database
     async function agreeToTerms() {
         if (termsCheckbox) {
             const originalButtonText = agreeBtn.textContent;
             agreeBtn.textContent = 'Saving...';
             agreeBtn.disabled = true;
+            
+            // Show loading toast
+            showToast('Saving your agreement...', 'loading');
             
             try {
                 const saved = await saveTermsAgreementToDatabase();
@@ -3252,43 +3130,29 @@ function showTemporaryMessage(message, type) {
                     termsCheckbox.dispatchEvent(event);
                     termsCheckbox.classList.remove('terms-checkbox-error');
                     
-                    let successMsg = document.querySelector('.terms-success-message');
-                    if (!successMsg) {
-                        successMsg = document.createElement('div');
-                        successMsg.className = 'terms-success-message';
-                        successMsg.textContent = ' Terms agreed successfully!';
-                        termsCheckbox.closest('.terms-container').appendChild(successMsg);
-                    }
-                    successMsg.style.display = 'block';
-                    
+                    // Hide existing error message kung meron
                     const errorMsg = document.querySelector('.terms-error-message');
                     if (errorMsg) {
                         errorMsg.style.display = 'none';
                     }
                     
-                    setTimeout(() => {
-                        if (successMsg) {
-                            successMsg.style.display = 'none';
-                        }
-                    }, 3000);
+                    // Success toast
+                    showToast('Terms and Conditions agreed successfully!', 'success');
                     
                     closeModal();
-                } else {
-                    let errorMsg = document.querySelector('.terms-error-message');
-                    if (!errorMsg) {
-                        errorMsg = document.createElement('div');
-                        errorMsg.className = 'terms-error-message';
-                        errorMsg.textContent = 'Failed to save agreement. Please try again.';
-                        termsCheckbox.closest('.terms-container').appendChild(errorMsg);
-                    }
-                    errorMsg.style.display = 'block';
+                    
+                    // ✅ Follow-up reminder pagkatapos mag-dismiss ng success toast
                     setTimeout(() => {
-                        errorMsg.style.display = 'none';
-                    }, 3000);
+                        showToast('Please check your details before submitting the application.', 'info');
+                    }, 3200);
+                    
+                } else {
+                    // Error toast
+                    showToast('Failed to save agreement. Please try again.', 'error');
                 }
             } catch (error) {
                 console.error('Error in agreeToTerms:', error);
-                alert('There was an error saving your agreement. Please try again.');
+                showToast('There was an error saving your agreement. Please try again.', 'error');
             } finally {
                 agreeBtn.textContent = originalButtonText;
                 agreeBtn.disabled = false;
@@ -4787,8 +4651,7 @@ function returnToCurrentLocation() {
 }
 
 // ================= LAGUNA MUNICIPAL BOUNDARIES (ACCURATE - gaya ng technician) =================
-let cityBoundaryLayer = null;
-let currentCity = null;
+
 
 // Specific to LAGUNA municipalities only
 const LAGUNA_MUNICIPALITIES = {
@@ -7257,6 +7120,193 @@ function validateNapboxAndPin() {
     
     return true;
 }
+
+// ================= IMAGE ORIENTATION VALIDATION FOR UPLOADS =================
+(function() {
+    console.log('📐 Setting up image orientation validation...');
+    
+    // Configuration: input id -> required orientation
+    // ⚠️ NOTE: Ang ID Front at ID Back ay walang orientation validation (tanggal)
+    const orientationRules = {
+        'signature_upload': 'landscape',
+        'proof_billing': 'portrait'
+    };
+    
+    // Preview mapping for each input
+    const previewConfig = {
+        'id_front': { img: 'preview_id_front', placeholder: 'placeholder-front' },
+        'id_back': { img: 'preview_id_back', placeholder: 'placeholder-back' },
+        'proof_billing': { img: 'preview_billing', placeholder: 'placeholder-billing' },
+        'signature_upload': { img: 'signature-preview', placeholder: 'signature-placeholder' }
+    };
+    
+    // Check kung landscape o portrait ang image
+    function checkOrientation(file, expected) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            const url = URL.createObjectURL(file);
+            img.onload = function() {
+                URL.revokeObjectURL(url);
+                const w = img.naturalWidth;
+                const h = img.naturalHeight;
+                
+                if (expected === 'landscape') {
+                    // Landscape: width >= height (kasama ang square)
+                    resolve(w >= h);
+                } else if (expected === 'portrait') {
+                    // Portrait: height >= width (kasama ang square)
+                    resolve(h >= w);
+                } else {
+                    resolve(true);
+                }
+            };
+            img.onerror = function() {
+                URL.revokeObjectURL(url);
+                resolve(false);
+            };
+            img.src = url;
+        });
+    }
+    
+    // I-clear ang preview box
+    function clearPreview(inputId) {
+        const config = previewConfig[inputId];
+        if (!config) return;
+        const imgEl = document.getElementById(config.img);
+        const placeholderEl = document.getElementById(config.placeholder);
+        if (imgEl) {
+            imgEl.src = '';
+            imgEl.style.display = 'none';
+        }
+        if (placeholderEl) {
+            placeholderEl.style.display = 'flex';
+        }
+    }
+    
+    // Ipakita ang preview ng image
+    function showPreview(inputId, file) {
+        const config = previewConfig[inputId];
+        if (!config) return;
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const imgEl = document.getElementById(config.img);
+            const placeholderEl = document.getElementById(config.placeholder);
+            if (imgEl) {
+                imgEl.src = event.target.result;
+                imgEl.style.display = 'block';
+            }
+            if (placeholderEl) {
+                placeholderEl.style.display = 'none';
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    // ==============================================
+    // SETUP 1: ID FRONT at ID BACK — file type check + preview ONLY (walang orientation validation)
+    // ==============================================
+    ['id_front', 'id_back'].forEach(inputId => {
+        const input = document.getElementById(inputId);
+        if (!input) {
+            console.warn(`  Input #${inputId} not found`);
+            return;
+        }
+        
+        // Clone ang input para matanggal ang duplicate change listeners
+        const newInput = input.cloneNode(true);
+        input.parentNode.replaceChild(newInput, input);
+        
+        newInput.addEventListener('change', function(e) {
+            const file = this.files && this.files[0];
+            
+            if (!file) {
+                clearPreview(inputId);
+                return;
+            }
+            
+            // Validate file type lang — WALANG orientation check
+            if (!["image/jpeg", "image/png"].includes(file.type)) {
+                showToast("Only JPG and PNG files are allowed.", "error");
+                this.value = '';
+                clearPreview(inputId);
+                return;
+            }
+            
+            // Diretso preview — kahit anong orientation
+            showPreview(inputId, file);
+        });
+        
+        console.log(`  ✓ ${inputId} → any orientation allowed (file type + preview only)`);
+    });
+    
+    // ==============================================
+    // SETUP 2: SIGNATURE at PROOF OF BILLING — may orientation validation
+    // ==============================================
+    Object.keys(orientationRules).forEach(inputId => {
+        const input = document.getElementById(inputId);
+        if (!input) {
+            console.warn(`  Input #${inputId} not found`);
+            return;
+        }
+        
+        const expected = orientationRules[inputId];
+        
+        // Clone ang input para matanggal lahat ng existing change listeners
+        const newInput = input.cloneNode(true);
+        input.parentNode.replaceChild(newInput, input);
+        
+        newInput.addEventListener('change', async function(e) {
+            // I-clear ang signature_drawn hidden input para sa signature uploads
+            if (inputId === 'signature_upload') {
+                const hiddenInput = document.getElementById('signature_drawn');
+                if (hiddenInput) hiddenInput.value = '';
+            }
+            
+            const file = this.files && this.files[0];
+            
+            if (!file) {
+                clearPreview(inputId);
+                return;
+            }
+            
+            // Validate file type
+            if (!["image/jpeg", "image/png"].includes(file.type)) {
+                showToast("Only JPG and PNG files are allowed.", "error");
+                this.value = '';
+                clearPreview(inputId);
+                return;
+            }
+            
+            // Validate orientation
+            const isValid = await checkOrientation(file, expected);
+            
+            if (!isValid) {
+                this.value = '';
+                clearPreview(inputId);
+                
+                if (expected === 'landscape') {
+                    showToast(
+                        "Invalid image. Please upload a LANDSCAPE (horizontal) image. Portrait images are not allowed.",
+                        "error"
+                    );
+                } else {
+                    showToast(
+                        "Invalid image. Please upload a PORTRAIT (vertical) image. Landscape images are not allowed.",
+                        "error"
+                    );
+                }
+                return;
+            }
+            
+            // Valid ang orientation - ipakita ang preview
+            showPreview(inputId, file);
+        });
+        
+        console.log(`  ✓ ${inputId} → ${expected} only`);
+    });
+    
+    console.log('✅ Image orientation validation ready');
+})();
 
 
 </script>

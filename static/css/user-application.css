@@ -2846,7 +2846,7 @@ select[name="installment_method"]:hover {
     border-radius: 16px;
     box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
     border: 1px solid #e8edf4;
-    z-index: 99999;
+    z-index: 99999 !important;
     opacity: 0;
     transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.35s ease;
     overflow: hidden;
@@ -3298,7 +3298,7 @@ html {
     max-height: 85vh;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     overflow: hidden;
-    z-index: 10000;
+    z-index: 9500;
     left: 50%;
     top: 50%;
     transform: translate(-50%, -50%);
@@ -3682,7 +3682,9 @@ select.form-control {
 /* ================= FIX: TERMS MODAL VISIBILITY ================= */
 
 /* Siguraduhin na ang modal ay hindi naaapektuhan ng mga animations */
-.floating-modal,
+.floating-modal-content {
+    animation: none !important;
+}
 .floating-modal-content {
     animation: none !important;
     transform: none !important;
@@ -3701,7 +3703,7 @@ select.form-control {
 .floating-modal {
     display: none !important;
     position: fixed !important;
-    z-index: 999999 !important;
+    z-index: 9000 !important;
     background-color: rgba(0, 0, 0, 0.5) !important;
     backdrop-filter: blur(6px) !important;
 }
@@ -3743,7 +3745,7 @@ select.form-control {
 .email-verification-modal {
     display: none !important;
     position: fixed !important;
-    z-index: 99999 !important;
+    z-index: 9000 !important;
     inset: 0 !important;
     background-color: rgba(0, 0, 0, 0.5) !important;
     backdrop-filter: blur(6px) !important;
