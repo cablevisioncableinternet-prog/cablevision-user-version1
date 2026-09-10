@@ -685,11 +685,21 @@ body {
     background: rgba(10, 26, 58, 0.7);
     backdrop-filter: blur(6px);
 }
+.modal-dialog.modal-lg {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: calc(100% - 3.5rem);
+}
 .modal-content-modern {
     background: transparent;
     border: none;
     box-shadow: none;
     position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
 }
 .modal-close-modern {
     position: absolute;
@@ -712,18 +722,36 @@ body {
     background: #f1f5f9;
     transform: rotate(90deg);
 }
+.modal-body-modern {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 0;
+}
 .modal-body-modern img {
+    display: block;
+    margin: 0 auto;
     max-height: 82vh;
     max-width: 100%;
+    width: auto;
+    height: auto;
     border-radius: 14px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
 }
 #modalImage.billing {
     max-width: 420px;
+    width: auto;
 }
 #modalImage.signature {
     background: #fff;
     padding: 16px;
+}
+
+@media (max-width: 480px) {
+    #modalImage.billing {
+        max-width: 85vw;
+    }
 }
 
 @media (max-width: 768px) {
