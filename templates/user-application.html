@@ -1106,21 +1106,20 @@ async function getBarangaysFromMySQL(cityName) {
 }
 
 
-document.getElementById("city").addEventListener("change", async function () {
-    const selectedCity = this.value;
+async function populateBarangaysForCity(selectedCity) {
     const barangaySelect = document.getElementById("barangay");
     const zipInput = document.getElementById("zip");
-    
+
     if (!selectedCity) {
         barangaySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>';
         barangaySelect.disabled = true;
         zipInput.value = "";
         return;
     }
-    
+
     barangaySelect.innerHTML = '<option value="" disabled selected>Loading barangays...</option>';
     barangaySelect.disabled = true;
-    
+
     const barangays = await getBarangaysFromMySQL(selectedCity);
 
     barangaySelect.innerHTML = '<option value="" disabled selected>Select Barangay</option>';
@@ -1130,35 +1129,34 @@ document.getElementById("city").addEventListener("change", async function () {
             const displayBarangay = barangay.split(' ').map(word =>
                 word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
             ).join(' ');
-
             const option = document.createElement('option');
             option.value = barangay;
             option.textContent = displayBarangay;
             barangaySelect.appendChild(option);
         });
-
         barangaySelect.disabled = false;
     } else {
         barangaySelect.innerHTML = '<option value="" disabled selected>No barangays available</option>';
         barangaySelect.disabled = true;
     }
-    
-    // ZIP auto-fill (keep existing logic)
+
     if (selectedCity && allAreas.length > 0) {
         const normalize = (str) => str ? str.toLowerCase().trim().replace(/\s+/g, ' ') : "";
-        const cityArea = allAreas.find(area =>
-            normalize(area.city) === normalize(selectedCity) && area.zip
-        );
+        const cityArea = allAreas.find(area => normalize(area.city) === normalize(selectedCity) && area.zip);
         zipInput.value = cityArea ? cityArea.zip : "";
     } else {
         zipInput.value = "";
     }
-    
-    // Show city boundary
+
     const allowedCities = ["Santa Cruz", "Pagsanjan", "Pila", "Magdalena"];
     const matchedCity = allowedCities.find(c => c.toLowerCase() === selectedCity.trim().toLowerCase());
     if (matchedCity) showCityBoundary(matchedCity);
     else if (selectedCity) clearBoundary();
+}
+window.populateBarangaysForCity = populateBarangaysForCity;
+
+document.getElementById("city").addEventListener("change", async function () {
+    await populateBarangaysForCity(this.value);
 });
 
 document.getElementById("barangay").addEventListener("change", function () {
@@ -2810,7 +2808,7 @@ function showTemporaryMessage(message, type) {
     }, 3000);
 }
 
-    loadAreas();
+    window.areasReadyPromise = loadAreas();
 
 
 // ==================================
@@ -5702,18 +5700,51 @@ async function zoomToBarangay(barangayName, cityName) {
         setFieldValue('phone', formData.phone);
         
         // Address - wait for dropdowns to load first
-        setTimeout(() => {
+        (async function fillReapplyAddress() {
+            if (window.areasReadyPromise) {
+                try { await window.areasReadyPromise; } catch (e) {}
+            }
+            let waitTries = 0;
+            while ((typeof allAreas === 'undefined' || !allAreas || allAreas.length === 0) && waitTries < 50) {
+                await new Promise(r => setTimeout(r, 100));
+                waitTries++;
+            }
+
+            if (!formData.province) return;
+
+            // Province: safe na i-dispatch ang change (synchronous lang ang epekto nito)
             setSelectByText('province', formData.province);
-            
-            setTimeout(() => {
-                setSelectByText('city', formData.city);
-                
-                setTimeout(() => {
-                    setSelectByText('barangay', formData.barangay);
-                    setFieldValue('zip', formData.zip);
-                }, 500);
-            }, 300);
-        }, 500);
+
+            if (!formData.city) return;
+
+            // City: manual set lang, HUWAG mag-dispatch ng change dito
+            // dahil async ang pag-populate ng barangay, kailangan natin i-await
+            const citySelect = document.querySelector('[name="city"]');
+            if (citySelect) {
+                for (let i = 0; i < citySelect.options.length; i++) {
+                    if (citySelect.options[i].text === formData.city || citySelect.options[i].value === formData.city) {
+                        citySelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            // Talagang hintayin matapos ang barangay fetch bago tumuloy
+            if (typeof populateBarangaysForCity === 'function') {
+                await populateBarangaysForCity(formData.city);
+            } else if (citySelect) {
+                citySelect.dispatchEvent(new Event('change', { bubbles: true }));
+                await new Promise(r => setTimeout(r, 1500));
+            }
+
+            // I-restore ang saved zip (baka na-overwrite ng auto-fill sa itaas)
+            if (formData.zip) setFieldValue('zip', formData.zip);
+
+            if (!formData.barangay) return;
+
+            // Ngayon lang, dahil kumpleto na ang options, i-set ang barangay
+            setSelectByText('barangay', formData.barangay);
+        })();
         
         setFieldValue('address', formData.address);
         setFieldValue('house_number', formData.house_number);
