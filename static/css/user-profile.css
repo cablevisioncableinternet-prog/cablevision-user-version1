@@ -4704,3 +4704,439 @@ div.status-banner > button[onclick] {
         font-size: 10px !important;
     }
 }
+
+
+/* ============================================================
+   APPLICATION MODAL — FORM-CARD-MODERN STYLE (RESPONSIVE)
+   ============================================================ */
+
+/* === MODAL WIDTH — mas malawak para sa 2-column layout === */
+#applicationModal .modal-content {
+    width: 95% !important;
+    max-width: 1100px !important;
+    margin: 2% auto !important;
+    border-radius: 24px;
+    max-height: 92vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* === MODAL BODY === */
+#applicationModal .modal-body.app-modal-body {
+    padding: 24px 28px !important;
+    background: #f8fafc;
+    flex: 1;
+    overflow-y: auto;
+    max-height: none !important;
+}
+
+/* === FORM CARD MODERN === */
+#applicationModal .form-card-modern {
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e8edf4;
+    margin-bottom: 20px;
+    overflow: hidden;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+#applicationModal .form-card-modern:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.06);
+    transform: translateY(-2px);
+}
+#applicationModal .form-card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 22px;
+    background: #f8faff;
+    border-bottom: 1px solid #e8edf4;
+}
+#applicationModal .form-card-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: #eef4ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #1a5bb5;
+    font-size: 15px;
+    flex-shrink: 0;
+}
+#applicationModal .form-card-title {
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: #0a1a3a;
+    margin: 0;
+    letter-spacing: -0.3px;
+}
+#applicationModal .form-card-body {
+    padding: 20px 22px 22px;
+}
+#applicationModal .text-center-modern {
+    text-align: center;
+}
+
+/* === DETAIL GRID — 2 COLUMNS DESKTOP === */
+#applicationModal .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px 32px;
+}
+#applicationModal .detail-item {
+    display: flex;
+    flex-direction: column;
+    padding: 10px 0;
+    border-bottom: 1px dashed #e8edf4;
+}
+#applicationModal .detail-item .label {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+#applicationModal .detail-item .label i {
+    color: #1a5bb5;
+    font-size: 12px;
+    width: 15px;
+}
+#applicationModal .detail-item .value {
+    font-size: 0.92rem;
+    font-weight: 500;
+    color: #1e293b;
+    padding: 4px 0 0 21px;
+    word-break: break-word;
+}
+
+/* === PROFILE / SIGNATURE === */
+#applicationModal .profile-photo-img {
+    max-width: 140px;
+    height: auto;
+    border-radius: 16px;
+    border: 3px solid #fff;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+#applicationModal .profile-photo-img:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+#applicationModal .signature-img {
+    max-width: 320px;
+    max-height: 160px;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    border-radius: 12px;
+    border: 1px solid #e8edf4;
+    padding: 8px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+#applicationModal .signature-img:hover {
+    transform: scale(1.02);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* === DOCUMENTS GRID — 3 COLUMNS DESKTOP === */
+#applicationModal .document-grid-view {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+}
+#applicationModal .document-view-item {
+    text-align: center;
+    background: #f8fafc;
+    border: 1px solid #e8edf4;
+    border-radius: 16px;
+    padding: 16px 12px;
+}
+#applicationModal .document-view-label {
+    font-weight: 700;
+    font-size: 0.82rem;
+    color: #1e293b;
+    margin-bottom: 10px;
+}
+#applicationModal .doc-img {
+    width: 100%;
+    max-width: 200px;
+    height: 140px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 1px solid #e8edf4;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+#applicationModal .doc-img.billing { height: 190px; }
+#applicationModal .doc-img:hover {
+    transform: scale(1.04);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* === TABLE === */
+#applicationModal .table-responsive {
+    overflow-x: auto;
+    border-radius: 14px;
+    border: 1px solid #e8edf4;
+}
+#applicationModal .table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 0;
+}
+#applicationModal .table thead {
+    background: linear-gradient(135deg, #0047ab 0%, #007bff 100%);
+}
+#applicationModal .table th {
+    background: transparent;
+    color: #fff;
+    font-weight: 700;
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+#applicationModal .table td {
+    padding: 12px 16px;
+    font-size: 14px;
+    color: #1e293b;
+    border-top: 1px solid #e8edf4;
+    text-align: left;
+    font-weight: 500;
+}
+#applicationModal .table-bordered {
+    border: 1px solid #e8edf4;
+    border-radius: 14px;
+    overflow: hidden;
+}
+#applicationModal .table-bordered th,
+#applicationModal .table-bordered td {
+    border: none;
+    border-top: 1px solid #e8edf4;
+}
+#applicationModal .table tbody tr:nth-child(even) { background: #f8faff; }
+#applicationModal .table tbody tr:hover { background: #eef4ff; }
+
+/* === MAP — RESPONSIVE === */
+#applicationModal .map-container {
+    height: 400px;
+    width: 100%;
+    border-radius: 16px;
+    border: 1px solid #e8edf4;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    margin-bottom: 0;
+}
+
+/* ============================================================
+   RESPONSIVE — TABLET LANDSCAPE (≤1024px)
+   ============================================================ */
+@media (max-width: 1024px) {
+    #applicationModal .modal-content {
+        max-width: 95% !important;
+    }
+    #applicationModal .modal-body.app-modal-body {
+        padding: 20px 22px !important;
+    }
+    #applicationModal .detail-grid {
+        gap: 4px 24px;
+    }
+    #applicationModal .map-container {
+        height: 350px;
+    }
+}
+
+/* ============================================================
+   RESPONSIVE — TABLET PORTRAIT (≤768px)
+   ============================================================ */
+@media (max-width: 768px) {
+    #applicationModal .modal-content {
+        width: 94% !important;
+        max-width: 94% !important;
+        margin: 3% auto !important;
+        border-radius: 20px;
+        max-height: 94vh;
+    }
+    #applicationModal .modal-body.app-modal-body {
+        padding: 18px 16px !important;
+    }
+    #applicationModal .detail-grid {
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+    #applicationModal .form-card-modern {
+        margin-bottom: 16px;
+        border-radius: 16px;
+    }
+    #applicationModal .form-card-header {
+        padding: 12px 18px;
+    }
+    #applicationModal .form-card-title {
+        font-size: 0.98rem;
+    }
+    #applicationModal .form-card-body {
+        padding: 16px 18px 18px;
+    }
+    #applicationModal .document-grid-view {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+    }
+    #applicationModal .map-container {
+        height: 300px;
+    }
+}
+
+/* ============================================================
+   RESPONSIVE — MOBILE (≤576px)
+   ============================================================ */
+@media (max-width: 576px) {
+    #applicationModal .modal-content {
+        width: 96% !important;
+        max-width: 96% !important;
+        margin: 4% auto !important;
+        border-radius: 18px;
+        max-height: 92vh;
+    }
+    #applicationModal .modal-body.app-modal-body {
+        padding: 14px 12px !important;
+    }
+    #applicationModal .form-card-modern {
+        margin-bottom: 14px;
+        border-radius: 14px;
+    }
+    #applicationModal .form-card-header {
+        padding: 11px 14px;
+        gap: 10px;
+    }
+    #applicationModal .form-card-icon {
+        width: 30px;
+        height: 30px;
+        font-size: 13px;
+        border-radius: 8px;
+    }
+    #applicationModal .form-card-title {
+        font-size: 0.9rem;
+    }
+    #applicationModal .form-card-body {
+        padding: 14px 14px 16px;
+    }
+    #applicationModal .detail-item {
+        padding: 8px 0;
+    }
+    #applicationModal .detail-item .label {
+        font-size: 0.72rem;
+    }
+    #applicationModal .detail-item .label i {
+        font-size: 11px;
+        width: 14px;
+    }
+    #applicationModal .detail-item .value {
+        font-size: 0.85rem;
+        padding-left: 20px;
+    }
+    #applicationModal .profile-photo-img {
+        max-width: 110px;
+    }
+    #applicationModal .signature-img {
+        max-width: 240px;
+        max-height: 130px;
+    }
+    #applicationModal .document-grid-view {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    #applicationModal .doc-img {
+        max-width: 100%;
+        height: 160px;
+    }
+    #applicationModal .doc-img.billing { height: 200px; }
+    #applicationModal .table th,
+    #applicationModal .table td {
+        padding: 9px 12px;
+        font-size: 12px;
+    }
+    #applicationModal .map-container {
+        height: 250px;
+    }
+}
+
+/* ============================================================
+   RESPONSIVE — SMALL MOBILE (≤400px)
+   ============================================================ */
+@media (max-width: 400px) {
+    #applicationModal .modal-content {
+        width: 97% !important;
+        max-width: 97% !important;
+        margin: 3% auto !important;
+        border-radius: 16px;
+    }
+    #applicationModal .modal-body.app-modal-body {
+        padding: 12px 10px !important;
+    }
+    #applicationModal .form-card-modern {
+        border-radius: 12px;
+    }
+    #applicationModal .form-card-header {
+        padding: 10px 12px;
+    }
+    #applicationModal .form-card-icon {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+    #applicationModal .form-card-title {
+        font-size: 0.85rem;
+    }
+    #applicationModal .form-card-body {
+        padding: 12px 12px 14px;
+    }
+    #applicationModal .detail-item .label {
+        font-size: 0.7rem;
+    }
+    #applicationModal .detail-item .value {
+        font-size: 0.8rem;
+    }
+    #applicationModal .profile-photo-img {
+        max-width: 95px;
+    }
+    #applicationModal .signature-img {
+        max-width: 200px;
+        max-height: 110px;
+    }
+    #applicationModal .table th,
+    #applicationModal .table td {
+        padding: 8px 10px;
+        font-size: 11px;
+    }
+    #applicationModal .map-container {
+        height: 220px;
+    }
+}
+
+/* ============================================================
+   LANDSCAPE ORIENTATION (mobile landscape)
+   ============================================================ */
+@media (max-width: 850px) and (orientation: landscape) {
+    #applicationModal .modal-content {
+        max-height: 95vh;
+    }
+    #applicationModal .detail-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 4px 20px;
+    }
+    #applicationModal .document-grid-view {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    #applicationModal .map-container {
+        height: 250px;
+    }
+}

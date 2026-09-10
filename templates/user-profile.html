@@ -472,327 +472,354 @@
 </div>
 
       <!-- MODAL BODY -->
-      <div class="modal-body">
+      <div class="modal-body app-modal-body">
 
-        <!-- ================= SECTION: PLAN ================= -->
-        <div class="info-card">
-          <div class="card-header">
-            <h4 class="section-title">Plan</h4>
-          </div>
-          <div class="card-body">
-            <div class="input-group">
-              <label>Plan</label>
-              <input type="text" id="app_plan" class="form-control" value="{{ plan }}" readonly>
-            </div>
-          </div>
-        </div>
-
-        <!-- ================= SECTION: PROFILE PHOTO ================= -->
-        <div class="info-card text-center">
-          <div class="card-header">
-            <h4 class="section-title">Profile Photo</h4>
-          </div>
-          <div class="card-body">
-            <img id="app_profilePhoto" src="{{ profile_photo }}" alt="Profile Photo" class="profile-photo-img">
-          </div>
-        </div>
-
-        <!-- ================= SECTION: PERSONAL INFORMATION ================= -->
-        <div class="info-card">
-          <div class="card-header">
-            <h4 class="section-title">Personal Information</h4>
-          </div>
-          <div class="card-body">
-            <div class="input-group">
-              <label>Full Name</label>
-              <input type="text" id="app_fullname" class="form-control" value="{{ first_name }} {{ middle_name }} {{ last_name }} {{ suffix }}" readonly>
-            </div>
-            <div class="input-group">
-              <label>Email</label>
-              <input type="email" id="app_email" class="form-control" value="{{ email }}" readonly>
-            </div>
-            <div class="input-group">
-              <label>Mobile</label>
-              <input type="text" id="app_mobile" class="form-control" value="{{ mobile }}" readonly>
-            </div>
-            <div class="input-group">
-              <label>Secondary Mobile</label>
-              <input type="text" id="app_secondaryMobile" class="form-control" value="{{ secondary_mobile }}" readonly>
-            </div>
-            <div class="input-group">
-              <label>Phone (Landline)</label>
-              <input type="text" id="app_phone" class="form-control" value="{{ phone }}" readonly>
-            </div>
-            <div class="input-group">
-              <label>Birthdate</label>
-              <input type="text" id="app_birthdate" class="form-control" value="{{ birthdate }}" readonly>
-            </div>
-            <div class="input-group">
-              <label>Place of Birth</label>
-              <input type="text" id="app_placeOfBirth" class="form-control" value="{{ place_of_birth }}" readonly>
-            </div>
-            <div class="input-group">
-              <label>Sex</label>
-              <input type="text" id="app_sex" class="form-control" value="{{ sex }}" readonly>
-            </div>
-            <div class="input-group">
-              <label>Civil Status</label>
-              <input type="text" id="app_civilStatus" class="form-control" value="{{ civil_status }}" readonly>
-            </div>
-            <div class="input-group">
-              <label>Citizenship</label>
-              <input type="text" id="app_citizenship" class="form-control" value="{{ citizenship }}" readonly>
-            </div>
-            <div class="input-group">
-              <label>Occupation</label>
-              <input type="text" id="app_occupation" class="form-control" value="{{ occupation }}" readonly>
-            </div>
-            <div class="input-group">
-              <label>Home Ownership</label>
-              <input type="text" id="app_homeOwnership" class="form-control" value="{{ home_ownership }}" readonly>
-            </div>
-          </div>
-        </div>
-
-        <!-- ================= SECTION: ADDRESS ================= -->
-        <div class="info-card">
-          <div class="card-header">
-            <h4 class="section-title">Address</h4>
-          </div>
-          <div class="card-body">
-          
-            <div class="input-group">
-              <label>Installation Fee</label>
-              <input type="text" id="app_installationFee" class="form-control" value="{{ installation_fee }}" readonly>
-          </div>  
-           <div class="input-group">
-              <label>Installation Address</label>
-              <input type="text" id="app_address" class="form-control" value="{{ installation_address }}" readonly>
-            </div>
-            <div class="input-group">
-              <label>Billing Address</label>
-              <input type="text" id="app_billingAddress" class="form-control" value="{{ billing_address }}" readonly>
-            </div>
-            <div class="input-group">
-              <label>House No.</label>
-              <input type="text" id="app_houseNumber" class="form-control" value="{{ house_number }}" readonly>
-            </div>
-
-            <div class="input-group">
-              <label>Nearest Landmark</label>
-              <input type="text" id="app_Landmark" class="form-control" value="{{ landmark }}" readonly>
-            </div>
-            <div class="input-group">
-              <label>Barangay</label>
-              <input type="text" id="app_barangay" class="form-control" value="{{ barangay }}" readonly>
-            </div>
-            <div class="input-group">
-              <label>City</label>
-              <input type="text" id="app_city" class="form-control" value="{{ city }}" readonly>
-            </div>
-            <div class="input-group">
-              <label>Province</label>
-              <input type="text" id="app_province" class="form-control" value="{{ province }}" readonly>
-            </div>
-            <div class="input-group">
-              <label>Zip Code</label>
-              <input type="text" id="app_zip" class="form-control" value="{{ zip }}" readonly>
-            </div>
-          </div>
-        </div>
-
-        <!-- ================= SECTION: EMPLOYMENT DETAILS ================= -->
-        <div class="info-card">
-          <div class="card-header">
-            <h4 class="section-title">Employment Details</h4>
-          </div>
-          <div class="card-body">
-            <div class="input-group">
-              <label>Employer</label>
-              <input type="text" id="app_employer" class="form-control" value="{{ employer }}" readonly>
-            </div>
-            <div class="input-group">
-              <label>Business Address</label>
-              <input type="text" id="app_businessAddress" class="form-control" value="{{ business_address }}" readonly>
-            </div>
-            <div class="input-group">
-              <label>Business Phone</label>
-              <input type="text" id="app_businessPhone" class="form-control" value="{{ business_phone }}" readonly>
-            </div>
-          </div>
-        </div>
-
-        <!-- ================= SECTION: SPOUSE INFORMATION ================= -->
-        <div class="info-card">
-          <div class="card-header">
-            <h4 class="section-title">Spouse Information</h4>
-          </div>
-          <div class="card-body">
-            <div class="input-group">
-              <label>Spouse Name</label>
-              <input type="text" id="app_spouseName" class="form-control" value="{{ spouse_name }}" readonly>
-            </div>
-          </div>
-        </div>
-
-        <!-- ================= SECTION: FAMILY DETAILS ================= -->
-        <div class="info-card">
-          <div class="card-header">
-            <h4 class="section-title">Family Details</h4>
-          </div>
-          <div class="card-body">
-            <div class="input-group">
-              <label>Mother's Maiden Name</label>
-              <input type="text" id="app_motherMaidenName" class="form-control" value="{{ mother_maiden_name }}" readonly>
-            </div>
-            <div class="input-group">
-              <label>Father's Name</label>
-              <input type="text" id="app_fatherName" class="form-control" value="{{ father_name }}" readonly>
-            </div>
-          </div>
-        </div>
-
-        <!-- ================= SECTION: SERVICE CLASSIFICATION ================= -->
-        <div class="info-card">
-          <div class="card-header">
-            <h4 class="section-title">Service Classification</h4>
-          </div>
-          <div class="card-body">
-            <div class="input-group">
-              <label>Service Type</label>
-              <input type="text" id="app_serviceType" class="form-control" value="{{ service_type }}" readonly>
-            </div>
-          </div>
-        </div>
-
-        <!-- ================= SECTION: TV SET DETAILS ================= -->
-        <div class="info-card">
-          <div class="card-header">
-            <h4 class="section-title">TV Set Details</h4>
-          </div>
-          <div class="card-body table-responsive">
-            <table class="tv-table" id="app_tvTable">
-              <thead>
-                <tr>
-                  <th>Quantity</th>
-                  <th>Brand / Model</th>
-                  <th>B&W / Colored</th>
-                </tr>
-              </thead>
-              <tbody>
-                <!-- Dynamic content from JavaScript -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- ================= SECTION: INSTALLATION DETAILS ================= -->
-        <div class="info-card">
-          <div class="card-header">
-            <h4 class="section-title">Installation Details</h4>
-          </div>
-          <div class="card-body">
-            <div class="input-group">
-              <label>Installation Address</label>
-              <input type="text" id="app_installationAddress" class="form-control" value="{{ installation_address }}" readonly>
-            </div>
-            <div class="input-group">
-              <label>Phone</label>
-              <input type="text" id="app_installationPhone" class="form-control" value="{{ installation_phone }}" readonly>
-            </div>
-          </div>
-        </div>
-
-        <!-- ================= SECTION: SIGNATURE ================= -->
-        <div class="info-card">
-          <div class="card-header">
-            <h4 class="section-title">Signature</h4>
-          </div>
-          <div class="card-body text-center">
-            <img id="app_signature" src="{{ signature }}" alt="Signature" class="signature-img" style="max-width:300px; max-height:100px;">
-            {% if not signature %}
-              <p class="text-danger">No signature provided</p>
-            {% endif %}
-          </div>
-        </div>
-
-        <!-- ================= SECTION: UPLOADED DOCUMENTS ================= -->
-        <div class="info-card">
-          <div class="card-header">
-            <h4 class="section-title">Uploaded Documents</h4>
-          </div>
-          <div class="card-body">
-            <div class="documents-grid">
-              
-              <!-- Valid ID Front -->
-              <div class="doc-card">
-                <p><strong>Valid ID (Front)</strong></p>
-                <img id="app_idFront" src="{{ id_front }}" alt="ID Front" class="doc-img">
-                {% if not id_front %}
-                  <p class="text-danger">No ID Front uploaded</p>
-                {% endif %}
+          <!-- ================= SECTION: PLAN ================= -->
+          <div class="form-card-modern">
+              <div class="form-card-header">
+                  <div class="form-card-icon"><i class="fas fa-wifi"></i></div>
+                  <h4 class="form-card-title">Plan</h4>
               </div>
-              
-              <!-- Valid ID Back -->
-              <div class="doc-card">
-                <p><strong>Valid ID (Back)</strong></p>
-                <img id="app_idBack" src="{{ id_back }}" alt="ID Back" class="doc-img">
-                {% if not id_back %}
-                  <p class="text-danger">No ID Back uploaded</p>
-                {% endif %}
+              <div class="form-card-body">
+                  <div class="detail-grid">
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-tag"></i> Plan</span>
+                          <span class="value" id="app_plan">--</span>
+                      </div>
+                  </div>
               </div>
-              
-              <!-- Proof of Billing -->
-              <div class="doc-card">
-                <p><strong>Proof of Billing</strong></p>
-                <img id="app_proofBilling" src="{{ proof_billing }}" alt="Proof of Billing" class="doc-img billing">
-                {% if not proof_billing %}
-                  <p class="text-danger">No Proof of Billing uploaded</p>
-                {% endif %}
-              </div>
-              
-            </div>
           </div>
-        </div>
 
-        <!-- ================= SECTION: SUBMISSION DETAILS ================= -->
-        <div class="info-card">
-          <div class="card-header">
-            <h4 class="section-title">Submission Details</h4>
-          </div>
-          <div class="card-body">
-            <div class="input-group">
-              <label>Date</label>
-              <input type="text" id="app_dateSubmitted" class="form-control" value="{{ date_submitted }}" readonly>
-            </div>
-            <div class="input-group">
-              <label>Time</label>
-              <input type="text" id="app_timeSubmitted" class="form-control" value="{{ time_submitted }}" readonly>
-            </div>
-          </div>
-        </div>
-
-        <!-- ================= SECTION: PINNED LOCATION ================= -->
-        <div class="info-card">
-          <div class="card-header">
-            <h4 class="section-title">Pinned Location Preview</h4>
-          </div>
-          <div class="card-body">
-            <div id="map-modal" class="map-container"></div>
-            <div class="coordinates">
-              <div class="input-group">
-                <label>Latitude</label>
-                <input type="text" id="lat-modal" class="form-control" value="{{ latitude }}" readonly>
+          <!-- ================= SECTION: PROFILE PHOTO ================= -->
+          <div class="form-card-modern">
+              <div class="form-card-header">
+                  <div class="form-card-icon"><i class="fas fa-user-circle"></i></div>
+                  <h4 class="form-card-title">Profile Photo</h4>
               </div>
-              <div class="input-group">
-                <label>Longitude</label>
-                <input type="text" id="lng-modal" class="form-control" value="{{ longitude }}" readonly>
+              <div class="form-card-body text-center-modern">
+                  <img id="app_profilePhoto" src="{{ profile_photo }}" alt="Profile Photo" class="profile-photo-img">
               </div>
-            </div>
           </div>
-        </div>
 
-      </div> <!-- end modal-body -->
+          <!-- ================= SECTION: PERSONAL INFORMATION ================= -->
+          <div class="form-card-modern">
+              <div class="form-card-header">
+                  <div class="form-card-icon"><i class="fas fa-id-card"></i></div>
+                  <h4 class="form-card-title">Personal Information</h4>
+              </div>
+              <div class="form-card-body">
+                  <div class="detail-grid">
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-user"></i> Full Name</span>
+                          <span class="value" id="app_fullname">--</span>
+                      </div>
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-envelope"></i> Email</span>
+                          <span class="value" id="app_email">--</span>
+                      </div>
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-phone"></i> Mobile</span>
+                          <span class="value" id="app_mobile">--</span>
+                      </div>
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-phone-alt"></i> Secondary Mobile</span>
+                          <span class="value" id="app_secondaryMobile">--</span>
+                      </div>
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-phone"></i> Phone (Landline)</span>
+                          <span class="value" id="app_phone">--</span>
+                      </div>
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-calendar-alt"></i> Birthdate</span>
+                          <span class="value" id="app_birthdate">--</span>
+                      </div>
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-map-pin"></i> Place of Birth</span>
+                          <span class="value" id="app_placeOfBirth">--</span>
+                      </div>
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-venus-mars"></i> Sex</span>
+                          <span class="value" id="app_sex">--</span>
+                      </div>
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-ring"></i> Civil Status</span>
+                          <span class="value" id="app_civilStatus">--</span>
+                      </div>
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-flag"></i> Citizenship</span>
+                          <span class="value" id="app_citizenship">--</span>
+                      </div>
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-briefcase"></i> Occupation</span>
+                          <span class="value" id="app_occupation">--</span>
+                      </div>
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-home"></i> Home Ownership</span>
+                          <span class="value" id="app_homeOwnership">--</span>
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+          <!-- ================= SECTION: ADDRESS ================= -->
+          <div class="form-card-modern">
+              <div class="form-card-header">
+                  <div class="form-card-icon"><i class="fas fa-map-marker-alt"></i></div>
+                  <h4 class="form-card-title">Address</h4>
+              </div>
+              <div class="form-card-body">
+                  <div class="detail-grid">
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-money-bill-wave"></i> Installation Fee</span>
+                          <span class="value" id="app_installationFee">--</span>
+                      </div>
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-map-pin"></i> Installation Address</span>
+                          <span class="value" id="app_address">--</span>
+                      </div>
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-file-invoice"></i> Billing Address</span>
+                          <span class="value" id="app_billingAddress">--</span>
+                      </div>
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-hashtag"></i> House No.</span>
+                          <span class="value" id="app_houseNumber">--</span>
+                      </div>
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-flag"></i> Nearest Landmark</span>
+                          <span class="value" id="app_landmark">--</span>
+                      </div>
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-map-pin"></i> Barangay</span>
+                          <span class="value" id="app_barangay">--</span>
+                      </div>
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-city"></i> City</span>
+                          <span class="value" id="app_city">--</span>
+                      </div>
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-map"></i> Province</span>
+                          <span class="value" id="app_province">--</span>
+                      </div>
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-mail-bulk"></i> Zip Code</span>
+                          <span class="value" id="app_zip">--</span>
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+          <!-- ================= SECTION: EMPLOYMENT DETAILS ================= -->
+          <div class="form-card-modern">
+              <div class="form-card-header">
+                  <div class="form-card-icon"><i class="fas fa-briefcase"></i></div>
+                  <h4 class="form-card-title">Employment Details</h4>
+              </div>
+              <div class="form-card-body">
+                  <div class="detail-grid">
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-building"></i> Employer</span>
+                          <span class="value" id="app_employer">--</span>
+                      </div>
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-map-pin"></i> Business Address</span>
+                          <span class="value" id="app_businessAddress">--</span>
+                      </div>
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-phone"></i> Business Phone</span>
+                          <span class="value" id="app_businessPhone">--</span>
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+          <!-- ================= SECTION: SPOUSE INFORMATION ================= -->
+          <div class="form-card-modern">
+              <div class="form-card-header">
+                  <div class="form-card-icon"><i class="fas fa-user-friends"></i></div>
+                  <h4 class="form-card-title">Spouse Information</h4>
+              </div>
+              <div class="form-card-body">
+                  <div class="detail-grid">
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-user"></i> Spouse Name</span>
+                          <span class="value" id="app_spouseName">--</span>
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+          <!-- ================= SECTION: FAMILY DETAILS ================= -->
+          <div class="form-card-modern">
+              <div class="form-card-header">
+                  <div class="form-card-icon"><i class="fas fa-users"></i></div>
+                  <h4 class="form-card-title">Family Details</h4>
+              </div>
+              <div class="form-card-body">
+                  <div class="detail-grid">
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-user"></i> Mother's Maiden Name</span>
+                          <span class="value" id="app_motherMaidenName">--</span>
+                      </div>
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-user"></i> Father's Name</span>
+                          <span class="value" id="app_fatherName">--</span>
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+          <!-- ================= SECTION: SERVICE CLASSIFICATION ================= -->
+          <div class="form-card-modern">
+              <div class="form-card-header">
+                  <div class="form-card-icon"><i class="fas fa-tag"></i></div>
+                  <h4 class="form-card-title">Service Classification</h4>
+              </div>
+              <div class="form-card-body">
+                  <div class="detail-grid">
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-concierge-bell"></i> Service Type</span>
+                          <span class="value" id="app_serviceType">--</span>
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+          <!-- ================= SECTION: TV SET DETAILS ================= -->
+          <div class="form-card-modern">
+              <div class="form-card-header">
+                  <div class="form-card-icon"><i class="fas fa-tv"></i></div>
+                  <h4 class="form-card-title">TV Set Details</h4>
+              </div>
+              <div class="form-card-body">
+                  <div class="table-responsive">
+                      <table class="table table-bordered table-sm">
+                          <thead>
+                              <tr>
+                                  <th>Quantity</th>
+                                  <th>Brand / Model</th>
+                                  <th>B&W / Colored</th>
+                              </tr>
+                          </thead>
+                          <tbody id="app_tvTableBody">
+                              <tr>
+                                  <td colspan="3" class="text-center text-muted">No TV details provided</td>
+                              </tr>
+                          </tbody>
+                      </table>
+                  </div>
+              </div>
+          </div>
+
+          <!-- ================= SECTION: INSTALLATION DETAILS ================= -->
+          <div class="form-card-modern">
+              <div class="form-card-header">
+                  <div class="form-card-icon"><i class="fas fa-tools"></i></div>
+                  <h4 class="form-card-title">Installation Details</h4>
+              </div>
+              <div class="form-card-body">
+                  <div class="detail-grid">
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-map-pin"></i> Installation Address</span>
+                          <span class="value" id="app_installationAddress">--</span>
+                      </div>
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-phone"></i> Phone</span>
+                          <span class="value" id="app_installationPhone">--</span>
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+          <!-- ================= SECTION: SIGNATURE ================= -->
+          <div class="form-card-modern">
+              <div class="form-card-header">
+                  <div class="form-card-icon"><i class="fas fa-pen"></i></div>
+                  <h4 class="form-card-title">Signature</h4>
+              </div>
+              <div class="form-card-body text-center-modern">
+                  <img id="app_signature" src="{{ signature }}" alt="Signature" class="signature-img">
+                  {% if not signature %}
+                      <p class="text-danger">No signature provided</p>
+                  {% endif %}
+              </div>
+          </div>
+
+          <!-- ================= SECTION: UPLOADED DOCUMENTS ================= -->
+          <div class="form-card-modern">
+              <div class="form-card-header">
+                  <div class="form-card-icon"><i class="fas fa-file-alt"></i></div>
+                  <h4 class="form-card-title">Uploaded Documents</h4>
+              </div>
+              <div class="form-card-body">
+                  <div class="document-grid-view">
+                      <div class="document-view-item">
+                          <p class="document-view-label"><i class="fas fa-id-card"></i> Valid ID (Front)</p>
+                          <img id="app_idFront" src="{{ id_front }}" alt="ID Front" class="doc-img">
+                          {% if not id_front %}
+                              <p class="text-danger">No ID Front uploaded</p>
+                          {% endif %}
+                      </div>
+                      <div class="document-view-item">
+                          <p class="document-view-label"><i class="fas fa-id-card"></i> Valid ID (Back)</p>
+                          <img id="app_idBack" src="{{ id_back }}" alt="ID Back" class="doc-img">
+                          {% if not id_back %}
+                              <p class="text-danger">No ID Back uploaded</p>
+                          {% endif %}
+                      </div>
+                      <div class="document-view-item">
+                          <p class="document-view-label"><i class="fas fa-file-invoice"></i> Proof of Billing</p>
+                          <img id="app_proofBilling" src="{{ proof_billing }}" alt="Proof of Billing" class="doc-img billing">
+                          {% if not proof_billing %}
+                              <p class="text-danger">No Proof of Billing uploaded</p>
+                          {% endif %}
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+          <!-- ================= SECTION: SUBMISSION DETAILS ================= -->
+          <div class="form-card-modern">
+              <div class="form-card-header">
+                  <div class="form-card-icon"><i class="fas fa-clock"></i></div>
+                  <h4 class="form-card-title">Submission Details</h4>
+              </div>
+              <div class="form-card-body">
+                  <div class="detail-grid">
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-calendar-day"></i> Date</span>
+                          <span class="value" id="app_dateSubmitted">--</span>
+                      </div>
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-clock"></i> Time</span>
+                          <span class="value" id="app_timeSubmitted">--</span>
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+          <!-- ================= SECTION: PINNED LOCATION ================= -->
+          <div class="form-card-modern">
+              <div class="form-card-header">
+                  <div class="form-card-icon"><i class="fas fa-map-marked-alt"></i></div>
+                  <h4 class="form-card-title">Pinned Location Preview</h4>
+              </div>
+              <div class="form-card-body">
+                  <div id="map-modal" class="map-container"></div>
+                  <div class="detail-grid" style="margin-top: 12px;">
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-location-arrow"></i> Latitude</span>
+                          <span class="value" id="lat-modal">{{ latitude }}</span>
+                      </div>
+                      <div class="detail-item">
+                          <span class="label"><i class="fas fa-location-arrow"></i> Longitude</span>
+                          <span class="value" id="lng-modal">{{ longitude }}</span>
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+      </div>
 
     </div> <!-- end modal-content -->
   </div> <!-- end modal-dialog -->

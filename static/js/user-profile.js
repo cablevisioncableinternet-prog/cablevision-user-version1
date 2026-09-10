@@ -876,10 +876,15 @@ document.addEventListener('DOMContentLoaded', () => {
         function setInputValue(id, value) {
             const elem = document.getElementById(id);
             if (elem) {
-                // Clean the value before setting
                 let cleanValue = value || '';
                 if (cleanValue.toLowerCase() === 'none') cleanValue = '';
-                elem.value = cleanValue;
+                // Kung INPUT element, gamitin ang .value
+                // Kung SPAN o iba, gamitin ang .textContent
+                if (elem.tagName === 'INPUT' || elem.tagName === 'TEXTAREA') {
+                    elem.value = cleanValue || '—';
+                } else {
+                    elem.textContent = cleanValue || '—';
+                }
             }
         }
         
@@ -949,7 +954,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setImage('app_idBack', getDataValue('id-back'));
         setImage('app_proofBilling', getDataValue('proof-billing'));
         
-        const tvTableBody = document.querySelector('#app_tvTable tbody');
+        const tvTableBody = document.getElementById('app_tvTableBody');
         if (tvTableBody) {
             tvTableBody.innerHTML = '';
             const brands = getDataValue('tv-brand') ? getDataValue('tv-brand').split(',') : [];
@@ -975,8 +980,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const lng = parseFloat(getDataValue('lng')) || 0;
         const latElem = document.getElementById('lat-modal');
         const lngElem = document.getElementById('lng-modal');
-        if (latElem) latElem.value = lat || '0';
-        if (lngElem) lngElem.value = lng || '0';
+        if (latElem) latElem.textContent = lat || '0';
+        if (lngElem) lngElem.textContent = lng || '0';
         initMap(lat, lng);
         setTimeout(() => setupImagePreview(), 100);
     }
