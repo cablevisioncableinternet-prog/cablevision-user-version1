@@ -1367,96 +1367,27 @@ async function fetchCustomerCounts() {
                 return;
             }
 
-        // ================= DRAG GALLERY (Infinite Scroll + Manual Drag) =================
-        function initDragGallery() {
-            const wrapper = document.getElementById('galleryWrapper');
-            const track = document.getElementById('imageGalleryTrack');
+        // ================= INIT ALL =================
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                console.log("📢 Loading announcements first...");
+                await loadAndShowModal();
+                console.log("✅ Announcements loaded!");
+            } catch (e) {
+                console.error("❌ Announcements failed:", e);
+            }
 
-            if (!wrapper || !track) return;
+            try { await loadHeroStats(); }        catch (e) { console.error("Hero stats error:", e); }
+            try { await loadPlansDynamically(); } catch (e) { console.error("Plans error:", e); }
+            try { await fetchUploadedLogos(); }   catch (e) { console.error("Logos error:", e); }
 
-            let isDragging = false;
-            let startX = 0;
-            let scrollLeft = 0;
-
-            const pauseAnimation = () => {
-                track.classList.remove('infinite-scroll');
-            };
-
-            const resumeAnimation = () => {
-                setTimeout(() => {
-                    track.classList.add('infinite-scroll');
-                }, 100);
-            };
-
-            // Mouse events
-            wrapper.addEventListener('mousedown', (e) => {
-                isDragging = true;
-                startX = e.pageX;
-                scrollLeft = wrapper.scrollLeft;
-                wrapper.style.cursor = 'grabbing';
-                document.body.style.userSelect = 'none';
-                pauseAnimation();
+            document.querySelectorAll('.thumbnail-wrapper').forEach((w, i) => {
+                w.addEventListener('click', function() {
+                    document.querySelectorAll('.thumbnail-wrapper').forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                });
             });
-
-            window.addEventListener('mousemove', (e) => {
-                if (!isDragging) return;
-                e.preventDefault();
-                const walk = (e.pageX - startX) * 1.5;
-                wrapper.scrollLeft = scrollLeft - walk;
-            });
-
-            window.addEventListener('mouseup', () => {
-                if (isDragging) {
-                    isDragging = false;
-                    wrapper.style.cursor = 'grab';
-                    document.body.style.userSelect = '';
-                    resumeAnimation();
-                }
-            });
-
-            // Touch events
-            wrapper.addEventListener('touchstart', (e) => {
-                const touch = e.touches[0];
-                isDragging = true;
-                startX = touch.pageX;
-                scrollLeft = wrapper.scrollLeft;
-                pauseAnimation();
-            }, { passive: true });
-
-            window.addEventListener('touchmove', (e) => {
-                if (!isDragging) return;
-                const touch = e.touches[0];
-                const walk = (touch.pageX - startX) * 1.5;
-                wrapper.scrollLeft = scrollLeft - walk;
-                e.preventDefault();
-            }, { passive: false });
-
-            window.addEventListener('touchend', () => {
-                if (isDragging) {
-                    isDragging = false;
-                    resumeAnimation();
-                }
-            });
-
-            wrapper.addEventListener('dragstart', (e) => e.preventDefault());
-            wrapper.style.cursor = 'grab';
-            console.log('Drag gallery initialized');
-        }    
-
-            // I-duplicate para walang putol ang infinite scroll
-            const duplicatedImages = [...allImages, ...allImages, ...allImages];
-
-            duplicatedImages.forEach(img => {
-                const card = document.createElement('div');
-                card.className = 'gallery-card-modern';
-                card.onclick = () => window.open(img.src, '_blank');
-                card.innerHTML = `<img src="${img.src}" alt="Channel Logo" loading="lazy" onerror="this.style.display='none'">`;
-                track.appendChild(card);
-            });
-
-            // Siguraduhing may infinite-scroll class
-            track.classList.add('infinite-scroll');
-        }
+        });
 
         // ================= GALLERY NAVIGATION =================
         let galleryAutoPlayInterval = null;
