@@ -1068,7 +1068,7 @@ async function loadPlansDynamically() {
             const mockupImage = document.getElementById('mockupPlanImage');
 
             if (heroPrice) heroPrice.innerHTML = `₱${mostPopularPlan.price} <small>/mo</small>`;
-            if (heroSpeed) heroSpeed.textContent = `Up to ${mostPopularPlan.speed} • Fiber`;
+            if (heroSpeed) heroSpeed.textContent = `Up to ${mostPopularPlan.speed}`;
 
             if (mockupImage && mostPopularPlan.image) {
                 mockupImage.style.display = 'block';
