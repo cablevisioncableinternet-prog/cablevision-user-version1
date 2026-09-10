@@ -1341,9 +1341,12 @@ async function fetchCustomerCounts() {
                 uploadedLogos = Array.isArray(data) ? data.filter(item => item.fileType === 'image') : [];
                 uploadedLogos.sort((a, b) => (a.id || 0) - (b.id || 0));
                 buildImageGalleryModern();
+                initDragGallery();
+                initGalleryNavigationModern();
             } catch (error) {
                 console.error('Error fetching logos:', error);
                 buildImageGalleryModern();
+                initDragGallery();
             }
         }
 
@@ -1367,27 +1370,93 @@ async function fetchCustomerCounts() {
                 return;
             }
 
-        // ================= INIT ALL =================
-        document.addEventListener('DOMContentLoaded', async function() {
-            try {
-                console.log("📢 Loading announcements first...");
-                await loadAndShowModal();
-                console.log("✅ Announcements loaded!");
-            } catch (e) {
-                console.error("❌ Announcements failed:", e);
-            }
+                    const duplicatedImages = [...allImages, ...allImages, ...allImages];
 
-            try { await loadHeroStats(); }        catch (e) { console.error("Hero stats error:", e); }
-            try { await loadPlansDynamically(); } catch (e) { console.error("Plans error:", e); }
-            try { await fetchUploadedLogos(); }   catch (e) { console.error("Logos error:", e); }
-
-            document.querySelectorAll('.thumbnail-wrapper').forEach((w, i) => {
-                w.addEventListener('click', function() {
-                    document.querySelectorAll('.thumbnail-wrapper').forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                });
+            duplicatedImages.forEach(img => {
+                const card = document.createElement('div');
+                card.className = 'gallery-card-modern';
+                card.onclick = () => window.open(img.src, '_blank');
+                card.innerHTML = `<img src="${img.src}" alt="Channel Logo" loading="lazy" onerror="this.style.display='none'">`;
+                track.appendChild(card);
             });
-        });
+
+            track.classList.add('infinite-scroll');
+        }
+
+        function initDragGallery() {
+            const wrapper = document.getElementById('galleryWrapper');
+            const track = document.getElementById('imageGalleryTrack');
+
+            if (!wrapper || !track) return;
+            if (wrapper.dataset.dragInitialized === 'true') return;
+            wrapper.dataset.dragInitialized = 'true';
+
+            let isDragging = false;
+            let startX = 0;
+            let scrollLeft = 0;
+
+            const pauseAnimation = () => {
+                track.classList.remove('infinite-scroll');
+            };
+
+            const resumeAnimation = () => {
+                setTimeout(() => {
+                    track.classList.add('infinite-scroll');
+                }, 100);
+            };
+
+            wrapper.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startX = e.pageX;
+                scrollLeft = wrapper.scrollLeft;
+                wrapper.style.cursor = 'grabbing';
+                document.body.style.userSelect = 'none';
+                pauseAnimation();
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                const walk = (e.pageX - startX) * 1.5;
+                wrapper.scrollLeft = scrollLeft - walk;
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    wrapper.style.cursor = 'grab';
+                    document.body.style.userSelect = '';
+                    resumeAnimation();
+                }
+            });
+
+            wrapper.addEventListener('touchstart', (e) => {
+                const touch = e.touches[0];
+                isDragging = true;
+                startX = touch.pageX;
+                scrollLeft = wrapper.scrollLeft;
+                pauseAnimation();
+            }, { passive: true });
+
+            window.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                const touch = e.touches[0];
+                const walk = (touch.pageX - startX) * 1.5;
+                wrapper.scrollLeft = scrollLeft - walk;
+                e.preventDefault();
+            }, { passive: false });
+
+            window.addEventListener('touchend', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    resumeAnimation();
+                }
+            });
+
+            wrapper.addEventListener('dragstart', (e) => e.preventDefault());
+            wrapper.style.cursor = 'grab';
+            console.log('Drag gallery initialized');
+        }
 
         // ================= GALLERY NAVIGATION =================
         let galleryAutoPlayInterval = null;
@@ -1601,12 +1670,18 @@ async function fetchCustomerCounts() {
         });
 
         // ================= INIT ALL =================
-        document.addEventListener('DOMContentLoaded', function() {
-            loadHeroStats();
-            loadPlansDynamically();
-            fetchUploadedLogos();
-            initDragGallery();
-            loadAndShowModal();
+        document.addEventListener('DOMContentLoaded', async function() {
+            try {
+                console.log("📢 Loading announcements first...");
+                await loadAndShowModal();
+                console.log("✅ Announcements loaded!");
+            } catch (e) {
+                console.error("❌ Announcements failed:", e);
+            }
+
+            try { await loadHeroStats(); }        catch (e) { console.error("Hero stats error:", e); }
+            try { await loadPlansDynamically(); } catch (e) { console.error("Plans error:", e); }
+            try { await fetchUploadedLogos(); }   catch (e) { console.error("Logos error:", e); }
 
             document.querySelectorAll('.thumbnail-wrapper').forEach((w, i) => {
                 w.addEventListener('click', function() {
