@@ -98,7 +98,7 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                     <div class="profile-upload-grid">
                         <div class="profile-upload-left">
                             <label class="form-label-modern">Upload Profile Photo (JPG/PNG) <span class="required-star">*</span></label>
-                            <input type="file" id="profile_photo" name="profile_photo" accept="image/png, image/jpeg" class="form-control-modern">
+                            <input type="file" id="profile_photo" name="profile_photo" accept="image/png, image/jpeg" class="form-control-modern" required>
                             <p class="file-hint-modern">Upload JPG or PNG file. Make sure na malinaw ang photo.</p>
                             {% if is_reapply and form_data and form_data.existing_profile_photo %}
                                 <div class="existing-file-modern">
@@ -893,6 +893,17 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
             modal.classList.remove("show");
             modal.style.display = "none";
         }
+    }
+
+    // Gagalaw lang ng konti ang modal kapag nag-click outside, hindi mag-cclose
+    function shakeModal(modalContentEl) {
+        if (!modalContentEl) return;
+        modalContentEl.classList.remove('modal-shake');
+        void modalContentEl.offsetWidth;
+        modalContentEl.classList.add('modal-shake');
+        setTimeout(() => {
+            modalContentEl.classList.remove('modal-shake');
+        }, 300);
     }
 
     document.addEventListener("DOMContentLoaded", function () {
@@ -3520,21 +3531,17 @@ function showTemporaryMessage(message, type) {
         { name: 'mother_maiden_name', message: "Mother's Maiden Name is required" }
     ];
     
-    // For re-apply, file uploads are optional (they can keep existing files)
-    // For new applications, file uploads are required
-    if (!isReapply) {
-        // Only add file upload requirements for new applications
-        requiredFieldsConfig.unshift(
-            { name: 'profile_photo', message: 'Please upload your profile photo' }
-        );
-    }
+    // Profile photo ay laging required — bagong upload o existing photo (sa re-apply)
+    requiredFieldsConfig.unshift(
+        { name: 'profile_photo', message: 'Please upload your profile photo' }
+    );
     
     // Function to check if a file input has an existing image (for re-apply)
     function hasExistingImage(field) {
         const container = field.closest('.document-upload-left, .profile-upload-left, .signature-upload-left');
         if (container) {
-            const existingImg = container.querySelector('.document-preview-img, .profile-img-small, .signature-img-small');
-            if (existingImg && existingImg.src && existingImg.src !== '') {
+            const existingImg = container.querySelector('.document-preview-img-modern, .preview-img-modern, .document-preview-img, .profile-img-small, .signature-img-small');
+            if (existingImg && existingImg.src && existingImg.src !== '' && existingImg.style.display !== 'none') {
                 return true;
             }
         }
@@ -6095,6 +6102,14 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
                     verificationTimer = null;
                 }
                 
+                // I-disable agad ang Submit Application button at ipakita ang loading state
+                const submitButton = document.querySelector('#applicationForm .submit-btn');
+                if (submitButton) {
+                    submitButton.disabled = true;
+                    submitButton.classList.add('btn-loading');
+                    submitButton.textContent = 'Submitting...';
+                }
+                
                 setTimeout(() => {
                     const form = document.getElementById('applicationForm');
                     if (form && typeof form.submit === 'function') {
@@ -6107,6 +6122,11 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
                         if (verifyBtn) {
                             verifyBtn.disabled = false;
                             verifyBtn.textContent = 'Verify & Submit';
+                        }
+                        if (submitButton) {
+                            submitButton.disabled = false;
+                            submitButton.classList.remove('btn-loading');
+                            submitButton.textContent = 'Submit Application';
                         }
                     }
                 }, 1000);
@@ -6230,7 +6250,9 @@ if (hiddenIsReapply && hiddenIsReapply.value === 'true') {
     
     if (modal) {
         modal.addEventListener('click', function(e) {
-            if (e.target === modal) closeModal();
+            if (e.target === modal) {
+                shakeModal(document.querySelector('.email-verification-modal-content'));
+            }
         });
     }
     
