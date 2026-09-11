@@ -4535,10 +4535,10 @@ function showTemporaryMessage(message, type) {
 (function() {
     const restrictedFields = ['place_of_birth', 'employer', 'business_address', 'billing_address'];
 
-    // Pattern ng mga PAYAG (letters, numbers, space, & . , - / ( ))
-    const allowedRegex = /^[A-Za-z0-9\u00C0-\u00FF\s&.,\-\/()]*$/;
+    // Pattern ng mga PAYAG (letters, numbers, space, & . , - / ( ) #)
+    const allowedRegex = /^[A-Za-z0-9\u00C0-\u00FF\s&.,\-\/()#]*$/;
     // Pattern para sa mga BAWAL na characters (gagamitin sa pag-strip)
-    const stripRegex = /[^A-Za-z0-9\u00C0-\u00FF\s&.,\-\/()]/g;
+    const stripRegex = /[^A-Za-z0-9\u00C0-\u00FF\s&.,\-\/()#]/g;
 
     function addFieldError(field, message) {
         removeFieldError(field);
@@ -4575,7 +4575,7 @@ function showTemporaryMessage(message, type) {
             const newCursorPos = Math.max(0, cursorPos - (oldLength - newLength));
             input.setSelectionRange(newCursorPos, newCursorPos);
 
-            addFieldError(input, 'Only letters, numbers, and & . , - / ( ) are allowed.');
+            addFieldError(input, 'Only letters, numbers, and & . , - / ( ) # are allowed.');
             clearTimeout(input._restrictedErrTimeout);
             input._restrictedErrTimeout = setTimeout(() => removeFieldError(input), 2000);
         } else {
