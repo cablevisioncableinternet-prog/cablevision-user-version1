@@ -448,6 +448,7 @@ body {
 .status-rejected {
     background: #fef2f2;
     border-left: 4px solid #dc2626;
+    color: #7f1d1d;
 }
 .status-rejected i { color: #dc2626; }
 .status-rejected strong { color: #991b1b; }
@@ -455,6 +456,7 @@ body {
 .status-pending {
     background: #fffbeb;
     border-left: 4px solid #f59e0b;
+    color: #78350f;
 }
 .status-pending i { color: #f59e0b; }
 .status-pending strong { color: #92400e; }
@@ -462,6 +464,7 @@ body {
 .status-approved {
     background: #ecfdf5;
     border-left: 4px solid #10b981;
+    color: #047857;
 }
 .status-approved i { color: #10b981; }
 .status-approved strong { color: #065f46; }

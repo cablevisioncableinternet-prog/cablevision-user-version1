@@ -314,18 +314,30 @@ async function loadMaximumPlanSpeed() {
         if (!response.ok) throw new Error('Failed to load plans');
 
         const plans = await response.json();
-        let maxSpeed = 0;
-        let maximumSpeed = '';
+        let maxSpeedMbps = 0;
+        let maximumSpeedLabel = '';
 
         plans.forEach(plan => {
-            const speedValue = parseInt(plan.speed, 10) || 0;
-            if (speedValue > maxSpeed) {
-                maxSpeed = speedValue;
-                maximumSpeed = plan.speed;
+            const label = (plan.speed || '').toString().trim();
+            const match = label.match(/([\d.]+)\s*(gbps|mbps|kbps)/i);
+            if (!match) return;
+
+            const value = parseFloat(match[1]);
+            const unit = match[2].toLowerCase();
+
+            // Normalize lahat sa Mbps
+            let mbps = 0;
+            if (unit === 'gbps') mbps = value * 1000;
+            else if (unit === 'mbps') mbps = value;
+            else if (unit === 'kbps') mbps = value / 1000;
+
+            if (mbps > maxSpeedMbps) {
+                maxSpeedMbps = mbps;
+                maximumSpeedLabel = label;
             }
         });
 
-        maxSpeedElement.textContent = maximumSpeed || 'N/A';
+        maxSpeedElement.textContent = maximumSpeedLabel || 'N/A';
     } catch (error) {
         console.error('Unable to load maximum plan speed:', error);
         maxSpeedElement.textContent = 'N/A';
