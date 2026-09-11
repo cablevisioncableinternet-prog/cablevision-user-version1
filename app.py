@@ -3427,6 +3427,23 @@ def download_pdf(application_number):
                 return str(value)
             return "___________________"
 
+        def format_date_long(value):
+            """Convert YYYY-MM-DD (or datetime/date obj) to 'Month D, YYYY'."""
+            from datetime import datetime, date
+            if value is None or str(value).strip() in ("", "-", "none", "None"):
+                return value
+            try:
+                if isinstance(value, (datetime, date)):
+                    dt = value
+                else:
+                    s = str(value).strip()
+                    # handles "1999-02-22" and "1999-02-22 00:00:00"
+                    s = s.split(" ")[0]
+                    dt = datetime.strptime(s, "%Y-%m-%d")
+                return dt.strftime("%B %d, %Y").replace(" 0", " ")
+            except Exception:
+                return value
+
         def wrap_text(text, font, size, max_width):
             """Word-wrap `text` to fit within max_width, hard-breaking a single
             word that is still too long on its own (e.g. a very long email)."""
@@ -3586,7 +3603,7 @@ def download_pdf(application_number):
         ], 3)
 
         draw_field_grid([
-            ("Birthdate", data.get("birthdate")),
+            ("Birthdate", format_date_long(data.get("birthdate"))),
             ("Place of Birth", data.get("place_of_birth")),
         ], 2)
 
