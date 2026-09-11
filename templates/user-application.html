@@ -896,14 +896,20 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
     }
 
     // Gagalaw lang ng konti ang modal kapag nag-click outside, hindi mag-cclose
+    // Gamit ang Web Animations API para hindi maapektuhan ng CSS !important rules
     function shakeModal(modalContentEl) {
         if (!modalContentEl) return;
-        modalContentEl.classList.remove('modal-shake');
-        void modalContentEl.offsetWidth;
-        modalContentEl.classList.add('modal-shake');
-        setTimeout(() => {
-            modalContentEl.classList.remove('modal-shake');
-        }, 300);
+        modalContentEl.animate([
+            { marginLeft: '0px' },
+            { marginLeft: '-8px' },
+            { marginLeft: '8px' },
+            { marginLeft: '-5px' },
+            { marginLeft: '5px' },
+            { marginLeft: '0px' }
+        ], {
+            duration: 300,
+            easing: 'ease-in-out'
+        });
     }
 
     document.addEventListener("DOMContentLoaded", function () {
@@ -3247,18 +3253,14 @@ function showTemporaryMessage(message, type) {
     }
     
     if (modal) {
-        modal.addEventListener('click', function(e) {
+        modal.addEventListener('click', function (e) {
             if (e.target === modal) {
-                closeModal();
+                shakeModal(modalContent);
             }
         });
     }
     
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape' && modal && modal.style.display === 'block') {
-            closeModal();
-        }
-    });
+    // Escape key ay hindi na dapat mag-close ng modal — "I Agree" button lang ang dapat pang-close
     
     if (modalContent && !isMobile()) {
         const observer = new ResizeObserver(function() {

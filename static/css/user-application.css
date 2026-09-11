@@ -3820,21 +3820,7 @@ select.form-control {
 }
 
 
-/* ================= MODAL SHAKE ON OUTSIDE CLICK ================= */
-/* Gumagamit ng margin-left (hindi transform) dahil naka-!important ang transform sa modal-content */
-@keyframes modalShakeAnim {
-  0%   { margin-left: 0; }
-  20%  { margin-left: -8px; }
-  40%  { margin-left: 8px; }
-  60%  { margin-left: -5px; }
-  80%  { margin-left: 5px; }
-  100% { margin-left: 0; }
-}
-
-.floating-modal-content.modal-shake,
-.email-verification-modal-content.modal-shake {
-  animation: modalShakeAnim 0.3s ease-in-out !important;
-}
+/* Shake ngayon ay ginagawa via JS (.animate()) para hindi maapektuhan ng CSS !important rules */
 
 /* ================= SUBMIT BUTTON LOADING STATE ================= */
 .submit-btn.btn-loading {
