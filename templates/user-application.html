@@ -372,7 +372,7 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                         <div class="document-upload-left">
                             <label class="form-label-modern">Valid ID - Front <span class="required-star">*</span></label>
                             <input type="file" id="id_front" name="id_front" accept="image/png, image/jpeg" class="form-control-modern">
-                            <p class="file-hint-modern">Upload JPG or PNG file. Make sure na sakop ng picture yung buong id. (Landscape only)</p>
+                            <p class="file-hint-modern">Upload JPG or PNG file. Make sure na sakop ng picture yung buong id.</p>
                             {% if is_reapply and form_data and form_data.existing_id_front %}
                                 <div class="existing-file-modern">
                                     <label>Current ID Front:</label>
@@ -400,7 +400,7 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                         <div class="document-upload-left">
                             <label class="form-label-modern">Valid ID - Back <span class="required-star">*</span></label>
                             <input type="file" id="id_back" name="id_back" accept="image/png, image/jpeg" class="form-control-modern">
-                            <p class="file-hint-modern">Upload JPG or PNG file. Make sure na sakop ng picture yung buong id. (Landscape only)</p>
+                            <p class="file-hint-modern">Upload JPG or PNG file. Make sure na sakop ng picture yung buong id.</p>
                             {% if is_reapply and form_data and form_data.existing_id_back %}
                                 <div class="existing-file-modern">
                                     <label>Current ID Back:</label>
@@ -453,29 +453,50 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                 </div>
             </div>
 
-            <!-- E-SIGNATURE -->
+                        <!-- E-SIGNATURE -->
             <div class="form-card-modern">
                 <div class="form-card-header">
                     <div class="form-card-icon"><i class="fas fa-pen"></i></div>
                     <h4 class="form-card-title">E-Signature</h4>
-                </div>
+                    </div>
                 <div class="form-card-body">
-                <div class="signature-guide-modern">
-                    <i class="fas fa-info-circle"></i> 
-                    <span>Use a white or transparent background. Sign on white paper and take a clear photo.</span>
-                </div>
 
-                <div class="signature-sample-modern" style="text-align:center; margin: 14px 0 18px;">
-                    <label class="form-label-modern" style="display:block; margin-bottom: 8px;">
-                        Example / Sample Format:
-                    </label>
-                    <img src="{{ url_for('static', filename='samplesignature.png') }}"
-                         alt="Sample signature format"
-                         style="max-width: 320px; width: 100%; border: 1px solid #dce3ef; border-radius: 10px; padding: 10px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
-                    <p class="text-muted small" style="margin-top: 6px;">
-                        Sample lang ito ng tamang format ng signature — white background, malinaw, walang shadow.
-                    </p>
-                </div>
+                    <!-- =============================================
+                        BACKGROUND REMOVER TOOL — SIMPLE INLINE DESIGN
+                    ============================================== -->
+                    <div style="display: flex; gap: 14px; align-items: flex-start; margin: 16px 0 20px; padding: 16px; background: #f0f7ff; border: 1px solid #d6e4ff; border-radius: 10px;">
+
+
+                        <!-- TEXT + BUTTON -->
+                        <div style="flex: 1; min-width: 0;">
+                            <p style="margin: 0 0 6px 0; font-size: 0.95rem; font-weight: 700; color: #1e3a8a;">
+                                Gamitin ito para maging malinaw at maayos ang e-signature
+                            </p>
+                            <p style="margin: 0 0 12px 0; font-size: 0.85rem; color: #475569; line-height: 1.5;">
+                            I-upload ang image ng iyong pirma sa tool na ito para ayusin ang background at gawing malinaw ang pirma. Pagkatapos, i-download ang naayos na image at i-upload sa form na ito.
+                            </p>
+                            <a href="https://www.dexin.in/signature-background-remover/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style="display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; background: #3b82f6; color: #fff; font-size: 0.85rem; font-weight: 600; text-decoration: none; border-radius: 8px;">
+                                <i class="fas fa-link" style="font-size: 0.8rem;"></i>
+                                Buksan ang E-signature Tool
+                            </a>
+                        </div>
+                    </div>
+                    <!-- ================= END TOOL BOX ================= -->
+
+                    <!-- SAMPLE SIGNATURE -->
+                    <div class="signature-sample-modern" style="text-align:center; margin: 22px 0 18px;">
+                        <label class="form-label-modern" style="display:block; margin-bottom: 8px;">
+                            Example / Sample Format:
+                        </label>
+                        <img src="{{ url_for('static', filename='samplesignature.png') }}"
+                            alt="Sample signature format"
+                            style="max-width: 320px; width: 100%; border: 1px solid #dce3ef; border-radius: 10px; padding: 10px; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.06);">
+                    </div>
+
+                    <!-- UPLOAD + PREVIEW -->
                     <div class="profile-upload-grid">
                         <div class="profile-upload-left">
                             <label class="form-label-modern">Upload Signature (JPG/PNG) - White background recommended. (Landscape only) <span class="required-star">*</span></label>
