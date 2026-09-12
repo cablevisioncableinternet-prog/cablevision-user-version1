@@ -766,9 +766,20 @@
 // ================= LOAD HERO STATS & EXPERIENCE YEARS =================
 async function loadHeroStats() {
     try {
-        const currentYear = new Date().getFullYear();
-        const foundingYear = 1991;
-        const yearsCount = currentYear - foundingYear;
+        // Founding date: October 10, 1991
+        const today = new Date();
+        const foundingDate = new Date(1991, 9, 10); // Month is 0-indexed: 9 = October
+
+        let yearsCount = today.getFullYear() - foundingDate.getFullYear();
+
+        // Bawas 1 kung hindi pa umabot sa Oct 10 ngayong taon
+        const hasHadAnniversaryThisYear =
+            today.getMonth() > foundingDate.getMonth() ||
+            (today.getMonth() === foundingDate.getMonth() && today.getDate() >= foundingDate.getDate());
+
+        if (!hasHadAnniversaryThisYear) {
+            yearsCount--;
+        }
 
         // Update Hero Stats
         document.getElementById('statYears').textContent = yearsCount + '+';
@@ -1020,13 +1031,24 @@ async function loadPlansDynamically() {
         });
         const mostPopularPlan = sortedPlans[0] || plans[0];
 
-        // ---- Determine Highest Speed ----
-        let maxSpeed = 0;
+        // ---- Determine Highest Speed (normalized to Mbps) ----
+        let maxSpeedMbps = 0;
         let maxSpeedPlan = null;
         plans.forEach(plan => {
-            const speedNum = parseInt(plan.speed) || 0;
-            if (speedNum > maxSpeed) {
-                maxSpeed = speedNum;
+            const label = (plan.speed || '').toString().trim();
+            const match = label.match(/([\d.]+)\s*(gbps|mbps|kbps)/i);
+            if (!match) return;
+
+            const value = parseFloat(match[1]);
+            const unit = match[2].toLowerCase();
+
+            let mbps = 0;
+            if (unit === 'gbps') mbps = value * 1000;
+            else if (unit === 'mbps') mbps = value;
+            else if (unit === 'kbps') mbps = value / 1000;
+
+            if (mbps > maxSpeedMbps) {
+                maxSpeedMbps = mbps;
                 maxSpeedPlan = plan;
             }
         });
