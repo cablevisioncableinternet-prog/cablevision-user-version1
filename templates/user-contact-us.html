@@ -261,12 +261,25 @@
 <script>
 // Keep the years-of-trust statistic aligned with the homepage calculation.
 document.addEventListener('DOMContentLoaded', function() {
-  const currentYear = new Date().getFullYear();
+  // Founding date: October 10, 1991
+  const today = new Date();
   const foundingYear = 1991;
-  const yearsTrust = document.getElementById('contactYearsTrust');
+  const foundingDate = new Date(foundingYear, 9, 10); // Month is 0-indexed: 9 = October
 
+  let yearsCount = today.getFullYear() - foundingDate.getFullYear();
+
+  // Bawas 1 kung hindi pa umabot sa Oct 10 ngayong taon
+  const hasHadAnniversaryThisYear =
+    today.getMonth() > foundingDate.getMonth() ||
+    (today.getMonth() === foundingDate.getMonth() && today.getDate() >= foundingDate.getDate());
+
+  if (!hasHadAnniversaryThisYear) {
+    yearsCount--;
+  }
+
+  const yearsTrust = document.getElementById('contactYearsTrust');
   if (yearsTrust) {
-    yearsTrust.textContent = (currentYear - foundingYear) + '+';
+    yearsTrust.textContent = yearsCount + '+';
   }
 });
 
