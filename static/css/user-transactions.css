@@ -163,7 +163,7 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 0.85rem;
-  min-width: 1020px;
+  min-width: 900px;
 }
 
 #transactionsTable th {
@@ -482,14 +482,13 @@
 .table-skeleton-row {
   display: grid;
   grid-template-columns: 
-    90px      /* ID */
-    130px     /* Name */
-    110px     /* Type */
+    110px     /* ID */
+    130px     /* Type */
     1fr       /* Description (flexible) */
-    90px      /* Status */
-    110px     /* Submitted */
-    110px     /* Updated */
-    80px;     /* Action */
+    110px     /* Status */
+    130px     /* Submitted */
+    130px     /* Updated */
+    90px;     /* Action */
   gap: 16px;
   align-items: center;
   padding: 14px 16px;
@@ -529,11 +528,7 @@
   border-radius: 4px;
 }
 
-.table-skeleton-row .skeleton-name {
-  height: 14px;
-  width: 90%;
-  border-radius: 4px;
-}
+
 
 .table-skeleton-row .skeleton-type {
   height: 22px;
@@ -608,14 +603,13 @@
 @media (max-width: 991px) {
   .table-skeleton-row {
     grid-template-columns: 
-      70px       /* ID */
-      110px      /* Name */
-      95px       /* Type */
+      90px       /* ID */
+      110px      /* Type */
       1fr        /* Description */
-      80px       /* Status */
-      95px       /* Submitted */
-      95px       /* Updated */
-      70px;      /* Action */
+      95px       /* Status */
+      110px      /* Submitted */
+      110px      /* Updated */
+      80px;      /* Action */
     gap: 12px;
     padding: 12px 14px;
   }
@@ -700,7 +694,7 @@
 
 /* ================= RESPONSIVE ================= */
 @media (max-width: 991px) {
-  #transactionsTable { min-width: 860px; }
+  #transactionsTable { min-width: 760px; }
   th, td { padding: 10px 12px; }
 }
 
@@ -719,7 +713,7 @@
   .filter-select { width: 100%; }
   .stats-badge { text-align: center; }
 
-  #transactionsTable { min-width: 760px; }
+  #transactionsTable { min-width: 680px; }
   #transactionsTable th, #transactionsTable td { padding: 8px 10px; font-size: 0.75rem; }
 
   .transaction-details-body .info-row {
@@ -732,7 +726,7 @@
 }
 
 @media (max-width: 575px) {
-  #transactionsTable { min-width: 680px; }
+  #transactionsTable { min-width: 620px; }
   #transactionsTable th, #transactionsTable td { padding: 6px 8px; font-size: 0.68rem; }
   .type-badge, .status-badge { min-width: 70px; font-size: 0.62rem; padding: 4px 8px; }
 }

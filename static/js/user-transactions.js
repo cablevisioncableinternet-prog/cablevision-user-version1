@@ -158,7 +158,6 @@ function applyFiltersAndPaginate() {
     if (searchTerm) {
         filtered = filtered.filter(t =>
             (t.id && String(t.id).toLowerCase().includes(searchTerm)) ||
-            (t.full_name && t.full_name.toLowerCase().includes(searchTerm)) ||
             (t.type && t.type.toLowerCase().includes(searchTerm)) ||
             (t.description && t.description.toLowerCase().includes(searchTerm))
         );
@@ -230,7 +229,6 @@ function renderTransactionsTable(data) {
         const row = document.createElement('tr');
         row.innerHTML = `
             <td><span class="request-id-cell">${escapeHtml(t.id || 'N/A')}</span></td>
-            <td>${escapeHtml(t.full_name || 'N/A')}</td>
             <td><span class="type-badge ${typeClass}"><i class="fas ${typeIcon}"></i> ${escapeHtml(t.type || 'N/A')}</span></td>
             <td>${escapeHtml(t.description || 'N/A')}</td>
             <td><span class="status-badge ${statusClass}">${escapeHtml(t.status || 'Pending')}</span></td>
