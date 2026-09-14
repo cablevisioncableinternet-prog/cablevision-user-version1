@@ -249,7 +249,28 @@
             </div>
         </div>
         <div class="card-body">
-            <div class="current-plan-details" id="currentPlanDetails">
+            <!-- Skeleton Loading for Current Plan -->
+            <div class="current-plan-loading" id="currentPlanLoading">
+                <div class="plan-detail-item skeleton-detail">
+                    <div class="skeleton-line skeleton-label"></div>
+                    <div class="skeleton-line skeleton-value"></div>
+                </div>
+                <div class="plan-detail-item skeleton-detail">
+                    <div class="skeleton-line skeleton-label"></div>
+                    <div class="skeleton-line skeleton-value"></div>
+                </div>
+                <div class="plan-detail-item skeleton-detail">
+                    <div class="skeleton-line skeleton-label"></div>
+                    <div class="skeleton-line skeleton-value"></div>
+                </div>
+                <div class="plan-detail-item skeleton-detail">
+                    <div class="skeleton-line skeleton-label"></div>
+                    <div class="skeleton-line skeleton-value"></div>
+                </div>
+            </div>
+
+            <!-- Actual Current Plan Details (hidden by default) -->
+            <div class="current-plan-details" id="currentPlanDetails" style="display: none;">
                 <div class="plan-detail-item">
                     <div class="plan-detail-label">Plan Name</div>
                     <div class="plan-detail-value" id="currentPlanName">--</div>
@@ -321,9 +342,66 @@
                     <tbody id="transactionsBody">
                         <tr class="loading-row">
                             <td colspan="8">
-                                <div class="loading-container">
-                                    <div class="spinner"></div>
-                                    <p>Loading transactions...</p>
+                                <div class="table-loading-container">
+                                    <!-- Skeleton Rows (Desktop/Tablet) -->
+                                    <div class="table-skeleton-wrapper">
+                                        <div class="table-skeleton-row">
+                                            <div class="skeleton-line skeleton-id"></div>
+                                            <div class="skeleton-line skeleton-name"></div>
+                                            <div class="skeleton-line skeleton-type"></div>
+                                            <div class="skeleton-line skeleton-desc"></div>
+                                            <div class="skeleton-line skeleton-status"></div>
+                                            <div class="skeleton-line skeleton-date"></div>
+                                            <div class="skeleton-line skeleton-date"></div>
+                                            <div class="skeleton-line skeleton-action"></div>
+                                        </div>
+                                        <div class="table-skeleton-row">
+                                            <div class="skeleton-line skeleton-id"></div>
+                                            <div class="skeleton-line skeleton-name"></div>
+                                            <div class="skeleton-line skeleton-type"></div>
+                                            <div class="skeleton-line skeleton-desc"></div>
+                                            <div class="skeleton-line skeleton-status"></div>
+                                            <div class="skeleton-line skeleton-date"></div>
+                                            <div class="skeleton-line skeleton-date"></div>
+                                            <div class="skeleton-line skeleton-action"></div>
+                                        </div>
+                                        <div class="table-skeleton-row">
+                                            <div class="skeleton-line skeleton-id"></div>
+                                            <div class="skeleton-line skeleton-name"></div>
+                                            <div class="skeleton-line skeleton-type"></div>
+                                            <div class="skeleton-line skeleton-desc"></div>
+                                            <div class="skeleton-line skeleton-status"></div>
+                                            <div class="skeleton-line skeleton-date"></div>
+                                            <div class="skeleton-line skeleton-date"></div>
+                                            <div class="skeleton-line skeleton-action"></div>
+                                        </div>
+                                        <div class="table-skeleton-row">
+                                            <div class="skeleton-line skeleton-id"></div>
+                                            <div class="skeleton-line skeleton-name"></div>
+                                            <div class="skeleton-line skeleton-type"></div>
+                                            <div class="skeleton-line skeleton-desc"></div>
+                                            <div class="skeleton-line skeleton-status"></div>
+                                            <div class="skeleton-line skeleton-date"></div>
+                                            <div class="skeleton-line skeleton-date"></div>
+                                            <div class="skeleton-line skeleton-action"></div>
+                                        </div>
+                                        <div class="table-skeleton-row">
+                                            <div class="skeleton-line skeleton-id"></div>
+                                            <div class="skeleton-line skeleton-name"></div>
+                                            <div class="skeleton-line skeleton-type"></div>
+                                            <div class="skeleton-line skeleton-desc"></div>
+                                            <div class="skeleton-line skeleton-status"></div>
+                                            <div class="skeleton-line skeleton-date"></div>
+                                            <div class="skeleton-line skeleton-date"></div>
+                                            <div class="skeleton-line skeleton-action"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Centered Spinner (Mobile) -->
+                                    <div class="table-spinner-wrapper">
+                                        <div class="spinner-ring"></div>
+                                        <p>Loading transactions...</p>
+                                    </div>
                                 </div>
                             </td>
                         </tr>

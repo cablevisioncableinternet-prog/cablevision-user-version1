@@ -90,14 +90,31 @@ async function loadCurrentPlan() {
 
         const response = await fetch(`/api/user/current-plan?username=${encodeURIComponent(username)}&tab_id=${tabId}`);
         const data = await response.json();
-        if (data.error) return;
+        
+        // Small delay para smooth transition
+        setTimeout(() => {
+            // Hide skeleton
+            const loadingEl = document.getElementById('currentPlanLoading');
+            if (loadingEl) loadingEl.style.display = 'none';
+            
+            // Show actual details
+            const detailsEl = document.getElementById('currentPlanDetails');
+            if (detailsEl) detailsEl.style.display = 'grid';
 
-        document.getElementById('currentPlanName').textContent = data.plan || '--';
-        document.getElementById('currentPlanSpeed').textContent = data.speed ? `${data.speed} Mbps` : '-- Mbps';
-        document.getElementById('currentPlanPrice').textContent = formatPriceDisplay(data.price);
-        document.getElementById('contractNumber').textContent = data.contract_number || '--';
+            if (data.error) return;
+
+            document.getElementById('currentPlanName').textContent = data.plan || '--';
+            document.getElementById('currentPlanSpeed').textContent = data.speed ? `${data.speed} Mbps` : '-- Mbps';
+            document.getElementById('currentPlanPrice').textContent = formatPriceDisplay(data.price);
+            document.getElementById('contractNumber').textContent = data.contract_number || '--';
+        }, 400);
     } catch (error) {
         console.error('Error loading current plan:', error);
+        // Hide skeleton even on error
+        const loadingEl = document.getElementById('currentPlanLoading');
+        if (loadingEl) loadingEl.style.display = 'none';
+        const detailsEl = document.getElementById('currentPlanDetails');
+        if (detailsEl) detailsEl.style.display = 'grid';
     }
 }
 
