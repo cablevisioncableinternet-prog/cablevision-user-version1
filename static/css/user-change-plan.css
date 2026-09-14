@@ -1129,26 +1129,64 @@ body {
   to { transform: rotate(360deg); }
 }
 
-/* Mobile: Ipakita lang ang centered spinner */
+/* Skeleton cards sa lahat ng screen size */
+.skeleton-wrapper {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+  width: 100%;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* Hide spinner completely */
+.skeleton-spinner {
+  display: none;
+}
+
+/* Tablet adjustments */
+@media (max-width: 992px) {
+  .skeleton-wrapper {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+  }
+}
+
+/* Mobile: 1 column skeleton cards */
 @media (max-width: 640px) {
   .skeleton-wrapper {
-    display: none;
-  }
-  
-  .skeleton-spinner {
-    display: flex;
+    grid-template-columns: 1fr;
+    gap: 14px;
   }
   
   .loading-container {
     min-height: 260px;
     padding: 30px 16px;
   }
-}
-
-/* Desktop: Ipakita ang skeleton cards */
-@media (min-width: 641px) {
-  .skeleton-spinner {
-    display: none;
+  
+  .skeleton-card {
+    min-height: 160px;
+    padding: 18px;
+  }
+  
+  .skeleton-title {
+    height: 16px;
+    width: 60%;
+  }
+  
+  .skeleton-speed {
+    height: 28px;
+    width: 40%;
+  }
+  
+  .skeleton-price {
+    height: 22px;
+    width: 50%;
+  }
+  
+  .skeleton-badge {
+    height: 18px;
+    width: 35%;
   }
 }
 

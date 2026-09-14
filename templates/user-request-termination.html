@@ -274,7 +274,28 @@
             </div>
         </div>
         <div class="card-body">
-            <div class="current-plan-details" id="currentPlanDetails">
+            <!-- Skeleton Loading for Current Plan -->
+            <div class="current-plan-loading" id="currentPlanLoading">
+                <div class="plan-detail-item skeleton-detail">
+                    <div class="skeleton-line skeleton-label"></div>
+                    <div class="skeleton-line skeleton-value"></div>
+                </div>
+                <div class="plan-detail-item skeleton-detail">
+                    <div class="skeleton-line skeleton-label"></div>
+                    <div class="skeleton-line skeleton-value"></div>
+                </div>
+                <div class="plan-detail-item skeleton-detail">
+                    <div class="skeleton-line skeleton-label"></div>
+                    <div class="skeleton-line skeleton-value"></div>
+                </div>
+                <div class="plan-detail-item skeleton-detail">
+                    <div class="skeleton-line skeleton-label"></div>
+                    <div class="skeleton-line skeleton-value"></div>
+                </div>
+            </div>
+
+            <!-- Actual Current Plan Details (hidden by default) -->
+            <div class="current-plan-details" id="currentPlanDetails" style="display: none;">
                 <div class="plan-detail-item">
                     <div class="plan-detail-label">Plan Name</div>
                     <div class="plan-detail-value" id="currentPlanName">--</div>
@@ -510,67 +531,84 @@ function showToast(message, type = 'info') {
             if (data.error) {
                 console.error('Error loading current plan:', data.error);
                 showToast(data.error, 'error');
+                // Hide skeleton even on error
+                document.getElementById('currentPlanLoading').style.display = 'none';
+                document.getElementById('currentPlanDetails').style.display = 'grid';
                 return;
             }
             
             currentPlan = data;
             
-            document.getElementById('currentPlanName').textContent = data.plan || '--';
-            document.getElementById('currentPlanSpeed').textContent = data.speed ? `${data.speed}` : '-- Mbps';
-            
-            let priceDisplay = '--';
-            if (data.price) {
-                const cleanPrice = String(data.price)
-                    .replace(/[₱,]/g, '')
-                    .replace(/\/month.*$/i, '')
-                    .trim();
-                const priceNum = parseFloat(cleanPrice);
-                if (!isNaN(priceNum) && priceNum > 0) {
-                    priceDisplay = `₱${priceNum.toLocaleString()}`;
+            // Small delay para smooth ang transition
+            setTimeout(() => {
+                // Hide skeleton
+                document.getElementById('currentPlanLoading').style.display = 'none';
+                
+                // Show actual details
+                const detailsEl = document.getElementById('currentPlanDetails');
+                detailsEl.style.display = 'grid';
+                
+                // Populate data
+                document.getElementById('currentPlanName').textContent = data.plan || '--';
+                document.getElementById('currentPlanSpeed').textContent = data.speed ? `${data.speed}` : '-- Mbps';
+                
+                let priceDisplay = '--';
+                if (data.price) {
+                    const cleanPrice = String(data.price)
+                        .replace(/[₱,]/g, '')
+                        .replace(/\/month.*$/i, '')
+                        .trim();
+                    const priceNum = parseFloat(cleanPrice);
+                    if (!isNaN(priceNum) && priceNum > 0) {
+                        priceDisplay = `₱${priceNum.toLocaleString()}`;
+                    }
                 }
-            }
-            document.getElementById('currentPlanPrice').textContent = priceDisplay;
-            document.getElementById('contractNumber').textContent = data.contract_number || '--';
-            
-            // I-CHECK ANG PENDING TERMINATION REQUEST
-            const alertDiv = document.getElementById('pendingRequestAlert');
-            alertDiv.innerHTML = '';
-            
-            // Check pending termination from the data
-            if (data.pending_request) {
-                hasPendingRequest = true;
-                pendingRequestData = data.pending_request;
-                const requestIdDisplay = pendingRequestData.request_id ? `<strong>Request ID: ${pendingRequestData.request_id}</strong><br>` : '';
+                document.getElementById('currentPlanPrice').textContent = priceDisplay;
+                document.getElementById('contractNumber').textContent = data.contract_number || '--';
                 
-                // GAMITIN ANG formatDateTime12Hour FUNCTION
-                const formattedDate = formatDateTime12Hour(pendingRequestData.created_at);
+                // I-CHECK ANG PENDING TERMINATION REQUEST
+                const alertDiv = document.getElementById('pendingRequestAlert');
+                alertDiv.innerHTML = '';
                 
-                alertDiv.innerHTML = `
-                    <div class="pending-badge" style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px 16px; margin-top: 16px; color: #92400e;">
-                        <i class="fas fa-clock" style="color: #f59e0b;"></i> 
-                        ${requestIdDisplay}
-                        You have a pending <strong>termination</strong> request.
-                        <br><small>Submitted on: ${formattedDate}</small>
-                        <br><small>Status: Pending Approval</small>
-                        <br>
-                        <div style="background: #fef3c7; border: 1px solid #fde68a; border-radius: 6px; padding: 6px 12px; margin-top: 8px; display: flex; align-items: center; gap: 8px; color: #92400e; font-size: 13px; font-weight: 500;">
-                            <i class="fas fa-info-circle" style="color: #92400e; font-size: 13px;"></i>
-                            <span>Your request will be updated the day after cut off</span>
+                // Check pending termination from the data
+                if (data.pending_request) {
+                    hasPendingRequest = true;
+                    pendingRequestData = data.pending_request;
+                    const requestIdDisplay = pendingRequestData.request_id ? `<strong>Request ID: ${pendingRequestData.request_id}</strong><br>` : '';
+                    
+                    // GAMITIN ANG formatDateTime12Hour FUNCTION
+                    const formattedDate = formatDateTime12Hour(pendingRequestData.created_at);
+                    
+                    alertDiv.innerHTML = `
+                        <div class="pending-badge" style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px 16px; margin-top: 16px; color: #92400e;">
+                            <i class="fas fa-clock" style="color: #f59e0b;"></i> 
+                            ${requestIdDisplay}
+                            You have a pending <strong>termination</strong> request.
+                            <br><small>Submitted on: ${formattedDate}</small>
+                            <br><small>Status: Pending Approval</small>
+                            <br>
+                            <div style="background: #fef3c7; border: 1px solid #fde68a; border-radius: 6px; padding: 6px 12px; margin-top: 8px; display: flex; align-items: center; gap: 8px; color: #92400e; font-size: 13px; font-weight: 500;">
+                                <i class="fas fa-info-circle" style="color: #92400e; font-size: 13px;"></i>
+                                <span>Your request will be updated the day after cut off</span>
+                            </div>
                         </div>
-                    </div>
-                `;
-                document.getElementById('submitTerminationBtn').disabled = true;
-                document.getElementById('submitTerminationBtn').innerHTML = '<i class="fas fa-clock"></i> Request Pending...';
-            } else {
-                hasPendingRequest = false;
-                pendingRequestData = null;
-                document.getElementById('submitTerminationBtn').disabled = false;
-                document.getElementById('submitTerminationBtn').innerHTML = '<i class="fas fa-times-circle"></i> Request Termination';
-            }
+                    `;
+                    document.getElementById('submitTerminationBtn').disabled = true;
+                    document.getElementById('submitTerminationBtn').innerHTML = '<i class="fas fa-clock"></i> Request Pending...';
+                } else {
+                    hasPendingRequest = false;
+                    pendingRequestData = null;
+                    document.getElementById('submitTerminationBtn').disabled = false;
+                    document.getElementById('submitTerminationBtn').innerHTML = '<i class="fas fa-times-circle"></i> Request Termination';
+                }
+            }, 400); // Smooth transition delay
             
         } catch (error) {
             console.error('Error loading current plan:', error);
             showToast('Failed to load current plan', 'error');
+            // Hide skeleton even on error
+            document.getElementById('currentPlanLoading').style.display = 'none';
+            document.getElementById('currentPlanDetails').style.display = 'grid';
         }
     }
 
