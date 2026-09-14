@@ -287,7 +287,28 @@
             </div>
         </div>
         <div class="card-body">
-            <div class="current-plan-details" id="currentPlanDetails">
+            <!-- Skeleton Loading for Current Plan -->
+            <div class="current-plan-loading" id="currentPlanLoading">
+                <div class="plan-detail-item skeleton-detail">
+                    <div class="skeleton-line skeleton-label"></div>
+                    <div class="skeleton-line skeleton-value"></div>
+                </div>
+                <div class="plan-detail-item skeleton-detail">
+                    <div class="skeleton-line skeleton-label"></div>
+                    <div class="skeleton-line skeleton-value"></div>
+                </div>
+                <div class="plan-detail-item skeleton-detail">
+                    <div class="skeleton-line skeleton-label"></div>
+                    <div class="skeleton-line skeleton-value"></div>
+                </div>
+                <div class="plan-detail-item skeleton-detail">
+                    <div class="skeleton-line skeleton-label"></div>
+                    <div class="skeleton-line skeleton-value"></div>
+                </div>
+            </div>
+
+            <!-- Actual Current Plan Details (hidden by default) -->
+            <div class="current-plan-details" id="currentPlanDetails" style="display: none;">
                 <div class="plan-detail-item">
                     <div class="plan-detail-label">Plan Name</div>
                     <div class="plan-detail-value" id="currentPlanName">--</div>
@@ -470,58 +491,73 @@
             if (data.error) {
                 console.error('Error loading current plan:', data.error);
                 showToast(data.error, 'error');
+                // Hide skeleton even on error
+                document.getElementById('currentPlanLoading').style.display = 'none';
+                document.getElementById('currentPlanDetails').style.display = 'grid';
                 return;
             }
             
             currentPlan = data;
             
-            document.getElementById('currentPlanName').textContent = data.plan || '--';
-            document.getElementById('currentPlanSpeed').textContent = data.speed ? `${data.speed}` : '-- Mbps';
-            
-            // FIX: Extract numeric value from price string (e.g., "₱1600.00/month" → 1600.00)
-            let priceDisplay = '--';
-            if (data.price) {
-                // Remove ₱, commas, and /month text, then parse
-                const cleanPrice = String(data.price)
-                    .replace(/[₱,]/g, '')          // Remove ₱ and commas
-                    .replace(/\/month.*$/i, '')    // Remove "/month" and anything after
-                    .trim();
+            // Small delay para smooth ang transition
+            setTimeout(() => {
+                // Hide skeleton
+                document.getElementById('currentPlanLoading').style.display = 'none';
                 
-                const priceNum = parseFloat(cleanPrice);
-                if (!isNaN(priceNum) && priceNum > 0) {
-                    priceDisplay = `₱${priceNum.toLocaleString()}`;
+                // Show actual details
+                const detailsEl = document.getElementById('currentPlanDetails');
+                detailsEl.style.display = 'grid';
+                
+                // Populate data
+                document.getElementById('currentPlanName').textContent = data.plan || '--';
+                document.getElementById('currentPlanSpeed').textContent = data.speed ? `${data.speed}` : '-- Mbps';
+                
+                // FIX: Extract numeric value from price string (e.g., "₱1600.00/month" → 1600.00)
+                let priceDisplay = '--';
+                if (data.price) {
+                    const cleanPrice = String(data.price)
+                        .replace(/[₱,]/g, '')
+                        .replace(/\/month.*$/i, '')
+                        .trim();
+                    
+                    const priceNum = parseFloat(cleanPrice);
+                    if (!isNaN(priceNum) && priceNum > 0) {
+                        priceDisplay = `₱${priceNum.toLocaleString()}`;
+                    }
                 }
-            }
-            document.getElementById('currentPlanPrice').textContent = priceDisplay;
-            
-            document.getElementById('contractNumber').textContent = data.contract_number || '--';
-            
-            // Check for pending request
-            if (data.pending_request) {
-                hasPendingRequest = true;
-                pendingRequestData = data.pending_request;
-                const alertDiv = document.getElementById('pendingRequestAlert');
-                const requestIdDisplay = pendingRequestData.request_id ? `<strong>Request ID: ${pendingRequestData.request_id}</strong><br>` : '';
-                alertDiv.innerHTML = `
-                    <div class="pending-badge">
-                        <i class="fas fa-clock"></i> 
-                        ${requestIdDisplay}
-                        You have a pending plan change request to <strong>${pendingRequestData.plan}</strong> (${pendingRequestData.speed} Mbps)
-                        <br><small>Submitted on: ${formatDateTime12Hour(pendingRequestData.requested_at)}</small>
-                        <br><small>Status: Pending Approval</small>
-                        <div style="background: #fef3c7; border: 1px solid #fde68a; border-radius: 8px; padding: 8px 12px; margin-top: 10px; display: flex; align-items: center; gap: 8px;">
-                            <i class="fas fa-info-circle" style="color: #92400e; font-size: 14px;"></i>
-                            <span style="color: #92400e; font-size: 13px; font-weight: 500;">
-                                Your request will be updated the day after cut off
-                            </span>
+                document.getElementById('currentPlanPrice').textContent = priceDisplay;
+                document.getElementById('contractNumber').textContent = data.contract_number || '--';
+                
+                // Check for pending request
+                if (data.pending_request) {
+                    hasPendingRequest = true;
+                    pendingRequestData = data.pending_request;
+                    const alertDiv = document.getElementById('pendingRequestAlert');
+                    const requestIdDisplay = pendingRequestData.request_id ? `<strong>Request ID: ${pendingRequestData.request_id}</strong><br>` : '';
+                    alertDiv.innerHTML = `
+                        <div class="pending-badge">
+                            <i class="fas fa-clock"></i> 
+                            ${requestIdDisplay}
+                            You have a pending plan change request to <strong>${pendingRequestData.plan}</strong> (${pendingRequestData.speed} Mbps)
+                            <br><small>Submitted on: ${formatDateTime12Hour(pendingRequestData.requested_at)}</small>
+                            <br><small>Status: Pending Approval</small>
+                            <div style="background: #fef3c7; border: 1px solid #fde68a; border-radius: 8px; padding: 8px 12px; margin-top: 10px; display: flex; align-items: center; gap: 8px;">
+                                <i class="fas fa-info-circle" style="color: #92400e; font-size: 14px;"></i>
+                                <span style="color: #92400e; font-size: 13px; font-weight: 500;">
+                                    Your request will be updated the day after cut off
+                                </span>
+                            </div>
                         </div>
-                    </div>
-                `;
-            }
+                    `;
+                }
+            }, 400); // Smooth transition delay
             
         } catch (error) {
             console.error('Error loading current plan:', error);
             showToast('Failed to load current plan', 'error');
+            // Hide skeleton even on error
+            document.getElementById('currentPlanLoading').style.display = 'none';
+            document.getElementById('currentPlanDetails').style.display = 'grid';
         }
     }
 
