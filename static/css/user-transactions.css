@@ -621,8 +621,55 @@
   }
 }
 
-/* --- Mobile: Ipakita ang centered spinner --- */
-@media (max-width: 767px) {
+/* ================= RESPONSIVE BREAKPOINTS ================= */
+
+/* --- Small Tablet (641px – 767px): Very compact skeleton rows --- */
+@media (min-width: 641px) and (max-width: 767px) {
+  .table-skeleton-row {
+    grid-template-columns: 
+      50px       /* ID */
+      80px       /* Name */
+      70px       /* Type */
+      1fr        /* Description */
+      65px       /* Status */
+      70px;      /* Action (hide Submitted & Updated) */
+    gap: 8px;
+    padding: 10px 12px;
+  }
+  
+  /* Hide Submitted & Updated skeleton cells */
+  .table-skeleton-row .skeleton-date {
+    display: none;
+  }
+  
+  .table-skeleton-row .skeleton-id,
+  .table-skeleton-row .skeleton-name,
+  .table-skeleton-row .skeleton-desc {
+    height: 11px;
+  }
+  
+  .table-skeleton-row .skeleton-type,
+  .table-skeleton-row .skeleton-status {
+    height: 18px;
+  }
+  
+  .table-skeleton-row .skeleton-action {
+    height: 22px;
+  }
+  
+  .current-plan-loading {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+  }
+  
+  .skeleton-detail {
+    min-height: 82px;
+    padding: 14px;
+  }
+}
+
+/* --- Mobile (≤ 640px): Centered Spinner --- */
+@media (max-width: 640px) {
   .table-skeleton-wrapper {
     display: none;
   }
@@ -631,11 +678,46 @@
     display: flex;
   }
   
+  /* FIX: I-override ang table layout para hindi mag-scroll */
+  .table-wrapper {
+    overflow-x: hidden;       /* Huwag hayaan mag-scroll pahalang */
+  }
+  
+  #transactionsTable {
+    min-width: auto !important;  /* Override ang min-width: 1020px */
+    width: 100% !important;      /* Full width ng screen */
+    table-layout: auto !important;
+  }
+  
   .loading-row td {
-    padding: 0;
+    padding: 0 !important;
+    width: 100% !important;
+    display: block !important;   /* Gawing block para sumunod sa width */
+  }
+  
+  /* Center ang spinner sa loob ng td */
+  .table-loading-container {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    min-height: 300px;
+    padding: 40px 20px !important;
+    position: static !important;
+  }
+  
+  .table-spinner-wrapper {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 18px !important;
+    padding: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
 
-  /* Current plan skeleton — 1 column sa mobile */
   .current-plan-loading {
     grid-template-columns: 1fr;
     gap: 12px;
@@ -645,17 +727,27 @@
     min-height: 80px;
     padding: 14px;
   }
+  
+  /* Siguraduhin na ang table ay hindi lumalampas sa screen */
+  #transactionsTable th,
+  #transactionsTable td {
+    display: none;  /* I-hide ang lahat ng cells habang loading */
+  }
+  
+  #transactionsTable .loading-row td {
+    display: block !important;  /* Ipakita lang ang loading cell */
+  }
 }
 
-/* --- Desktop: Ipakita ang skeleton rows --- */
-@media (min-width: 768px) {
+/* --- Desktop/Tablet (≥ 641px): Hide spinner --- */
+@media (min-width: 641px) {
   .table-spinner-wrapper {
     display: none;
   }
 }
 
-/* --- Tablet current plan: 2 columns --- */
-@media (max-width: 992px) {
+/* --- Tablet current plan: 2 columns (768px – 992px) --- */
+@media (min-width: 768px) and (max-width: 992px) {
   .current-plan-loading {
     grid-template-columns: repeat(2, 1fr);
   }
