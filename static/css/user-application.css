@@ -3847,3 +3847,39 @@ select.form-control {
 @keyframes submitBtnSpin {
   to { margin-left: 0; transform: rotate(360deg); }
 }
+
+
+
+/* ================= GOOGLE MAPS INFOWINDOW — CUSTOM CLEAN ================= */
+/* Alisin ang default white frame + close button + arrow para malinis */
+.gm-style-iw.gm-style-iw-c {
+    background: transparent !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+}
+
+.gm-style-iw-d {
+    overflow: visible !important;
+    max-height: none !important;
+}
+
+.gm-style-iw-t::after {
+    display: none !important;
+}
+
+.gm-style-iw-tc {
+    display: none !important;
+}
+
+/* Itago ang built-in close (X) button — gagamit tayo ng sarili */
+.gm-style-iw + button,
+.gm-ui-hover-effect {
+    display: none !important;
+}
+
+/* Optional: para hindi ma-clip ang card sa maliit na viewport */
+.gm-style-iw-chr {
+    display: none !important;
+}

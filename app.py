@@ -4,6 +4,8 @@ import random
 from datetime import datetime as _real_datetime
 from datetime import timedelta
 from zoneinfo import ZoneInfo
+from dotenv import load_dotenv
+load_dotenv()
 
 PH_TZ = ZoneInfo("Asia/Manila")
 
@@ -140,6 +142,12 @@ def upload_image():
 
 
 app.secret_key = "my_super_secure_random_key_12345"
+
+@app.context_processor
+def inject_google_maps_key():
+    return {
+        "google_maps_api_key": os.getenv("GOOGLE_MAPS_API_KEY", "")
+    }
 
 
 def ensure_user_security_columns():
@@ -1247,153 +1255,195 @@ def get_all_cities():
 # ===============================
 from flask import abort
 
-# ===============================
-# VALIDATE LOCATION BARANGAY (FIXED - UPPERCASE COMPARISON)
-# ===============================
+# ============================================================================
+# LOCATION VALIDATION — GOOGLE MAPS GEOCODING API
+# Uses Google Maps Geocoding API (reverse geocode) — SAME LOGIC as frontend
+# validateLocation() function.
+# NO GeoJSON. NO GeoRisk. NO Nominatim. NO point-in-polygon.
+# ============================================================================
 
-MAINTENANCE_LOCATION_MESSAGE = "We are currently under maintenance. You cannot apply at the moment. Please try again later."
+import requests as _requests
+
+MAINTENANCE_LOCATION_MESSAGE = (
+    "We are currently under maintenance. You cannot apply at the moment. "
+    "Please try again later."
+)
+
+# Allowed municipalities (uppercase — matches how the geocoder results are normalized)
+ALLOWED_CITIES = ["SANTA CRUZ", "PAGSANJAN", "PILA", "MAGDALENA"]
+
+# Reuse the existing GOOGLE_MAPS_API_KEY injected into the template context
+_GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY", "")
+
+
+def _normalize_city_name(city_upper):
+    """Normalize Google's city output to match ALLOWED_CITIES."""
+    if not city_upper:
+        return ""
+    s = str(city_upper).upper().strip()
+    # Handle Sta. Cruz / Santa Cruz variants
+    s = s.replace("STA. CRUZ", "SANTA CRUZ").replace("STA CRUZ", "SANTA CRUZ")
+    # Strip trailing punctuation that Google sometimes adds
+    s = s.replace(",", "").strip()
+    return s
+
+
+def _normalize_barangay_name(value, city):
+    """Same alias normalizer as the old GeoRisk version."""
+    s = " ".join((value or "").upper().replace(".", "").split())
+    s = s.replace("(POB)", "(POBLACION)").replace(" (POBLACION)", "")
+    s = s.replace("BARANGAY ", "", 1).strip()
+
+    if city == "SANTA CRUZ":
+        aliases = {
+            "1": "POBLACION I", "I": "POBLACION I", "UNO": "POBLACION I",
+            "2": "POBLACION II", "II": "POBLACION II", "DOS": "POBLACION II",
+            "3": "POBLACION III", "III": "POBLACION III", "TRES": "POBLACION III",
+            "4": "POBLACION IV", "IV": "POBLACION IV", "KUWATRO": "POBLACION IV",
+            "5": "POBLACION V", "V": "POBLACION V", "SINKO": "POBLACION V",
+            "POBLACION 1": "POBLACION I", "POBLACION 2": "POBLACION II",
+            "POBLACION 3": "POBLACION III", "POBLACION 4": "POBLACION IV",
+            "POBLACION 5": "POBLACION V",
+        }
+        return aliases.get(s, s)
+
+    if city == "PAGSANJAN":
+        aliases = {
+            "1": "I", "I": "I", "UNO": "I",
+            "2": "II", "II": "II", "DOS": "II",
+            "BARANGAY I": "I", "BARANGAY II": "II",
+            "BARANGAY UNO": "I", "BARANGAY DOS": "II",
+        }
+        return aliases.get(s, s)
+
+    return s
+
+
+def _find_allowed_barangay(city, detected, allowed):
+    """Match detected barangay to DB spelling (handles Poblacion I / Uno aliases)."""
+    detected_key = _normalize_barangay_name(detected, city)
+    for candidate in allowed:
+        if _normalize_barangay_name(candidate, city) == detected_key:
+            return candidate
+    return None
+
+
+def _google_reverse_geocode(lat_f, lng_f):
+    """
+    Call Google Maps Geocoding API and return (city_upper, barangay_raw) or (None, None).
+    Mirrors the address_components parsing done in the frontend validateLocation().
+    """
+    if not _GOOGLE_MAPS_API_KEY:
+        print("[Geocoder] GOOGLE_MAPS_API_KEY is not configured!")
+        return None, None
+
+    try:
+        url = "https://maps.googleapis.com/maps/api/geocode/json"
+        params = {"latlng": f"{lat_f},{lng_f}", "key": _GOOGLE_MAPS_API_KEY}
+        resp = _requests.get(url, params=params, timeout=10)
+
+        if resp.status_code != 200:
+            print(f"[Geocoder] HTTP error {resp.status_code}: {resp.text[:200]}")
+            return None, None
+
+        data = resp.json()
+        status = data.get("status")
+        if status != "OK" or not data.get("results"):
+            print(f"[Geocoder] API status: {status}")
+            return None, None
+
+        detected_city = None
+        detected_barangay = None
+
+        for result in data["results"]:
+            components = result.get("address_components", [])
+            temp_city = None
+            temp_barangay = None
+
+            for comp in components:
+                types = comp.get("types", []) or []
+
+                # City / Municipality (matches frontend logic exactly)
+                if not temp_city and any(t in types for t in (
+                    "administrative_area_level_3",
+                    "locality",
+                    "administrative_area_level_2",
+                )):
+                    candidate = _normalize_city_name(comp.get("long_name", ""))
+                    if candidate in ALLOWED_CITIES:
+                        temp_city = candidate
+
+                # Barangay (matches frontend logic exactly)
+                if not temp_barangay and any(t in types for t in (
+                    "administrative_area_level_4",
+                    "sublocality_level_1",
+                    "sublocality",
+                )):
+                    candidate = (comp.get("long_name") or "").strip()
+                    if candidate and len(candidate) < 50:
+                        temp_barangay = candidate
+
+            # Full hit — stop looking
+            if temp_city and temp_barangay:
+                detected_city = temp_city
+                detected_barangay = temp_barangay
+                break
+
+            # Partial fallback
+            if temp_city and not detected_city:
+                detected_city = temp_city
+            if temp_barangay and not detected_barangay:
+                detected_barangay = temp_barangay
+
+        return detected_city, detected_barangay
+
+    except _requests.exceptions.Timeout:
+        print("[Geocoder] Request timed out")
+        return None, None
+    except Exception as e:
+        print(f"[Geocoder] Error: {e}")
+        return None, None
 
 
 def validate_location_barangay(lat, lng):
-    import requests
-    import json
+    """
+    Validate that lat/lng falls inside one of the allowed municipalities/barangays
+    using Google Maps Geocoding API.
 
-    def normalize_barangay_name(value, city):
-        normalized = " ".join((value or "").upper().replace(".", "").split())
-        normalized = normalized.replace("(POB)", "(POBLACION)")
-        normalized = normalized.replace(" (POBLACION)", "")
-        normalized = normalized.replace("BARANGAY ", "", 1).strip()
-
-        if city == "SANTA CRUZ":
-            aliases = {
-                "1": "POBLACION I", "I": "POBLACION I", "UNO": "POBLACION I",
-                "2": "POBLACION II", "II": "POBLACION II", "DOS": "POBLACION II",
-                "3": "POBLACION III", "III": "POBLACION III", "TRES": "POBLACION III",
-                "4": "POBLACION IV", "IV": "POBLACION IV", "KUWATRO": "POBLACION IV",
-                "5": "POBLACION V", "V": "POBLACION V", "SINKO": "POBLACION V",
-                "POBLACION 1": "POBLACION I", "POBLACION 2": "POBLACION II",
-                "POBLACION 3": "POBLACION III", "POBLACION 4": "POBLACION IV",
-                "POBLACION 5": "POBLACION V"
-            }
-            return aliases.get(normalized, normalized)
-
-        if city == "PAGSANJAN":
-            aliases = {"1": "I", "I": "I", "UNO": "I", "2": "II", "II": "II", "DOS": "II"}
-            return aliases.get(normalized.replace(" (POBLACION)", ""), normalized)
-
-        return normalized
-
-    def find_allowed_barangay(city, detected, allowed):
-        detected_key = normalize_barangay_name(detected, city)
-        for candidate in allowed:
-            if normalize_barangay_name(candidate, city) == detected_key:
-                return candidate
-        return None
-    
+    Returns (is_valid: bool, message_or_matched_barangay: str)
+    """
     try:
-        georisk_url = "https://portal.georisk.gov.ph/arcgis/rest/services/PSA/Barangay/MapServer/4/query"
-        
-        query_params = {
-            "geometry": f"{lng},{lat}",
-            "geometryType": "esriGeometryPoint",
-            "inSR": "4326",
-            "outFields": "brgy_name,city_name,prov_name",
-            "returnGeometry": "false",
-            "f": "geojson"
-        }
-        
-        response = requests.get(georisk_url, params=query_params, timeout=10)
-        
-        if response.status_code == 200:
-            data = response.json()
-            
-            if data.get("features") and len(data["features"]) > 0:
-                props = data["features"][0]["properties"]
-                detected_city = props.get("city_name", "").upper()
-                detected_barangay = props.get("brgy_name", "").upper()
-                
-                print(f" GeoRisk detected: City='{detected_city}', Barangay='{detected_barangay}'")
-                
-                if detected_city and detected_barangay:
-                    ALLOWED_CITIES = ["SANTA CRUZ", "PAGSANJAN", "PILA", "MAGDALENA"]
-                    
-                    if detected_city not in ALLOWED_CITIES:
-                        return False, f"'{detected_city}' is not within our coverage area."
-                    
-                    # Convert detected barangay to match database format
-                    converted_barangay = detected_barangay
-                    converted_barangay = converted_barangay.replace('(POB.)', '(POBLACION)')
-                    
-                    # Special handling for Pila
-                    if detected_city == "PILA":
-                        if "BULILAN NORTE" in converted_barangay:
-                            converted_barangay = "BULILAN NORTE (POBLACION)"
-                        elif "BULILAN SUR" in converted_barangay:
-                            converted_barangay = "BULILAN SUR (POBLACION)"
-                        elif "SANTA CLARA NORTE" in converted_barangay:
-                            converted_barangay = "SANTA CLARA NORTE (POBLACION)"
-                        elif "SANTA CLARA SUR" in converted_barangay:
-                            converted_barangay = "SANTA CLARA SUR (POBLACION)"
-                    
-                    allowed_barangays = get_cached_allowed_barangays()
-                    
-                    if detected_city not in allowed_barangays:
-                        return False, f"'{detected_city}' is not found in our database."
-                    
-                    # Match API aliases to the database spelling for this city.
-                    matched_barangay = find_allowed_barangay(
-                        detected_city, converted_barangay, allowed_barangays[detected_city]
-                    )
-                    if not matched_barangay:
-                        return False, f"Barangay '{detected_barangay}' is not within our coverage area for {detected_city}."
-                    
-                    print(f" Location validated: {detected_city}, {matched_barangay}")
-                    return True, matched_barangay
-            
-            # Fallback to OSM
-            print(" GeoRisk returned no data, trying OSM fallback...")
-            osm_url = f"https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat={lat}&lon={lng}"
-            osm_response = requests.get(osm_url, headers={"User-Agent": "CableVision-App"}, timeout=10)
-            osm_data = osm_response.json()
-            osm_addr = osm_data.get("address", {})
-            
-            fallback_city = osm_addr.get("town") or osm_addr.get("city") or osm_addr.get("municipality") or ""
-            fallback_barangay = osm_addr.get("village") or osm_addr.get("suburb") or osm_addr.get("neighbourhood") or ""
-            
-            if fallback_city and fallback_barangay:
-                fallback_city = fallback_city.upper()
-                fallback_barangay = fallback_barangay.upper()
-                ALLOWED_CITIES = ["SANTA CRUZ", "PAGSANJAN", "PILA", "MAGDALENA"]
-                
-                if fallback_city not in ALLOWED_CITIES:
-                    return False, f"'{fallback_city}' is not within our coverage area."
-                
-                allowed_barangays = get_cached_allowed_barangays()
-                
-                if fallback_city not in allowed_barangays:
-                    return False, f"'{fallback_city}' is not found in our database."
-                
-                matched_barangay = find_allowed_barangay(
-                    fallback_city, fallback_barangay, allowed_barangays[fallback_city]
-                )
-                if not matched_barangay:
-                    return False, f"Barangay '{fallback_barangay}' is not within our coverage area for {fallback_city}."
-                
-                return True, matched_barangay
-            
-            return False, MAINTENANCE_LOCATION_MESSAGE
-        
-        else:
-            return False, MAINTENANCE_LOCATION_MESSAGE
-            
-    except requests.exceptions.Timeout:
-        return False, MAINTENANCE_LOCATION_MESSAGE
-    except Exception as e:
-        print(f"Location validation error: {e}")
-        import traceback
-        traceback.print_exc()
+        lat_f = float(lat)
+        lng_f = float(lng)
+    except (TypeError, ValueError):
         return False, MAINTENANCE_LOCATION_MESSAGE
 
+    # Basic sanity check for the Laguna area
+    if not (13.0 <= lat_f <= 15.0 and 120.0 <= lng_f <= 122.5):
+        return False, MAINTENANCE_LOCATION_MESSAGE
+
+    detected_city, detected_barangay = _google_reverse_geocode(lat_f, lng_f)
+
+    if not detected_city or not detected_barangay:
+        return False, MAINTENANCE_LOCATION_MESSAGE
+
+    allowed_barangays = get_cached_allowed_barangays()
+
+    if detected_city not in allowed_barangays:
+        return False, f"'{detected_city.title()}' is not found in our database."
+
+    matched_barangay = _find_allowed_barangay(
+        detected_city, detected_barangay, allowed_barangays[detected_city]
+    )
+
+    if not matched_barangay:
+        return False, (
+            f"Barangay '{detected_barangay.title()}' is not within our coverage area "
+            f"for {detected_city.title()}."
+        )
+
+    print(f"[Location OK] {detected_city} / {matched_barangay} ({lat_f}, {lng_f})")
+    return True, matched_barangay
 
 
 
@@ -4943,7 +4993,7 @@ def dashboard():
     
     application_number = user_data.get("application_number") if user_data else None
     ga_enabled = bool(user_data.get("ga_enabled")) if user_data else False
-    ga_secret = user_data.get("ga_secret") if user_data else Nonech
+    ga_secret = user_data.get("ga_secret") if user_data else None
     if not ga_enabled and not ga_secret:
         ga_secret = session.get("ga_setup_secret")
     if not ga_secret and not ga_enabled:
@@ -7845,8 +7895,7 @@ import os
 from flask import request, jsonify
 import time
 
-# Load .env
-load_dotenv()
+
 
 # Get API key
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
