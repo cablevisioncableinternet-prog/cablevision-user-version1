@@ -3675,36 +3675,6 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
         }
     }
 
-    // ================= AUTO-SCROLL TO MAP =================
-    (function() {
-        const citySelect = document.getElementById('city');
-        const mapElement = document.getElementById('map');
-        if (!citySelect || !mapElement) return;
-
-        function scrollToMap() {
-            const mapRect = mapElement.getBoundingClientRect();
-            const absoluteTop = window.pageYOffset + mapRect.top;
-            window.scrollTo({ top: absoluteTop - 80, behavior: 'smooth' });
-            mapElement.classList.add('map-highlight');
-            setTimeout(() => { mapElement.classList.remove('map-highlight'); }, 1200);
-        }
-
-        citySelect.addEventListener('change', function() {
-            if (this.value && this.value !== '') {
-                setTimeout(() => { scrollToMap(); }, 100);
-            }
-        });
-
-        const barangaySelectEl = document.getElementById('barangay');
-        if (barangaySelectEl) {
-            barangaySelectEl.addEventListener('change', function() {
-                if (this.value && this.value !== '' && this.value !== 'No barangays available') {
-                    setTimeout(() => { scrollToMap(); }, 100);
-                }
-            });
-        }
-    })();
-
     // ================= RETURN TO PIN LOCATION =================
     function returnToPinLocation() {
         const lat = document.getElementById("latitude").value;
