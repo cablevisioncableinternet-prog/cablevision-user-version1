@@ -1271,7 +1271,7 @@ MAINTENANCE_LOCATION_MESSAGE = (
 
 # Allowed municipalities (uppercase — matches how the geocoder results are normalized)
 ALLOWED_CITIES = ["SANTA CRUZ", "PAGSANJAN", "PILA", "MAGDALENA"]
-
+c
 # Reuse the existing GOOGLE_MAPS_API_KEY injected into the template context
 _GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY", "")
 
