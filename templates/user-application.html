@@ -645,15 +645,6 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                     <input type="hidden" name="preferred_napbox_name" id="preferred_napbox_name">
 
                     <div style="display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap;">
-                        <button type="button" id="returnToLocationBtn" onclick="returnToCurrentLocation()" 
-                            style="display: flex; align-items: center; gap: 8px; padding: 8px 18px; border-radius: 30px; border: 1px solid #dce3ef; 
-                                background: #fff; color: #0a1a3a; font-size: 0.9rem; font-weight: 500; cursor: pointer; transition: all 0.2s;">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 2a8 8 0 0 0-8 8c0 4 8 12 8 12s8-8 8-12a8 8 0 0 0-8-8z"/>
-                                <circle cx="12" cy="10" r="3"/>
-                            </svg>
-                            Return to Current Location
-                        </button>
                         <button type="button" id="returnToPinBtn" onclick="returnToPinLocation()" 
                             style="display: flex; align-items: center; gap: 8px; padding: 8px 18px; border-radius: 30px; border: 1px solid #dce3ef; 
                                 background: #fff; color: #0a1a3a; font-size: 0.9rem; font-weight: 500; cursor: pointer; opacity: 0.5; pointer-events: none; transition: all 0.2s;">
@@ -1445,38 +1436,6 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
             handleMapClick(e.latLng);
         });
 
-        // ---- Geolocation on load ----
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(async (pos) => {
-                let lat = pos.coords.latitude;
-                let lng = pos.coords.longitude;
-                let ok = await isAllowed(lat, lng, true);  
-
-                if (ok) {
-                    if (marker) marker.setMap(null);
-                    marker = new google.maps.Marker({
-                        position: { lat, lng },
-                        map: map,
-                        title: "Your Current Location",
-                        animation: google.maps.Animation.DROP
-                    });
-                    const infoWindow = new google.maps.InfoWindow({ content: "📍 Your Current Location" });
-                    infoWindow.open(map, marker);
-                    map.setCenter({ lat, lng });
-                    map.setZoom(16);
-                    document.getElementById("latitude").value = lat;
-                    document.getElementById("longitude").value = lng;
-                    showToast("Location verified!", "success");
-
-                    const isMatch = await validateBarangayMatch();
-                    if (!isMatch) console.log("Barangay mismatch detected");
-                } else {
-                    map.setCenter({ lat: 14.255, lng: 121.41 });
-                    map.setZoom(12);
-                }
-            });
-        }
-
         // Initialize NAP box system
         initNapboxSystem();
     });
@@ -1613,6 +1572,7 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
             document.getElementById("longitude").value = "";
             if (marker) { marker.setMap(null); marker = null; }
 
+
             const errorMarker = new google.maps.Marker({
                 position: latLng,
                 map: map,
@@ -1633,7 +1593,7 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                     anchor: new google.maps.Point(30, 30)
                 }
             });
-            const errIW = new google.maps.InfoWindow({
+          const errIW = new google.maps.InfoWindow({
                 content: `
                     <div style="font-family:'Inter',-apple-system,sans-serif;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 12px 32px rgba(220,38,38,0.22);min-width:280px;max-width:320px;">
                         <div style="background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:12px;">
@@ -1648,6 +1608,7 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                                 <div style="font-weight:700;font-size:13px;letter-spacing:0.4px;line-height:1.2;">LOCATION ERROR</div>
                                 <div style="font-size:11px;opacity:0.9;margin-top:2px;">Please check your pin</div>
                             </div>
+                            <button id="errIWCloseBtn" style="background:rgba(255,255,255,0.25);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;flex-shrink:0;line-height:1;">&times;</button>
                         </div>
                         <div style="padding:14px 16px;background:#fff;">
                             <div style="font-size:10px;color:#9ca3af;text-transform:uppercase;letter-spacing:0.6px;font-weight:600;margin-bottom:6px;">Reason</div>
@@ -1657,8 +1618,25 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                     </div>`,
                 pixelOffset: new google.maps.Size(0, -8)
             });
+
+            // ⬇️ NEW: Close button click handler + remove auto-close
             errIW.open(map, errorMarker);
-            setTimeout(() => { errIW.close(); errorMarker.setMap(null); }, 3500);
+
+            google.maps.event.addListener(errIW, 'domready', () => {
+                const closeBtn = document.getElementById('errIWCloseBtn');
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => {
+                        errIW.close();
+                        errorMarker.setMap(null);
+                    });
+                }
+            });
+
+            // Optional: still auto-remove the marker after 10s (pero hindi na-info window)
+            setTimeout(() => { 
+                if (errIW) errIW.close();
+                if (errorMarker) errorMarker.setMap(null); 
+            }, 10000);
             return;
         }
 
@@ -2827,7 +2805,7 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
             return isValid;
         }
 
-        function validateAllRequiredFields() {
+        window.validateAllRequiredFields = function() {
             let allValid = true;
 
             requiredFieldsConfig.forEach(config => {
@@ -3383,83 +3361,7 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
         });
     })();
 
-   function returnToCurrentLocation() {
-    const btn = document.getElementById('returnToLocationBtn');
-    const originalText = btn.innerHTML;
 
-    if (isCustomLocationPinned) {
-        showToast("You have a pinned location. Select a different barangay first to clear it, then you can return to current location.", "warning");
-        return;
-    }
-
-    btn.disabled = true;
-    btn.style.opacity = '0.6';
-    btn.innerHTML = `
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
-             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" 
-             style="animation: spin 1s linear infinite;">
-            <path d="M21 12a9 9 0 11-6.219-8.56"/>
-        </svg>
-        Locating...
-    `;
-
-    if (!document.getElementById('spinStyle')) {
-        const style = document.createElement('style');
-        style.id = 'spinStyle';
-        style.textContent = '@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }';
-        document.head.appendChild(style);
-    }
-
-    if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(async (pos) => {
-            let lat = pos.coords.latitude;
-            let lng = pos.coords.longitude;
-            let ok = await isAllowed(lat, lng, true);  // ← SHOW MODAL (user action ito)
-
-            if (ok) {
-                if (marker) marker.setMap(null);
-                marker = new google.maps.Marker({
-                    position: { lat, lng },
-                    map: map,
-                    title: "Current Location",
-                    animation: google.maps.Animation.DROP
-                });
-                const iw = new google.maps.InfoWindow({ content: "📍 Current Location" });
-                iw.open(map, marker);
-                map.setCenter({ lat, lng });
-                map.setZoom(16);
-                document.getElementById("latitude").value = lat;
-                document.getElementById("longitude").value = lng;
-                showToast("Location verified!", "success");
-
-                const pinBtn = document.getElementById('returnToPinBtn');
-                if (pinBtn) {
-                    pinBtn.disabled = false;
-                    pinBtn.style.opacity = '1';
-                    pinBtn.style.pointerEvents = 'auto';
-                    pinBtn.style.cursor = 'pointer';
-                }
-            } else {
-                // ← PALITAN ANG MISLEADING NA TOAST
-                showToast("Your current location is outside our coverage area.", "error");
-            }
-
-            btn.disabled = false;
-            btn.style.opacity = '1';
-            btn.innerHTML = originalText;
-        }, (err) => {
-            alert("Unable to get your location. Please allow location access in your browser.");
-            btn.disabled = false;
-            btn.style.opacity = '1';
-            btn.innerHTML = originalText;
-        });
-    } else {
-        alert("Geolocation is not supported by your browser.");
-        btn.disabled = false;
-        btn.style.opacity = '1';
-        btn.innerHTML = originalText;
-    }
-}
 
     // ================= LAGUNA MUNICIPALITIES + GEOJSON URLS =================
     const LAGUNA_MUNICIPALITIES = {
@@ -4574,7 +4476,7 @@ async function getBarangayCoordinates(barangayName, cityName) {
         if (form) {
             form.addEventListener('submit', async function(e) {
                 e.preventDefault();
-                e.stopPropagation();
+                e.stopImmediatePropagation();
 
                 const latitude = document.getElementById("latitude").value;
                 const longitude = document.getElementById("longitude").value;
