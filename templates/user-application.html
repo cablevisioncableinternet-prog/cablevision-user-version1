@@ -449,7 +449,10 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                     <!-- PROOF OF BILLING -->
                     <div class="document-upload-grid" style="margin-top: 20px;">
                         <div class="document-upload-left">
-                            <label class="form-label-modern">Proof of Billing <span class="required-star">*</span></label>
+                            <label class="form-label-modern">Proof of Billing 
+                                <span class="required-star" id="proof_billing_required">*</span>
+                                <span class="optional-badge" id="proof_billing_optional" style="display:none;">(Optional)</span>
+                            </label>
                             <input type="file" id="proof_billing" name="proof_billing" accept="image/png, image/jpeg" class="form-control-modern">
                             <p class="file-hint-modern">Upload recent utility bill (electricity, water, internet). Make sure na sakop ng picture yung buong proof of billing. (Portrait only)</p>
                             {% if is_reapply and form_data and form_data.existing_proof_billing %}
@@ -2262,6 +2265,39 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
         window.spouseFieldNames = spouseFields;
     })();
 
+    
+    // ================= CONDITIONAL REQUIRED: PROOF OF BILLING =================
+    (function() {
+        const homeOwnershipSelect = document.querySelector('select[name="home_ownership"]');
+        const proofBillingRequiredStar = document.getElementById('proof_billing_required');
+        const proofBillingOptionalBadge = document.getElementById('proof_billing_optional');
+
+        function toggleProofBillingRequired() {
+            const status = homeOwnershipSelect ? homeOwnershipSelect.value : '';
+            const isOptional = status === 'Rental';
+
+            if (proofBillingRequiredStar) proofBillingRequiredStar.style.display = isOptional ? 'none' : 'inline';
+            if (proofBillingOptionalBadge) proofBillingOptionalBadge.style.display = isOptional ? 'inline' : 'none';
+
+            if (isOptional) {
+                const field = document.getElementById('proof_billing');
+                const existingError = document.getElementById('error-proof_billing');
+                if (field) field.classList.remove('field-error');
+                if (existingError) existingError.remove();
+            }
+        }
+
+        if (homeOwnershipSelect) {
+            homeOwnershipSelect.addEventListener('change', toggleProofBillingRequired);
+            toggleProofBillingRequired();
+        }
+
+        window.isProofBillingRequired = function() {
+            const status = homeOwnershipSelect ? homeOwnershipSelect.value : '';
+            return status !== 'Rental';
+        };
+    })();
+
     // ================= BIRTHDATE AUTO-FORMAT =================
     (function() {
         const birthdateInput = document.getElementById('birthdate');
@@ -2832,6 +2868,20 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                         window.removeSpouseFieldError(field);
                     }
                 });
+            }
+
+            if (typeof window.isProofBillingRequired === 'function' && window.isProofBillingRequired()) {
+                const proofBillingField = document.getElementById('proof_billing');
+                if (proofBillingField) {
+                    const alreadyHasExisting = isReapply && hasExistingImage(proofBillingField);
+                    const hasNewFile = proofBillingField.files && proofBillingField.files.length > 0;
+                    if (!alreadyHasExisting && !hasNewFile) {
+                        addErrorMessage(proofBillingField, 'Proof of Billing is required unless your Home Ownership is Rental');
+                        allValid = false;
+                    } else {
+                        removeErrorMessage(proofBillingField);
+                    }
+                }
             }
 
             const birthdateField = document.getElementById('birthdate');
