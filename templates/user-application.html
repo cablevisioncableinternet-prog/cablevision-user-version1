@@ -135,14 +135,15 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                 </div>
             </div>
 
-            <!-- PERSONAL INFORMATION — 10 equal fields, properly aligned -->
+            <!-- PERSONAL INFORMATION -->
             <div class="form-card-modern">
                 <div class="form-card-header">
                     <div class="form-card-icon"><i class="fas fa-id-card"></i></div>
                     <h4 class="form-card-title">Personal Information</h4>
                 </div>
                 <div class="form-card-body">
-                    <!-- ROW 1: 4 fields (First, Middle, Last, Suffix) — 25% each -->
+
+                    <!-- ROW 1: First, Middle, Last, Suffix — 25% each -->
                     <div class="row g-3">
                         <div class="col-12 col-sm-6 col-md-3">
                             <div class="form-group-modern">
@@ -170,32 +171,43 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                         </div>
                     </div>
 
-                    <!-- ROW 2: 3 fields (Birthdate, Place, Citizenship) — centered, 33.33% each -->
-                    <div class="row g-3 mt-1 justify-content-center">
-                        <div class="col-12 col-sm-6 col-md-4">
+                    <!-- ROW 2: Birthdate, Place of Birth, Citizenship, Home Ownership — 25% each -->
+                    <div class="row g-3 mt-1">
+                        <div class="col-12 col-sm-6 col-md-3">
                             <div class="form-group-modern">
                                 <label class="form-label-modern">Birthdate <span class="required-star">*</span></label>
-                                <input type="text" id="birthdate" name="birthdate" class="form-control-modern birthdate-auto-format" 
+                                <input type="text" id="birthdate" name="birthdate" class="form-control-modern birthdate-auto-format"
                                     placeholder="MM-DD-YYYY" autocomplete="off" inputmode="numeric" required>
                                 <small class="form-hint-modern">Format: Month-Day-Year (e.g., 05-15-1990) • Must be 18 years or older</small>
                                 <div class="birthdate-error" id="birthdateError" style="display: none; color: #dc3545; font-size: 12px; margin-top: 5px;"></div>
                             </div>
                         </div>
-                        <div class="col-12 col-sm-6 col-md-4">
+                        <div class="col-12 col-sm-6 col-md-3">
                             <div class="form-group-modern">
                                 <label class="form-label-modern">Place of Birth <span class="required-star">*</span></label>
                                 <input class="form-control-modern" name="place_of_birth" required>
                             </div>
                         </div>
-                        <div class="col-12 col-sm-6 col-md-4">
+                        <div class="col-12 col-sm-6 col-md-3">
                             <div class="form-group-modern">
                                 <label class="form-label-modern">Citizenship <span class="required-star">*</span></label>
                                 <input class="form-control-modern" name="citizenship" required>
                             </div>
                         </div>
+                        <div class="col-12 col-sm-6 col-md-3">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Home Ownership <span class="required-star">*</span></label>
+                                <select name="home_ownership" class="form-control-modern" required>
+                                    <option value="" disabled selected>Home Ownership</option>
+                                    <option>Owned</option>
+                                    <option>Rental</option>
+                                    <option>Living with Parents/Relatives</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- ROW 3: 3 fields (Sex, Civil Status, Occupation) — centered, 33.33% each -->
+                    <!-- ROW 3: Sex, Civil Status, Occupation — centered, 33.33% each -->
                     <div class="row g-3 mt-1 justify-content-center">
                         <div class="col-12 col-sm-6 col-md-4">
                             <div class="form-group-modern">
@@ -227,7 +239,7 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                             </div>
                         </div>
                     </div>
-                </div>
+                </div>  
             </div>
 
             <!-- CONTACT -->
@@ -591,27 +603,14 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                         </div>
                         <div class="col-12 col-sm-6 col-md-3">
                             <div class="form-group-modern">
-                                <label class="form-label-modern">Home Ownership <span class="required-star">*</span></label>
-                                <select name="home_ownership" class="form-control-modern" required>
-                                    <option value="" disabled selected>Home Ownership</option>
-                                    <option>Owned</option>
-                                    <option>Rental</option>
-                                    <option>Living with Parents/Relatives</option>
-                                </select>
+                                <label class="form-label-modern">Billing Address <span class="required-star">*</span></label>
+                                <input class="form-control-modern" name="billing_address" required>
                             </div>
                         </div>
                         <div class="col-12 col-sm-6 col-md-3">
                             <div class="form-group-modern">
                                 <label class="form-label-modern">Nearest Landmark <span class="required-star">*</span></label>
                                 <input class="form-control-modern" name="landmark" required>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row g-3 mt-1">
-                        <div class="col-12">
-                            <div class="form-group-modern">
-                                <label class="form-label-modern">Billing Address <span class="required-star">*</span></label>
-                                <input class="form-control-modern" name="billing_address" required>
                             </div>
                         </div>
                     </div>
@@ -5060,5 +5059,6 @@ function addUserNapboxMarkers() {
     })();
 
 </script>
+
 </body>
 </html>
