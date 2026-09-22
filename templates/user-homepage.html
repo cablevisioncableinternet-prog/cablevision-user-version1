@@ -254,45 +254,206 @@
         </div>
     </section>
 
-    <!-- ============================================================
-    GCASH PAYMENT GUIDE — 7 STEPS
-    ============================================================ -->
-    <section class="gcash-section reveal-on-scroll" id="payment-guide">
-        <div class="container text-center">
-            <span class="section-label">Online Payment</span>
-            <h2 class="section-title-lg">How to Pay via <span class="highlight">GCash</span></h2>
-            <p class="section-sub">Follow these 5 simple steps – tap any card to enlarge</p>
 
-            <div class="gcash-steps">
-                <div class="gcash-step" onclick="openModal('/static/s1.png')">
-                    <div class="step-num">1</div>
-                    <img src="/static/s1.png" alt="Step 1" />
-                    <div class="step-label">Tap "Bills" > "Cable/Internet"</div>
-                </div>
-                <div class="gcash-step" onclick="openModal('/static/s2.png')">
-                    <div class="step-num">2</div>
-                    <img src="/static/s2.png" alt="Step 2" />
-                    <div class="step-label">Choose "Cablevision" & enter amount</div>
-                </div>
-                <div class="gcash-step" onclick="openModal('/static/s3.png')">
-                    <div class="step-num">3</div>
-                    <img src="/static/s3.png" alt="Step 3" />
-                    <div class="step-label">Enter credentials & tap Next</div>
-                </div>
-                <div class="gcash-step" onclick="openModal('/static/s4.png')">
-                    <div class="step-num">4</div>
-                    <img src="/static/s4.png" alt="Step 4" />
-                    <div class="step-label">Tap Next, then Confirm</div>
-                </div>
-                <div class="gcash-step" onclick="openModal('/static/s5.png')">
-                    <div class="step-num">5</div>
-                    <img src="/static/s5.png" alt="Step 5" />
-                    <div class="step-label">View your receipt</div>
-                </div>
+<!-- ============================================================
+    HOW TO APPLY — STEP BY STEP GUIDE (WITH LIGHTBOX GALLERY)
+    ============================================================ -->
+<section class="apply-guide-section reveal-on-scroll" id="how-to-apply">
+    <div class="container text-center">
+        <span class="section-label">Application Guide</span>
+        <h2 class="section-title-lg">How to <span class="highlight">Apply Online</span></h2>
+        <p class="section-sub">Follow these 8 simple steps – tap any card to enlarge</p>
+
+        <div class="apply-steps">
+            <div class="apply-step" data-index="0" onclick="openApplyLightbox(0)">
+                <div class="step-num">1</div>
+                <img src="/static/a1.png" alt="Step 1" />
             </div>
-            <p style="margin-top:24px;font-size:14px;color:#4a5568;"><i class="fas fa-info-circle"></i> Tap any card to view full‑size guide</p>
+            <div class="apply-step" data-index="1" onclick="openApplyLightbox(1)">
+                <div class="step-num">2</div>
+                <img src="/static/a2.png" alt="Step 2" />
+            </div>
+            <div class="apply-step" data-index="2" onclick="openApplyLightbox(2)">
+                <div class="step-num">3</div>
+                <img src="/static/a3.png" alt="Step 3" />
+            </div>
+            <div class="apply-step" data-index="3" onclick="openApplyLightbox(3)">
+                <div class="step-num">4</div>
+                <img src="/static/a4.png" alt="Step 4" />
+            </div>
+            <div class="apply-step" data-index="4" onclick="openApplyLightbox(4)">
+                <div class="step-num">5</div>
+                <img src="/static/a5.png" alt="Step 5" />
+            </div>
+            <div class="apply-step" data-index="5" onclick="openApplyLightbox(5)">
+                <div class="step-num">6</div>
+                <img src="/static/a6.png" alt="Step 6" />
+            </div>
+            <div class="apply-step" data-index="6" onclick="openApplyLightbox(6)">
+                <div class="step-num">7</div>
+                <img src="/static/a7.png" alt="Step 7" />
+            </div>
+            <div class="apply-step" data-index="7" onclick="openApplyLightbox(7)">
+                <div class="step-num">8</div>
+                <img src="/static/a8.png" alt="Step 8" />
+            </div>
         </div>
-    </section>
+
+        <div class="apply-cta-wrapper">
+            <a href="/plans" class="btn-primary-custom apply-cta-btn">
+                Start My Application <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+
+        <p class="apply-note">
+            <i class="fas fa-info-circle"></i> Tap any card to view full-size guide
+        </p>
+    </div>
+</section>
+
+<!-- ============================================================
+    APPLY LIGHTBOX — ZOOMABLE GALLERY WITH NAVIGATION
+    ============================================================ -->
+<div id="applyLightbox" class="apply-lightbox">
+    <!-- Close Button -->
+    <button class="apply-lb-close" onclick="closeApplyLightbox()" aria-label="Close">&times;</button>
+
+    <!-- Step Counter -->
+    <div class="apply-lb-counter">
+        <span id="applyLbCurrent">1</span> / <span id="applyLbTotal">8</span>
+    </div>
+
+    <!-- Zoom Hint -->
+    <div class="apply-lb-hint">
+        <i class="fas fa-search-plus"></i> Scroll / pinch to zoom • Double-click to reset
+    </div>
+
+    <!-- Previous Button -->
+    <button class="apply-lb-nav apply-lb-prev" onclick="prevApplyImage(event)" aria-label="Previous">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+    </button>
+
+    <!-- Image Stage -->
+    <div class="apply-lb-stage" id="applyLbStage">
+        <img id="applyLbImage" src="" alt="Step preview" draggable="false" />
+    </div>
+
+    <!-- Next Button -->
+    <button class="apply-lb-nav apply-lb-next" onclick="nextApplyImage(event)" aria-label="Next">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+    </button>
+
+    <!-- Zoom Controls -->
+    <div class="apply-lb-zoom-controls">
+        <button onclick="zoomApplyImage(-0.25)" title="Zoom out">
+            <i class="fas fa-search-minus"></i>
+        </button>
+        <button onclick="resetApplyZoom()" title="Reset zoom">
+            <i class="fas fa-compress"></i>
+        </button>
+        <button onclick="zoomApplyImage(0.25)" title="Zoom in">
+            <i class="fas fa-search-plus"></i>
+        </button>
+    </div>
+
+    <!-- Thumbnail Strip -->
+    <div class="apply-lb-thumbs" id="applyLbThumbs"></div>
+</div>
+
+   <!-- ============================================================
+    GCASH PAYMENT GUIDE — SAME STYLE AS HOW TO APPLY
+    ============================================================ -->
+<section class="gcash-section reveal-on-scroll" id="payment-guide">
+    <div class="container text-center">
+        <span class="section-label">Online Payment</span>
+        <h2 class="section-title-lg">How to Pay via <span class="highlight">GCash</span></h2>
+        <p class="section-sub">Follow these 5 simple steps – tap any card to enlarge</p>
+
+        <div class="apply-steps">
+            <div class="apply-step" data-gcash-index="0" onclick="openGcashLightbox(0)">
+                <div class="step-num">1</div>
+                <img src="/static/s1.png" alt="Step 1" />
+            </div>
+            <div class="apply-step" data-gcash-index="1" onclick="openGcashLightbox(1)">
+                <div class="step-num">2</div>
+                <img src="/static/s2.png" alt="Step 2" />
+            </div>
+            <div class="apply-step" data-gcash-index="2" onclick="openGcashLightbox(2)">
+                <div class="step-num">3</div>
+                <img src="/static/s3.png" alt="Step 3" />
+            </div>
+            <div class="apply-step" data-gcash-index="3" onclick="openGcashLightbox(3)">
+                <div class="step-num">4</div>
+                <img src="/static/s4.png" alt="Step 4" />
+            </div>
+            <div class="apply-step" data-gcash-index="4" onclick="openGcashLightbox(4)">
+                <div class="step-num">5</div>
+                <img src="/static/s5.png" alt="Step 5" />
+            </div>
+        </div>
+
+        <p class="apply-note">
+            <i class="fas fa-info-circle"></i> Tap any card to view full-size guide
+        </p>
+    </div>
+</section>
+
+<!-- ============================================================
+    GCASH LIGHTBOX — ZOOMABLE GALLERY WITH NAVIGATION
+    ============================================================ -->
+<div id="gcashLightbox" class="apply-lightbox">
+    <!-- Close Button -->
+    <button class="apply-lb-close" onclick="closeGcashLightbox()" aria-label="Close">&times;</button>
+
+    <!-- Step Counter -->
+    <div class="apply-lb-counter">
+        <span id="gcashLbCurrent">1</span> / <span id="gcashLbTotal">5</span>
+    </div>
+
+    <!-- Zoom Hint -->
+    <div class="apply-lb-hint">
+        <i class="fas fa-search-plus"></i> Scroll / pinch to zoom • Double-click to reset
+    </div>
+
+    <!-- Previous Button -->
+    <button class="apply-lb-nav apply-lb-prev" onclick="prevGcashImage(event)" aria-label="Previous">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+    </button>
+
+    <!-- Image Stage -->
+    <div class="apply-lb-stage" id="gcashLbStage">
+        <img id="gcashLbImage" src="" alt="GCash step preview" draggable="false" />
+    </div>
+
+    <!-- Next Button -->
+    <button class="apply-lb-nav apply-lb-next" onclick="nextGcashImage(event)" aria-label="Next">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+        </svg>
+    </button>
+
+    <!-- Zoom Controls -->
+    <div class="apply-lb-zoom-controls">
+        <button onclick="zoomGcashImage(-0.25)" title="Zoom out">
+            <i class="fas fa-search-minus"></i>
+        </button>
+        <button onclick="resetGcashZoom()" title="Reset zoom">
+            <i class="fas fa-compress"></i>
+        </button>
+        <button onclick="zoomGcashImage(0.25)" title="Zoom in">
+            <i class="fas fa-search-plus"></i>
+        </button>
+    </div>
+
+    <!-- Thumbnail Strip -->
+    <div class="apply-lb-thumbs" id="gcashLbThumbs"></div>
+</div>
 
     <!-- ============================================================
     ANNOUNCEMENTS MODAL — DYNAMIC
@@ -1652,6 +1813,577 @@ async function fetchCustomerCounts() {
                 modal.show();
             }
         }
+
+                /* ============================================================
+        GCASH LIGHTBOX — ZOOMABLE GALLERY WITH NAVIGATION
+        (Same behavior as Apply Lightbox)
+        ============================================================ */
+        (function () {
+            const gcashImages = [
+                '/static/s1.png',
+                '/static/s2.png',
+                '/static/s3.png',
+                '/static/s4.png',
+                '/static/s5.png'
+            ];
+
+            let gcashCurrentIndex = 0;
+            let gcashZoom = 1;
+            let gcashOffsetX = 0;
+            let gcashOffsetY = 0;
+
+            const lightbox = document.getElementById('gcashLightbox');
+            const img = document.getElementById('gcashLbImage');
+            const counterCurrent = document.getElementById('gcashLbCurrent');
+            const counterTotal = document.getElementById('gcashLbTotal');
+            const stage = document.getElementById('gcashLbStage');
+            const thumbsContainer = document.getElementById('gcashLbThumbs');
+
+            if (!lightbox || !img) return;
+
+            // ---- Build thumbnails ----
+            function buildThumbs() {
+                thumbsContainer.innerHTML = '';
+                gcashImages.forEach((src, i) => {
+                    const thumb = document.createElement('div');
+                    thumb.className = 'apply-lb-thumb' + (i === 0 ? ' active' : '');
+                    thumb.setAttribute('data-index', i);
+                    thumb.innerHTML = `<img src="${src}" alt="Thumb ${i + 1}">`;
+                    thumb.onclick = (e) => {
+                        e.stopPropagation();
+                        goToGcashImage(i);
+                    };
+                    thumbsContainer.appendChild(thumb);
+                });
+            }
+
+            // ---- Update active thumb ----
+            function updateActiveThumb() {
+                const thumbs = thumbsContainer.querySelectorAll('.apply-lb-thumb');
+                thumbs.forEach((t, i) => {
+                    t.classList.toggle('active', i === gcashCurrentIndex);
+                });
+                const activeThumb = thumbs[gcashCurrentIndex];
+                if (activeThumb) {
+                    activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+            }
+
+            // ---- Apply transform ----
+            function applyTransform() {
+                img.style.transform = `translate(${gcashOffsetX}px, ${gcashOffsetY}px) scale(${gcashZoom})`;
+                if (gcashZoom > 1) {
+                    stage.style.cursor = 'grab';
+                    img.classList.add('zoomed');
+                } else {
+                    stage.style.cursor = 'default';
+                    img.classList.remove('zoomed');
+                }
+            }
+
+            // ---- Reset zoom ----
+            function resetZoom() {
+                gcashZoom = 1;
+                gcashOffsetX = 0;
+                gcashOffsetY = 0;
+                applyTransform();
+            }
+
+            // ---- Go to image ----
+            function goToGcashImage(index) {
+                if (index < 0) index = gcashImages.length - 1;
+                if (index >= gcashImages.length) index = 0;
+
+                gcashCurrentIndex = index;
+                resetZoom();
+
+                img.style.opacity = '0';
+                setTimeout(() => {
+                    img.src = gcashImages[index];
+                    img.onload = () => {
+                        img.style.opacity = '1';
+                    };
+                }, 120);
+
+                counterCurrent.textContent = index + 1;
+                updateActiveThumb();
+            }
+
+            // ---- Open ----
+            window.openGcashLightbox = function (index) {
+                if (typeof index !== 'number') index = 0;
+                lightbox.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                goToGcashImage(index);
+            };
+
+            // ---- Close ----
+            window.closeGcashLightbox = function () {
+                lightbox.classList.remove('active');
+                document.body.style.overflow = '';
+                resetZoom();
+            };
+
+            // ---- Prev / Next ----
+            window.prevGcashImage = function (e) {
+                if (e) e.stopPropagation();
+                goToGcashImage(gcashCurrentIndex - 1);
+            };
+            window.nextGcashImage = function (e) {
+                if (e) e.stopPropagation();
+                goToGcashImage(gcashCurrentIndex + 1);
+            };
+
+            // ---- Zoom ----
+            window.zoomGcashImage = function (delta) {
+                const newZoom = Math.max(0.5, Math.min(5, gcashZoom + delta));
+                gcashZoom = newZoom;
+                if (gcashZoom <= 1) {
+                    gcashOffsetX = 0;
+                    gcashOffsetY = 0;
+                }
+                applyTransform();
+            };
+            window.resetGcashZoom = resetZoom;
+
+            // ---- Mouse wheel zoom ----
+            stage.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const delta = e.deltaY < 0 ? 0.15 : -0.15;
+                const newZoom = Math.max(0.5, Math.min(5, gcashZoom + delta));
+
+                if (newZoom > 1) {
+                    const rect = stage.getBoundingClientRect();
+                    const cx = e.clientX - rect.left - rect.width / 2;
+                    const cy = e.clientY - rect.top - rect.height / 2;
+                    const factor = newZoom / gcashZoom;
+                    gcashOffsetX = cx - (cx - gcashOffsetX) * factor;
+                    gcashOffsetY = cy - (cy - gcashOffsetY) * factor;
+                }
+
+                gcashZoom = newZoom;
+                if (gcashZoom <= 1) {
+                    gcashOffsetX = 0;
+                    gcashOffsetY = 0;
+                }
+                applyTransform();
+            }, { passive: false });
+
+            // ---- Double-click to reset / zoom ----
+            stage.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                if (gcashZoom > 1) {
+                    resetZoom();
+                } else {
+                    gcashZoom = 2;
+                    applyTransform();
+                }
+            });
+
+            // ---- Drag to pan when zoomed ----
+            let isDragging = false;
+            let dragStartX = 0, dragStartY = 0;
+            let startOffsetX = 0, startOffsetY = 0;
+
+            stage.addEventListener('mousedown', (e) => {
+                if (gcashZoom <= 1) return;
+                isDragging = true;
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+                startOffsetX = gcashOffsetX;
+                startOffsetY = gcashOffsetY;
+                stage.style.cursor = 'grabbing';
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                gcashOffsetX = startOffsetX + (e.clientX - dragStartX);
+                gcashOffsetY = startOffsetY + (e.clientY - dragStartY);
+                applyTransform();
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    stage.style.cursor = gcashZoom > 1 ? 'grab' : 'default';
+                }
+            });
+
+            // ---- Touch: pinch zoom + swipe navigation ----
+            let touchStartX = 0, touchStartY = 0;
+            let touchStartDist = 0;
+            let touchStartZoom = 1;
+            let isSwiping = false;
+
+            stage.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    touchStartDist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    touchStartZoom = gcashZoom;
+                } else if (e.touches.length === 1) {
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                    isSwiping = true;
+                }
+            }, { passive: true });
+
+            stage.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2) {
+                    e.preventDefault();
+                    const dist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    const ratio = dist / touchStartDist;
+                    const newZoom = Math.max(0.5, Math.min(5, touchStartZoom * ratio));
+                    gcashZoom = newZoom;
+                    applyTransform();
+                }
+            }, { passive: false });
+
+            stage.addEventListener('touchend', (e) => {
+                if (isSwiping && gcashZoom <= 1 && e.changedTouches.length === 1) {
+                    const diffX = e.changedTouches[0].clientX - touchStartX;
+                    const diffY = e.changedTouches[0].clientY - touchStartY;
+                    if (Math.abs(diffX) > 60 && Math.abs(diffX) > Math.abs(diffY)) {
+                        if (diffX > 0) prevGcashImage();
+                        else nextGcashImage();
+                    }
+                }
+                isSwiping = false;
+                if (gcashZoom <= 1) {
+                    gcashOffsetX = 0;
+                    gcashOffsetY = 0;
+                    applyTransform();
+                }
+            });
+
+            // ---- Close on background click ----
+            lightbox.addEventListener('click', (e) => {
+                if (e.target === lightbox) closeGcashLightbox();
+            });
+
+            // ---- Keyboard navigation ----
+            document.addEventListener('keydown', (e) => {
+                if (!lightbox.classList.contains('active')) return;
+                switch (e.key) {
+                    case 'Escape':
+                        closeGcashLightbox();
+                        break;
+                    case 'ArrowLeft':
+                        prevGcashImage();
+                        break;
+                    case 'ArrowRight':
+                        nextGcashImage();
+                        break;
+                    case '+':
+                    case '=':
+                        zoomGcashImage(0.25);
+                        break;
+                    case '-':
+                        zoomGcashImage(-0.25);
+                        break;
+                    case '0':
+                        resetZoom();
+                        break;
+                }
+            });
+
+            // ---- Init ----
+            buildThumbs();
+            counterTotal.textContent = gcashImages.length;
+            counterCurrent.textContent = '1';
+        })();
+
+                /* ============================================================
+        APPLY LIGHTBOX — ZOOMABLE GALLERY WITH NAVIGATION
+        ============================================================ */
+        (function () {
+            const applyImages = [
+                '/static/a1.png',
+                '/static/a2.png',
+                '/static/a3.png',
+                '/static/a4.png',
+                '/static/a5.png',
+                '/static/a6.png',
+                '/static/a7.png',
+                '/static/a8.png'
+            ];
+
+            let applyCurrentIndex = 0;
+            let applyZoom = 1;
+            let applyOffsetX = 0;
+            let applyOffsetY = 0;
+
+            const lightbox = document.getElementById('applyLightbox');
+            const img = document.getElementById('applyLbImage');
+            const counterCurrent = document.getElementById('applyLbCurrent');
+            const counterTotal = document.getElementById('applyLbTotal');
+            const stage = document.getElementById('applyLbStage');
+            const thumbsContainer = document.getElementById('applyLbThumbs');
+
+            if (!lightbox || !img) return;
+
+            // ---- Build thumbnails ----
+            function buildThumbs() {
+                thumbsContainer.innerHTML = '';
+                applyImages.forEach((src, i) => {
+                    const thumb = document.createElement('div');
+                    thumb.className = 'apply-lb-thumb' + (i === 0 ? ' active' : '');
+                    thumb.setAttribute('data-index', i);
+                    thumb.innerHTML = `<img src="${src}" alt="Thumb ${i + 1}">`;
+                    thumb.onclick = (e) => {
+                        e.stopPropagation();
+                        goToApplyImage(i);
+                    };
+                    thumbsContainer.appendChild(thumb);
+                });
+            }
+
+            // ---- Update active thumb ----
+            function updateActiveThumb() {
+                const thumbs = thumbsContainer.querySelectorAll('.apply-lb-thumb');
+                thumbs.forEach((t, i) => {
+                    t.classList.toggle('active', i === applyCurrentIndex);
+                });
+                // Auto-scroll active thumb into view
+                const activeThumb = thumbs[applyCurrentIndex];
+                if (activeThumb) {
+                    activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                }
+            }
+
+            // ---- Apply transform ----
+            function applyTransform() {
+                img.style.transform = `translate(${applyOffsetX}px, ${applyOffsetY}px) scale(${applyZoom})`;
+                if (applyZoom > 1) {
+                    stage.style.cursor = 'grab';
+                    img.classList.add('zoomed');
+                } else {
+                    stage.style.cursor = 'default';
+                    img.classList.remove('zoomed');
+                }
+            }
+
+            // ---- Reset zoom ----
+            function resetZoom() {
+                applyZoom = 1;
+                applyOffsetX = 0;
+                applyOffsetY = 0;
+                applyTransform();
+            }
+
+            // ---- Go to image ----
+            function goToApplyImage(index) {
+                if (index < 0) index = applyImages.length - 1;
+                if (index >= applyImages.length) index = 0;
+
+                applyCurrentIndex = index;
+                resetZoom();
+
+                // Fade transition
+                img.style.opacity = '0';
+                setTimeout(() => {
+                    img.src = applyImages[index];
+                    img.onload = () => {
+                        img.style.opacity = '1';
+                    };
+                }, 120);
+
+                counterCurrent.textContent = index + 1;
+                updateActiveThumb();
+            }
+
+            // ---- Open ----
+            window.openApplyLightbox = function (index) {
+                if (typeof index !== 'number') index = 0;
+                lightbox.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                goToApplyImage(index);
+            };
+
+            // ---- Close ----
+            window.closeApplyLightbox = function () {
+                lightbox.classList.remove('active');
+                document.body.style.overflow = '';
+                resetZoom();
+            };
+
+            // ---- Prev / Next ----
+            window.prevApplyImage = function (e) {
+                if (e) e.stopPropagation();
+                goToApplyImage(applyCurrentIndex - 1);
+            };
+            window.nextApplyImage = function (e) {
+                if (e) e.stopPropagation();
+                goToApplyImage(applyCurrentIndex + 1);
+            };
+
+            // ---- Zoom ----
+            window.zoomApplyImage = function (delta) {
+                const newZoom = Math.max(0.5, Math.min(5, applyZoom + delta));
+                applyZoom = newZoom;
+                if (applyZoom <= 1) {
+                    applyOffsetX = 0;
+                    applyOffsetY = 0;
+                }
+                applyTransform();
+            };
+            window.resetApplyZoom = resetZoom;
+
+            // ---- Mouse wheel zoom ----
+            stage.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const delta = e.deltaY < 0 ? 0.15 : -0.15;
+                const newZoom = Math.max(0.5, Math.min(5, applyZoom + delta));
+
+                // Zoom towards cursor
+                if (newZoom > 1) {
+                    const rect = stage.getBoundingClientRect();
+                    const cx = e.clientX - rect.left - rect.width / 2;
+                    const cy = e.clientY - rect.top - rect.height / 2;
+                    const factor = newZoom / applyZoom;
+                    applyOffsetX = cx - (cx - applyOffsetX) * factor;
+                    applyOffsetY = cy - (cy - applyOffsetY) * factor;
+                }
+
+                applyZoom = newZoom;
+                if (applyZoom <= 1) {
+                    applyOffsetX = 0;
+                    applyOffsetY = 0;
+                }
+                applyTransform();
+            }, { passive: false });
+
+            // ---- Double-click to reset / zoom ----
+            stage.addEventListener('dblclick', (e) => {
+                e.stopPropagation();
+                if (applyZoom > 1) {
+                    resetZoom();
+                } else {
+                    applyZoom = 2;
+                    applyTransform();
+                }
+            });
+
+            // ---- Drag to pan when zoomed ----
+            let isDragging = false;
+            let dragStartX = 0, dragStartY = 0;
+            let startOffsetX = 0, startOffsetY = 0;
+
+            stage.addEventListener('mousedown', (e) => {
+                if (applyZoom <= 1) return;
+                isDragging = true;
+                dragStartX = e.clientX;
+                dragStartY = e.clientY;
+                startOffsetX = applyOffsetX;
+                startOffsetY = applyOffsetY;
+                stage.style.cursor = 'grabbing';
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                applyOffsetX = startOffsetX + (e.clientX - dragStartX);
+                applyOffsetY = startOffsetY + (e.clientY - dragStartY);
+                applyTransform();
+            });
+
+            window.addEventListener('mouseup', () => {
+                if (isDragging) {
+                    isDragging = false;
+                    stage.style.cursor = applyZoom > 1 ? 'grab' : 'default';
+                }
+            });
+
+            // ---- Touch: pinch zoom + swipe navigation ----
+            let touchStartX = 0, touchStartY = 0;
+            let touchStartDist = 0;
+            let touchStartZoom = 1;
+            let isSwiping = false;
+
+            stage.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 2) {
+                    touchStartDist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    touchStartZoom = applyZoom;
+                } else if (e.touches.length === 1) {
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                    isSwiping = true;
+                }
+            }, { passive: true });
+
+            stage.addEventListener('touchmove', (e) => {
+                if (e.touches.length === 2) {
+                    e.preventDefault();
+                    const dist = Math.hypot(
+                        e.touches[0].clientX - e.touches[1].clientX,
+                        e.touches[0].clientY - e.touches[1].clientY
+                    );
+                    const ratio = dist / touchStartDist;
+                    const newZoom = Math.max(0.5, Math.min(5, touchStartZoom * ratio));
+                    applyZoom = newZoom;
+                    applyTransform();
+                }
+            }, { passive: false });
+
+            stage.addEventListener('touchend', (e) => {
+                if (isSwiping && applyZoom <= 1 && e.changedTouches.length === 1) {
+                    const diffX = e.changedTouches[0].clientX - touchStartX;
+                    const diffY = e.changedTouches[0].clientY - touchStartY;
+                    if (Math.abs(diffX) > 60 && Math.abs(diffX) > Math.abs(diffY)) {
+                        if (diffX > 0) prevApplyImage();
+                        else nextApplyImage();
+                    }
+                }
+                isSwiping = false;
+                if (applyZoom <= 1) {
+                    applyOffsetX = 0;
+                    applyOffsetY = 0;
+                    applyTransform();
+                }
+            });
+
+            // ---- Close on background click ----
+            lightbox.addEventListener('click', (e) => {
+                if (e.target === lightbox) closeApplyLightbox();
+            });
+
+            // ---- Keyboard navigation ----
+            document.addEventListener('keydown', (e) => {
+                if (!lightbox.classList.contains('active')) return;
+                switch (e.key) {
+                    case 'Escape':
+                        closeApplyLightbox();
+                        break;
+                    case 'ArrowLeft':
+                        prevApplyImage();
+                        break;
+                    case 'ArrowRight':
+                        nextApplyImage();
+                        break;
+                    case '+':
+                    case '=':
+                        zoomApplyImage(0.25);
+                        break;
+                    case '-':
+                        zoomApplyImage(-0.25);
+                        break;
+                    case '0':
+                        resetZoom();
+                        break;
+                }
+            });
+
+            // ---- Init ----
+            buildThumbs();
+            counterTotal.textContent = applyImages.length;
+            counterCurrent.textContent = '1';
+        })();
 
         // ================= GCASH MODAL =================
         function openModal(src) {

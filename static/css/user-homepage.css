@@ -2600,3 +2600,566 @@ body.modal-open .chatbot-toggle,
 body.modal-open .chatbot-container {
     display: none !important;
 }
+
+/* ============================================================
+   HOW TO APPLY — STEP BY STEP GUIDE (NO LABELS)
+   ============================================================ */
+.apply-guide-section {
+    padding: 80px 0;
+    background: linear-gradient(180deg, #ffffff 0%, #f0f5ff 100%);
+    position: relative;
+    overflow: hidden;
+}
+.apply-guide-section::before {
+    content: '';
+    position: absolute;
+    top: -20%;
+    left: -10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(26, 91, 181, 0.04) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+}
+
+.apply-steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+    margin-top: 40px;
+    position: relative;
+    z-index: 1;
+}
+
+.apply-step {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 20px 16px;
+    text-align: center;
+    border: 1px solid #e8edf4;
+    transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+}
+.apply-step::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #0a1a3a, #1a5bb5, #3b82f6);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s ease;
+}
+.apply-step:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 40px rgba(10, 26, 58, 0.1);
+    border-color: #c8d8ec;
+}
+.apply-step:hover::before {
+    transform: scaleX(1);
+}
+.apply-step .step-num {
+    width: 42px;
+    height: 42px;
+    background: linear-gradient(135deg, #0a1a3a, #1a5bb5);
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 17px;
+    margin: 0 auto 14px;
+    box-shadow: 0 8px 20px rgba(26, 91, 181, 0.25);
+    transition: transform 0.3s ease;
+}
+.apply-step:hover .step-num {
+    transform: scale(1.1) rotate(-5deg);
+}
+.apply-step img {
+    width: 100%;
+    max-height: 180px;
+    object-fit: contain;
+    border-radius: 12px;
+    background: #f8faff;
+    transition: transform 0.3s ease;
+    display: block;
+}
+.apply-step:hover img {
+    transform: scale(1.04);
+}
+
+.apply-cta-wrapper {
+    margin-top: 48px;
+    text-align: center;
+}
+.apply-cta-btn {
+    background: linear-gradient(135deg, #0a1a3a, #1a5bb5) !important;
+    color: #fff !important;
+    box-shadow: 0 10px 30px rgba(10, 26, 58, 0.25) !important;
+}
+.apply-cta-btn:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 16px 40px rgba(10, 26, 58, 0.35) !important;
+}
+
+.apply-note {
+    margin-top: 20px;
+    font-size: 13px;
+    color: #64748b;
+}
+.apply-note i {
+    color: #1a5bb5;
+    margin-right: 6px;
+}
+
+/* ============================================================
+   APPLY LIGHTBOX — ZOOMABLE GALLERY
+   ============================================================ */
+.apply-lightbox {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: rgba(5, 12, 25, 0.96);
+    backdrop-filter: blur(8px);
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    animation: applyLbFadeIn 0.25s ease;
+}
+.apply-lightbox.active {
+    display: flex;
+}
+@keyframes applyLbFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Close Button */
+.apply-lb-close {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    width: 44px;
+    height: 44px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    color: #fff;
+    font-size: 26px;
+    line-height: 1;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+}
+.apply-lb-close:hover {
+    background: rgba(220, 38, 38, 0.9);
+    border-color: rgba(220, 38, 38, 0.9);
+    transform: rotate(90deg);
+}
+
+/* Counter */
+.apply-lb-counter {
+    position: absolute;
+    top: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #fff;
+    font-size: 15px;
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    padding: 6px 20px;
+    border-radius: 30px;
+    letter-spacing: 0.5px;
+    z-index: 10;
+    backdrop-filter: blur(6px);
+}
+.apply-lb-counter #applyLbCurrent {
+    color: #6aafff;
+    font-weight: 800;
+}
+
+/* Hint */
+.apply-lb-hint {
+    position: absolute;
+    bottom: 115px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 6px 16px;
+    border-radius: 20px;
+    z-index: 10;
+    pointer-events: none;
+    white-space: nowrap;
+    backdrop-filter: blur(6px);
+}
+.apply-lb-hint i {
+    color: #6aafff;
+    margin-right: 6px;
+}
+
+/* Nav Buttons */
+.apply-lb-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 56px;
+    height: 56px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 50%;
+    color: #fff;
+    cursor: pointer;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.25s ease;
+    backdrop-filter: blur(6px);
+}
+.apply-lb-nav:hover {
+    background: linear-gradient(135deg, #1a5bb5, #3b82f6);
+    border-color: #3b82f6;
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.4);
+}
+.apply-lb-nav:active {
+    transform: translateY(-50%) scale(0.95);
+}
+.apply-lb-prev { left: 24px; }
+.apply-lb-next { right: 24px; }
+
+/* Image Stage */
+.apply-lb-stage {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: grab;
+    touch-action: none;
+    padding: 100px 100px 160px;
+}
+.apply-lb-stage:active {
+    cursor: grabbing;
+}
+.apply-lb-stage img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 12px;
+    user-select: none;
+    transition: transform 0.15s ease-out;
+    will-change: transform;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+    transform-origin: center center;
+}
+.apply-lb-stage img.zoomed {
+    transition: transform 0.05s linear;
+}
+
+/* Zoom Controls */
+.apply-lb-zoom-controls {
+    position: absolute;
+    bottom: 90px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 8px;
+    border-radius: 40px;
+    backdrop-filter: blur(6px);
+}
+.apply-lb-zoom-controls button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.08);
+    color: #fff;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+}
+.apply-lb-zoom-controls button:hover {
+    background: linear-gradient(135deg, #1a5bb5, #3b82f6);
+    transform: scale(1.1);
+}
+.apply-lb-zoom-controls button:active {
+    transform: scale(0.95);
+}
+
+/* Thumbnail Strip */
+.apply-lb-thumbs {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    padding: 8px 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    max-width: calc(100% - 60px);
+    overflow-x: auto;
+    scrollbar-width: thin;
+    z-index: 10;
+    backdrop-filter: blur(6px);
+}
+.apply-lb-thumbs::-webkit-scrollbar {
+    height: 4px;
+}
+.apply-lb-thumbs::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+}
+.apply-lb-thumb {
+    flex-shrink: 0;
+    width: 52px;
+    height: 52px;
+    border-radius: 10px;
+    overflow: hidden;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.25s ease;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2px;
+    position: relative;
+}
+.apply-lb-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+    display: block;
+}
+.apply-lb-thumb:hover {
+    border-color: rgba(106, 175, 255, 0.5);
+    transform: translateY(-3px);
+}
+.apply-lb-thumb.active {
+    border-color: #3b82f6;
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+    transform: translateY(-3px);
+}
+.apply-lb-thumb.active::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 12px;
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    animation: thumbPulse 1.5s ease-in-out infinite;
+}
+@keyframes thumbPulse {
+    0%, 100% { opacity: 0.6; transform: scale(1); }
+    50% { opacity: 0; transform: scale(1.15); }
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 992px) {
+    .apply-steps {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+    }
+    .apply-step img {
+        max-height: 140px;
+    }
+}
+@media (max-width: 768px) {
+    .apply-lb-stage {
+        padding: 80px 70px 180px;
+    }
+    .apply-lb-nav {
+        width: 46px;
+        height: 46px;
+    }
+    .apply-lb-nav svg {
+        width: 22px;
+        height: 22px;
+    }
+    .apply-lb-prev { left: 12px; }
+    .apply-lb-next { right: 12px; }
+    .apply-lb-hint {
+        font-size: 10px;
+        bottom: 135px;
+        padding: 5px 12px;
+    }
+    .apply-lb-zoom-controls {
+        bottom: 105px;
+    }
+    .apply-lb-zoom-controls button {
+        width: 36px;
+        height: 36px;
+        font-size: 13px;
+    }
+    .apply-lb-thumb {
+        width: 44px;
+        height: 44px;
+    }
+    .apply-lb-counter {
+        top: 20px;
+        font-size: 13px;
+        padding: 5px 16px;
+    }
+    .apply-lb-close {
+        top: 16px;
+        right: 16px;
+        width: 40px;
+        height: 40px;
+        font-size: 22px;
+    }
+}
+@media (max-width: 640px) {
+    .apply-steps {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 14px;
+    }
+    .apply-step {
+        padding: 14px 12px 16px;
+    }
+    .apply-step img {
+        max-height: 120px;
+    }
+    .apply-step .step-num {
+        width: 36px;
+        height: 36px;
+        font-size: 15px;
+        margin-bottom: 10px;
+    }
+}
+@media (max-width: 480px) {
+    .apply-lb-stage {
+        padding: 70px 55px 170px;
+    }
+    .apply-lb-nav {
+        width: 40px;
+        height: 40px;
+    }
+    .apply-lb-nav svg {
+        width: 18px;
+        height: 18px;
+    }
+    .apply-lb-hint {
+        display: none;
+    }
+    .apply-lb-thumbs {
+        gap: 6px;
+        padding: 6px 8px;
+        bottom: 12px;
+    }
+    .apply-lb-thumb {
+        width: 38px;
+        height: 38px;
+    }
+    .apply-lb-zoom-controls {
+        bottom: 90px;
+        padding: 6px;
+        gap: 6px;
+    }
+    .apply-lb-zoom-controls button {
+        width: 32px;
+        height: 32px;
+        font-size: 12px;
+    }
+}
+@media (max-width: 420px) {
+    .apply-steps {
+        grid-template-columns: 1fr;
+    }
+    .apply-step img {
+        max-height: 200px;
+    }
+}
+
+/* ============================================================
+   GCASH STEPS — FORCE 5 COLUMNS (ONE ROW)
+   ============================================================ */
+.gcash-section .apply-steps {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 18px;
+}
+
+.gcash-section .apply-step img {
+    max-height: 150px;
+}
+
+/* Responsive: bumababa ang columns habang lumiliit ang screen */
+@media (max-width: 992px) {
+    .gcash-section .apply-steps {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 14px;
+    }
+    .gcash-section .apply-step {
+        padding: 14px 10px 16px;
+    }
+    .gcash-section .apply-step img {
+        max-height: 110px;
+    }
+    .gcash-section .apply-step .step-num {
+        width: 34px;
+        height: 34px;
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+}
+
+@media (max-width: 768px) {
+    .gcash-section .apply-steps {
+        grid-template-columns: repeat(5, 1fr);
+        gap: 10px;
+    }
+    .gcash-section .apply-step {
+        padding: 10px 6px 12px;
+        border-radius: 14px;
+    }
+    .gcash-section .apply-step img {
+        max-height: 80px;
+        border-radius: 8px;
+    }
+    .gcash-section .apply-step .step-num {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+        margin-bottom: 8px;
+        box-shadow: 0 4px 10px rgba(26, 91, 181, 0.25);
+    }
+}
+
+/* Sa sobrang liit ng screen, papayag na tayong mag-wrap sa 3 columns */
+@media (max-width: 480px) {
+    .gcash-section .apply-steps {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+    }
+    .gcash-section .apply-step img {
+        max-height: 90px;
+    }
+}
+
+@media (max-width: 360px) {
+    .gcash-section .apply-steps {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
