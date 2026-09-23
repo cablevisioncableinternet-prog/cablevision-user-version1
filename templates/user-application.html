@@ -2604,6 +2604,16 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
             observer.observe(modalContent);
         }
 
+        const form = document.getElementById('applicationForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                if (!validateTermsCheckbox()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return false;
+                }
+            });
+        }
 
         window.addEventListener('orientationchange', function() {
             if (modal && modal.style.display === 'block' && isMobile()) {
@@ -2903,37 +2913,10 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
             }
 
             if (!allValid) {
-                // I-delay ng konti para tapos na munang mag-settle ang layout
-                // (halimbawa pag-insert ng error banner sa itaas) bago mag-scroll.
-                // Dito nag-iiba dati ang resulta depende sa kung naagree na ang
-                // Terms o hindi — ngayon iisa na lang ang gumagawa nito kaya
-                // consistent na ang scroll sa lahat ng sitwasyon.
-                setTimeout(() => {
-                    const firstError = document.querySelector('.field-error, .error-message');
-                    if (firstError) {
-                        firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
-                }, 50);
-
-                let summaryDiv = document.getElementById('error-summary');
-                if (!summaryDiv) {
-                    summaryDiv = document.createElement('div');
-                    summaryDiv.id = 'error-summary';
-                    summaryDiv.className = 'alert alert-danger';
-                    summaryDiv.style.marginBottom = '20px';
-                    summaryDiv.style.padding = '15px';
-                    summaryDiv.style.borderRadius = '8px';
-                    summaryDiv.style.backgroundColor = '#f8d7da';
-                    summaryDiv.style.color = '#721c24';
-                    summaryDiv.style.border = '1px solid #f5c6cb';
-                    form.insertBefore(summaryDiv, form.firstChild);
+                const firstError = document.querySelector('.field-error, .error-message');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }
-                summaryDiv.innerHTML = '<strong> Please complete all required fields</strong> - The fields with errors need to be filled out before submitting.';
-                summaryDiv.style.display = 'block';
-                setTimeout(() => { if (summaryDiv) summaryDiv.style.display = 'none'; }, 5000);
-            } else {
-                const summaryDiv = document.getElementById('error-summary');
-                if (summaryDiv) summaryDiv.style.display = 'none';
             }
 
             return allValid;
@@ -2962,7 +2945,35 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
             }
         });
 
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                const isValid = validateAllRequiredFields();
+                if (!isValid) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const firstError = document.querySelector('.field-error, .error-message');
+                    if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
+                    let summaryDiv = document.getElementById('error-summary');
+                    if (!summaryDiv) {
+                        summaryDiv = document.createElement('div');
+                        summaryDiv.id = 'error-summary';
+                        summaryDiv.className = 'alert alert-danger';
+                        summaryDiv.style.marginBottom = '20px';
+                        summaryDiv.style.padding = '15px';
+                        summaryDiv.style.borderRadius = '8px';
+                        summaryDiv.style.backgroundColor = '#f8d7da';
+                        summaryDiv.style.color = '#721c24';
+                        summaryDiv.style.border = '1px solid #f5c6cb';
+                        form.insertBefore(summaryDiv, form.firstChild);
+                    }
+                    summaryDiv.innerHTML = '<strong> Please complete all required fields</strong> - The fields with errors need to be filled out before submitting.';
+                    summaryDiv.style.display = 'block';
+                    setTimeout(() => { if (summaryDiv) summaryDiv.style.display = 'none'; }, 5000);
+                    return false;
+                }
+            });
+        }
     })();
 
     // ================= AUTO-FILL INSTALLATION ADDRESS =================
