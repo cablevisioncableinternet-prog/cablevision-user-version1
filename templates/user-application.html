@@ -2781,7 +2781,10 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
         requiredFieldsConfig.unshift({ name: 'profile_photo', message: 'Please upload your profile photo' });
 
         function hasExistingImage(field) {
-            const container = field.closest('.document-upload-left, .profile-upload-left, .signature-upload-left');
+            // Ang preview image ay nasa "-right" na container (hal. .profile-upload-right),
+            // hindi sa "-left" kung saan naroon ang <input type="file">.
+            // Kaya dapat buong grid (parent ng left at right) ang hanapin.
+            const container = field.closest('.document-upload-grid, .profile-upload-grid');
             if (container) {
                 const existingImg = container.querySelector('.document-preview-img-modern, .preview-img-modern, .document-preview-img, .profile-img-small, .signature-img-small');
                 if (existingImg && existingImg.src && existingImg.src !== '' && existingImg.style.display !== 'none') return true;
@@ -2907,6 +2910,13 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
             } else {
                 const termsError = document.getElementById('error-terms');
                 if (termsError) termsError.remove();
+            }
+
+            if (!allValid) {
+                const firstError = document.querySelector('.field-error, .error-message');
+                if (firstError) {
+                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
             }
 
             return allValid;
@@ -4497,21 +4507,6 @@ async function getBarangayCoordinates(barangayName, cityName) {
                 e.preventDefault();
                 e.stopImmediatePropagation();
 
-                const latitude = document.getElementById("latitude").value;
-                const longitude = document.getElementById("longitude").value;
-                const hasPinnedLocation = Boolean(latitude && longitude);
-
-                if (!hasPinnedLocation) {
-                    showToast("Please pin your location on the map. The pin must be within the selected barangay.", "error");
-                    const mapElement = document.getElementById('map');
-                    if (mapElement) {
-                        mapElement.classList.add('map-highlight-error');
-                        setTimeout(() => { mapElement.classList.remove('map-highlight-error'); }, 2000);
-                    }
-                    document.getElementById('map').scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    return false;
-                }
-
                 const barangaySelectEl = document.getElementById('barangay');
                 if (barangaySelectEl && barangaySelectEl.value) {
                     barangaySelectEl.value = barangaySelectEl.value.replace(/\s*\s*$/, '').trim();
@@ -4524,6 +4519,9 @@ async function getBarangayCoordinates(barangayName, cityName) {
                     return false;
                 }
 
+                // I-validate muna ang lahat ng required fields (kasama ang mga file
+                // upload) BAGO tingnan ang pin sa map — para pupunta muna ang scroll
+                // sa unang blangko/maling required field, hindi diretso sa mapa.
                 if (typeof validateAllRequiredFields === 'function') {
                     const isValid = validateAllRequiredFields();
                     if (!isValid) return false;
@@ -4538,6 +4536,21 @@ async function getBarangayCoordinates(barangayName, cityName) {
                         }
                     });
                     if (!allValid) { alert('Please fill in all required fields.'); return false; }
+                }
+
+                const latitude = document.getElementById("latitude").value;
+                const longitude = document.getElementById("longitude").value;
+                const hasPinnedLocation = Boolean(latitude && longitude);
+
+                if (!hasPinnedLocation) {
+                    showToast("Please pin your location on the map. The pin must be within the selected barangay.", "error");
+                    const mapElement = document.getElementById('map');
+                    if (mapElement) {
+                        mapElement.classList.add('map-highlight-error');
+                        setTimeout(() => { mapElement.classList.remove('map-highlight-error'); }, 2000);
+                    }
+                    document.getElementById('map').scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    return false;
                 }
 
                 await showEmailVerification();
