@@ -3272,14 +3272,14 @@ body {
   color: #64748b;
 }
 
-/* ================= RECONNECT MODAL ================= */
+/* ================= RECONNECT MODAL (SAME DESIGN AS CHANGE PLAN) ================= */
 .reconnect-modal.modal {
   display: none;
   position: fixed;
   inset: 0;
   z-index: 1000;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
+  background: rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(3px);
   justify-content: center;
   align-items: center;
 }
@@ -3289,686 +3289,555 @@ body {
   padding: 20px;
 }
 
-.reconnect-modal-content {
+/* Confirmation modal laging nasa ibabaw ng reconnect modal */
+.reconnect-modal.rc-confirm-modal {
+  z-index: 1100;
+}
+
+.rc-modal-content {
+  width: min(560px, calc(100vw - 32px));
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   background: #fff;
-  padding: 32px;
-  border-radius: 16px;
-  width: 100%;
-  max-width: 480px;
-  max-height: 85vh;
-  overflow-y: auto;
-  position: relative;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+  border: 1px solid #e1e5eb;
+  border-radius: 8px;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.2);
+  text-align: left;
   animation: slideUp 0.3s ease;
 }
 
-.reconnect-modal-content h2 {
-  font-size: 20px;
-  font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 6px;
-}
-
-.reconnect-subtitle {
-  font-size: 13px;
-  color: #64748b;
-  margin-bottom: 20px;
-}
-
-/* ---- Current Plan Card ---- */
-.current-plan-card {
-  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-  border: 1px solid #bfdbfe;
-  border-radius: 14px;
-  padding: 16px 18px;
-  margin-bottom: 22px;
-}
-
-.current-plan-label {
-  font-size: 11px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: #2563eb;
+/* ----- Header ----- */
+.rc-header {
+  flex: 0 0 auto;
+  min-height: 60px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  margin-bottom: 8px;
+  gap: 10px;
+  padding: 13px 18px;
+  border-bottom: 1px solid #edf0f3;
+  background: #fff;
 }
 
-.current-plan-name {
-  font-size: 18px;
-  font-weight: 700;
-  color: #1e3a5f;
-  margin-bottom: 8px;
+.rc-icon {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 1px solid #d3e3f1;
+  border-radius: 6px;
+  background: #eef5fb;
+  color: #075a9e;
+  font-size: 14px;
 }
 
-.current-plan-meta {
-  display: flex;
-  gap: 16px;
-  flex-wrap: wrap;
-}
-
-.current-plan-meta span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #334155;
-  background: rgba(255, 255, 255, 0.7);
-  padding: 4px 10px;
-  border-radius: 20px;
-}
-
-.current-plan-meta i {
-  color: #2563eb;
-  font-size: 12px;
-}
-
-/* ---- Form ---- */
-.reconnect-modal-content .form-group {
-  margin-bottom: 16px;
+.rc-heading {
+  min-width: 0;
   flex: 1;
 }
 
-.reconnect-modal-content .form-row {
-  display: flex;
-  gap: 12px;
+.rc-heading h2 {
+  margin: 0;
+  color: #202b3c;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
 }
 
-.reconnect-modal-content label {
-  display: block;
-  font-size: 13px;
-  font-weight: 600;
-  color: #334155;
-  margin-bottom: 6px;
+.rc-heading p {
+  margin: 3px 0 0;
+  color: #778397;
+  font-size: 11px;
+  line-height: 1.35;
 }
 
-.reconnect-modal-content input,
-.reconnect-modal-content select,
-.reconnect-modal-content textarea {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
+.rc-close {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: #778397;
   font-size: 14px;
-  font-family: inherit;
-}
-
-.reconnect-modal-content input:focus,
-.reconnect-modal-content select:focus,
-.reconnect-modal-content textarea:focus {
-  outline: none;
-  border-color: var(--accent-blue);
-}
-
-.reconnect-modal-content input[readonly] {
-  background: #f8fafc;
-  color: #64748b;
-}
-
-.radio-row {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.radio-option {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #475569;
   cursor: pointer;
 }
 
-.radio-option input {
-  width: auto;
+.rc-close:hover {
+  background: #f1f3f6;
+  color: #202b3c;
 }
 
-.reconnect-modal-content .modal-actions {
+/* ----- Form / Body ----- */
+.rc-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.rc-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 16px 18px;
+  overflow-y: auto;
+}
+
+.rc-section {
+  margin: 0 0 16px;
+}
+
+.rc-section-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0 0 10px;
+  padding: 0 0 8px;
+  border-bottom: 1px solid #edf0f3;
+  color: #687487;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1.3;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.rc-section-title i {
+  color: #778397;
+  font-size: 11px;
+}
+
+.rc-title-row {
+  justify-content: space-between;
+}
+
+.rc-title-row > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+/* ----- Info grid (current plan / summary) ----- */
+.rc-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rc-grid.rc-grid-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rc-item {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 11px;
+  border: 1px solid #dfe4eb;
+  border-radius: 5px;
+  background: #fff;
+}
+
+.rc-item.rc-full {
+  grid-column: 1 / -1;
+}
+
+.rc-label {
+  color: #778397;
+  font-size: 9px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.rc-value {
+  color: #263246;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.rc-highlight {
+  border-color: #cfe0ef;
+  background: #f4f9fd;
+}
+
+.rc-highlight .rc-label,
+.rc-highlight .rc-value {
+  color: #075a9e;
+}
+
+/* ----- Form fields ----- */
+.rc-field {
+  margin-bottom: 12px;
+}
+
+.rc-field:last-child {
+  margin-bottom: 0;
+}
+
+.rc-field-label {
+  display: block;
+  margin-bottom: 6px;
+  color: #465368;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rc-input {
+  width: 100%;
+  padding: 9px 11px;
+  border: 1px solid #d6dde6;
+  border-radius: 5px;
+  background: #fff;
+  color: #263246;
+  font-family: inherit;
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.rc-input:focus {
+  outline: none;
+  border-color: #075a9e;
+  box-shadow: 0 0 0 3px rgba(40, 118, 185, 0.15);
+}
+
+.rc-input:disabled,
+.rc-input[readonly] {
+  background: #f6f8fa;
+  color: #5b6779;
+  border-color: #e1e5eb;
+  cursor: not-allowed;
+}
+
+textarea.rc-input {
+  resize: vertical;
+  min-height: 60px;
+}
+
+.form-control.error {
+  border-color: #dc2626 !important;
+  box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1) !important;
+}
+
+.required {
+  color: #dc2626;
+  font-weight: 700;
+  margin-left: 2px;
+}
+
+/* ----- Radio ----- */
+.rc-radio-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.rc-radio {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 11px;
+  border: 1px solid #dfe4eb;
+  border-radius: 5px;
+  background: #fff;
+  color: #465368;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.rc-radio:hover {
+  border-color: #cfe0ef;
+  background: #f4f9fd;
+}
+
+.rc-radio input {
+  width: auto;
+  margin: 0;
+  accent-color: #075a9e;
+}
+
+/* ----- Edit buttons (mini) ----- */
+.rc-edit-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.rc-btn-mini {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border: 1px solid #075a9e;
+  border-radius: 5px;
+  background: #075a9e;
+  color: #fff;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  text-transform: none;
+  cursor: pointer;
+}
+
+.rc-btn-mini:hover {
+  filter: brightness(0.95);
+}
+
+.rc-btn-mini.editing {
+  border-color: #187044;
+  background: #187044;
+}
+
+.rc-btn-mini-cancel {
+  border-color: #d6dde6;
+  background: #fff;
+  color: #465368;
+}
+
+/* ----- Actions / Buttons ----- */
+.rc-actions {
+  flex: 0 0 auto;
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-  margin-top: 20px;
+  gap: 10px;
+  padding: 12px 18px;
+  border-top: 1px solid #edf0f3;
+  background: #fff;
 }
 
-@media (max-width: 576px) {
-  .reconnect-modal-content .form-row {
-    flex-direction: column;
-    gap: 0;
-  }
-
-  .current-plan-meta {
-    gap: 8px;
-  }
+.rc-btn {
+  min-width: 96px;
+  min-height: 36px;
+  padding: 8px 14px;
+  border: 1px solid #d6dde6;
+  border-radius: 5px;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
 }
 
+.rc-btn:hover:not(:disabled) {
+  filter: brightness(0.96);
+}
 
-/* ================= RECONNECT SUCCESS VIEW ================= */
+.rc-btn:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.rc-btn-cancel {
+  background: #fff;
+  color: #465368;
+}
+
+.rc-btn-primary {
+  min-width: 140px;
+  border-color: #075a9e;
+  background: #075a9e;
+  color: #fff;
+}
+
+.rc-btn-success {
+  min-width: 140px;
+  border-color: #187044;
+  background: #187044;
+  color: #fff;
+}
+
+.rc-btn:focus-visible,
+.rc-close:focus-visible {
+  outline: 3px solid rgba(40, 118, 185, 0.25);
+  outline-offset: 2px;
+}
+
+/* ----- Confirmation extras ----- */
+.rc-question {
+  margin: 4px 0 10px;
+  color: #465368;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.rc-question strong {
+  color: #075a9e;
+}
+
+.rc-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 9px 10px;
+  border: 1px solid #eadfca;
+  border-radius: 5px;
+  background: #fffaf1;
+  color: #806b45;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.rc-note i {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: #a77821;
+}
+
+/* ----- Success view ----- */
 .reconnect-success-view {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  padding: 10px 0 4px 0;
+  padding: 28px 24px 24px;
+  overflow-y: auto;
 }
 
 .reconnect-success-icon {
-  font-size: 56px;
-  color: #16a34a;
-  margin-bottom: 14px;
+  font-size: 52px;
+  color: #187044;
+  margin-bottom: 12px;
 }
 
 .reconnect-success-view h3 {
-  font-size: 20px;
+  margin: 0 0 8px;
+  color: #202b3c;
+  font-size: 18px;
   font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 8px;
 }
 
 .reconnect-success-text {
-  font-size: 13px;
-  color: #64748b;
-  line-height: 1.6;
-  margin-bottom: 20px;
   max-width: 340px;
+  margin-bottom: 18px;
+  color: #778397;
+  font-size: 12px;
+  line-height: 1.6;
 }
 
 .reconnect-request-number-box {
-  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-  border: 1px solid #bbf7d0;
-  border-radius: 12px;
-  padding: 14px 24px;
-  margin-bottom: 24px;
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  width: 100%;
+  margin-bottom: 16px;
+  padding: 12px 20px;
+  border: 1px solid #d6eadc;
+  border-radius: 6px;
+  background: #edf7f0;
 }
 
 .reconnect-request-number-label {
-  font-size: 11px;
+  color: #187044;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  color: #15803d;
 }
 
 .reconnect-request-number-value {
-  font-size: 20px;
-  font-weight: 700;
-  font-family: monospace;
   color: #14532d;
+  font-family: monospace;
+  font-size: 18px;
+  font-weight: 700;
   letter-spacing: 0.5px;
 }
 
-#closeReconnectSuccessBtn {
-  min-width: 160px;
-}
-
-
-/* ================= RECONNECT PLAN SUMMARY ================= */
 .reconnect-plan-summary {
-    background: #f8fafc;
-    border-radius: 12px;
-    padding: 16px 20px;
-    margin: 16px 0;
-    border: 1px solid #e2e8f0;
+  width: 100%;
+  margin-bottom: 4px;
+  padding: 6px 14px;
+  border: 1px solid #dfe4eb;
+  border-radius: 6px;
+  background: #fff;
 }
 
 .plan-summary-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid #eef2f6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 0;
+  border-bottom: 1px solid #edf0f3;
 }
 
 .plan-summary-row:last-child {
-    border-bottom: none;
+  border-bottom: none;
 }
 
 .plan-summary-label {
-    font-size: 13px;
-    font-weight: 600;
-    color: #64748b;
+  color: #778397;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
 }
 
 .plan-summary-value {
-    font-size: 14px;
-    font-weight: 600;
-    color: #1e293b;
-    text-align: right;
-    max-width: 60%;
+  max-width: 62%;
+  color: #263246;
+  font-size: 12px;
+  font-weight: 600;
+  text-align: right;
 }
 
-.plan-summary-value .plan-change-badge {
-    display: inline-block;
-    background: #dcfce7;
-    color: #166534;
-    font-size: 11px;
-    font-weight: 700;
-    padding: 2px 10px;
-    border-radius: 20px;
-    margin-left: 8px;
+.reconnect-success-actions {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  margin-top: 16px;
 }
 
-.plan-summary-value .no-change-badge {
-    display: inline-block;
-    background: #f1f5f9;
-    color: #64748b;
-    font-size: 11px;
-    font-weight: 600;
-    padding: 2px 10px;
-    border-radius: 20px;
-    margin-left: 8px;
-}
+/* ----- Responsive ----- */
+@media (max-width: 575px) {
+  .reconnect-modal.modal.show {
+    padding: 14px;
+  }
 
+  .rc-modal-content {
+    width: 100%;
+  }
 
-/* ================= RECONNECT MODAL BUTTONS - ENHANCED DESIGN ================= */
-/* Ilagay ito sa PINAKADULO ng CSS file para ma-override ang lahat */
+  .rc-header {
+    padding: 12px 14px;
+  }
 
-/* --- Override existing modal-actions --- */
-.reconnect-modal-content .modal-actions {
-    display: flex !important;
-    justify-content: flex-end !important;
-    gap: 14px !important;
-    margin-top: 24px !important;
-    padding-top: 16px !important;
-    border-top: 1px solid #eef2f6 !important;
-    flex-wrap: wrap !important;
-}
+  .rc-body {
+    padding: 14px;
+  }
 
-/* --- Cancel Button --- */
-#cancelReconnect {
-    background: #f1f5f9 !important;
-    color: #475569 !important;
-    border: 2px solid #e2e8f0 !important;
-    padding: 10px 28px !important;
-    border-radius: 10px !important;
-    font-weight: 600 !important;
-    font-size: 13px !important;
-    cursor: pointer !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    min-width: 120px !important;
-    letter-spacing: 0.3px !important;
-    position: relative !important;
-    overflow: hidden !important;
-}
+  .rc-grid,
+  .rc-grid.rc-grid-2 {
+    grid-template-columns: minmax(0, 1fr);
+  }
 
-#cancelReconnect::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.02), rgba(0, 0, 0, 0.04));
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
+  .rc-actions {
+    flex-direction: column-reverse;
+    padding: 10px 14px;
+  }
 
-#cancelReconnect:hover {
-    background: #e2e8f0 !important;
-    border-color: #cbd5e1 !important;
-    transform: translateY(-2px) !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08) !important;
-}
+  .rc-btn {
+    width: 100%;
+  }
 
-#cancelReconnect:hover::before {
-    opacity: 1;
-}
-
-#cancelReconnect:active {
-    transform: translateY(0) scale(0.98) !important;
-}
-
-/* --- Submit Request Button --- */
-#submitReconnectBtn {
-    background: linear-gradient(135deg, #0047ab 0%, #007bff 100%) !important;
-    color: #ffffff !important;
-    border: none !important;
-    padding: 10px 28px !important;
-    border-radius: 10px !important;
-    font-weight: 600 !important;
-    font-size: 13px !important;
-    cursor: pointer !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    min-width: 120px !important;
-    letter-spacing: 0.3px !important;
-    position: relative !important;
-    overflow: hidden !important;
-    box-shadow: 0 4px 12px rgba(0, 71, 171, 0.25) !important;
-}
-
-#submitReconnectBtn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.05));
-    transform: translateX(-100%);
-    transition: transform 0.5s ease;
-}
-
-#submitReconnectBtn:hover:not(:disabled) {
-    transform: translateY(-2px) !important;
-    box-shadow: 0 6px 20px rgba(0, 71, 171, 0.35) !important;
-}
-
-#submitReconnectBtn:hover:not(:disabled)::before {
-    transform: translateX(100%);
-}
-
-#submitReconnectBtn:active:not(:disabled) {
-    transform: translateY(0) scale(0.98) !important;
-    box-shadow: 0 2px 8px rgba(0, 71, 171, 0.2) !important;
-}
-
-#submitReconnectBtn:disabled {
-    background: #94a3b8 !important;
-    cursor: not-allowed !important;
-    box-shadow: none !important;
-    transform: none !important;
-    opacity: 0.7 !important;
-}
-
-/* --- Done Button (after successful submit) --- */
-#closeReconnectSuccessBtn {
-    background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%) !important;
-    color: #ffffff !important;
-    border: none !important;
-    padding: 10px 32px !important;
-    border-radius: 10px !important;
-    font-weight: 600 !important;
-    font-size: 14px !important;
-    cursor: pointer !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
-    min-width: 140px !important;
-    letter-spacing: 0.3px !important;
-    position: relative !important;
-    overflow: hidden !important;
-    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.25) !important;
-}
-
-#closeReconnectSuccessBtn::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.05));
-    transform: translateX(-100%);
-    transition: transform 0.5s ease;
-}
-
-#closeReconnectSuccessBtn:hover {
-    transform: translateY(-2px) scale(1.02) !important;
-    box-shadow: 0 6px 20px rgba(22, 163, 74, 0.35) !important;
-}
-
-#closeReconnectSuccessBtn:hover::before {
-    transform: translateX(100%);
-}
-
-#closeReconnectSuccessBtn:active {
-    transform: translateY(0) scale(0.98) !important;
-    box-shadow: 0 2px 8px rgba(22, 163, 74, 0.2) !important;
-}
-
-/* --- Responsive --- */
-@media (max-width: 576px) {
-    .reconnect-modal-content .modal-actions {
-        flex-direction: column-reverse !important;
-        gap: 10px !important;
-    }
-    
-    .reconnect-modal-content .modal-actions button,
-    #cancelReconnect,
-    #submitReconnectBtn,
-    #closeReconnectSuccessBtn {
-        width: 100% !important;
-        min-width: unset !important;
-        padding: 12px 20px !important;
-    }
-}
-
-/* --- Subtle pulse animation for submit button --- */
-@keyframes subtlePulse {
-    0%, 100% {
-        box-shadow: 0 4px 12px rgba(0, 71, 171, 0.25);
-    }
-    50% {
-        box-shadow: 0 4px 20px rgba(0, 71, 171, 0.4);
-    }
-}
-
-#submitReconnectBtn:not(:disabled):not(:hover) {
-    animation: subtlePulse 2s ease-in-out infinite;
-}
-
-#submitReconnectBtn:not(:disabled):hover {
-    animation: none;
-}
-
-
-/* ===== EDIT TOGGLE ROW ===== */
-.edit-toggle-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 8px 0 12px 0;
-    border-bottom: 2px solid #eef2f6;
-    margin-bottom: 16px;
+  .rc-title-row {
     flex-wrap: wrap;
-    gap: 10px;
-}
-
-.edit-toggle-label {
-    display: flex;
-    align-items: center;
     gap: 8px;
-    font-size: 14px;
-    font-weight: 600;
-    color: #1e293b;
-}
-
-.edit-toggle-label i {
-    color: #3b82f6;
-}
-
-.edit-toggle-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-/* ---- Edit Button ---- */
-.edit-toggle-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 18px;
-    background: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    min-width: 80px;
-    justify-content: center;
-}
-
-.edit-toggle-btn:hover {
-    background: #2563eb;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
-}
-
-.edit-toggle-btn:active {
-    transform: translateY(0) scale(0.98);
-}
-
-.edit-toggle-btn.editing {
-    background: #22c55e;
-}
-
-.edit-toggle-btn.editing:hover {
-    background: #16a34a;
-    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
-}
-
-/* ---- Cancel Edit Button ---- */
-.edit-cancel-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 18px;
-    background: #f1f5f9;
-    color: #64748b;
-    border: 2px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 13px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    min-width: 80px;
-    justify-content: center;
-}
-
-.edit-cancel-btn:hover {
-    background: #e2e8f0;
-    border-color: #cbd5e1;
-    transform: translateY(-2px);
-}
-
-.edit-cancel-btn:active {
-    transform: translateY(0) scale(0.98);
-}
-
-/* ===== EDITABLE FIELDS ===== */
-#reconnectFullName:not(:disabled):not([readonly]),
-#reconnectContact:not(:disabled):not([readonly]),
-#reconnectEmail:not(:disabled):not([readonly]),
-#reconnectFullAddress:not(:disabled):not([readonly]) {
-    background: #ffffff !important;
-    color: #0f172a !important;
-    border-color: #3b82f6 !important;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
-    cursor: text !important;
-}
-
-#reconnectFullName:disabled,
-#reconnectContact:disabled,
-#reconnectEmail:disabled,
-#reconnectFullAddress:disabled,
-#reconnectFullName[readonly],
-#reconnectContact[readonly],
-#reconnectEmail[readonly],
-#reconnectFullAddress[readonly] {
-    background: #f8fafc !important;
-    color: #475569 !important;
-    border-color: #e2e8f0 !important;
-    cursor: not-allowed !important;
-    box-shadow: none !important;
-}
-
-/* ===== REQUIRED STAR ===== */
-.required {
-    color: #ef4444;
-    font-weight: 700;
-    margin-left: 2px;
-}
-
-/* ===== RESPONSIVE ===== */
-@media (max-width: 576px) {
-    .edit-toggle-row {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 10px;
-    }
-    
-    .edit-toggle-actions {
-        justify-content: stretch;
-        gap: 10px;
-    }
-    
-    .edit-toggle-btn,
-    .edit-cancel-btn {
-        flex: 1;
-        min-width: 0;
-    }
-}
-
-/* ===== TEXTAREA STYLING ===== */
-#reconnectFullAddress {
-    resize: vertical;
-    min-height: 60px;
-    font-family: inherit;
-    line-height: 1.5;
-}
-
-/* ===== VALIDATION STYLING ===== */
-.form-control.error {
-    border-color: #ef4444 !important;
-    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1) !important;
-}
-
-
-/* ================= MODAL CLOSE BUTTON (UPPER RIGHT) ================= */
-.modal-close-btn {
-    position: absolute;
-    right: 16px;
-    top: 16px;
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 24px;
-    font-weight: 300;
-    color: #94a3b8;
-    cursor: pointer;
-    border: none;
-    background: none;
-    border-radius: 50%;
-    transition: all 0.2s ease;
-    line-height: 1;
-    z-index: 10; /* Para nasa ibabaw ng ibang content */
-}
-
-.modal-close-btn:hover {
-    background: #f1f5f9;
-    color: #1e293b;
-    transform: rotate(90deg);
-}
-
-.modal-close-btn:active {
-    transform: rotate(90deg) scale(0.9);
-}
-
-/* Para maayos ang posisyon sa success view */
-#reconnectSuccessView .modal-close-btn {
-    position: absolute;
-    right: 16px;
-    top: 16px;
-}
-
-/* Siguruhing relative ang parent container */
-.reconnect-modal-content {
-    position: relative; /* Importante para sa absolute positioning ng close button */
-}
-
-.reconnect-success-view {
-    position: relative; /* Importante para sa absolute positioning ng close button */
-}
-
-/* Responsive */
-@media (max-width: 576px) {
-    .modal-close-btn {
-        right: 12px;
-        top: 12px;
-        width: 32px;
-        height: 32px;
-        font-size: 20px;
-    }
+  }
 }

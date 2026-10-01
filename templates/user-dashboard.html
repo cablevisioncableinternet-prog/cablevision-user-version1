@@ -247,126 +247,178 @@
 
 <!-- RECONNECT REQUEST MODAL -->
 <div id="reconnectModal" class="modal reconnect-modal">
-  <div class="modal-content reconnect-modal-content">
-    <!-- CLOSE BUTTON - UPPER RIGHT CORNER -->
-    <span class="modal-close-btn" id="closeReconnectModal">&times;</span>
-    
-    <h2>Request Reconnection</h2>
-    <p class="reconnect-subtitle">Fill out the form below to request reconnection of your account.</p>
+  <div class="rc-modal-content">
 
-    <!-- CURRENT PLAN CARD -->
-    <div class="current-plan-card" id="currentPlanCard">
-      <div class="current-plan-label">
-        <i class="fas fa-wifi"></i> Your Current Plan
+    <!-- HEADER -->
+    <div class="rc-header" id="reconnectModalHeader">
+      <div class="rc-icon"><i class="fas fa-plug"></i></div>
+      <div class="rc-heading">
+        <h2>Request Reconnection</h2>
+        <p>Fill out the form below to request reconnection of your account</p>
       </div>
-      <div class="current-plan-details">
-        <div class="current-plan-name" id="currentPlanName">Loading...</div>
-        <div class="current-plan-meta">
-          <span class="current-plan-speed"><i class="fas fa-tachometer-alt"></i> <span id="currentPlanSpeed">-</span> Mbps</span>
-          <span class="current-plan-price"><i class="fas fa-tag"></i> ₱<span id="currentPlanPrice">0.00</span>/mo</span>
-        </div>
-      </div>
+      <button type="button" class="rc-close" id="closeReconnectModal" aria-label="Close reconnect modal">
+        <i class="fas fa-times"></i>
+      </button>
     </div>
 
-    <form id="reconnectForm">
-      <!-- CHANGE PLAN OPTION - RADIO BUTTONS -->
-      <div class="form-group">
-        <label>Do you want to change your plan?</label>
-        <div class="radio-row">
-          <label class="radio-option">
-            <input type="radio" name="changePlan" value="no" checked> No, keep my current plan
-          </label>
-          <label class="radio-option">
-            <input type="radio" name="changePlan" value="yes"> Yes, I want a new plan
-          </label>
+    <!-- FORM -->
+    <form id="reconnectForm" class="rc-form">
+      <div class="rc-body">
+
+        <!-- CURRENT PLAN -->
+        <div class="rc-section">
+          <div class="rc-section-title"><i class="fas fa-wifi"></i> Your Current Plan</div>
+          <div class="rc-grid" id="currentPlanCard">
+            <div class="rc-item rc-highlight">
+              <span class="rc-label">Plan</span>
+              <span class="rc-value" id="currentPlanName">Loading...</span>
+            </div>
+            <div class="rc-item rc-highlight">
+              <span class="rc-label">Speed</span>
+              <span class="rc-value"><span id="currentPlanSpeed">-</span> Mbps</span>
+            </div>
+            <div class="rc-item rc-highlight">
+              <span class="rc-label">Monthly Price</span>
+              <span class="rc-value">₱<span id="currentPlanPrice">0.00</span></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- PLAN OPTION -->
+        <div class="rc-section">
+          <div class="rc-section-title"><i class="fas fa-exchange-alt"></i> Plan Option</div>
+          <label class="rc-field-label">Do you want to change your plan?</label>
+          <div class="rc-radio-row">
+            <label class="rc-radio">
+              <input type="radio" name="changePlan" value="no" checked>
+              <span>No, keep my current plan</span>
+            </label>
+            <label class="rc-radio">
+              <input type="radio" name="changePlan" value="yes">
+              <span>Yes, I want a new plan</span>
+            </label>
+          </div>
+
+          <div class="rc-field" id="planSelectGroup" style="display:none;">
+            <label class="rc-field-label" for="newPlanSelect">Select a plan <span class="required">*</span></label>
+            <select id="newPlanSelect" class="rc-input" required>
+              <option value="">-- Select a plan --</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- PERSONAL INFORMATION -->
+        <div class="rc-section">
+          <div class="rc-section-title rc-title-row">
+            <span><i class="fas fa-user-edit"></i> Personal Information</span>
+            <div class="rc-edit-actions">
+              <button type="button" id="cancelEditBtn" class="rc-btn-mini rc-btn-mini-cancel" style="display:none;">
+                <i class="fas fa-times"></i> Cancel
+              </button>
+              <button type="button" id="toggleEditBtn" class="rc-btn-mini">
+                <i class="fas fa-pen"></i> Edit
+              </button>
+            </div>
+          </div>
+
+          <div class="rc-field">
+            <label class="rc-field-label" for="reconnectFullName">Full Name <span class="required">*</span></label>
+            <input type="text" id="reconnectFullName" class="form-control rc-input" placeholder="Enter your full name" readonly disabled>
+          </div>
+
+          <div class="rc-field">
+            <label class="rc-field-label" for="reconnectContact">Contact Number <span class="required">*</span></label>
+            <input type="text" id="reconnectContact" class="form-control rc-input" placeholder="Enter your contact number" readonly disabled>
+          </div>
+
+          <div class="rc-field">
+            <label class="rc-field-label" for="reconnectEmail">Email <span class="required">*</span></label>
+            <input type="email" id="reconnectEmail" class="form-control rc-input" placeholder="Enter your email address" readonly disabled>
+          </div>
+
+          <div class="rc-field">
+            <label class="rc-field-label" for="reconnectFullAddress">Full Address <span class="required">*</span></label>
+            <textarea id="reconnectFullAddress" class="form-control rc-input" rows="2" placeholder="Enter your full address" readonly disabled></textarea>
+          </div>
         </div>
       </div>
 
-      <!-- PLAN SELECTION (required kapag yes ang change plan) -->
-      <div class="form-group" id="planSelectGroup" style="display:none;">
-        <label for="newPlanSelect">Select a plan <span class="required">*</span></label>
-        <select id="newPlanSelect" required>
-          <option value="">-- Select a plan --</option>
-        </select>
-      </div>
-
-      <!-- EDIT TOGGLE ROW -->
-      <div class="form-group edit-toggle-row">
-        <div class="edit-toggle-label">
-          <i class="fas fa-user-edit"></i> Personal Information
-        </div>
-        <div class="edit-toggle-actions">
-          <button type="button" id="cancelEditBtn" class="btn edit-cancel-btn" style="display:none;">
-            <i class="fas fa-times"></i> Cancel
-          </button>
-          <button type="button" id="toggleEditBtn" class="btn edit-toggle-btn">
-            <i class="fas fa-pen"></i> Edit
-          </button>
-        </div>
-      </div>
-
-      <!-- FULL NAME - EDITABLE -->
-      <div class="form-group">
-        <label for="reconnectFullName">Full Name <span class="required">*</span></label>
-        <input type="text" id="reconnectFullName" class="form-control" placeholder="Enter your full name" readonly disabled>
-      </div>
-
-      <!-- CONTACT NUMBER - EDITABLE -->
-      <div class="form-group">
-        <label for="reconnectContact">Contact Number <span class="required">*</span></label>
-        <input type="text" id="reconnectContact" class="form-control" placeholder="Enter your contact number" readonly disabled>
-      </div>
-
-      <!-- EMAIL - EDITABLE -->
-      <div class="form-group">
-        <label for="reconnectEmail">Email <span class="required">*</span></label>
-        <input type="email" id="reconnectEmail" class="form-control" placeholder="Enter your email address" readonly disabled>
-      </div>
-
-      <!-- FULL ADDRESS - EDITABLE -->
-      <div class="form-group">
-        <label for="reconnectFullAddress">Full Address <span class="required">*</span></label>
-        <textarea id="reconnectFullAddress" class="form-control" rows="2" placeholder="Enter your full address" readonly disabled></textarea>
-      </div>
-
-      <div class="modal-actions">
-        <button type="button" class="btn logout-cancel" id="cancelReconnect"> <i class="fas fa-times"></i> Cancel</button>
-        <button type="submit" class="btn logout-confirm" id="submitReconnectBtn"> <i class="fas fa-paper-plane"></i> Submit Request</button>
+      <!-- ACTIONS -->
+      <div class="rc-actions">
+        <button type="button" class="rc-btn rc-btn-cancel" id="cancelReconnect">Cancel</button>
+        <button type="submit" class="rc-btn rc-btn-primary" id="submitReconnectBtn">
+          <i class="fas fa-paper-plane"></i> Submit Request
+        </button>
       </div>
     </form>
 
-    <!-- SUCCESS VIEW (lalabas pagkatapos ng successful submit) -->
+    <!-- SUCCESS VIEW -->
     <div id="reconnectSuccessView" class="reconnect-success-view" style="display:none;">
-        <!-- CLOSE BUTTON PARA SA SUCCESS VIEW -->
-        
-        <div class="reconnect-success-icon">
-            <i class="fas fa-check-circle"></i>
-        </div>
-        <h3>Request Submitted!</h3>
-        <p class="reconnect-success-text">Your reconnect request has been received. Please save your reference number below for tracking.</p>
-        
-        <div class="reconnect-request-number-box">
-            <span class="reconnect-request-number-label">Request Number</span>
-            <span class="reconnect-request-number-value" id="reconnectRequestNumberValue">req0000000000</span>
-        </div>
+      <div class="reconnect-success-icon"><i class="fas fa-check-circle"></i></div>
+      <h3>Request Submitted!</h3>
+      <p class="reconnect-success-text">Your reconnect request has been received. Please save your reference number below for tracking.</p>
 
-        <div class="reconnect-plan-summary" id="reconnectPlanSummary">
-            <div class="plan-summary-row">
-                <span class="plan-summary-label">Current Plan:</span>
-                <span class="plan-summary-value" id="summaryCurrentPlan">Loading...</span>
-            </div>
-            <div class="plan-summary-row" id="summaryNewPlanRow" style="display:none;">
-                <span class="plan-summary-label">New Plan:</span>
-                <span class="plan-summary-value" id="summaryNewPlan">Loading...</span>
-            </div>
-            <div class="plan-summary-row" id="summaryNoChangeRow" style="display:none;">
-                <span class="plan-summary-label">Plan Change:</span>
-                <span class="plan-summary-value" style="color: #64748b;">No plan change requested</span>
-            </div>
+      <div class="reconnect-request-number-box">
+        <span class="reconnect-request-number-label">Request Number</span>
+        <span class="reconnect-request-number-value" id="reconnectRequestNumberValue">req0000000000</span>
+      </div>
+
+      <div class="reconnect-plan-summary" id="reconnectPlanSummary">
+        <div class="plan-summary-row">
+          <span class="plan-summary-label">Current Plan:</span>
+          <span class="plan-summary-value" id="summaryCurrentPlan">Loading...</span>
         </div>
-        
-        <button type="button" class="btn logout-confirm" id="closeReconnectSuccessBtn">Done</button>
+        <div class="plan-summary-row" id="summaryNewPlanRow" style="display:none;">
+          <span class="plan-summary-label">New Plan:</span>
+          <span class="plan-summary-value" id="summaryNewPlan">Loading...</span>
+        </div>
+        <div class="plan-summary-row" id="summaryNoChangeRow" style="display:none;">
+          <span class="plan-summary-label">Plan Change:</span>
+          <span class="plan-summary-value" style="color:#64748b;">No plan change requested</span>
+        </div>
+      </div>
+
+      <div class="reconnect-success-actions">
+        <button type="button" class="rc-btn rc-btn-success" id="closeReconnectSuccessBtn">Done</button>
+      </div>
     </div>
+
+  </div>
+</div>
+
+<!-- RECONNECT CONFIRMATION MODAL (BAGO) -->
+<div id="reconnectConfirmModal" class="modal reconnect-modal rc-confirm-modal">
+  <div class="rc-modal-content">
+
+    <div class="rc-header">
+      <div class="rc-icon"><i class="fas fa-plug"></i></div>
+      <div class="rc-heading">
+        <h2>Confirm Reconnect Request</h2>
+        <p>Review the details before submitting your request</p>
+      </div>
+      <button type="button" class="rc-close" id="closeReconnectConfirm" aria-label="Close confirmation">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="rc-body">
+      <div id="reconnectConfirmSummary"></div>
+
+      <p class="rc-question">Are you sure you want to <strong>submit</strong> this reconnect request?</p>
+
+      <div class="rc-note">
+        <i class="fas fa-clock"></i>
+        <span>Your request will be sent for admin approval. You will be notified once it is processed.</span>
+      </div>
+    </div>
+
+    <div class="rc-actions">
+      <button type="button" class="rc-btn rc-btn-cancel" id="cancelReconnectConfirmBtn">Cancel</button>
+      <button type="button" class="rc-btn rc-btn-primary" id="confirmReconnectBtn">
+        <i class="fas fa-paper-plane"></i> Yes, Submit Request
+      </button>
+    </div>
+
   </div>
 </div>
 

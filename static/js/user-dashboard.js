@@ -901,8 +901,12 @@ function closeReconnectModal() {
 
   const form = document.getElementById('reconnectForm');
   const successView = document.getElementById('reconnectSuccessView');
+  const modalHeader = document.getElementById('reconnectModalHeader');
+  const confirmModalEl = document.getElementById('reconnectConfirmModal');
   if (form) form.style.display = '';
   if (successView) successView.style.display = 'none';
+  if (modalHeader) modalHeader.style.display = '';
+  if (confirmModalEl) confirmModalEl.classList.remove('show');
   
   // RESET EDIT MODE
   const toggleBtn = document.getElementById('toggleEditBtn');
@@ -934,6 +938,10 @@ function showReconnectSuccessView(requestId, data) {
   const successView = document.getElementById('reconnectSuccessView');
   const requestNumberEl = document.getElementById('reconnectRequestNumberValue');
 
+  const modalHeader = document.getElementById('reconnectModalHeader');
+  const confirmModalEl = document.getElementById('reconnectConfirmModal');
+  if (confirmModalEl) confirmModalEl.classList.remove('show');
+  if (modalHeader) modalHeader.style.display = 'none';
   if (form) form.style.display = 'none';
   if (requestNumberEl) {
     requestNumberEl.textContent = requestId || 'N/A';
@@ -1479,32 +1487,177 @@ document.addEventListener('DOMContentLoaded', function() {
     disableEditing();
 
     // ============================================================
-    // FORM SUBMIT HANDLER
+    // FORM SUBMIT HANDLER (STEP 1: VALIDATE -> BUKSAN ANG CONFIRMATION MODAL)
     // ============================================================
-    if (form) {
-        form.addEventListener('submit', async function(e) {
-            e.preventDefault();
 
-            console.log('🟢 Submit button clicked!');
+    // Ilabas sa global para magamit ng closeReconnectModal()
+    // (dati ay hindi ito nakikita, kaya hindi nagre-reset ang edit mode)
+    window.disableEditing = disableEditing;
+    window.resetToOriginalData = resetToOriginalData;
+
+    const confirmModal = document.getElementById('reconnectConfirmModal');
+    const confirmSummary = document.getElementById('reconnectConfirmSummary');
+    const confirmCancelBtn = document.getElementById('cancelReconnectConfirmBtn');
+    const confirmSubmitBtn = document.getElementById('confirmReconnectBtn');
+    const confirmCloseBtn = document.getElementById('closeReconnectConfirm');
+    let pendingReconnectPayload = null;
+
+    const CONFIRM_BTN_HTML = '<i class="fas fa-paper-plane"></i> Yes, Submit Request';
+
+    // Note sa banner tungkol sa cut off
+    function addReconnectBannerNote() {
+        setTimeout(() => {
+            const banner = document.querySelector('.status-banner');
+            if (!banner || banner.querySelector('.reconnect-note-banner')) return;
+
+            const noteDiv = document.createElement('div');
+            noteDiv.className = 'reconnect-note-banner';
+            noteDiv.style.cssText = `
+                background: #fef3c7;
+                border: 1px solid #fde68a;
+                border-radius: 6px;
+                padding: 6px 12px;
+                margin-top: 8px;
+                display: flex;
+                align-items: center;
+                gap: 8px;
+                color: #92400e;
+                font-size: 13px;
+                font-weight: 500;
+            `;
+            noteDiv.innerHTML = `
+                <i class="fas fa-info-circle" style="color: #92400e; font-size: 13px;"></i>
+                <span>Your request will be updated the day after cut off</span>
+            `;
+
+            const contentDiv = banner.querySelector('div[style*="flex: 1"]');
+            (contentDiv || banner).appendChild(noteDiv);
+        }, 500);
+    }
+
+    function disableReconnectBannerButton() {
+        const reconnectBtn = document.getElementById('requestReconnectBtn');
+        if (reconnectBtn) {
+            reconnectBtn.disabled = true;
+            reconnectBtn.textContent = 'Request Already Submitted';
+        }
+    }
+
+    // ---------- CONFIRMATION MODAL ----------
+    function openReconnectConfirm(payload, newPlanText) {
+        pendingReconnectPayload = payload;
+
+        const curName  = document.getElementById('currentPlanName').textContent;
+        const curSpeed = document.getElementById('currentPlanSpeed').textContent;
+        const curPrice = document.getElementById('currentPlanPrice').textContent;
+
+        const newPlanSection = payload.change_plan
+            ? `
+            <div class="rc-section">
+                <div class="rc-section-title"><i class="fas fa-arrow-right"></i> New Plan</div>
+                <div class="rc-grid">
+                    <div class="rc-item rc-highlight rc-full">
+                        <span class="rc-label">Selected Plan</span>
+                        <span class="rc-value">${escapeHtml(newPlanText)}</span>
+                    </div>
+                </div>
+            </div>`
+            : `
+            <div class="rc-section">
+                <div class="rc-section-title"><i class="fas fa-arrow-right"></i> Plan Change</div>
+                <div class="rc-grid">
+                    <div class="rc-item rc-full">
+                        <span class="rc-value">No plan change requested</span>
+                    </div>
+                </div>
+            </div>`;
+
+        confirmSummary.innerHTML = `
+            <div class="rc-section">
+                <div class="rc-section-title"><i class="fas fa-wifi"></i> Current Plan</div>
+                <div class="rc-grid">
+                    <div class="rc-item">
+                        <span class="rc-label">Plan</span>
+                        <span class="rc-value">${escapeHtml(curName)}</span>
+                    </div>
+                    <div class="rc-item">
+                        <span class="rc-label">Speed</span>
+                        <span class="rc-value">${escapeHtml(curSpeed)} Mbps</span>
+                    </div>
+                    <div class="rc-item">
+                        <span class="rc-label">Monthly Price</span>
+                        <span class="rc-value">₱${escapeHtml(curPrice)}</span>
+                    </div>
+                </div>
+            </div>
+
+            ${newPlanSection}
+
+            <div class="rc-section">
+                <div class="rc-section-title"><i class="fas fa-user"></i> Your Information</div>
+                <div class="rc-grid rc-grid-2">
+                    <div class="rc-item">
+                        <span class="rc-label">Full Name</span>
+                        <span class="rc-value">${escapeHtml(payload.first_name)}</span>
+                    </div>
+                    <div class="rc-item">
+                        <span class="rc-label">Contact Number</span>
+                        <span class="rc-value">${escapeHtml(payload.contact_number)}</span>
+                    </div>
+                    <div class="rc-item rc-full">
+                        <span class="rc-label">Email</span>
+                        <span class="rc-value">${escapeHtml(payload.email)}</span>
+                    </div>
+                    <div class="rc-item rc-full">
+                        <span class="rc-label">Full Address</span>
+                        <span class="rc-value">${escapeHtml(payload.address)}</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        confirmSubmitBtn.disabled = false;
+        confirmCancelBtn.disabled = false;
+        confirmSubmitBtn.innerHTML = CONFIRM_BTN_HTML;
+        confirmModal.classList.add('show');
+    }
+
+    // Cancel = isasara lang ang confirmation, mananatiling bukas ang reconnect modal
+    function closeReconnectConfirm() {
+        confirmModal.classList.remove('show');
+        pendingReconnectPayload = null;
+    }
+
+    if (confirmCancelBtn) confirmCancelBtn.addEventListener('click', closeReconnectConfirm);
+    if (confirmCloseBtn) confirmCloseBtn.addEventListener('click', closeReconnectConfirm);
+    if (confirmModal) {
+        confirmModal.addEventListener('click', function(e) {
+            if (e.target === confirmModal && !confirmSubmitBtn.disabled) closeReconnectConfirm();
+        });
+    }
+
+    // ---------- STEP 1: SUBMIT BUTTON SA FORM ----------
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
 
             const changePlanRadio = document.querySelector('input[name="changePlan"]:checked');
             const changePlan = changePlanRadio ? changePlanRadio.value === 'yes' : false;
-            
+
+            const planSelectEl = document.getElementById('newPlanSelect');
             let newPlanId = null;
+            let newPlanText = '';
+
             if (changePlan) {
-                newPlanId = document.getElementById('newPlanSelect').value;
+                newPlanId = planSelectEl.value;
+                if (!newPlanId) {
+                    showToast('Please select a plan to change to.', 'error');
+                    planSelectEl.focus();
+                    return;
+                }
+                newPlanText = planSelectEl.options[planSelectEl.selectedIndex].textContent.trim();
             }
 
-            console.log(' changePlan:', changePlan);
-            console.log(' newPlanId:', newPlanId);
-
-            if (changePlan && !newPlanId) {
-                showToast('Please select a plan to change to.', 'error');
-                document.getElementById('newPlanSelect').focus();
-                return;
-            }
-
-            // KUNIN ANG MGA VALUES (EDITED OR NOT)
             const payload = {
                 change_plan: changePlan,
                 first_name: document.getElementById('reconnectFullName').value.trim(),
@@ -1539,127 +1692,64 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            console.log(' Sending payload:', payload);
-
-            const submitBtn = document.getElementById('submitReconnectBtn');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Submitting...';
-
-            try {
-                const res = await fetch('/api/submit-reconnect-request', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const result = await res.json();
-
-                console.log(' Response:', result);
-
-                if (res.ok && result.success) {
-                  reconnectAlreadyRequested = true;
-                  showReconnectSuccessView(result.request_id, {
-                      current_plan: result.current_plan,
-                      new_plan: result.new_plan,
-                      change_plan: result.change_plan
-                  });
-                  const reconnectBtn = document.getElementById('requestReconnectBtn');
-                  if (reconnectBtn) {
-                      reconnectBtn.disabled = true;
-                      reconnectBtn.textContent = 'Request Already Submitted';
-                  }
-                  
-                  // IDAGDAG ANG NOTE SA BANNER
-                  setTimeout(() => {
-                    const banner = document.querySelector('.status-banner');
-                    if (banner) {
-                      let noteDiv = banner.querySelector('.reconnect-note-banner');
-                      if (!noteDiv) {
-                        noteDiv = document.createElement('div');
-                        noteDiv.className = 'reconnect-note-banner';
-                        noteDiv.style.cssText = `
-                          background: #fef3c7;
-                          border: 1px solid #fde68a;
-                          border-radius: 6px;
-                          padding: 6px 12px;
-                          margin-top: 8px;
-                          display: flex;
-                          align-items: center;
-                          gap: 8px;
-                          color: #92400e;
-                          font-size: 13px;
-                          font-weight: 500;
-                        `;
-                        noteDiv.innerHTML = `
-                          <i class="fas fa-info-circle" style="color: #92400e; font-size: 13px;"></i>
-                          <span>Your request will be updated the day after cut off</span>
-                        `;
-                        
-                        const contentDiv = banner.querySelector('div[style*="flex: 1"]');
-                        if (contentDiv) {
-                          contentDiv.appendChild(noteDiv);
-                        } else {
-                          banner.appendChild(noteDiv);
-                        }
-                      }
-                    }
-                  }, 500);
-                  
-              } else if (res.status === 409) {
-                  showToast(result.error || 'You already have a reconnect request on file.', 'error');
-                  reconnectAlreadyRequested = true;
-                  closeReconnectModal();
-                  const reconnectBtn = document.getElementById('requestReconnectBtn');
-                  if (reconnectBtn) {
-                      reconnectBtn.disabled = true;
-                      reconnectBtn.textContent = 'Request Already Submitted';
-                  }
-                  
-                  // IDAGDAG ANG NOTE SA BANNER
-                  setTimeout(() => {
-                    const banner = document.querySelector('.status-banner');
-                    if (banner) {
-                      let noteDiv = banner.querySelector('.reconnect-note-banner');
-                      if (!noteDiv) {
-                        noteDiv = document.createElement('div');
-                        noteDiv.className = 'reconnect-note-banner';
-                        noteDiv.style.cssText = `
-                          background: #fef3c7;
-                          border: 1px solid #fde68a;
-                          border-radius: 6px;
-                          padding: 6px 12px;
-                          margin-top: 8px;
-                          display: flex;
-                          align-items: center;
-                          gap: 8px;
-                          color: #92400e;
-                          font-size: 13px;
-                          font-weight: 500;
-                        `;
-                        noteDiv.innerHTML = `
-                          <i class="fas fa-info-circle" style="color: #92400e; font-size: 13px;"></i>
-                          <span>Your request will be updated the day after cut off</span>
-                        `;
-                        
-                        const contentDiv = banner.querySelector('div[style*="flex: 1"]');
-                        if (contentDiv) {
-                          contentDiv.appendChild(noteDiv);
-                        } else {
-                          banner.appendChild(noteDiv);
-                        }
-                      }
-                    }
-                  }, 500);
-              } else {
-                    showToast(result.error || 'Something went wrong.', 'error');
-                    console.error(' Error response:', result);
-                }
-            } catch (err) {
-                console.error('Error submitting reconnect request:', err);
-                showToast('Failed to submit request. Try again.', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Submit Request';
-            }
+            // HINDI PA SUBMIT — LABAS MUNA ANG CONFIRMATION MODAL
+            openReconnectConfirm(payload, newPlanText);
         });
     }
+
+    // ---------- STEP 2: TOTOONG SUBMIT (KAPAG NAG-CONFIRM) ----------
+    async function submitReconnectRequest() {
+        if (!pendingReconnectPayload) return;
+
+        const payload = pendingReconnectPayload;
+
+        confirmSubmitBtn.disabled = true;
+        confirmCancelBtn.disabled = true;
+        confirmSubmitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+        try {
+            const res = await fetch('/api/submit-reconnect-request', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const result = await res.json();
+
+            if (res.ok && result.success) {
+                reconnectAlreadyRequested = true;
+                closeReconnectConfirm();
+                showReconnectSuccessView(result.request_id, {
+                    current_plan: result.current_plan,
+                    new_plan: result.new_plan,
+                    change_plan: result.change_plan
+                });
+                disableReconnectBannerButton();
+                addReconnectBannerNote();
+
+            } else if (res.status === 409) {
+                reconnectAlreadyRequested = true;
+                closeReconnectConfirm();
+                showToast(result.error || 'You already have a reconnect request on file.', 'error');
+                closeReconnectModal();
+                disableReconnectBannerButton();
+                addReconnectBannerNote();
+
+            } else {
+                // May error: isara ang confirmation, balik sa reconnect modal
+                closeReconnectConfirm();
+                showToast(result.error || 'Something went wrong.', 'error');
+                console.error('Error response:', result);
+            }
+        } catch (err) {
+            console.error('Error submitting reconnect request:', err);
+            closeReconnectConfirm();
+            showToast('Failed to submit request. Try again.', 'error');
+        } finally {
+            confirmSubmitBtn.disabled = false;
+            confirmCancelBtn.disabled = false;
+            confirmSubmitBtn.innerHTML = CONFIRM_BTN_HTML;
+        }
+    }
+
+    if (confirmSubmitBtn) confirmSubmitBtn.addEventListener('click', submitReconnectRequest);
 });
