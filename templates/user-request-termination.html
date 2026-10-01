@@ -230,27 +230,51 @@
 </div>
 
 
-<!-- ================= CONFIRMATION MODAL ================= -->
+<!-- ================= CONFIRMATION MODAL (REDESIGN) ================= -->
 <div id="confirmTerminationModal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn" id="closeConfirmModal">&times;</span>
-        <div class="modal-icon">
-            <i class="fas fa-exclamation-triangle" style="font-size: 48px; color: #dc2626;"></i>
+    <div class="modal-content plan-confirm-content">
+
+        <!-- HEADER -->
+        <div class="plan-confirm-header">
+            <div class="plan-confirm-icon icon-danger">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="plan-confirm-heading">
+                <h2>Confirm Termination</h2>
+                <p>Review the details before submitting your request</p>
+            </div>
+            <button type="button" class="close-btn plan-confirm-close" id="closeConfirmModal" aria-label="Close termination confirmation">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
-        <h2>Confirm Termination</h2>
-        <p id="confirmModalMessage">Are you sure you want to terminate your subscription?</p>
-        <div class="termination-summary" id="terminationSummary">
-            <!-- Dynamic content -->
+
+        <!-- BODY -->
+        <div class="plan-confirm-body">
+            <div id="terminationSummary"></div>
+
+            <p class="plan-confirm-question" id="confirmModalMessage">
+                Are you sure you want to terminate your subscription?
+            </p>
+
+            <div class="plan-confirm-note note-danger">
+                <i class="fas fa-exclamation-circle"></i>
+                <span>This action will permanently terminate your subscription. You will lose access to all Cablevision services.</span>
+            </div>
+
+            <div class="plan-confirm-note">
+                <i class="fas fa-clock"></i>
+                <span>This request will be sent for admin approval. You will be notified once approved or rejected.</span>
+            </div>
         </div>
-        <div class="warning-text">
-            <i class="fas fa-exclamation-circle"></i> 
-            This action will permanently terminate your subscription.
-            You will lose access to all Cablevision services.
+
+        <!-- ACTIONS -->
+        <div class="plan-confirm-actions">
+            <button type="button" id="cancelTerminationBtn" class="btn-plan-cancel">Cancel</button>
+            <button type="button" id="confirmTerminationBtn" class="btn-plan-confirm btn-plan-danger">
+                <i class="fas fa-paper-plane"></i> Submit Request
+            </button>
         </div>
-        <div class="modal-actions">
-            <button id="cancelTerminationBtn" class="btn cancel"> <i class="fas fa-times"></i> Cancel</button>
-            <button id="confirmTerminationBtn" class="btn confirm" style="background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);"> <i class="fas fa-check"></i> Confirm Termination</button>
-        </div>
+
     </div>
 </div>
 
@@ -574,21 +598,35 @@ function showToast(message, type = 'info') {
                 if (data.pending_request) {
                     hasPendingRequest = true;
                     pendingRequestData = data.pending_request;
-                    const requestIdDisplay = pendingRequestData.request_id ? `<strong>Request ID: ${pendingRequestData.request_id}</strong><br>` : '';
-                    
-                    // GAMITIN ANG formatDateTime12Hour FUNCTION
+                    const pendingReqId = pendingRequestData.request_id ? escapeHtml(String(pendingRequestData.request_id)) : 'N/A';
                     const formattedDate = formatDateTime12Hour(pendingRequestData.created_at);
-                    
+
                     alertDiv.innerHTML = `
-                        <div class="pending-badge" style="background: #fef3c7; border: 1px solid #f59e0b; border-radius: 8px; padding: 12px 16px; margin-top: 16px; color: #92400e;">
-                            <i class="fas fa-clock" style="color: #f59e0b;"></i> 
-                            ${requestIdDisplay}
-                            You have a pending <strong>termination</strong> request.
-                            <br><small>Submitted on: ${formattedDate}</small>
-                            <br><small>Status: Pending Approval</small>
-                            <br>
-                            <div style="background: #fef3c7; border: 1px solid #fde68a; border-radius: 6px; padding: 6px 12px; margin-top: 8px; display: flex; align-items: center; gap: 8px; color: #92400e; font-size: 13px; font-weight: 500;">
-                                <i class="fas fa-info-circle" style="color: #92400e; font-size: 13px;"></i>
+                        <div class="pending-request-card">
+                            <div class="pending-request-header">
+                                <div class="pending-request-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="pending-request-heading">
+                                    <h3>Pending Termination Request</h3>
+                                    <p>Your request is waiting for admin approval</p>
+                                </div>
+                                <span class="pending-status-pill">Pending Approval</span>
+                            </div>
+
+                            <div class="pending-request-grid two-col">
+                                <div class="pending-request-item">
+                                    <span class="pending-request-label">Request ID</span>
+                                    <span class="pending-request-value">${pendingReqId}</span>
+                                </div>
+                                <div class="pending-request-item">
+                                    <span class="pending-request-label">Submitted On</span>
+                                    <span class="pending-request-value">${formattedDate}</span>
+                                </div>
+                            </div>
+
+                            <div class="pending-request-note">
+                                <i class="fas fa-info-circle"></i>
                                 <span>Your request will be updated the day after cut off</span>
                             </div>
                         </div>
@@ -612,45 +650,81 @@ function showToast(message, type = 'info') {
         }
     }
 
+    // ==================== HELPERS: SPEED FORMAT ====================
+    // Tinatanggal ang existing "Mbps" para hindi maging "98 Mbps Mbps"
+    function formatSpeed(value) {
+        if (value === null || value === undefined || value === '') return 'N/A';
+        const num = String(value).replace(/\s*mbps\s*$/i, '').trim();
+        return num ? `${num} Mbps` : 'N/A';
+    }
+
     // ==================== SHOW CONFIRMATION MODAL ====================
     function showConfirmationModal() {
         if (hasPendingRequest) {
             showToast('You already have a pending request. Please wait for approval.', 'warning');
             return;
         }
-        
+
         const modal = document.getElementById('confirmTerminationModal');
         const summaryEl = document.getElementById('terminationSummary');
+        const messageEl = document.getElementById('confirmModalMessage');
         const reasonSelect = document.getElementById('terminationReason');
         const customReason = document.getElementById('customReason');
         const terminationDate = document.getElementById('terminationDate');
-        
+
         let reasonText = reasonSelect.value;
         if (reasonSelect.value === 'Other' && customReason.value.trim()) {
             reasonText = customReason.value.trim();
         }
-        
+
+        let dateText = 'Not specified';
+        if (terminationDate.value) {
+            dateText = new Date(terminationDate.value).toLocaleDateString('en-US', {
+                year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC'
+            });
+        }
+
+        messageEl.innerHTML = 'Are you sure you want to <strong>terminate</strong> your subscription?';
+
         summaryEl.innerHTML = `
-            <div class="summary-row">
-                <span class="summary-label">Current Plan:</span>
-                <span class="summary-value">${escapeHtml(currentPlan?.plan || 'N/A')}</span>
+            <div class="plan-confirm-section">
+                <div class="plan-confirm-section-title">
+                    <i class="fas fa-wifi"></i> Current Subscription
+                </div>
+                <div class="plan-confirm-grid">
+                    <div class="plan-confirm-item">
+                        <span class="plan-confirm-label">Plan</span>
+                        <span class="plan-confirm-value">${escapeHtml(currentPlan?.plan || 'N/A')}</span>
+                    </div>
+                    <div class="plan-confirm-item">
+                        <span class="plan-confirm-label">Speed</span>
+                        <span class="plan-confirm-value">${escapeHtml(formatSpeed(currentPlan?.speed))}</span>
+                    </div>
+                    <div class="plan-confirm-item">
+                        <span class="plan-confirm-label">Contract No.</span>
+                        <span class="plan-confirm-value">${escapeHtml(currentPlan?.contract_number || 'N/A')}</span>
+                    </div>
+                </div>
             </div>
-            <div class="summary-row">
-                <span class="summary-label">Contract Number:</span>
-                <span class="summary-value">${escapeHtml(currentPlan?.contract_number || 'N/A')}</span>
+
+            <div class="plan-confirm-section">
+                <div class="plan-confirm-section-title">
+                    <i class="fas fa-times-circle"></i> Termination Details
+                    <span class="plan-confirm-tag tag-danger"><i class="fas fa-ban"></i> Termination</span>
+                </div>
+                <div class="plan-confirm-grid grid-2">
+                    <div class="plan-confirm-item plan-confirm-highlight-danger">
+                        <span class="plan-confirm-label">Preferred Date</span>
+                        <span class="plan-confirm-value">${escapeHtml(dateText)}</span>
+                    </div>
+                    <div class="plan-confirm-item plan-confirm-highlight-danger">
+                        <span class="plan-confirm-label">Reason</span>
+                        <span class="plan-confirm-value">${escapeHtml(reasonText)}</span>
+                    </div>
+                </div>
             </div>
-            <div class="summary-row">
-                <span class="summary-label">Reason:</span>
-                <span class="summary-value">${escapeHtml(reasonText)}</span>
-            </div>
-            ${terminationDate.value ? `
-            <div class="summary-row">
-                <span class="summary-label">Termination Date:</span>
-                <span class="summary-value">${escapeHtml(new Date(terminationDate.value).toLocaleDateString())}</span>
-            </div>
-            ` : ''}
         `;
-        
+
         modal.classList.add('show');
     }
 
