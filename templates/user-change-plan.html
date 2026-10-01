@@ -247,22 +247,46 @@
 </div>
 
 
-<!-- ================= CONFIRMATION MODAL FOR PLAN CHANGE ================= -->
+<!-- ================= CONFIRMATION MODAL FOR PLAN CHANGE (REDESIGN) ================= -->
 <div id="confirmPlanChangeModal" class="modal">
-    <div class="modal-content">
-        <span class="close-btn" id="closeConfirmModal">&times;</span>
-        <div class="modal-icon">
-            <i class="fas fa-exchange-alt" style="font-size: 48px; color: #0047ab;"></i>
+    <div class="modal-content plan-confirm-content">
+
+        <!-- HEADER -->
+        <div class="plan-confirm-header">
+            <div class="plan-confirm-icon">
+                <i class="fas fa-exchange-alt"></i>
+            </div>
+            <div class="plan-confirm-heading">
+                <h2>Confirm Plan Change</h2>
+                <p>Review the details before submitting your request</p>
+            </div>
+            <button type="button" class="close-btn plan-confirm-close" id="closeConfirmModal" aria-label="Close plan change confirmation">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
-        <h2>Confirm Plan Change</h2>
-        <p id="confirmModalMessage">Are you sure you want to change your plan?</p>
-        <div class="plan-change-summary" id="planChangeSummary">
-            <!-- Dynamic content will be inserted here -->
+
+        <!-- BODY -->
+        <div class="plan-confirm-body">
+            <div id="planChangeSummary"></div>
+
+            <p class="plan-confirm-question" id="confirmModalMessage">
+                Are you sure you want to change your plan?
+            </p>
+
+            <div class="plan-confirm-note">
+                <i class="fas fa-clock"></i>
+                <span>This request will be sent for admin approval. You will be notified once approved or rejected.</span>
+            </div>
         </div>
-        <div class="modal-actions">
-            <button id="cancelPlanChangeBtn" class="btn cancel"> <i class="fas fa-times"></i> Cancel</button>
-            <button id="confirmPlanChangeBtn" class="btn confirm"> <i class="fas fa-check"></i> Confirm Change</button>
+
+        <!-- ACTIONS -->
+        <div class="plan-confirm-actions">
+            <button type="button" id="cancelPlanChangeBtn" class="btn-plan-cancel">Cancel</button>
+            <button type="button" id="confirmPlanChangeBtn" class="btn-plan-confirm">
+                <i class="fas fa-paper-plane"></i> Submit Request
+            </button>
         </div>
+
     </div>
 </div>
 
@@ -533,19 +557,38 @@
                     hasPendingRequest = true;
                     pendingRequestData = data.pending_request;
                     const alertDiv = document.getElementById('pendingRequestAlert');
-                    const requestIdDisplay = pendingRequestData.request_id ? `<strong>Request ID: ${pendingRequestData.request_id}</strong><br>` : '';
+                    const pendingReqId = pendingRequestData.request_id ? escapeHtml(String(pendingRequestData.request_id)) : 'N/A';
                     alertDiv.innerHTML = `
-                        <div class="pending-badge">
-                            <i class="fas fa-clock"></i> 
-                            ${requestIdDisplay}
-                            You have a pending plan change request to <strong>${pendingRequestData.plan}</strong> (${pendingRequestData.speed} Mbps)
-                            <br><small>Submitted on: ${formatDateTime12Hour(pendingRequestData.requested_at)}</small>
-                            <br><small>Status: Pending Approval</small>
-                            <div style="background: #fef3c7; border: 1px solid #fde68a; border-radius: 8px; padding: 8px 12px; margin-top: 10px; display: flex; align-items: center; gap: 8px;">
-                                <i class="fas fa-info-circle" style="color: #92400e; font-size: 14px;"></i>
-                                <span style="color: #92400e; font-size: 13px; font-weight: 500;">
-                                    Your request will be updated the day after cut off
-                                </span>
+                        <div class="pending-request-card">
+                            <div class="pending-request-header">
+                                <div class="pending-request-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="pending-request-heading">
+                                    <h3>Pending Plan Change Request</h3>
+                                    <p>Your request is waiting for admin approval</p>
+                                </div>
+                                <span class="pending-status-pill">Pending Approval</span>
+                            </div>
+
+                            <div class="pending-request-grid">
+                                <div class="pending-request-item">
+                                    <span class="pending-request-label">Request ID</span>
+                                    <span class="pending-request-value">${pendingReqId}</span>
+                                </div>
+                                <div class="pending-request-item">
+                                    <span class="pending-request-label">Requested Plan</span>
+                                    <span class="pending-request-value">${escapeHtml(pendingRequestData.plan || 'N/A')} (${escapeHtml(formatSpeed(pendingRequestData.speed))})</span>
+                                </div>
+                                <div class="pending-request-item">
+                                    <span class="pending-request-label">Submitted On</span>
+                                    <span class="pending-request-value">${formatDateTime12Hour(pendingRequestData.requested_at)}</span>
+                                </div>
+                            </div>
+
+                            <div class="pending-request-note">
+                                <i class="fas fa-info-circle"></i>
+                                <span>Your request will be updated the day after cut off</span>
                             </div>
                         </div>
                     `;
@@ -636,66 +679,92 @@
         showPlanChangeConfirmation(plan);
     }
 
+    // ==================== HELPERS: SPEED & PRICE FORMAT ====================
+    // Tinatanggal ang existing "Mbps" para hindi maging "98 Mbps Mbps"
+    function formatSpeed(value) {
+        if (value === null || value === undefined || value === '') return 'N/A';
+        const num = String(value).replace(/\s*mbps\s*$/i, '').trim();
+        return num ? `${num} Mbps` : 'N/A';
+    }
+
+    function parsePriceNumber(priceValue) {
+        if (!priceValue) return 0;
+        const clean = String(priceValue)
+            .replace(/[₱,]/g, '')
+            .replace(/\/month.*$/i, '')
+            .trim();
+        const num = parseFloat(clean);
+        return isNaN(num) ? 0 : num;
+    }
+
+    function formatPriceDisplay(priceValue) {
+        const num = parsePriceNumber(priceValue);
+        return num > 0 ? `₱${num.toLocaleString()}` : 'N/A';
+    }
+
     // ==================== SHOW PLAN CHANGE CONFIRMATION MODAL ====================
     function showPlanChangeConfirmation(plan) {
         pendingSelectedPlan = plan;
-        
+
         const modal = document.getElementById('confirmPlanChangeModal');
         const messageEl = document.getElementById('confirmModalMessage');
         const summaryEl = document.getElementById('planChangeSummary');
-        
-        messageEl.innerHTML = `Are you sure you want to change your plan?`;
-        
-        // FIX: Helper function to clean and format price
-        function formatPriceDisplay(priceValue) {
-            if (!priceValue) return 'N/A';
-            const cleanPrice = String(priceValue)
-                .replace(/[₱,]/g, '')
-                .replace(/\/month.*$/i, '')
-                .trim();
-            const priceNum = parseFloat(cleanPrice);
-            if (!isNaN(priceNum) && priceNum > 0) {
-                return `₱${priceNum.toLocaleString()}`;
-            }
-            return 'N/A';
+
+        messageEl.innerHTML = 'Are you sure you want to <strong>change</strong> your plan to <strong>' + escapeHtml(plan.name) + '</strong>?';
+
+        // Upgrade / Downgrade tag (base sa presyo)
+        const currentPrice = parsePriceNumber(currentPlan?.price);
+        const newPrice = parsePriceNumber(plan.price);
+        let changeTag = '';
+        if (currentPrice > 0 && newPrice > 0 && newPrice !== currentPrice) {
+            changeTag = newPrice > currentPrice
+                ? '<span class="plan-confirm-tag tag-up"><i class="fas fa-arrow-up"></i> Upgrade</span>'
+                : '<span class="plan-confirm-tag tag-down"><i class="fas fa-arrow-down"></i> Downgrade</span>';
         }
-        
-        // Build summary HTML
+
         summaryEl.innerHTML = `
-            <div class="summary-row">
-                <span class="summary-label">Current Plan:</span>
-                <span class="summary-value">${escapeHtml(currentPlan?.plan || 'N/A')}</span>
+            <div class="plan-confirm-section">
+                <div class="plan-confirm-section-title">
+                    <i class="fas fa-wifi"></i> Current Plan
+                </div>
+                <div class="plan-confirm-grid">
+                    <div class="plan-confirm-item">
+                        <span class="plan-confirm-label">Plan</span>
+                        <span class="plan-confirm-value">${escapeHtml(currentPlan?.plan || 'N/A')}</span>
+                    </div>
+                    <div class="plan-confirm-item">
+                        <span class="plan-confirm-label">Speed</span>
+                        <span class="plan-confirm-value">${escapeHtml(formatSpeed(currentPlan?.speed))}</span>
+                    </div>
+                    <div class="plan-confirm-item">
+                        <span class="plan-confirm-label">Monthly Price</span>
+                        <span class="plan-confirm-value">${formatPriceDisplay(currentPlan?.price)}</span>
+                    </div>
+                </div>
             </div>
-            <div class="summary-row">
-                <span class="summary-label">Current Speed:</span>
-                <span class="summary-value">${escapeHtml(currentPlan?.speed || 'N/A')} Mbps</span>
-            </div>
-            <div class="summary-row">
-                <span class="summary-label">Current Price:</span>
-                <span class="summary-value price">${formatPriceDisplay(currentPlan?.price)}</span>
-            </div>
-            <div class="summary-row" style="justify-content: center; gap: 20px;">
-                <i class="fas fa-arrow-down" style="color: #22c55e; font-size: 18px;"></i>
-                <i class="fas fa-arrow-up" style="color: #0047ab; font-size: 18px;"></i>
-            </div>
-            <div class="summary-row">
-                <span class="summary-label">New Plan:</span>
-                <span class="summary-value">${escapeHtml(plan.name)}</span>
-            </div>
-            <div class="summary-row">
-                <span class="summary-label">New Speed:</span>
-                <span class="summary-value">${escapeHtml(plan.speed)} Mbps</span>
-            </div>
-            <div class="summary-row">
-                <span class="summary-label">New Price:</span>
-                <span class="summary-value price">${formatPriceDisplay(plan.price)}</span>
-            </div>
-            <div class="warning-text">
-                <i class="fas fa-clock"></i> This request will be sent for admin approval.<br>
-                You will be notified once approved or rejected.
+
+            <div class="plan-confirm-section">
+                <div class="plan-confirm-section-title">
+                    <i class="fas fa-arrow-right"></i> New Plan
+                    ${changeTag}
+                </div>
+                <div class="plan-confirm-grid">
+                    <div class="plan-confirm-item plan-confirm-highlight">
+                        <span class="plan-confirm-label">Plan</span>
+                        <span class="plan-confirm-value">${escapeHtml(plan.name)}</span>
+                    </div>
+                    <div class="plan-confirm-item plan-confirm-highlight">
+                        <span class="plan-confirm-label">Speed</span>
+                        <span class="plan-confirm-value">${escapeHtml(formatSpeed(plan.speed))}</span>
+                    </div>
+                    <div class="plan-confirm-item plan-confirm-highlight">
+                        <span class="plan-confirm-label">Monthly Price</span>
+                        <span class="plan-confirm-value">${formatPriceDisplay(plan.price)}</span>
+                    </div>
+                </div>
             </div>
         `;
-        
+
         modal.classList.add('show');
     }
 
