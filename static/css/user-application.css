@@ -350,6 +350,26 @@ body {
 .form-group-modern {
     margin-bottom: 1.25rem;
 }
+.application-main-section .form-card-body .row > [class*="col-"] {
+    min-width: 0;
+}
+.application-main-section .form-card-body .row .form-group-modern {
+    min-width: 0;
+    margin-bottom: 0;
+}
+.application-main-section .form-control-modern {
+    min-width: 0;
+    max-width: 100%;
+}
+
+@media (min-width: 768px) and (max-width: 1199.98px) {
+    .application-main-section .form-card-body .row > .col-md-3,
+    .application-main-section .form-card-body .row > .col-md-4,
+    .application-main-section .form-card-body .row > .col-lg-4 {
+        width: 50%;
+    }
+}
+
 .form-label-modern {
     display: block;
     font-weight: 600;

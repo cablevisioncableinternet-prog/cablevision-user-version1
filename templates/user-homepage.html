@@ -1172,7 +1172,7 @@ function stopPlanAutoPlay() {
     }
 }
 
-       // ================= DYNAMIC PLANS LOADER (CAROUSEL VERSION) =================
+// ================= DYNAMIC PLANS LOADER (CAROUSEL VERSION) =================
 async function loadPlansDynamically() {
     try {
         const response = await fetch('/api/public/plans');
@@ -1182,37 +1182,36 @@ async function loadPlansDynamically() {
         // Fetch customer counts
         const customerCounts = await fetchCustomerCounts();
 
-        // ---- Determine Most Popular Plan ----
-       const sortedPlans = [...plans].sort((a, b) => {
+        // ---- Determine Most Popular Plan from current application counts ----
+        const normalizedCustomerCounts = Object.fromEntries(
+            Object.entries(customerCounts).map(([name, count]) => [name.trim().toLowerCase(), Number(count) || 0])
+        );
+        const getPlanApplicationCount = plan =>
+            normalizedCustomerCounts[(plan.name || '').trim().toLowerCase()] || 0;
+        const getPlanSpeedMbps = plan => {
+            const match = (plan.speed || '').toString().trim().match(/([\d.]+)\s*(gbps|mbps|kbps)/i);
+            if (!match) return 0;
 
-            const aCount = customerCounts[a.name] || a.applicants || a.popularity || 0;
-            const bCount = customerCounts[b.name] || b.applicants || b.popularity || 0;
-            if (bCount !== aCount) return bCount - aCount;
+            const value = parseFloat(match[1]);
+            const unit = match[2].toLowerCase();
+            if (unit === 'gbps') return value * 1000;
+            if (unit === 'kbps') return value / 1000;
+            return value;
+        };
+        const sortedPlans = [...plans].sort((a, b) => {
+            const countDifference = getPlanApplicationCount(b) - getPlanApplicationCount(a);
+            if (countDifference !== 0) return countDifference;
+            const speedDifference = getPlanSpeedMbps(b) - getPlanSpeedMbps(a);
+            if (speedDifference !== 0) return speedDifference;
             return (b.price || 0) - (a.price || 0);
         });
         const mostPopularPlan = sortedPlans[0] || plans[0];
 
         // ---- Determine Highest Speed (normalized to Mbps) ----
-        let maxSpeedMbps = 0;
-        let maxSpeedPlan = null;
-        plans.forEach(plan => {
-            const label = (plan.speed || '').toString().trim();
-            const match = label.match(/([\d.]+)\s*(gbps|mbps|kbps)/i);
-            if (!match) return;
-
-            const value = parseFloat(match[1]);
-            const unit = match[2].toLowerCase();
-
-            let mbps = 0;
-            if (unit === 'gbps') mbps = value * 1000;
-            else if (unit === 'mbps') mbps = value;
-            else if (unit === 'kbps') mbps = value / 1000;
-
-            if (mbps > maxSpeedMbps) {
-                maxSpeedMbps = mbps;
-                maxSpeedPlan = plan;
-            }
-        });
+        const maxSpeedPlan = plans.reduce((fastestPlan, plan) =>
+            !fastestPlan || getPlanSpeedMbps(plan) > getPlanSpeedMbps(fastestPlan) ? plan : fastestPlan,
+            null
+        );
         const highestSpeed = maxSpeedPlan ? maxSpeedPlan.speed : '800 Mbps';
 
         // ---- Update Hero Description ----
@@ -1226,7 +1225,7 @@ async function loadPlansDynamically() {
         const track = document.getElementById('plansCarouselTrack');
         if (track) {
             track.innerHTML = plans.map((plan, index) => {
-                const isPopular = (plan.id === mostPopularPlan.id) || plan.popular;
+                const isPopular = plan.id === mostPopularPlan.id;
                 const hasFeatures = plan.features && plan.features.length > 0;
                 return `
                 <div class="plan-card ${isPopular ? 'featured' : ''}">
@@ -1300,7 +1299,7 @@ async function loadPlansDynamically() {
         // ---- Initialize Carousel ----
         setTimeout(initPlansCarousel, 200);
 
-        console.log('Most Popular Plan:', mostPopularPlan.name, 'with', customerCounts[mostPopularPlan.id] || 0, 'customers');
+        console.log('Most Popular Plan:', mostPopularPlan.name, 'with', getPlanApplicationCount(mostPopularPlan), 'customers');
 
     } catch (err) {
         console.error('Error loading plans:', err);

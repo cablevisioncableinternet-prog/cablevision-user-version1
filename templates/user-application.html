@@ -289,17 +289,25 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                     <h4 class="form-card-title">Employment Details</h4>
                 </div>
                 <div class="form-card-body">
-                    <div class="form-group-modern">
-                        <label class="form-label-modern">Company / Employer <span class="required-star">*</span></label>
-                        <input class="form-control-modern" name="employer" required placeholder="Type None if not employed">
-                    </div>
-                    <div class="form-group-modern">
-                        <label class="form-label-modern">Business Address <span class="required-star">*</span></label>
-                        <input class="form-control-modern" name="business_address" required placeholder="Type None if not applicable">
-                    </div>
-                    <div class="form-group-modern">
-                        <label class="form-label-modern">Business Phone <span class="optional-badge">(Optional)</span></label>
-                        <input class="form-control-modern" name="business_phone">
+                    <div class="row g-3">
+                        <div class="col-12 col-sm-6 col-lg-4">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Company / Employer <span class="required-star">*</span></label>
+                                <input class="form-control-modern" name="employer" required placeholder="Type None if not employed">
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg-4">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Business Address <span class="required-star">*</span></label>
+                                <input class="form-control-modern" name="business_address" required placeholder="Type None if not applicable">
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg-4">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Business Phone <span class="optional-badge">(Optional)</span></label>
+                                <input class="form-control-modern" name="business_phone">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -311,12 +319,16 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                     <h4 class="form-card-title">Spouse Information</h4>
                 </div>
                 <div class="form-card-body">
-                    <div class="form-group-modern">
-                        <label class="form-label-modern">Name of Spouse 
-                            <span class="required-star" id="spouse_name_required" style="display:none;">*</span>
-                            <span class="optional-badge" id="spouse_name_optional">(Optional)</span>
-                        </label>
-                        <input class="form-control-modern" name="spouse_name" id="spouse_name">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Name of Spouse
+                                    <span class="required-star" id="spouse_name_required" style="display:none;">*</span>
+                                    <span class="optional-badge" id="spouse_name_optional">(Optional)</span>
+                                </label>
+                                <input class="form-control-modern" name="spouse_name" id="spouse_name">
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -328,13 +340,19 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                     <h4 class="form-card-title">Family Details</h4>
                 </div>
                 <div class="form-card-body">
-                    <div class="form-group-modern">
-                        <label class="form-label-modern">Father's Name <span class="required-star">*</span></label>
-                        <input class="form-control-modern" name="father_name" id="father_name" required>
-                    </div>
-                    <div class="form-group-modern">
-                        <label class="form-label-modern">Mother's Maiden Name <span class="required-star">*</span></label>
-                        <input class="form-control-modern" name="mother_maiden_name" id="mother_maiden_name" required>
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Father's Name <span class="required-star">*</span></label>
+                                <input class="form-control-modern" name="father_name" id="father_name" required>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Mother's Maiden Name <span class="required-star">*</span></label>
+                                <input class="form-control-modern" name="mother_maiden_name" id="mother_maiden_name" required>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -667,26 +685,34 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                     <h4 class="form-card-title">Installation Details</h4>
                 </div>
                 <div class="form-card-body">
-                    <div class="form-group-modern">
-                        <label class="form-label-modern">Complete Installation Address <span class="required-star">*</span></label>
-                        <input class="form-control-modern" name="installation_address" id="installation_address" readonly style="background-color: #f8f9fa;">
-                    </div>
-                        <div class="form-group-modern">
-                            <label class="form-label-modern">Installation Phone <span class="required-star">*</span></label>
-                            <input class="form-control-modern" name="installation_phone" id="installation_phone" 
-                                placeholder="Auto-filled from Primary Mobile Number" readonly required 
-                                style="background-color: #f8f9fa;">
-                            <small class="form-hint-modern">Auto-filled from Primary Mobile Number</small>
+                    <div class="row g-3">
+                        <div class="col-12 col-lg-6">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Complete Installation Address <span class="required-star">*</span></label>
+                                <input class="form-control-modern" name="installation_address" id="installation_address" readonly style="background-color: #f8f9fa;">
+                            </div>
                         </div>
-                    <div class="form-group-modern">
-                        <label class="form-label-modern">Installation Fee Option <span class="required-star">*</span></label>
-                        <select name="installation_fee" class="form-control-modern" required>
-                            <option value="" disabled selected>Select Installation Fee Option</option>
-                            <option value="Cash">Cash (Full payment upon installation)</option>
-                            <option value="Installment - 3 Months">Installment - 3 Months</option>
-                            <option value="Installment - 6 Months">Installment - 6 Months</option>
-                            <option value="Installment - 9 Months">Installment - 9 Months</option>
-                        </select>
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Installation Phone <span class="required-star">*</span></label>
+                                <input class="form-control-modern" name="installation_phone" id="installation_phone"
+                                    placeholder="Auto-filled from Primary Mobile Number" readonly required
+                                    style="background-color: #f8f9fa;">
+                                <small class="form-hint-modern">Auto-filled from Primary Mobile Number</small>
+                            </div>
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Installation Fee Option <span class="required-star">*</span></label>
+                                <select name="installation_fee" class="form-control-modern" required>
+                                    <option value="" disabled selected>Select Installation Fee Option</option>
+                                    <option value="Cash">Cash (Full payment upon installation)</option>
+                                    <option value="Installment - 3 Months">Installment - 3 Months</option>
+                                    <option value="Installment - 6 Months">Installment - 6 Months</option>
+                                    <option value="Installment - 9 Months">Installment - 9 Months</option>
+                                </select>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
