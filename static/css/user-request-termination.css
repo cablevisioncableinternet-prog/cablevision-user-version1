@@ -3533,3 +3533,654 @@ body {
     margin: 0 14px 14px;
   }
 }
+
+/* ============================================================================
+   PATCH: Current Plan → Table style + Reason/Date side-by-side
+   ============================================================================ */
+
+/* ---------- 1) CURRENT PLAN → DASHBOARD-STYLE TABLE ---------- */
+/* NOTE: display is NOT forced — JS controls it via inline style.
+   When JS sets display:grid → 4-col table shows.
+   When JS sets display:none → hidden (hides skeleton after load). */
+
+.current-plan-details,
+.current-plan-loading {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 1px !important;
+  background: #e1e8f0 !important;
+  border: 1px solid #d7e1ec !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+
+/* Hide the container entirely if JS set inline display:none
+   (para hindi lumaban ang CSS sa inline style) */
+.current-plan-details[style*="display: none"],
+.current-plan-loading[style*="display: none"] {
+  display: none !important;
+}
+
+.current-plan-details .plan-detail-item,
+.current-plan-loading .plan-detail-item {
+  display: contents !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  min-height: 0 !important;
+  text-align: left !important;
+}
+
+/* Loaded: header labels */
+.current-plan-details .plan-detail-label {
+  grid-row: 1;
+  padding: 12px 16px;
+  background: #f5f8fc;
+  font-size: 11px;
+  font-weight: 700;
+  color: #24364b;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-align: left;
+  white-space: nowrap;
+  border: none;
+  border-radius: 0;
+  margin: 0;
+  line-height: 1.3;
+}
+
+/* Loaded: data values */
+.current-plan-details .plan-detail-value {
+  grid-row: 2;
+  padding: 14px 16px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  color: #24364b;
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: none;
+  border-radius: 0;
+  margin: 0;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.current-plan-details .plan-detail-value.speed {
+  color: #075a9e;
+  font-weight: 700;
+}
+.current-plan-details .plan-detail-value.price {
+  color: #187044;
+  font-weight: 700;
+}
+
+/* Loading skeleton cells */
+.current-plan-loading .skeleton-label,
+.current-plan-loading .skeleton-value {
+  position: relative;
+  overflow: hidden;
+  border: none;
+  border-radius: 0;
+  margin: 0;
+  width: auto;
+  height: auto;
+}
+.current-plan-loading .skeleton-label {
+  grid-row: 1;
+  padding: 14px 16px;
+  background: #f5f8fc;
+  min-height: 42px;
+}
+.current-plan-loading .skeleton-value {
+  grid-row: 2;
+  padding: 18px 16px;
+  background: #fff;
+  min-height: 50px;
+}
+.current-plan-loading .skeleton-label::after,
+.current-plan-loading .skeleton-value::after {
+  content: '';
+  display: block;
+  height: 11px;
+  width: 65%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%);
+  background-size: 200% 100%;
+  animation: skeletonPulse 1.5s ease-in-out infinite;
+}
+.current-plan-loading .skeleton-value::after {
+  height: 16px;
+  width: 75%;
+}
+.current-plan-loading .skeleton-detail::before { display: none !important; }
+
+/* Tablet */
+@media (max-width: 992px) {
+  .current-plan-details .plan-detail-label,
+  .current-plan-loading .skeleton-label {
+    padding: 11px 12px;
+    font-size: 10px;
+    letter-spacing: 0.3px;
+  }
+  .current-plan-details .plan-detail-value,
+  .current-plan-loading .skeleton-value {
+    padding: 13px 12px;
+    font-size: 12px;
+  }
+}
+
+/* Mobile: horizontal scroll */
+@media (max-width: 640px) {
+  .current-plan-details,
+  .current-plan-loading {
+    overflow-x: auto !important;
+    grid-template-columns: repeat(4, minmax(110px, 1fr)) !important;
+  }
+  .current-plan-details .plan-detail-label,
+  .current-plan-loading .skeleton-label {
+    padding: 10px 12px;
+    font-size: 10px;
+  }
+  .current-plan-details .plan-detail-value,
+  .current-plan-loading .skeleton-value {
+    padding: 12px;
+    font-size: 12px;
+  }
+}
+
+/* ---------- 2) REASON + DATE SIDE-BY-SIDE ---------- */
+.termination-form-card form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.termination-form-card form > .form-group:nth-child(1) {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.termination-form-card #customReasonGroup {
+  grid-column: 1 / -1;
+}
+
+.termination-form-card form > .form-group:nth-child(3) {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.termination-form-card .button-group {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 767px) {
+  .termination-form-card form {
+    grid-template-columns: 1fr;
+  }
+  .termination-form-card form > .form-group:nth-child(1),
+  .termination-form-card form > .form-group:nth-child(3),
+  .termination-form-card #customReasonGroup {
+    grid-column: 1;
+    grid-row: auto;
+  }
+}
+
+/* ============================================================================
+   TERMINATION FORM CARD — Professional style (matches dashboard/superadmin)
+   ============================================================================ */
+.termination-form-card {
+  background: #fff !important;
+  border: 1px solid #d7e1ec !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(18, 45, 73, 0.07) !important;
+}
+
+.termination-form-card .card-header {
+  padding: 15px 18px !important;
+  background: #f5f8fc !important;
+  border-bottom: 1px solid #e1e8f0 !important;
+  border-radius: 8px 8px 0 0 !important;
+}
+
+/* Form grid — 2 columns for Reason + Date */
+.termination-form-card form {
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 16px !important;
+}
+
+.termination-form-card form > .form-group:nth-child(1) {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.termination-form-card #customReasonGroup {
+  grid-column: 1 / -1;
+}
+
+.termination-form-card form > .form-group:nth-child(3) {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+.termination-form-card .button-group {
+  grid-column: 1 / -1;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+  flex-wrap: wrap !important;
+  margin-top: 8px !important;
+  padding-top: 14px !important;
+  border-top: 1px solid #eef2f6 !important;
+}
+
+/* Labels */
+.termination-form-card .form-group label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #24364b !important;
+  letter-spacing: 0.2px !important;
+  text-transform: uppercase !important;
+  margin-bottom: 6px !important;
+}
+
+.termination-form-card .required {
+  color: #c0392b !important;
+  font-weight: 700 !important;
+}
+
+/* Inputs */
+.termination-form-card .form-control {
+  width: 100% !important;
+  padding: 9px 12px !important;
+  border: 1px solid #d6dde6 !important;
+  border-radius: 6px !important;
+  background: #fff !important;
+  font-size: 13px !important;
+  color: #24364b !important;
+  box-shadow: none !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+  font-family: inherit !important;
+  box-sizing: border-box !important;
+}
+
+.termination-form-card .form-control:hover {
+  border-color: #b9cbdc !important;
+  background: #fff !important;
+}
+
+.termination-form-card .form-control:focus {
+  border-color: #075a9e !important;
+  box-shadow: 0 0 0 3px rgba(7, 90, 158, 0.12) !important;
+  background: #fff !important;
+  outline: none !important;
+}
+
+.termination-form-card textarea.form-control {
+  min-height: 92px !important;
+  resize: vertical !important;
+  line-height: 1.5 !important;
+}
+
+.termination-form-card select.form-control {
+  appearance: none !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%236c757d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 12px center !important;
+  background-size: 14px !important;
+  padding-right: 36px !important;
+  cursor: pointer !important;
+}
+
+/* Danger Button */
+.termination-form-card .btn-danger {
+  border: 1px solid #c0392b !important;
+  background: #c0392b !important;
+  color: #fff !important;
+  padding: 10px 18px !important;
+  border-radius: 6px !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  box-shadow: none !important;
+  min-height: 38px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  cursor: pointer !important;
+  transition: background 0.15s ease, border-color 0.15s ease !important;
+  font-family: inherit !important;
+}
+
+.termination-form-card .btn-danger:hover {
+  background: #a52f24 !important;
+  border-color: #a52f24 !important;
+  transform: none !important;
+  box-shadow: none !important;
+  filter: brightness(0.96) !important;
+}
+
+.termination-form-card .btn-danger:disabled {
+  opacity: 0.65 !important;
+  cursor: not-allowed !important;
+  background: #c0392b !important;
+  border-color: #c0392b !important;
+}
+
+/* Secondary Button */
+.termination-form-card .btn-secondary {
+  border: 1px solid #d6dde6 !important;
+  background: #fff !important;
+  color: #465368 !important;
+  padding: 10px 18px !important;
+  border-radius: 6px !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  min-height: 38px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  cursor: pointer !important;
+  transition: background 0.15s ease, border-color 0.15s ease !important;
+  font-family: inherit !important;
+}
+
+.termination-form-card .btn-secondary:hover {
+  background: #f5f8fc !important;
+  border-color: #b9cbdc !important;
+  color: #24364b !important;
+  transform: none !important;
+}
+
+/* Mobile: back to 1 column */
+@media (max-width: 767px) {
+  .termination-form-card form {
+    grid-template-columns: 1fr !important;
+  }
+  .termination-form-card form > .form-group:nth-child(1),
+  .termination-form-card form > .form-group:nth-child(3),
+  .termination-form-card #customReasonGroup {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+  }
+  .termination-form-card .button-group {
+    justify-content: stretch !important;
+  }
+  .termination-form-card .btn-danger,
+  .termination-form-card .btn-secondary {
+    flex: 1 1 auto !important;
+  }
+}
+
+@media (max-width: 575px) {
+  .termination-form-card .form-control {
+    padding: 8px 11px !important;
+    font-size: 12px !important;
+  }
+  .termination-form-card .btn-danger,
+  .termination-form-card .btn-secondary {
+    width: 100% !important;
+    font-size: 12px !important;
+  }
+}
+
+/* ============================================================================
+   TOPBAR ALIGNMENT — i-align sa professional dashboard layout
+   ============================================================================ */
+.top-bar {
+  background: linear-gradient(135deg, #001a33 0%, #0a3b6a 100%) !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  height: 64px !important;
+  padding: 0 24px !important;
+  left: 260px !important;
+}
+
+.sidebar.collapsed ~ .top-bar {
+  left: 70px !important;
+}
+
+/* Main content should start right below the 64px topbar */
+.main-content {
+  margin-top: 64px !important;
+}
+
+/* Notification bell — match professional sizing */
+.notification-btn {
+  width: 38px !important;
+  height: 38px !important;
+  font-size: 15px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+.notification-btn:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  transform: none !important;
+}
+
+.notification-badge {
+  top: -4px !important;
+  right: -4px !important;
+  min-width: 17px !important;
+  height: 17px !important;
+  font-size: 9px !important;
+}
+
+/* Profile dropdown pill — match professional style */
+.profile-dropdown button {
+  padding: 6px 14px 6px 6px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  gap: 8px !important;
+  font-size: 13px !important;
+}
+.profile-dropdown button:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.profile-dropdown .profile-icon {
+  width: 32px !important;
+  height: 32px !important;
+  border: 2px solid rgba(255, 255, 255, 0.2) !important;
+}
+.profile-dropdown button i.fa-chevron-down {
+  font-size: 11px !important;
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Topbar responsive — match sidebar widths */
+@media (max-width: 1200px) {
+  .top-bar { left: 240px !important; padding: 0 20px !important; }
+  .sidebar.collapsed ~ .top-bar { left: 70px !important; }
+}
+@media (max-width: 992px) {
+  .top-bar { left: 220px !important; padding: 0 18px !important; }
+}
+@media (max-width: 768px) {
+  .top-bar {
+    left: 0 !important;
+    right: 0 !important;
+    height: 60px !important;
+    padding: 0 16px !important;
+  }
+  .main-content { margin-top: 60px !important; }
+  .notification-btn {
+    width: 34px !important;
+    height: 34px !important;
+    font-size: 14px !important;
+  }
+  .profile-dropdown button { padding: 5px 10px 5px 5px !important; }
+  .profile-dropdown .profile-icon { width: 30px !important; height: 30px !important; }
+}
+@media (max-width: 576px) {
+  .top-bar { height: 56px !important; padding: 0 12px !important; }
+  .main-content { margin-top: 56px !important; }
+  .notification-btn {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 13px !important;
+  }
+  .profile-dropdown button { padding: 4px !important; gap: 0 !important; }
+  .profile-dropdown button span { display: none !important; }
+  .profile-dropdown .profile-icon { width: 30px !important; height: 30px !important; }
+}
+
+/* ============================================================================
+   DASHBOARD HEADER, TYPOGRAPHY AND CARDS — MATCH TRANSACTIONS PAGE
+   ============================================================================ */
+.main-content {
+  --dashboard-border: #d7e1ec;
+  --dashboard-ink: #24364b;
+  --dashboard-muted: #617286;
+  color: var(--dashboard-ink) !important;
+  font-family: 'Inter', 'Segoe UI', sans-serif !important;
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  gap: 20px !important;
+}
+
+.dashboard-header-card {
+  min-height: 104px !important;
+  padding: 20px 24px !important;
+  border: 1px solid #173c62 !important;
+  border-radius: 8px !important;
+  background: linear-gradient(115deg, #001a33 0%, #063669 58%, #0755a5 100%) !important;
+  box-shadow: 0 4px 12px rgba(15, 42, 70, 0.14) !important;
+  gap: 16px !important;
+}
+
+.dashboard-header-card::before,
+.dashboard-header-card::after {
+  display: none !important;
+}
+
+.dashboard-header-card:hover {
+  transform: none !important;
+  box-shadow: 0 4px 12px rgba(15, 42, 70, 0.14) !important;
+}
+
+.dashboard-header-left h1 {
+  margin: 0 0 4px !important;
+  color: #fff !important;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+  letter-spacing: 0 !important;
+}
+
+.dashboard-header-left p {
+  margin: 0 !important;
+  color: rgba(255, 255, 255, 0.78) !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+}
+
+.main-content .card {
+  border: 1px solid var(--dashboard-border) !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  box-shadow: 0 2px 8px rgba(18, 45, 73, 0.07) !important;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease !important;
+  overflow: hidden !important;
+}
+
+.main-content .card:hover {
+  transform: none !important;
+  border-color: #c2d0dd !important;
+  box-shadow: 0 4px 12px rgba(18, 45, 73, 0.1) !important;
+}
+
+.main-content .card-header {
+  padding: 15px 18px !important;
+  background: #f5f8fc !important;
+  border-bottom: 1px solid #e1e8f0 !important;
+  border-radius: 8px 8px 0 0 !important;
+  gap: 12px !important;
+}
+
+.main-content .header-title-section h2 {
+  margin: 0 !important;
+  color: var(--dashboard-ink) !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  border-left: 3px solid #075a9e !important;
+  padding-left: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.main-content .header-title-section h2 i {
+  color: #075a9e !important;
+  font-size: 15px !important;
+  margin-right: 0 !important;
+}
+
+.main-content .header-subtitle {
+  margin: 6px 0 0 15px !important;
+  color: var(--dashboard-muted) !important;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+}
+
+.main-content .card-body {
+  padding: 20px 22px !important;
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    gap: 16px !important;
+  }
+
+  .dashboard-header-card {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: 18px !important;
+    text-align: left !important;
+  }
+
+  .dashboard-header-left h1 {
+    font-size: 18px !important;
+  }
+
+  .main-content .card-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: 14px !important;
+    text-align: left !important;
+  }
+
+  .main-content .header-title-section h2 {
+    font-size: 14px !important;
+  }
+
+  .main-content .header-subtitle {
+    margin-left: 15px !important;
+    font-size: 11px !important;
+  }
+
+  .main-content .card-body {
+    padding: 16px !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .main-content {
+    gap: 16px !important;
+  }
+}

@@ -130,24 +130,29 @@
                 </a>
             </li>
         </ul>
-
-        <div class="sidebar-description">
-            <div class="desc-item">
-                <i class="fas fa-receipt"></i>
-                <div>
-                    <strong>Transaction History</strong>
-                    <span>Track your requests and their status</span>
-                </div>
-            </div>
-            <div class="desc-item">
-                <i class="fas fa-bullhorn"></i>
-                <div>
-                    <strong>Announcements</strong>
-                    <span>Latest news and promos</span>
-                </div>
-            </div>
-        </div>
-
+<div class="sidebar-description">
+    <div class="desc-item">
+      <i class="fas fa-wifi"></i>
+      <div>
+        <strong>Connection Details</strong>
+        <span>View your internet status & speed</span>
+      </div>
+    </div>
+    <div class="desc-item">
+      <i class="fas fa-bullhorn"></i>
+      <div>
+        <strong>Announcements</strong>
+        <span>Latest news and promos</span>
+      </div>
+    </div>
+    <div class="desc-item">
+      <i class="fas fa-file-alt"></i>
+      <div>
+        <strong>Application Form</strong>
+        <span>View & download your application</span>
+      </div>
+    </div>
+  </div>
         <div class="sidebar-footer">
             <p>© 2026 Cablevision Systems Corporation</p>
             <p>All rights reserved.</p>
@@ -217,14 +222,25 @@
 
 <!-- ================= TRANSACTION DETAILS MODAL ================= -->
 <div id="transactionDetailsModal" class="modal">
-    <div class="modal-content" style="max-width: 480px; text-align:left;">
-        <span class="close-btn" id="closeTransactionDetailsModal">&times;</span>
-        <h2 style="text-align:center;"><i class="fas fa-file-invoice"></i> Transaction Details</h2>
-        <div id="transactionDetailsBody" class="transaction-details-body">
-            <!-- Filled dynamically -->
+    <div class="modal-content transaction-details-content">
+        <div class="transaction-details-header">
+            <div class="transaction-details-heading">
+                <h2>Transaction Details</h2>
+                <p>Review the request information and latest status</p>
+            </div>
+            <button type="button" class="close-btn transaction-details-close" id="closeTransactionDetailsModal" aria-label="Close transaction details">
+                <i class="fas fa-times"></i>
+            </button>
         </div>
-        <div class="modal-actions">
-            <button id="closeTransactionDetailsBtn" class="btn cancel" style="min-width: 160px;"> <i class="fas fa-times"></i> Close</button>
+
+        <div class="transaction-details-modal-body">
+            <div id="transactionDetailsBody" class="transaction-details-body">
+                <!-- Filled dynamically -->
+            </div>
+        </div>
+
+        <div class="transaction-details-actions">
+            <button type="button" id="closeTransactionDetailsBtn" class="transaction-details-done">Close</button>
         </div>
     </div>
 </div>

@@ -629,11 +629,6 @@
     padding: 0;
   }
 
-  /* Current plan skeleton — 1 column sa mobile */
-  .current-plan-loading {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
 
   .skeleton-detail {
     min-height: 80px;
@@ -648,12 +643,6 @@
   }
 }
 
-/* --- Tablet current plan: 2 columns --- */
-@media (max-width: 992px) {
-  .current-plan-loading {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
 
 /* ================= TRANSACTION DETAILS MODAL ================= */
 .transaction-details-body {
@@ -729,4 +718,865 @@
   #transactionsTable { min-width: 620px; }
   #transactionsTable th, #transactionsTable td { padding: 6px 8px; font-size: 0.68rem; }
   .type-badge, .status-badge { min-width: 70px; font-size: 0.62rem; padding: 4px 8px; }
+}
+
+/* ============================================================================
+   PROFESSIONAL DASHBOARD LAYOUT (TRANSACTIONS PAGE)
+   ============================================================================ */
+.main-content {
+  --dashboard-navy: #123456;
+  --dashboard-blue: #075a9e;
+  --dashboard-border: #d7e1ec;
+  --dashboard-ink: #24364b;
+  --dashboard-muted: #617286;
+  color: var(--dashboard-ink);
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  gap: 20px;
+}
+
+/* ---------- TOPBAR (i-align sa professional layout) ---------- */
+.top-bar {
+  background: linear-gradient(135deg, #001a33 0%, #0a3b6a 100%) !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  height: 64px !important;
+  padding: 0 24px !important;
+  left: 260px !important;
+}
+.sidebar.collapsed ~ .top-bar { left: 70px !important; }
+.main-content { margin-top: 64px !important; }
+
+.notification-btn {
+  width: 38px !important;
+  height: 38px !important;
+  font-size: 15px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+.notification-btn:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  transform: none !important;
+}
+.profile-dropdown button {
+  padding: 6px 14px 6px 6px !important;
+  background: rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  gap: 8px !important;
+  font-size: 13px !important;
+}
+.profile-dropdown button:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+.profile-dropdown .profile-icon {
+  width: 32px !important;
+  height: 32px !important;
+  border: 2px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* ---------- DASHBOARD HEADER CARD ---------- */
+.dashboard-header-card {
+  min-height: 104px !important;
+  padding: 20px 24px !important;
+  border: 1px solid #173c62 !important;
+  border-radius: 8px !important;
+  background: linear-gradient(115deg, #001a33 0%, #063669 58%, #0755a5 100%) !important;
+  box-shadow: 0 4px 12px rgba(15, 42, 70, 0.14) !important;
+  gap: 16px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+.dashboard-header-card::before,
+.dashboard-header-card::after { display: none !important; }
+.dashboard-header-card:hover {
+  transform: none !important;
+  box-shadow: 0 4px 12px rgba(15, 42, 70, 0.14) !important;
+}
+.dashboard-header-left h1 {
+  margin: 0 0 4px !important;
+  color: #fff !important;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  line-height: 1.25 !important;
+  letter-spacing: 0 !important;
+}
+.dashboard-header-left p {
+  color: rgba(255, 255, 255, 0.78) !important;
+  font-size: 13px !important;
+  font-weight: 400 !important;
+}
+
+/* ---------- CARD COMMON ---------- */
+.card {
+  border: 1px solid var(--dashboard-border) !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  box-shadow: 0 2px 8px rgba(18, 45, 73, 0.07) !important;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease !important;
+  overflow: hidden !important;
+}
+.card:hover {
+  transform: none !important;
+  border-color: #c2d0dd !important;
+  box-shadow: 0 4px 12px rgba(18, 45, 73, 0.1) !important;
+}
+.card-header {
+  padding: 15px 18px !important;
+  background: #f5f8fc !important;
+  border-bottom: 1px solid #e1e8f0 !important;
+  gap: 12px !important;
+  border-radius: 8px 8px 0 0 !important;
+}
+.header-title-section { flex: 1; }
+.header-title-section h2 {
+  margin: 0 !important;
+  color: var(--dashboard-ink) !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  border-left: 3px solid var(--dashboard-blue) !important;
+  padding-left: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+.header-title-section h2 i {
+  color: var(--dashboard-blue) !important;
+  font-size: 15px !important;
+  margin-right: 0 !important;
+}
+.header-subtitle {
+  margin: 6px 0 0 15px !important;
+  font-size: 12px !important;
+  color: var(--dashboard-muted) !important;
+  font-weight: 400 !important;
+}
+.card-body { padding: 20px 22px !important; }
+
+/* ============================================================================
+   CURRENT PLAN → DASHBOARD-STYLE TABLE (CSS-ONLY)
+   ============================================================================ */
+.current-plan-details,
+.current-plan-loading {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+  gap: 1px !important;
+  background: #e1e8f0 !important;
+  border: 1px solid var(--dashboard-border) !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+}
+.current-plan-details[style*="display: none"],
+.current-plan-loading[style*="display: none"] {
+  display: none !important;
+}
+.current-plan-details .plan-detail-item,
+.current-plan-loading .plan-detail-item {
+  display: contents !important;
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  min-height: 0 !important;
+  text-align: left !important;
+}
+.current-plan-details .plan-detail-label {
+  grid-row: 1;
+  padding: 12px 16px;
+  background: #f5f8fc;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--dashboard-ink);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  text-align: left;
+  white-space: nowrap;
+  border: none;
+  border-radius: 0;
+  margin: 0;
+  line-height: 1.3;
+}
+.current-plan-details .plan-detail-value {
+  grid-row: 2;
+  padding: 14px 16px;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--dashboard-ink);
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  border: none;
+  border-radius: 0;
+  margin: 0;
+  line-height: 1.4;
+}
+.current-plan-details .plan-detail-value.speed {
+  color: var(--dashboard-blue) !important;
+  font-weight: 700 !important;
+}
+.current-plan-details .plan-detail-value.price {
+  color: #187044 !important;
+  font-weight: 700 !important;
+}
+
+.current-plan-loading .skeleton-label,
+.current-plan-loading .skeleton-value {
+  position: relative;
+  overflow: hidden;
+  border: none;
+  border-radius: 0;
+  margin: 0;
+  width: auto;
+  height: auto;
+}
+.current-plan-loading .skeleton-label {
+  grid-row: 1;
+  padding: 14px 16px;
+  background: #f5f8fc;
+  min-height: 42px;
+}
+.current-plan-loading .skeleton-value {
+  grid-row: 2;
+  padding: 18px 16px;
+  background: #fff;
+  min-height: 50px;
+}
+.current-plan-loading .skeleton-label::after,
+.current-plan-loading .skeleton-value::after {
+  content: '';
+  display: block;
+  height: 11px;
+  width: 65%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%);
+  background-size: 200% 100%;
+  animation: skeletonPulse 1.5s ease-in-out infinite;
+}
+.current-plan-loading .skeleton-value::after {
+  height: 16px;
+  width: 75%;
+}
+.current-plan-loading .skeleton-detail::before { display: none !important; }
+
+@media (max-width: 992px) {
+  .current-plan-details .plan-detail-label,
+  .current-plan-loading .skeleton-label {
+    padding: 11px 12px; font-size: 10px;
+  }
+  .current-plan-details .plan-detail-value,
+  .current-plan-loading .skeleton-value {
+    padding: 13px 12px; font-size: 12px;
+  }
+}
+@media (max-width: 640px) {
+  .current-plan-details,
+  .current-plan-loading {
+    overflow-x: auto !important;
+    grid-template-columns: repeat(4, minmax(110px, 1fr)) !important;
+  }
+}
+
+/* ============================================================================
+   SEARCH INPUT → professional style
+   ============================================================================ */
+.search-section { max-width: 380px; margin-bottom: 16px; }
+
+.search-icon-wrapper {
+  left: 12px;
+  color: var(--dashboard-muted);
+}
+.search-icon { font-size: 14px; }
+
+#searchInput {
+  padding: 9px 36px 9px 36px !important;
+  font-size: 13px !important;
+  border: 1px solid #d6dde6 !important;
+  border-radius: 6px !important;
+  background: #fff !important;
+  color: var(--dashboard-ink) !important;
+  font-weight: 500 !important;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+#searchInput:focus {
+  outline: none !important;
+  border-color: var(--dashboard-blue) !important;
+  box-shadow: 0 0 0 3px rgba(7, 90, 158, 0.12) !important;
+}
+#searchInput::placeholder {
+  color: #94a3b8 !important;
+  font-weight: 400 !important;
+}
+.search-clear-btn {
+  right: 10px;
+  color: #94a3b8;
+  font-size: 13px;
+}
+.search-clear-btn:hover {
+  color: var(--dashboard-blue);
+  background: #f1f3f6;
+}
+
+/* ============================================================================
+   FILTER SECTION → professional
+   ============================================================================ */
+.filter-section {
+  gap: 12px !important;
+  margin-bottom: 16px !important;
+  padding: 12px 0 !important;
+  border-top: 1px solid #eef2f6 !important;
+  border-bottom: 1px solid #eef2f6 !important;
+}
+.filter-group { gap: 10px !important; }
+.filter-group label {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: var(--dashboard-ink) !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.2px !important;
+  gap: 5px !important;
+}
+.filter-group label i {
+  color: var(--dashboard-blue) !important;
+  font-size: 12px !important;
+}
+.filter-select {
+  padding: 7px 32px 7px 12px !important;
+  border: 1px solid #d6dde6 !important;
+  border-radius: 6px !important;
+  font-size: 13px !important;
+  background: #fff !important;
+  color: var(--dashboard-ink) !important;
+  font-weight: 500 !important;
+  min-height: 36px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+.filter-select:focus {
+  outline: none !important;
+  border-color: var(--dashboard-blue) !important;
+  box-shadow: 0 0 0 3px rgba(7, 90, 158, 0.12) !important;
+}
+.stats-badge {
+  background: #f5f8fc !important;
+  border: 1px solid var(--dashboard-border) !important;
+  padding: 6px 14px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: var(--dashboard-muted) !important;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.stats-badge span {
+  color: var(--dashboard-blue) !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  margin-right: 4px !important;
+}
+
+/* ============================================================================
+   TRANSACTIONS TABLE → professional
+   ============================================================================ */
+.table-wrapper {
+  border: 1px solid var(--dashboard-border) !important;
+  background: #fff !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(18, 45, 73, 0.07) !important;
+  margin-top: 12px !important;
+  overflow-x: auto;
+}
+
+#transactionsTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px !important;
+  min-width: 900px;
+}
+
+#transactionsTable th {
+  background: #f5f8fc !important;
+  color: var(--dashboard-ink) !important;
+  font-weight: 700 !important;
+  padding: 12px 16px !important;
+  text-align: center !important;
+  font-size: 11px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.4px !important;
+  white-space: nowrap;
+  border-bottom: 1px solid #e1e8f0 !important;
+}
+#transactionsTable th:first-child { border-top-left-radius: 8px !important; }
+#transactionsTable th:last-child { border-top-right-radius: 8px !important; }
+
+#transactionsTable td {
+  padding: 14px 16px !important;
+  border-top: 1px solid #eef2f6 !important;
+  border-bottom: none !important;
+  text-align: center !important;
+  vertical-align: middle !important;
+  color: var(--dashboard-ink) !important;
+  font-weight: 500 !important;
+  font-size: 13px !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#transactionsTable tbody tr { transition: background 0.15s ease !important; }
+#transactionsTable tbody tr:hover {
+  background: #f8fafc !important;
+}
+#transactionsTable tbody tr:last-child td { border-bottom: none !important; }
+
+.request-id-cell {
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', monospace !important;
+  font-weight: 700 !important;
+  color: var(--dashboard-blue) !important;
+  font-size: 12px !important;
+  letter-spacing: 0.2px;
+}
+
+/* ---------- TYPE BADGES → professional flat ---------- */
+.type-badge {
+  padding: 4px 10px !important;
+  border-radius: 5px !important;
+  font-weight: 700 !important;
+  font-size: 10px !important;
+  text-align: center !important;
+  display: inline-block !important;
+  min-width: 100px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.type-change-plan {
+  background: #edf4fa !important;
+  color: #075a9e !important;
+  border: 1px solid #cfe0ef !important;
+  background-image: none !important;
+}
+.type-termination {
+  background: #fdf0f0 !important;
+  color: #b42318 !important;
+  border: 1px solid #f3d0d0 !important;
+  background-image: none !important;
+}
+.type-reconnection {
+  background: #edf7f0 !important;
+  color: #187044 !important;
+  border: 1px solid #d6eadc !important;
+  background-image: none !important;
+}
+
+/* ---------- STATUS BADGES → professional flat ---------- */
+.status-badge {
+  padding: 4px 10px !important;
+  border-radius: 5px !important;
+  font-weight: 700 !important;
+  font-size: 10px !important;
+  text-align: center !important;
+  display: inline-block !important;
+  min-width: 85px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+.status-pending {
+  background: #fff6e0 !important;
+  color: #a86a0a !important;
+  border: 1px solid #f0dfb8 !important;
+  background-image: none !important;
+}
+.status-approved {
+  background: #edf7f0 !important;
+  color: #187044 !important;
+  border: 1px solid #d6eadc !important;
+  background-image: none !important;
+}
+.status-rejected {
+  background: #fdf0f0 !important;
+  color: #b42318 !important;
+  border: 1px solid #f3d0d0 !important;
+  background-image: none !important;
+}
+
+/* ---------- ACTION BUTTON → professional flat ---------- */
+.btn-view-transaction {
+  background: var(--dashboard-blue) !important;
+  color: #fff !important;
+  border: 1px solid var(--dashboard-blue) !important;
+  border-radius: 5px !important;
+  padding: 7px 12px !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+  transition: background 0.15s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.btn-view-transaction:hover {
+  background: #064a83 !important;
+  border-color: #064a83 !important;
+  transform: none !important;
+  box-shadow: none !important;
+  filter: brightness(0.96) !important;
+}
+
+/* ============================================================================
+   PAGINATION → professional flat
+   ============================================================================ */
+.pagination-container {
+  gap: 6px !important;
+  margin-top: 20px !important;
+  padding: 12px 0 !important;
+}
+.pagination-btn {
+  padding: 7px 14px !important;
+  background: #fff !important;
+  border: 1px solid #d6dde6 !important;
+  border-radius: 5px !important;
+  cursor: pointer;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  transition: all 0.15s ease !important;
+  color: #465368 !important;
+}
+.pagination-btn:hover:not(:disabled) {
+  background: #f5f8fc !important;
+  color: var(--dashboard-blue) !important;
+  border-color: #b9cbdc !important;
+  transform: none !important;
+}
+.pagination-btn.active {
+  background: var(--dashboard-blue) !important;
+  color: #fff !important;
+  border-color: var(--dashboard-blue) !important;
+}
+.pagination-btn:disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+.pagination-ellipsis {
+  padding: 7px 4px !important;
+  color: var(--dashboard-muted) !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+}
+.pagination-info {
+  margin-left: 12px !important;
+  font-size: 12px !important;
+  color: var(--dashboard-muted) !important;
+  font-weight: 500 !important;
+}
+
+/* ============================================================================
+   NO DATA / LOADING STATES
+   ============================================================================ */
+.no-data-message { padding: 48px 20px !important; }
+.no-data-message i {
+  font-size: 52px !important;
+  color: #cbd5e1 !important;
+  margin-bottom: 14px !important;
+}
+.no-data-message p {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: var(--dashboard-ink) !important;
+  margin-bottom: 6px !important;
+}
+.no-data-message span {
+  font-size: 12px !important;
+  color: var(--dashboard-muted) !important;
+}
+
+/* ============================================================================
+   TRANSACTION DETAILS MODAL → professional
+   ============================================================================ */
+#transactionDetailsModal {
+  background: rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(3px);
+}
+
+#transactionDetailsModal .transaction-details-content {
+  width: min(560px, calc(100vw - 32px)) !important;
+  max-width: 560px !important;
+  max-height: 90vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden !important;
+  border: 1px solid #e1e5eb !important;
+  border-radius: 8px !important;
+  background: #fff;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.2) !important;
+  text-align: left !important;
+}
+
+#transactionDetailsModal .transaction-details-header {
+  flex: 0 0 auto;
+  min-height: 60px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 18px;
+  border-bottom: 1px solid #edf0f3;
+  background: #fff;
+}
+
+#transactionDetailsModal .transaction-details-icon {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border: 1px solid #d3e3f1;
+  border-radius: 6px;
+  background: #eef5fb;
+  color: #075a9e;
+  font-size: 14px;
+}
+
+#transactionDetailsModal .transaction-details-heading {
+  min-width: 0;
+  flex: 1;
+}
+
+#transactionDetailsModal .transaction-details-heading h2 {
+  margin: 0 !important;
+  color: #202b3c !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  line-height: 1.3;
+}
+
+#transactionDetailsModal .transaction-details-heading p {
+  margin: 3px 0 0 !important;
+  color: #778397 !important;
+  font-size: 11px !important;
+  line-height: 1.35;
+}
+
+#transactionDetailsModal .transaction-details-close {
+  position: static !important;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 5px;
+  background: transparent;
+  color: #778397;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+#transactionDetailsModal .transaction-details-close:hover {
+  background: #f1f3f6;
+  color: #202b3c;
+}
+
+#transactionDetailsModal .transaction-details-modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 16px 18px;
+  overflow-y: auto;
+}
+
+.transaction-details-body {
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: #fff !important;
+}
+.transaction-details-body .info-row {
+  grid-template-columns: minmax(110px, 0.75fr) minmax(0, 1.5fr) !important;
+  gap: 16px !important;
+  padding: 11px 0 !important;
+  border-bottom: 1px solid #edf0f3 !important;
+}
+.transaction-details-body .info-row:last-child {
+  border-bottom: none !important;
+  padding-bottom: 0 !important;
+}
+.transaction-details-body .info-label {
+  font-weight: 700 !important;
+  color: #778397 !important;
+  font-size: 10px !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.transaction-details-body .info-value {
+  color: #263246 !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  text-align: right !important;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+#transactionDetailsModal .transaction-details-actions {
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 18px;
+  border-top: 1px solid #edf0f3;
+  background: #fff;
+}
+
+#transactionDetailsModal .transaction-details-done {
+  min-width: 96px;
+  min-height: 36px;
+  padding: 8px 14px;
+  border: 1px solid #d6dde6;
+  border-radius: 5px;
+  background: #fff;
+  color: #465368;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1.2;
+  cursor: pointer;
+}
+
+#transactionDetailsModal .transaction-details-done:hover {
+  background: #f5f8fc;
+}
+
+#transactionDetailsModal :is(.transaction-details-close, .transaction-details-done):focus-visible {
+  outline: 3px solid rgba(40, 118, 185, 0.25);
+  outline-offset: 2px;
+}
+
+@media (max-width: 575px) {
+  #transactionDetailsModal {
+    padding: 14px;
+  }
+
+  #transactionDetailsModal .transaction-details-content {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  #transactionDetailsModal .transaction-details-header {
+    padding: 12px 14px;
+  }
+
+  #transactionDetailsModal .transaction-details-modal-body {
+    padding: 14px;
+  }
+
+  #transactionDetailsModal .transaction-details-body .info-row {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 4px !important;
+    text-align: left;
+  }
+
+  #transactionDetailsModal .transaction-details-body .info-value {
+    text-align: left !important;
+  }
+
+  #transactionDetailsModal .transaction-details-actions {
+    padding: 10px 14px;
+  }
+
+  #transactionDetailsModal .transaction-details-done {
+    width: 100%;
+  }
+}
+
+/* ============================================================================
+   RESPONSIVE — topbar/mobile alignment
+   ============================================================================ */
+@media (max-width: 1200px) {
+  .top-bar { left: 240px !important; padding: 0 20px !important; }
+}
+@media (max-width: 992px) {
+  .top-bar { left: 220px !important; padding: 0 18px !important; }
+  #transactionsTable { min-width: 760px !important; }
+  #transactionsTable th,
+  #transactionsTable td { padding: 11px 13px !important; }
+}
+@media (max-width: 768px) {
+  .top-bar {
+    left: 0 !important;
+    right: 0 !important;
+    height: 60px !important;
+    padding: 0 16px !important;
+  }
+  .main-content {
+    margin-top: 60px !important;
+    padding: 20px 16px !important;
+    gap: 16px !important;
+  }
+  .notification-btn { width: 34px !important; height: 34px !important; font-size: 14px !important; }
+  .profile-dropdown button { padding: 5px 10px 5px 5px !important; }
+  .profile-dropdown .profile-icon { width: 30px !important; height: 30px !important; }
+
+  .dashboard-header-card {
+    flex-direction: column !important;
+    padding: 18px !important;
+    text-align: left !important;
+    align-items: flex-start !important;
+  }
+  .dashboard-header-left h1 { font-size: 18px !important; }
+
+  .card-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    text-align: left !important;
+    padding: 14px !important;
+  }
+  .header-title-section h2 { font-size: 14px !important; }
+  .header-subtitle { margin-left: 15px !important; font-size: 11px !important; }
+  .card-body { padding: 16px !important; }
+
+  .search-section { max-width: 100%; }
+  .filter-section {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+  .filter-group { justify-content: space-between; }
+  .filter-select { width: 100%; }
+  .stats-badge { text-align: center; }
+
+  #transactionsTable { min-width: 680px !important; }
+  #transactionsTable th,
+  #transactionsTable td { padding: 10px 12px !important; font-size: 12px !important; }
+
+  .transaction-details-body .info-row {
+    grid-template-columns: 1fr !important;
+    gap: 4px !important;
+    text-align: left !important;
+  }
+  .transaction-details-body .info-value { text-align: center !important; }
+}
+@media (max-width: 576px) {
+  .top-bar { height: 56px !important; padding: 0 12px !important; }
+  .main-content { margin-top: 56px !important; padding: 16px 12px !important; }
+  .notification-btn { width: 32px !important; height: 32px !important; font-size: 13px !important; }
+  .profile-dropdown button { padding: 4px !important; gap: 0 !important; }
+  .profile-dropdown button span { display: none !important; }
+
+  #transactionsTable { min-width: 620px !important; }
+  #transactionsTable th,
+  #transactionsTable td { padding: 8px 10px !important; font-size: 11px !important; }
+  .type-badge, .status-badge {
+    min-width: 70px !important;
+    font-size: 9px !important;
+    padding: 3px 7px !important;
+  }
 }

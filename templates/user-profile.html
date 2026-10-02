@@ -385,34 +385,23 @@
 <div id="applicationModal" class="modal fade" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg modal-dialog-scrollable">
     <div class="modal-content">
-      
-      <!-- CLOSE BUTTON -->
-      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
 
-      <!-- MODAL HEADER - CENTERED -->
+      <!-- MODAL HEADER -->
       <header class="app-header">
         <div class="header-top">
           <div class="header-title-section">
-            <h1 class="h4">Application Form</h1>
-            <p>Here is your submitted application details</p>
+            <h1>Application Form</h1>
+            <p>Submitted application details</p>
           </div>
-         <div class="header-actions" style="display: flex; gap: 10px; justify-content: center; align-items: center;">
-          <!-- Download Application PDF - existing -->
-           <a href="{{ url_for('download_pdf', application_number=application_number) }}" 
-               class="btn btn-success" 
-               target="_blank">
-                <i class="fas fa-download"></i> 
+          <div class="header-actions">
+            <a href="{{ url_for('download_pdf', application_number=application_number) }}" class="btn btn-success" target="_blank">
               Download PDF
             </a>
-          
-          <!-- Download Contract PDF - bago, katulad ng style -->
-          <!-- I-UPDATE ANG DOWNLOAD CONTRACT BUTTON -->
-          <a href="{{ url_for('user_download_contract', contract_number=contract_number) }}?tab_id={{ tab_id }}" 
-            class="btn btn-primary" 
-            target="_blank">
-              <i class="fas fa-download"></i> 
+            <a href="{{ url_for('user_download_contract', contract_number=contract_number) }}?tab_id={{ tab_id }}" class="btn btn-primary" target="_blank">
               Download Contract
-          </a>
+            </a>
+          </div>
+          <button type="button" class="app-modal-close" data-bs-dismiss="modal" aria-label="Close application form">Close</button>
         </div>
         <div class="app-number">
           <span class="label">Application Number:</span> 

@@ -294,7 +294,7 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   padding: 12px 16px;
-  text-align: left;
+  text-align: center;
   border-bottom: 2px solid #e2e8f0;
 }
 
@@ -876,8 +876,1128 @@
   }
 
   .devices-table td:last-child {
-    text-align: left;
+    text-align: center;
   }
 
 
+}
+
+/* ============================================================================
+   LOGIN HISTORY PAGE — PROFESSIONAL PATCH
+   Matches dashboard / termination / profile / transactions style
+   ============================================================================ */
+
+.main-content {
+  --dashboard-border: #d7e1ec;
+  --dashboard-blue: #075a9e;
+  --dashboard-ink: #24364b;
+  --dashboard-muted: #617286;
+  --dashboard-soft: #f5f8fc;
+  --dashboard-danger: #c0392b;
+  color: var(--dashboard-ink);
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  gap: 20px;
+}
+
+/* ============================================================
+   1) PAGE HEADER CARD — navy gradient
+   ============================================================ */
+.history-page-header.dashboard-header-card {
+  min-height: 104px !important;
+  padding: 20px 24px !important;
+  border: 1px solid #173c62 !important;
+  border-radius: 8px !important;
+  background: linear-gradient(115deg, #001a33 0%, #063669 58%, #0755a5 100%) !important;
+  box-shadow: 0 4px 12px rgba(15, 42, 70, 0.14) !important;
+  gap: 16px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  margin-bottom: 18px !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+.history-page-header.dashboard-header-card::before,
+.history-page-header.dashboard-header-card::after {
+  display: none !important;
+}
+
+.history-page-header .dashboard-header-left h1 {
+  color: #fff !important;
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0 !important;
+  margin: 0 0 4px !important;
+  line-height: 1.25 !important;
+  gap: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+.history-page-header .dashboard-header-left h1 i {
+  color: #60a5fa !important;
+  font-size: 20px !important;
+}
+.history-page-header .dashboard-header-left p {
+  color: rgba(255, 255, 255, 0.78) !important;
+  font-size: 13px !important;
+  margin: 0 !important;
+  font-weight: 400 !important;
+}
+
+/* Logout All Devices button — flat danger */
+.btn-logout-all {
+  background: var(--dashboard-danger) !important;
+  color: #fff !important;
+  border: 1px solid var(--dashboard-danger) !important;
+  padding: 9px 16px !important;
+  border-radius: 6px !important;
+  font-weight: 600 !important;
+  font-size: 12px !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  transition: background 0.15s ease, border-color 0.15s ease !important;
+  box-shadow: none !important;
+  letter-spacing: 0 !important;
+  min-height: 36px !important;
+}
+.btn-logout-all:hover {
+  background: #a52f24 !important;
+  border-color: #a52f24 !important;
+  transform: none !important;
+  box-shadow: none !important;
+  filter: brightness(0.96) !important;
+}
+
+/* ============================================================
+   2) SECTIONS — professional cards
+   ============================================================ */
+.history-section {
+  background: #fff !important;
+  border: 1px solid var(--dashboard-border) !important;
+  border-radius: 8px !important;
+  padding: 22px !important;
+  margin-bottom: 18px !important;
+  box-shadow: 0 2px 8px rgba(18, 45, 73, 0.07) !important;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease !important;
+}
+.history-section:hover {
+  transform: none !important;
+  box-shadow: 0 4px 12px rgba(18, 45, 73, 0.1) !important;
+  border-color: #c2d0dd !important;
+}
+
+.section-title {
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  color: var(--dashboard-ink) !important;
+  margin-bottom: 16px !important;
+  padding-bottom: 12px !important;
+  border-bottom: 1px solid #e1e8f0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  border-left: 3px solid var(--dashboard-blue) !important;
+  padding-left: 12px !important;
+  letter-spacing: 0 !important;
+}
+.section-title i {
+  color: var(--dashboard-blue) !important;
+  font-size: 15px !important;
+}
+
+/* ============================================================
+   3) CURRENT DEVICE CARD — professional
+   ============================================================ */
+.current-device-card {
+  background: var(--dashboard-soft) !important;
+  border: 1px solid var(--dashboard-border) !important;
+  border-radius: 8px !important;
+  padding: 18px !important;
+  position: relative !important;
+  overflow: hidden !important;
+  transition: border-color 0.18s ease !important;
+}
+.current-device-card::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 3px !important;
+  height: 100% !important;
+  background: #187044 !important;
+}
+.current-device-card:hover {
+  box-shadow: 0 2px 8px rgba(18, 45, 73, 0.08) !important;
+}
+
+.device-card-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 14px !important;
+  flex-wrap: wrap !important;
+  gap: 12px !important;
+}
+
+.device-main-info {
+  display: flex !important;
+  align-items: center !important;
+  gap: 14px !important;
+}
+
+.device-icon-box {
+  width: 44px !important;
+  height: 44px !important;
+  border-radius: 8px !important;
+  background: #edf4fa !important;
+  color: var(--dashboard-blue) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 18px !important;
+  box-shadow: none !important;
+  flex-shrink: 0 !important;
+}
+
+.device-name-wrap h3 {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: var(--dashboard-ink) !important;
+  margin-bottom: 2px !important;
+  letter-spacing: 0 !important;
+}
+.device-name-wrap p {
+  font-size: 12px !important;
+  color: var(--dashboard-muted) !important;
+  margin: 0 !important;
+}
+
+.badge-current-device {
+  background: #edf7f0 !important;
+  color: #187044 !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  padding: 5px 12px !important;
+  border-radius: 5px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  border: 1px solid #d6eadc !important;
+  letter-spacing: 0.3px !important;
+  text-transform: uppercase !important;
+}
+.badge-current-device::before {
+  content: '' !important;
+  width: 6px !important;
+  height: 6px !important;
+  border-radius: 50% !important;
+  background: #187044 !important;
+  box-shadow: 0 0 0 2px rgba(24, 112, 68, 0.2) !important;
+}
+
+.device-details-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+  gap: 12px !important;
+  background: #fff !important;
+  padding: 14px 16px !important;
+  border-radius: 6px !important;
+  margin-top: 12px !important;
+  border: 1px solid var(--dashboard-border) !important;
+}
+
+.detail-item {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  min-width: 0 !important;
+}
+.detail-item i {
+  color: var(--dashboard-blue) !important;
+  font-size: 14px !important;
+  width: 18px !important;
+  text-align: center !important;
+  flex-shrink: 0 !important;
+}
+.detail-item-text {
+  min-width: 0 !important;
+  flex: 1 !important;
+}
+.detail-item-text label {
+  display: block !important;
+  font-size: 10px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.4px !important;
+  color: var(--dashboard-muted) !important;
+  font-weight: 700 !important;
+  margin-bottom: 2px !important;
+}
+.detail-item-text span {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: var(--dashboard-ink) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  display: block !important;
+}
+
+/* ============================================================
+   4) BATCH TOOLBAR — professional
+   ============================================================ */
+.batch-toolbar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  background: var(--dashboard-soft) !important;
+  padding: 10px 14px !important;
+  border-radius: 6px !important;
+  margin-bottom: 14px !important;
+  border: 1px solid var(--dashboard-border) !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+}
+
+.batch-left {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+.select-all-checkbox-wrap {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: var(--dashboard-ink) !important;
+  cursor: pointer !important;
+  user-select: none !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.3px !important;
+}
+.select-all-checkbox-wrap input[type="checkbox"] {
+  width: 15px !important;
+  height: 15px !important;
+  accent-color: var(--dashboard-blue) !important;
+  cursor: pointer !important;
+}
+
+.selected-count-badge {
+  background: var(--dashboard-blue) !important;
+  color: #fff !important;
+  font-size: 11px !important;
+  padding: 3px 10px !important;
+  border-radius: 5px !important;
+  font-weight: 700 !important;
+  display: none !important;
+  letter-spacing: 0.3px !important;
+}
+.selected-count-badge.show,
+.selected-count-badge[style*="inline-block"],
+.selected-count-badge[style*="display: inline-block"] {
+  display: inline-block !important;
+}
+
+.btn-logout-selected {
+  background: var(--dashboard-danger) !important;
+  color: #fff !important;
+  border: 1px solid var(--dashboard-danger) !important;
+  padding: 8px 14px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  display: none !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  transition: background 0.15s ease !important;
+  box-shadow: none !important;
+  letter-spacing: 0 !important;
+  min-height: 34px !important;
+}
+.btn-logout-selected.show,
+.btn-logout-selected[style*="inline-flex"] {
+  display: inline-flex !important;
+}
+.btn-logout-selected:hover {
+  background: #a52f24 !important;
+  border-color: #a52f24 !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ============================================================
+   5) DEVICES TABLE — professional
+   ============================================================ */
+.devices-table-container {
+  width: 100% !important;
+  overflow-x: auto !important;
+  border: 1px solid var(--dashboard-border) !important;
+  border-radius: 8px !important;
+  background: #fff !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.devices-table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  font-size: 13px !important;
+  min-width: 820px !important;
+}
+
+.devices-table th {
+  background: var(--dashboard-soft) !important;
+  color: var(--dashboard-ink) !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.4px !important;
+  padding: 12px 16px !important;
+  text-align: center !important;
+  border-bottom: 1px solid #e1e8f0 !important;
+  white-space: nowrap !important;
+}
+
+.devices-table td {
+  padding: 14px 16px !important;
+  border-top: 1px solid #eef2f6 !important;
+  border-bottom: none !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--dashboard-ink) !important;
+  vertical-align: middle !important;
+}
+
+.devices-table td,
+.devices-table td * {
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+.devices-table tbody tr {
+  transition: background 0.15s ease !important;
+}
+.devices-table tbody tr:hover {
+  background: #f8fafc !important;
+}
+
+.device-row-info {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  min-width: 0 !important;
+}
+.device-row-info > div {
+  min-width: 0 !important;
+}
+.device-row-icon {
+  width: 34px !important;
+  height: 34px !important;
+  border-radius: 6px !important;
+  background: #edf4fa !important;
+  color: var(--dashboard-blue) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 14px !important;
+  flex-shrink: 0 !important;
+}
+.device-row-title {
+  font-weight: 700 !important;
+  color: var(--dashboard-ink) !important;
+  font-size: 13px !important;
+  min-width: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+.device-row-subtitle {
+  font-size: 11px !important;
+  color: var(--dashboard-muted) !important;
+  font-weight: 500 !important;
+  text-align: center !important;
+  display: block !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  min-width: 0 !important;
+}
+
+.status-badge {
+  padding: 4px 10px !important;
+  border-radius: 5px !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.3px !important;
+  white-space: nowrap !important;
+}
+.status-badge.active {
+  background: #edf7f0 !important;
+  color: #187044 !important;
+  border: 1px solid #d6eadc !important;
+}
+.status-badge.logged-out {
+  background: #f1f5f9 !important;
+  color: #64748b !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.btn-device-logout {
+  background: #fff !important;
+  color: var(--dashboard-danger) !important;
+  border: 1px solid #f3d0d0 !important;
+  padding: 6px 12px !important;
+  border-radius: 5px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  min-height: 30px !important;
+  white-space: nowrap !important;
+}
+.btn-device-logout:hover {
+  background: var(--dashboard-danger) !important;
+  color: #fff !important;
+  border-color: var(--dashboard-danger) !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.devices-table input[type="checkbox"] {
+  width: 15px !important;
+  height: 15px !important;
+  accent-color: var(--dashboard-blue) !important;
+  cursor: pointer !important;
+}
+
+.empty-devices {
+  text-align: center !important;
+  padding: 40px 20px !important;
+  color: var(--dashboard-muted) !important;
+}
+.empty-devices i {
+  font-size: 40px !important;
+  color: #cbd5e1 !important;
+  margin-bottom: 12px !important;
+  display: block !important;
+}
+.empty-devices h3 {
+  font-size: 14px !important;
+  font-weight: 700 !important;
+  color: var(--dashboard-ink) !important;
+  margin-bottom: 4px !important;
+  letter-spacing: 0 !important;
+}
+.empty-devices p {
+  font-size: 12px !important;
+  color: var(--dashboard-muted) !important;
+  margin: 0 !important;
+}
+
+/* ============================================================
+   6) MODALS — professional (no icons, clean buttons)
+   ============================================================ */
+.logouts-modal.modal,
+.logout-modal.modal,
+.device-logout-modal {
+  background: rgba(15, 23, 42, 0.48) !important;
+  backdrop-filter: blur(3px) !important;
+  -webkit-backdrop-filter: blur(3px) !important;
+}
+
+.logouts-modal-content,
+.logout-modal-content,
+.logout-modal-box {
+  background: #fff !important;
+  border: 1px solid var(--dashboard-border) !important;
+  border-radius: 8px !important;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.2) !important;
+  padding: 24px 22px 20px !important;
+  max-width: 400px !important;
+  text-align: center !important;
+  position: relative !important;
+}
+
+/* Remove icon circles */
+.modal-icon-alert,
+.logouts-icon-wrapper,
+.logout-icon-wrapper {
+  display: none !important;
+}
+
+.logouts-title,
+.logout-modal-box h3,
+.logout-title {
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  color: var(--dashboard-ink) !important;
+  margin: 0 0 8px !important;
+  letter-spacing: 0 !important;
+  line-height: 1.3 !important;
+  text-align: center !important;
+}
+
+.logouts-message,
+.logout-modal-box p,
+.logout-message {
+  font-size: 13px !important;
+  color: var(--dashboard-muted) !important;
+  margin: 0 0 20px !important;
+  line-height: 1.5 !important;
+  text-align: center !important;
+}
+
+.modal-device-preview {
+  background: var(--dashboard-soft) !important;
+  border: 1px solid var(--dashboard-border) !important;
+  border-radius: 6px !important;
+  padding: 10px 14px !important;
+  margin-bottom: 18px !important;
+  font-size: 12px !important;
+  color: var(--dashboard-ink) !important;
+  font-weight: 600 !important;
+  text-align: center !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+}
+.modal-device-preview i {
+  color: var(--dashboard-blue) !important;
+  font-size: 14px !important;
+}
+
+/* Actions row */
+.logouts-actions,
+.logout-modal-actions,
+.logout-actions {
+  display: flex !important;
+  flex-direction: row !important;
+  gap: 10px !important;
+  justify-content: center !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex-wrap: nowrap !important;
+  width: 100% !important;
+}
+
+/* ============================================================
+   BUTTONS — COLORED AT BASE STATE (bulletproof with html body)
+   ============================================================ */
+
+/* ---------- Common button shape ---------- */
+html body .logouts-actions .btn,
+html body .logout-modal-actions button,
+html body .btn-modal-cancel,
+html body .btn-modal-confirm,
+html body .logouts-cancel,
+html body .logouts-confirm,
+html body .logout-cancel,
+html body .logout-confirm,
+html body #cancelLogout,
+html body #confirmLogout,
+html body #btnCancelDeviceLogout,
+html body #btnConfirmDeviceLogout {
+  flex: 1 1 0 !important;
+  min-width: 0 !important;
+  min-height: 38px !important;
+  padding: 9px 16px !important;
+  border-radius: 6px !important;
+  font-family: inherit !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0 !important;
+  text-transform: none !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  box-shadow: none !important;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease !important;
+  outline: none !important;
+  line-height: 1.2 !important;
+  opacity: 1 !important;
+}
+
+/* ---------- CANCEL BUTTONS — white outline neutral ---------- */
+html body .btn-modal-cancel,
+html body .logouts-cancel,
+html body .logout-cancel,
+html body #cancelLogout,
+html body #btnCancelDeviceLogout {
+  background-color: #ffffff !important;
+  background: #ffffff !important;
+  color: #465368 !important;
+  border: 1px solid #d6dde6 !important;
+}
+html body .btn-modal-cancel:hover,
+html body .logouts-cancel:hover,
+html body .logout-cancel:hover,
+html body #cancelLogout:hover,
+html body #btnCancelDeviceLogout:hover {
+  background-color: #f5f8fc !important;
+  background: #f5f8fc !important;
+  color: #24364b !important;
+  border-color: #b9cbdc !important;
+}
+
+/* ---------- CONFIRM (generic user logout) — BLUE flat ---------- */
+html body .logouts-confirm,
+html body .logout-confirm,
+html body #confirmLogout {
+  background-color: #075a9e !important;
+  background: #075a9e !important;
+  color: #ffffff !important;
+  border: 1px solid #075a9e !important;
+}
+html body .logouts-confirm:hover,
+html body .logout-confirm:hover,
+html body #confirmLogout:hover {
+  background-color: #064a83 !important;
+  background: #064a83 !important;
+  border-color: #064a83 !important;
+  color: #ffffff !important;
+}
+
+/* ---------- CONFIRM DEVICE LOGOUT — RED flat (danger) ---------- */
+html body .btn-modal-confirm,
+html body #btnConfirmDeviceLogout {
+  background-color: #c0392b !important;
+  background: #c0392b !important;
+  color: #ffffff !important;
+  border: 1px solid #c0392b !important;
+}
+html body .btn-modal-confirm:hover,
+html body #btnConfirmDeviceLogout:hover {
+  background-color: #a52f24 !important;
+  background: #a52f24 !important;
+  border-color: #a52f24 !important;
+  color: #ffffff !important;
+}
+
+/* ---------- CLOSE (X) BUTTON ---------- */
+.logouts-close-btn,
+.logout-close-btn {
+  position: absolute !important;
+  right: 12px !important;
+  top: 12px !important;
+  width: 28px !important;
+  height: 28px !important;
+  font-size: 18px !important;
+  color: var(--dashboard-muted) !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 5px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+}
+.logouts-close-btn:hover,
+.logout-close-btn:hover {
+  background: #f1f3f6 !important;
+  color: var(--dashboard-ink) !important;
+}
+
+/* ============================================================
+   7) RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 992px) {
+  .history-page-header.dashboard-header-card { padding: 18px 22px !important; }
+  .history-page-header .dashboard-header-left h1 { font-size: 20px !important; }
+  .history-page-header .dashboard-header-left p { font-size: 12px !important; }
+  .devices-table { min-width: 780px !important; }
+  .devices-table th,
+  .devices-table td { padding: 10px 12px !important; }
+}
+
+@media (max-width: 768px) {
+  .main-content { padding: 16px 14px !important; gap: 16px !important; }
+
+  .history-page-header.dashboard-header-card {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: 16px 18px !important;
+    gap: 12px !important;
+    min-height: auto !important;
+  }
+  .history-page-header .dashboard-header-left h1 { font-size: 18px !important; }
+  .history-page-header .dashboard-header-left p { font-size: 11px !important; }
+  .history-page-header .dashboard-header-right {
+    width: 100% !important;
+    justify-content: flex-start !important;
+  }
+
+  .btn-logout-all { padding: 8px 14px !important; font-size: 11px !important; }
+
+  .history-section { padding: 16px !important; border-radius: 8px !important; }
+  .section-title { font-size: 14px !important; }
+
+  .device-card-header { flex-direction: column !important; align-items: stretch !important; }
+  .device-main-info { width: 100% !important; flex-wrap: wrap !important; }
+  .badge-current-device { align-self: flex-start !important; }
+
+  .device-details-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    padding: 12px 14px !important;
+  }
+
+  .batch-toolbar { flex-direction: column !important; align-items: stretch !important; gap: 10px !important; }
+  .btn-logout-selected { width: 100% !important; justify-content: center !important; max-width: 100% !important; }
+
+  .devices-table-container { border-radius: 6px !important; }
+  .devices-table { min-width: 720px !important; }
+  .devices-table th { padding: 10px 12px !important; }
+  .devices-table td { padding: 12px !important; font-size: 12px !important; }
+  .device-row-info { flex-wrap: nowrap !important; min-width: 0 !important; }
+  .btn-device-logout { white-space: nowrap !important; }
+
+  .logouts-modal-content,
+  .logout-modal-content,
+  .logout-modal-box { padding: 20px 18px 18px !important; }
+}
+
+@media (max-width: 576px) {
+  .main-content { padding: 14px 12px !important; gap: 14px !important; }
+
+  .history-page-header.dashboard-header-card { padding: 14px 16px !important; }
+  .history-page-header .dashboard-header-left h1 { font-size: 16px !important; }
+  .history-page-header .dashboard-header-left p { font-size: 10px !important; }
+
+  .btn-logout-all { width: 100% !important; justify-content: center !important; }
+
+  .history-section { padding: 14px !important; }
+  .section-title { font-size: 13px !important; padding-left: 10px !important; }
+
+  .device-icon-box { width: 38px !important; height: 38px !important; font-size: 16px !important; }
+  .device-name-wrap h3 { font-size: 13px !important; }
+  .device-name-wrap p { font-size: 11px !important; }
+
+  .devices-table { min-width: 680px !important; }
+  .devices-table th { font-size: 10px !important; padding: 8px 10px !important; }
+  .devices-table td { padding: 10px !important; font-size: 11px !important; }
+
+  .status-badge { font-size: 9px !important; padding: 3px 8px !important; }
+  .btn-device-logout { font-size: 10px !important; padding: 5px 10px !important; }
+
+  /* Modal buttons — stack vertically, Confirm on top */
+  html body .logouts-actions,
+  html body .logout-modal-actions,
+  html body .logout-actions {
+    flex-direction: column-reverse !important;
+    gap: 8px !important;
+  }
+  html body .logouts-actions .btn,
+  html body .logout-modal-actions button,
+  html body .btn-modal-cancel,
+  html body .btn-modal-confirm,
+  html body .logouts-cancel,
+  html body .logouts-confirm,
+  html body .logout-cancel,
+  html body .logout-confirm,
+  html body #cancelLogout,
+  html body #confirmLogout,
+  html body #btnCancelDeviceLogout,
+  html body #btnConfirmDeviceLogout {
+    width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+
+  .logouts-modal-content,
+  .logout-modal-content,
+  .logout-modal-box { padding: 20px 16px 16px !important; }
+
+  .logouts-title,
+  .logout-modal-box h3,
+  .logout-title { font-size: 15px !important; }
+
+  .logouts-message,
+  .logout-modal-box p,
+  .logout-message { font-size: 12px !important; margin-bottom: 16px !important; }
+}
+
+@media (max-width: 400px) {
+  .history-page-header .dashboard-header-left h1 { font-size: 15px !important; }
+  .btn-logout-all { font-size: 10px !important; padding: 7px 12px !important; }
+  .history-section { padding: 12px !important; }
+  .section-title { font-size: 12px !important; }
+  .devices-table { min-width: 620px !important; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .history-section,
+  .current-device-card,
+  .btn-logout-all,
+  .btn-device-logout,
+  .logouts-modal-content,
+  .logout-modal-content,
+  .logouts-actions .btn,
+  .btn-modal-cancel,
+  .btn-modal-confirm,
+  .logouts-cancel,
+  .logouts-confirm,
+  .logout-cancel,
+  .logout-confirm {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+/* ============================================================================
+   TABLE ALIGNMENT — Center everything (labels, text, buttons)
+   ============================================================================ */
+
+/* ---------- HEADERS — Center ---------- */
+html body .devices-table th {
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+/* ---------- BODY CELLS — Center ---------- */
+html body .devices-table td {
+  text-align: center !important;
+  vertical-align: middle !important;
+}
+
+/* ---------- Device row info — Center flex ---------- */
+html body .devices-table td .device-row-info {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  text-align: left !important;
+  max-width: 100% !important;
+}
+
+/* Nested text inside device-row-info — left aligned within the flex */
+html body .devices-table td .device-row-info > div {
+  text-align: left !important;
+  min-width: 0 !important;
+}
+
+/* Device title & subtitle */
+html body .devices-table td .device-row-title {
+  text-align: left !important;
+  display: block !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+html body .devices-table td .device-row-subtitle {
+  text-align: left !important;
+  display: block !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+  font-size: 11px !important;
+  color: #617286 !important;
+  font-weight: 500 !important;
+}
+
+/* ---------- Status badge — Center ---------- */
+html body .devices-table td .status-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 auto !important;
+}
+
+/* ---------- Device logout button — Center ---------- */
+html body .devices-table td .btn-device-logout,
+html body .devices-table td button.btn-device-logout {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 auto !important;
+}
+
+/* ---------- Checkbox cell — Center ---------- */
+html body .devices-table th:first-child,
+html body .devices-table td:first-child {
+  text-align: center !important;
+  vertical-align: middle !important;
+  width: 50px !important;
+}
+
+html body .devices-table input[type="checkbox"] {
+  display: inline-block !important;
+  vertical-align: middle !important;
+  margin: 0 auto !important;
+}
+
+/* ---------- Action column — Center ---------- */
+html body .devices-table th:last-child,
+html body .devices-table td:last-child {
+  text-align: center !important;
+  vertical-align: middle !important;
+  white-space: nowrap !important;
+}
+
+/* ============================================================
+   BATCH TOOLBAR — Center everything
+   ============================================================ */
+html body .batch-toolbar {
+  justify-content: space-between !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+
+html body .batch-left {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  gap: 12px !important;
+}
+
+html body .select-all-checkbox-wrap {
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+html body .selected-count-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+}
+
+html body .btn-logout-selected {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* ============================================================
+   CURRENT DEVICE — keep left, but labels centered
+   ============================================================ */
+html body .device-details-grid {
+  text-align: center !important;
+}
+
+html body .device-details-grid .detail-item {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: left !important;
+  gap: 10px !important;
+}
+
+html body .device-details-grid .detail-item > i {
+  flex-shrink: 0 !important;
+}
+
+html body .device-details-grid .detail-item-text {
+  text-align: left !important;
+  min-width: 0 !important;
+}
+
+html body .device-details-grid .detail-item-text label {
+  text-align: left !important;
+}
+
+html body .device-details-grid .detail-item-text span {
+  text-align: left !important;
+}
+
+/* ============================================================
+   HEADER — Center if needed (optional — remove if not needed)
+   ============================================================ */
+html body .section-title {
+  text-align: center !important;
+  justify-content: center !important;
+}
+
+/* ============================================================
+   RESPONSIVE — keep centered on mobile too
+   ============================================================ */
+@media (max-width: 768px) {
+  html body .devices-table th,
+  html body .devices-table td {
+    text-align: center !important;
+  }
+
+  html body .devices-table td .device-row-info {
+    display: inline-flex !important;
+    justify-content: center !important;
+  }
+
+  html body .batch-toolbar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+  }
+
+  html body .batch-left {
+    justify-content: center !important;
+  }
+
+  html body .btn-logout-selected {
+    width: 100% !important;
+    justify-content: center !important;
+  }
+}
+
+/* ============================================================================
+   FIX — Subtitle lang ang i-center, title stays left
+   ============================================================================ */
+
+/* Device row info — center ang buong flex container */
+html body .devices-table td .device-row-info {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  max-width: 100% !important;
+}
+
+/* Text wrapper — block, para maka-align */
+html body .devices-table td .device-row-info > div {
+  min-width: 0 !important;
+  display: block !important;
+  text-align: center !important;
+}
+
+/* Title — LEFT aligned */
+html body .devices-table td .device-row-title {
+  text-align: left !important;
+  display: block !important;
+  margin: 0 !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+}
+
+/* Subtitle — CENTER aligned */
+html body .devices-table td .device-row-subtitle {
+  text-align: center !important;
+  display: block !important;
+  margin: 0 !important;
+  width: 100% !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
 }

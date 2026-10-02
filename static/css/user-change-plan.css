@@ -3414,3 +3414,729 @@ body {
     margin: 0 14px 14px;
   }
 }
+
+/* ================= PROFESSIONAL DASHBOARD LAYOUT (CHANGE PLAN PAGE) =================
+   Matches the superadmin professional layout design system
+   ==================================================================================== */
+.main-content {
+  --dashboard-navy: #123456;
+  --dashboard-blue: #075a9e;
+  --dashboard-border: #d7e1ec;
+  --dashboard-ink: #24364b;
+  --dashboard-muted: #617286;
+  color: var(--dashboard-ink);
+  font-family: 'Inter', 'Segoe UI', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  gap: 20px;
+}
+
+/* ================= TOP BAR ================= */
+.top-bar {
+  background: linear-gradient(135deg, #001a33 0%, #0a3b6a 100%);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  height: 64px;
+  padding: 0 24px;
+}
+
+.notification-btn {
+  width: 38px;
+  height: 38px;
+  font-size: 15px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.notification-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: none;
+}
+
+.profile-dropdown button {
+  padding: 6px 14px 6px 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  gap: 8px;
+  font-size: 13px;
+}
+
+.profile-dropdown button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: none;
+  box-shadow: none;
+}
+
+.profile-dropdown .profile-icon {
+  width: 32px;
+  height: 32px;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ================= DASHBOARD HEADER CARD ================= */
+.dashboard-header-card {
+  min-height: 104px;
+  padding: 20px 24px;
+  border: 1px solid #173c62;
+  border-radius: 8px;
+  background: linear-gradient(115deg, #001a33 0%, #063669 58%, #0755a5 100%);
+  box-shadow: 0 4px 12px rgba(15, 42, 70, 0.14);
+  gap: 16px;
+}
+
+.dashboard-header-card::before,
+.dashboard-header-card::after {
+  display: none;
+}
+
+.dashboard-header-card:hover {
+  transform: none;
+  box-shadow: 0 4px 12px rgba(15, 42, 70, 0.14);
+}
+
+.dashboard-header-left h1 {
+  margin: 0 0 4px;
+  color: #fff;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
+.dashboard-header-left p {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 13px;
+  font-weight: 400;
+}
+
+/* ================= CARD COMMON ================= */
+.card {
+  border: 1px solid var(--dashboard-border);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(18, 45, 73, 0.07);
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: none;
+  border-color: #c2d0dd;
+  box-shadow: 0 4px 12px rgba(18, 45, 73, 0.1);
+}
+
+.card-header {
+  padding: 15px 18px;
+  background: #f5f8fc;
+  border-bottom: 1px solid #e1e8f0;
+  gap: 12px;
+}
+
+.header-title-section h2 {
+  margin: 0;
+  color: var(--dashboard-ink);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0;
+  border-left: 3px solid var(--dashboard-blue);
+  padding-left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-title-section h2 i {
+  color: var(--dashboard-blue);
+  font-size: 15px;
+  margin-right: 0;
+}
+
+.header-subtitle {
+  margin: 6px 0 0 15px;
+  font-size: 12px;
+  color: var(--dashboard-muted);
+  font-weight: 400;
+}
+
+.card-body {
+  padding: 20px 22px;
+}
+
+/* ================= CURRENT PLAN DETAILS ================= */
+.current-plan-details {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.plan-detail-item {
+  background: #f5f8fc;
+  border: 1px solid #e1e8f0;
+  padding: 14px 16px;
+  border-radius: 6px;
+  text-align: left;
+}
+
+.plan-detail-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--dashboard-muted);
+  margin-bottom: 6px;
+}
+
+.plan-detail-value {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--dashboard-ink);
+  letter-spacing: 0;
+  line-height: 1.35;
+  word-break: break-word;
+}
+
+.plan-detail-value.speed {
+  color: var(--dashboard-blue);
+}
+
+.plan-detail-value.price {
+  color: #187044;
+}
+
+/* ================= CURRENT PLAN SKELETON ================= */
+.current-plan-loading {
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+
+.skeleton-detail {
+  background: #f5f8fc;
+  border: 1px solid #e1e8f0;
+  border-radius: 6px;
+  padding: 14px 16px;
+  min-height: 74px;
+  text-align: left;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 8px;
+}
+
+.skeleton-label {
+  height: 10px;
+  width: 50%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%);
+  background-size: 200% 100%;
+  animation: skeletonPulse 1.8s ease-in-out infinite;
+}
+
+.skeleton-value {
+  height: 18px;
+  width: 75%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%);
+  background-size: 200% 100%;
+  animation: skeletonPulse 1.8s ease-in-out infinite;
+}
+
+/* ================= PLANS GRID ================= */
+.plans-grid {
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+  margin-bottom: 0;
+}
+
+.plan-card {
+  border: 1px solid var(--dashboard-border);
+  border-radius: 8px;
+  padding: 18px;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+  position: relative;
+}
+
+.plan-card:hover {
+  transform: none;
+  border-color: #b9cbdc;
+  box-shadow: 0 4px 12px rgba(18, 45, 73, 0.09);
+}
+
+.plan-card.selected {
+  border-color: var(--dashboard-blue);
+  background: #f4f9fd;
+  box-shadow: 0 0 0 3px rgba(7, 90, 158, 0.1);
+}
+
+.plan-card.selected::before {
+  content: '✓ Selected';
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: var(--dashboard-blue);
+  color: white;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.plan-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--dashboard-ink);
+  margin-bottom: 8px;
+  letter-spacing: 0;
+}
+
+.plan-speed {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--dashboard-blue);
+  margin-bottom: 6px;
+  letter-spacing: -0.3px;
+}
+
+.plan-speed small {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--dashboard-muted);
+  letter-spacing: 0;
+}
+
+.plan-price {
+  font-size: 20px;
+  font-weight: 700;
+  color: #187044;
+  margin: 10px 0 4px;
+  letter-spacing: -0.2px;
+}
+
+.plan-price small {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--dashboard-muted);
+  letter-spacing: 0;
+}
+
+.current-plan-badge {
+  display: inline-block;
+  background: #edf4fa;
+  color: var(--dashboard-blue);
+  padding: 4px 12px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  margin-top: 12px;
+}
+
+/* ================= SKELETON CARDS (plans grid) ================= */
+.skeleton-card {
+  border: 1px solid var(--dashboard-border);
+  border-radius: 8px;
+  padding: 18px;
+  background: #fff;
+  min-height: 160px;
+}
+
+.skeleton-title {
+  height: 14px;
+  width: 60%;
+  margin-bottom: 14px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%);
+  background-size: 200% 100%;
+  animation: skeletonPulse 1.8s ease-in-out infinite;
+}
+
+.skeleton-speed {
+  height: 26px;
+  width: 45%;
+  margin-bottom: 10px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%);
+  background-size: 200% 100%;
+  animation: skeletonPulse 1.8s ease-in-out infinite;
+}
+
+.skeleton-price {
+  height: 20px;
+  width: 55%;
+  margin-bottom: 8px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%);
+  background-size: 200% 100%;
+  animation: skeletonPulse 1.8s ease-in-out infinite;
+}
+
+.skeleton-badge {
+  height: 16px;
+  width: 40%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, #e2e8f0 0%, #f1f5f9 50%, #e2e8f0 100%);
+  background-size: 200% 100%;
+  animation: skeletonPulse 1.8s ease-in-out infinite;
+}
+
+/* ================= PENDING REQUEST CARD (yellow → corporate) ================= */
+.pending-request-card {
+  margin-top: 18px;
+  border: 1px solid #eadfca;
+  border-left: 3px solid #d9a441;
+  border-radius: 6px;
+  background: #fffdf8;
+  overflow: hidden;
+}
+
+.pending-request-header {
+  padding: 12px 16px;
+  border-bottom: 1px solid #f1e8d6;
+  gap: 10px;
+}
+
+.pending-request-icon {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #f0dfb8;
+  border-radius: 6px;
+  background: #fff6e0;
+  color: #b7791f;
+  font-size: 13px;
+}
+
+.pending-request-heading h3 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--dashboard-ink);
+  letter-spacing: 0;
+}
+
+.pending-request-heading p {
+  font-size: 11px;
+  color: var(--dashboard-muted);
+}
+
+.pending-status-pill {
+  padding: 3px 10px;
+  border-radius: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.pending-request-grid {
+  padding: 12px 16px;
+  gap: 10px;
+}
+
+.pending-request-item {
+  padding: 8px 12px;
+  border-radius: 5px;
+  border: 1px solid #ece4d3;
+  background: #fff;
+}
+
+.pending-request-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: #8a8372;
+}
+
+.pending-request-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dashboard-ink);
+}
+
+.pending-request-note {
+  margin: 0 16px 14px;
+  padding: 8px 12px;
+  border-radius: 5px;
+  font-size: 11px;
+  gap: 8px;
+}
+
+/* ================= LOGOUT MODAL ================= */
+.logout-modal-content {
+  border: 1px solid var(--dashboard-border);
+  border-radius: 8px;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.2);
+  padding: 26px 24px 22px;
+}
+
+.logout-title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--dashboard-ink);
+  letter-spacing: 0;
+}
+
+.logout-message {
+  font-size: 13px;
+  color: var(--dashboard-muted);
+  margin: 0 0 20px 0;
+}
+
+.logout-actions .btn {
+  border-radius: 5px;
+  padding: 9px 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0;
+  text-transform: none;
+  min-width: 96px;
+}
+
+.logout-cancel {
+  background: #fff;
+  color: #465368;
+  border: 1px solid #d6dde6;
+}
+
+.logout-cancel:hover {
+  background: #f5f8fc;
+  transform: none;
+}
+
+.logout-confirm {
+  background: var(--dashboard-blue);
+  color: #fff;
+  border: 1px solid var(--dashboard-blue);
+}
+
+.logout-confirm:hover {
+  background: #064a83;
+  border-color: #064a83;
+  transform: none;
+  box-shadow: none;
+}
+
+.logout-close-btn {
+  color: var(--dashboard-muted);
+  width: 30px;
+  height: 30px;
+  font-size: 20px;
+  border-radius: 5px;
+}
+
+.logout-close-btn:hover {
+  background: #f1f3f6;
+  color: var(--dashboard-ink);
+}
+
+/* ================= NOTIFICATION DROPDOWN ================= */
+.notification-menu {
+  border: 1px solid var(--dashboard-border);
+  border-radius: 8px;
+  box-shadow: 0 12px 32px rgba(18, 45, 73, 0.15);
+  overflow: hidden;
+}
+
+.notification-header {
+  background: #f5f8fc;
+  border-bottom: 1px solid #e1e8f0;
+  padding: 12px 16px;
+}
+
+.notification-header h4 {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--dashboard-ink);
+  letter-spacing: 0;
+}
+
+.mark-read-btn {
+  color: var(--dashboard-blue);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.notification-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid #eef2f6;
+}
+
+.notification-item.unread {
+  background: #f4f9fd;
+}
+
+.notification-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--dashboard-ink);
+}
+
+.notification-message {
+  font-size: 11px;
+  color: var(--dashboard-muted);
+}
+
+.notification-time {
+  font-size: 10px;
+  color: #94a3b8;
+}
+
+/* ================= PROFILE DROPDOWN MENU ================= */
+.profile-dropdown .dropdown-menu {
+  border: 1px solid var(--dashboard-border);
+  border-radius: 8px;
+  box-shadow: 0 12px 32px rgba(18, 45, 73, 0.15);
+  padding: 6px 0;
+}
+
+.profile-dropdown .dropdown-menu li a {
+  padding: 10px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--dashboard-ink);
+  gap: 10px;
+}
+
+.profile-dropdown .dropdown-menu li a i {
+  color: var(--dashboard-muted);
+  font-size: 13px;
+  width: 16px;
+}
+
+.profile-dropdown .dropdown-menu li a:hover {
+  background: #f5f8fc;
+  color: var(--dashboard-blue);
+}
+
+.profile-dropdown .dropdown-menu li a:hover i {
+  color: var(--dashboard-blue);
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 992px) {
+  .current-plan-details,
+  .current-plan-loading {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .main-content {
+    padding: 16px 14px 20px;
+    gap: 16px;
+  }
+
+  .dashboard-header-card {
+    padding: 18px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    min-height: auto;
+  }
+
+  .dashboard-header-left h1 {
+    font-size: 18px;
+  }
+
+  .dashboard-header-left p {
+    font-size: 12px;
+  }
+
+  .card-header {
+    padding: 14px;
+    flex-direction: column;
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .header-title-section h2 {
+    font-size: 14px;
+  }
+
+  .header-subtitle {
+    margin-left: 15px;
+    font-size: 11px;
+  }
+
+  .card-body {
+    padding: 16px;
+  }
+
+  .current-plan-details,
+  .current-plan-loading {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .plans-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .pending-request-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 575px) {
+  .main-content {
+    padding: 14px 12px 18px;
+  }
+
+  .dashboard-header-card {
+    padding: 16px;
+  }
+
+  .dashboard-header-left h1 {
+    font-size: 17px;
+  }
+
+  .card-header {
+    padding: 12px 14px;
+  }
+
+  .card-body {
+    padding: 14px;
+  }
+
+  .plan-detail-value {
+    font-size: 14px;
+  }
+
+  .plan-card {
+    padding: 16px;
+  }
+
+  .plan-speed {
+    font-size: 22px;
+  }
+
+  .plan-price {
+    font-size: 18px;
+  }
+
+  .logout-modal-content {
+    padding: 22px 18px 18px;
+  }
+
+  .logout-actions {
+    gap: 8px;
+  }
+
+  .logout-actions .btn {
+    min-width: 0;
+    padding: 9px 16px;
+    font-size: 12px;
+  }
+}
+
+/* Reduce motion */
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .plan-card,
+  .dashboard-header-card,
+  .logout-actions .btn {
+    transition: none !important;
+    animation: none !important;
+  }
+}
