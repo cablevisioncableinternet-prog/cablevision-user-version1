@@ -1198,14 +1198,22 @@ async function loadPlansDynamically() {
             if (unit === 'kbps') return value / 1000;
             return value;
         };
-        const sortedPlans = [...plans].sort((a, b) => {
-            const countDifference = getPlanApplicationCount(b) - getPlanApplicationCount(a);
-            if (countDifference !== 0) return countDifference;
-            const speedDifference = getPlanSpeedMbps(b) - getPlanSpeedMbps(a);
-            if (speedDifference !== 0) return speedDifference;
-            return (b.price || 0) - (a.price || 0);
-        });
-        const mostPopularPlan = sortedPlans[0] || plans[0];
+
+        const plansWithCounts = plans.map(p => ({ plan: p, count: getPlanApplicationCount(p) }));
+        const maxCount = Math.max(...plansWithCounts.map(x => x.count));
+
+        let mostPopularPlan = null;
+        if (maxCount > 0) {
+            mostPopularPlan = plansWithCounts
+                .filter(x => x.count === maxCount)
+                .sort((a, b) =>
+                    getPlanSpeedMbps(b.plan) - getPlanSpeedMbps(a.plan) ||
+                    (b.plan.price || 0) - (a.plan.price || 0))[0].plan;
+        }
+
+        // DEBUG: tingnan sa F12 > Console kung ilan ang count ng bawat plan
+        console.log('Counts from server:', customerCounts);
+        console.table(plansWithCounts.map(x => ({ plan: x.plan.name, count: x.count })));
 
         // ---- Determine Highest Speed (normalized to Mbps) ----
         const maxSpeedPlan = plans.reduce((fastestPlan, plan) =>
@@ -1225,7 +1233,7 @@ async function loadPlansDynamically() {
         const track = document.getElementById('plansCarouselTrack');
         if (track) {
             track.innerHTML = plans.map((plan, index) => {
-                const isPopular = plan.id === mostPopularPlan.id;
+                const isPopular = mostPopularPlan && plan.id === mostPopularPlan.id;
                 const hasFeatures = plan.features && plan.features.length > 0;
                 return `
                 <div class="plan-card ${isPopular ? 'featured' : ''}">
@@ -1241,7 +1249,8 @@ async function loadPlansDynamically() {
         }
 
         // ---- Update Hero Mockup Card ----
-        if (mostPopularPlan) {
+        const heroPlan = mostPopularPlan || plans[0];
+        if (heroPlan) {
             const heroPrice = document.getElementById('heroPlanPrice');
             const heroSpeed = document.getElementById('heroPlanSpeed');
             const heroFeatures = document.getElementById('heroPlanFeatures');
@@ -1249,20 +1258,20 @@ async function loadPlansDynamically() {
             const heroBadge = document.querySelector('.mockup-card .plan-badge');
             const mockupImage = document.getElementById('mockupPlanImage');
 
-            if (heroPrice) heroPrice.innerHTML = `₱${mostPopularPlan.price} <small>/mo</small>`;
-            if (heroSpeed) heroSpeed.textContent = `Up to ${mostPopularPlan.speed}`;
+            if (heroPrice) heroPrice.innerHTML = `₱${heroPlan.price} <small>/mo</small>`;
+            if (heroSpeed) heroSpeed.textContent = `Up to ${heroPlan.speed}`;
 
-            if (mockupImage && mostPopularPlan.image) {
+            if (mockupImage && heroPlan.image) {
                 mockupImage.style.display = 'block';
-                mockupImage.querySelector('img').src = mostPopularPlan.image;
-                mockupImage.querySelector('img').alt = mostPopularPlan.name;
+                mockupImage.querySelector('img').src = heroPlan.image;
+                mockupImage.querySelector('img').alt = heroPlan.name;
             } else if (mockupImage) {
                 mockupImage.style.display = 'none';
             }
 
             if (heroFeatures) {
-                if (mostPopularPlan.features && mostPopularPlan.features.length > 0) {
-                    heroFeatures.innerHTML = mostPopularPlan.features.map(f =>
+                if (heroPlan.features && heroPlan.features.length > 0) {
+                    heroFeatures.innerHTML = heroPlan.features.map(f =>
                         `<li><i class="fas fa-check-circle"></i> ${escapeHtml(f)}</li>`
                     ).join('');
                     heroFeatures.style.display = 'block';
@@ -1270,8 +1279,12 @@ async function loadPlansDynamically() {
                     heroFeatures.style.display = 'none';
                 }
             }
-            if (heroBtn) heroBtn.href = `/plans?selected=${encodeURIComponent(mostPopularPlan.name)}`;
-            if (heroBadge) heroBadge.textContent = 'Most Popular';
+            if (heroBtn) heroBtn.href = `/plans?selected=${encodeURIComponent(heroPlan.name)}`;
+            if (heroBadge) {
+                heroBadge.textContent = 'Most Popular';
+                // Itago ang badge kung wala pang tunay na most popular
+                heroBadge.style.display = mostPopularPlan ? '' : 'none';
+            }
         }
 
         // ---- Update Why Choose Section ----
@@ -1299,7 +1312,7 @@ async function loadPlansDynamically() {
         // ---- Initialize Carousel ----
         setTimeout(initPlansCarousel, 200);
 
-        console.log('Most Popular Plan:', mostPopularPlan.name, 'with', getPlanApplicationCount(mostPopularPlan), 'customers');
+        console.log('Most Popular Plan:', mostPopularPlan ? mostPopularPlan.name : 'None yet');
 
     } catch (err) {
         console.error('Error loading plans:', err);
