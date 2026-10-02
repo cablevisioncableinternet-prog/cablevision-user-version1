@@ -345,10 +345,10 @@ function injectAllUserNotificationsUI() {
                 </div>
                 <div class="modal-footer" style="justify-content: center;">
                     <button id="markAllReadFromUserModalBtn" class="btn-cancel">
-                        <i class="fas fa-check"></i> Mark all as read
+                        Mark all as read
                     </button>
                     <button id="closeAllUserNotificationsBtn" class="btn-confirm">
-                        <i class="fas fa-times"></i> Close
+                        Close
                     </button>
                 </div>
             </div>
