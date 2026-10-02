@@ -835,40 +835,56 @@ def get_public_advertisements():
 @app.route('/api/public/customer-plan-counts', methods=['GET'])
 def public_customer_plan_counts():
     """
-    Count applications per plan.
-    Returns: { "plan name (lowercase)": count }
+    Return count of applications per plan from the applications table.
+    Only counts applications with status 'Approved' or 'Installed'.
+    Returns: { "Plan Name": count, ... }
     """
     conn = None
     cursor = None
     try:
+        print("🔍 Fetching plan application counts for Most Popular Plan...")
+        
         conn = get_db_connection()
         if not conn:
+            print("❌ Database connection failed")
             return jsonify({}), 500
 
         cursor = conn.cursor(dictionary=True)
-
+        
+        # Query applications table - count per plan name
+        # Only include Approved and Installed applications
         query = """
-            SELECT TRIM(plan) AS plan, COUNT(*) AS count
-            FROM applications
-            WHERE plan IS NOT NULL AND TRIM(plan) != ''
-              AND LOWER(TRIM(IFNULL(status, ''))) NOT IN ('rejected', 'cancelled', 'declined')
-            GROUP BY TRIM(plan)
+            SELECT 
+                plan, 
+                COUNT(*) as count 
+            FROM applications 
+            WHERE status IN ('Approved', 'Installed')
+              AND plan IS NOT NULL 
+              AND plan != ''
+            GROUP BY plan 
             ORDER BY count DESC
         """
         cursor.execute(query)
         results = cursor.fetchall()
-
+        
+        # Convert to { plan_name: count } format
         plan_counts = {}
         for row in results:
-            name = (row.get('plan') or '').strip().lower()
-            if name:
-                plan_counts[name] = plan_counts.get(name, 0) + int(row.get('count', 0))
-
-        print(f"Plan counts: {plan_counts}")
+            plan_name = row.get('plan', '').strip()
+            if plan_name:
+                plan_counts[plan_name] = row.get('count', 0)
+        
+        print(f"✅ Found {len(plan_counts)} plans with applications: {plan_counts}")
+        
+        cursor.close()
+        conn.close()
+        
         return jsonify(plan_counts)
-
+        
     except Exception as e:
-        print(f"Error in public_customer_plan_counts: {e}")
+        print(f"❌ Error in public_customer_plan_counts: {e}")
+        import traceback
+        traceback.print_exc()
         return jsonify({}), 500
     finally:
         if cursor:
@@ -981,28 +997,6 @@ def get_public_areas():
         print(f"Error getting areas: {e}")
         return jsonify([])
 
-
-@app.route('/api/public/plan-application-counts', methods=['GET'])
-def get_plan_application_counts():
-    """
-    Count ALL applications per plan (pareho sa superadmin bar graph logic).
-    Case-insensitive matching against plan.name.
-    """
-    try:
-        # Kunin lahat ng applications (walang filter sa status)
-        applications = list(db.applications.find({}, {'plan': 1}))
-        
-        counts = {}
-        for app in applications:
-            plan_name = str(app.get('plan') or '').strip()
-            if not plan_name:
-                continue
-            key = plan_name.lower()
-            counts[key] = counts.get(key, 0) + 1
-        
-        return jsonify(counts)
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
 
 
 @app.route("/plans")

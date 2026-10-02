@@ -75,8 +75,8 @@
                     <div class="mockup-plan-image" id="mockupPlanImage">
                         <img src="" alt="Plan Image" style="width:100%;max-height:120px;object-fit:contain;border-radius:12px;margin-bottom:12px;">
                     </div>
-                    <div class="price" id="heroPlanPrice">₱1,260 <small>/mo</small></div>
-                    <div class="speed" id="heroPlanSpeed">Up to 300 Mbps</div>
+                    <div class="price" id="heroPlanPrice">₱00.00 <small>/mo</small></div>
+                    <div class="speed" id="heroPlanSpeed">Up to 00 Mbps</div>
                     <ul class="feature-list" id="heroPlanFeatures">
                         <!-- DYNAMIC: Populated by JavaScript -->
                     </ul>
@@ -1172,7 +1172,7 @@ function stopPlanAutoPlay() {
     }
 }
 
-// ================= DYNAMIC PLANS LOADER (CAROUSEL VERSION) =================
+       // ================= DYNAMIC PLANS LOADER (CAROUSEL VERSION) =================
 async function loadPlansDynamically() {
     try {
         const response = await fetch('/api/public/plans');
@@ -1182,44 +1182,37 @@ async function loadPlansDynamically() {
         // Fetch customer counts
         const customerCounts = await fetchCustomerCounts();
 
-        // ---- Determine Most Popular Plan from current application counts ----
-        const normalizedCustomerCounts = Object.fromEntries(
-            Object.entries(customerCounts).map(([name, count]) => [name.trim().toLowerCase(), Number(count) || 0])
-        );
-        const getPlanApplicationCount = plan =>
-            normalizedCustomerCounts[(plan.name || '').trim().toLowerCase()] || 0;
-        const getPlanSpeedMbps = plan => {
-            const match = (plan.speed || '').toString().trim().match(/([\d.]+)\s*(gbps|mbps|kbps)/i);
-            if (!match) return 0;
+        // ---- Determine Most Popular Plan ----
+       const sortedPlans = [...plans].sort((a, b) => {
+
+            const aCount = customerCounts[a.name] || a.applicants || a.popularity || 0;
+            const bCount = customerCounts[b.name] || b.applicants || b.popularity || 0;
+            if (bCount !== aCount) return bCount - aCount;
+            return (b.price || 0) - (a.price || 0);
+        });
+        const mostPopularPlan = sortedPlans[0] || plans[0];
+
+        // ---- Determine Highest Speed (normalized to Mbps) ----
+        let maxSpeedMbps = 0;
+        let maxSpeedPlan = null;
+        plans.forEach(plan => {
+            const label = (plan.speed || '').toString().trim();
+            const match = label.match(/([\d.]+)\s*(gbps|mbps|kbps)/i);
+            if (!match) return;
 
             const value = parseFloat(match[1]);
             const unit = match[2].toLowerCase();
-            if (unit === 'gbps') return value * 1000;
-            if (unit === 'kbps') return value / 1000;
-            return value;
-        };
 
-        const plansWithCounts = plans.map(p => ({ plan: p, count: getPlanApplicationCount(p) }));
-        const maxCount = Math.max(...plansWithCounts.map(x => x.count));
+            let mbps = 0;
+            if (unit === 'gbps') mbps = value * 1000;
+            else if (unit === 'mbps') mbps = value;
+            else if (unit === 'kbps') mbps = value / 1000;
 
-        let mostPopularPlan = null;
-        if (maxCount > 0) {
-            mostPopularPlan = plansWithCounts
-                .filter(x => x.count === maxCount)
-                .sort((a, b) =>
-                    getPlanSpeedMbps(b.plan) - getPlanSpeedMbps(a.plan) ||
-                    (b.plan.price || 0) - (a.plan.price || 0))[0].plan;
-        }
-
-        // DEBUG: tingnan sa F12 > Console kung ilan ang count ng bawat plan
-        console.log('Counts from server:', customerCounts);
-        console.table(plansWithCounts.map(x => ({ plan: x.plan.name, count: x.count })));
-
-        // ---- Determine Highest Speed (normalized to Mbps) ----
-        const maxSpeedPlan = plans.reduce((fastestPlan, plan) =>
-            !fastestPlan || getPlanSpeedMbps(plan) > getPlanSpeedMbps(fastestPlan) ? plan : fastestPlan,
-            null
-        );
+            if (mbps > maxSpeedMbps) {
+                maxSpeedMbps = mbps;
+                maxSpeedPlan = plan;
+            }
+        });
         const highestSpeed = maxSpeedPlan ? maxSpeedPlan.speed : '800 Mbps';
 
         // ---- Update Hero Description ----
@@ -1233,7 +1226,7 @@ async function loadPlansDynamically() {
         const track = document.getElementById('plansCarouselTrack');
         if (track) {
             track.innerHTML = plans.map((plan, index) => {
-                const isPopular = mostPopularPlan && plan.id === mostPopularPlan.id;
+                const isPopular = (plan.id === mostPopularPlan.id) || plan.popular;
                 const hasFeatures = plan.features && plan.features.length > 0;
                 return `
                 <div class="plan-card ${isPopular ? 'featured' : ''}">
@@ -1249,8 +1242,7 @@ async function loadPlansDynamically() {
         }
 
         // ---- Update Hero Mockup Card ----
-        const heroPlan = mostPopularPlan || plans[0];
-        if (heroPlan) {
+        if (mostPopularPlan) {
             const heroPrice = document.getElementById('heroPlanPrice');
             const heroSpeed = document.getElementById('heroPlanSpeed');
             const heroFeatures = document.getElementById('heroPlanFeatures');
@@ -1258,20 +1250,20 @@ async function loadPlansDynamically() {
             const heroBadge = document.querySelector('.mockup-card .plan-badge');
             const mockupImage = document.getElementById('mockupPlanImage');
 
-            if (heroPrice) heroPrice.innerHTML = `₱${heroPlan.price} <small>/mo</small>`;
-            if (heroSpeed) heroSpeed.textContent = `Up to ${heroPlan.speed}`;
+            if (heroPrice) heroPrice.innerHTML = `₱${mostPopularPlan.price} <small>/mo</small>`;
+            if (heroSpeed) heroSpeed.textContent = `Up to ${mostPopularPlan.speed}`;
 
-            if (mockupImage && heroPlan.image) {
+            if (mockupImage && mostPopularPlan.image) {
                 mockupImage.style.display = 'block';
-                mockupImage.querySelector('img').src = heroPlan.image;
-                mockupImage.querySelector('img').alt = heroPlan.name;
+                mockupImage.querySelector('img').src = mostPopularPlan.image;
+                mockupImage.querySelector('img').alt = mostPopularPlan.name;
             } else if (mockupImage) {
                 mockupImage.style.display = 'none';
             }
 
             if (heroFeatures) {
-                if (heroPlan.features && heroPlan.features.length > 0) {
-                    heroFeatures.innerHTML = heroPlan.features.map(f =>
+                if (mostPopularPlan.features && mostPopularPlan.features.length > 0) {
+                    heroFeatures.innerHTML = mostPopularPlan.features.map(f =>
                         `<li><i class="fas fa-check-circle"></i> ${escapeHtml(f)}</li>`
                     ).join('');
                     heroFeatures.style.display = 'block';
@@ -1279,12 +1271,8 @@ async function loadPlansDynamically() {
                     heroFeatures.style.display = 'none';
                 }
             }
-            if (heroBtn) heroBtn.href = `/plans?selected=${encodeURIComponent(heroPlan.name)}`;
-            if (heroBadge) {
-                heroBadge.textContent = 'Most Popular';
-                // Itago ang badge kung wala pang tunay na most popular
-                heroBadge.style.display = mostPopularPlan ? '' : 'none';
-            }
+            if (heroBtn) heroBtn.href = `/plans?selected=${encodeURIComponent(mostPopularPlan.name)}`;
+            if (heroBadge) heroBadge.textContent = 'Most Popular';
         }
 
         // ---- Update Why Choose Section ----
@@ -1312,13 +1300,26 @@ async function loadPlansDynamically() {
         // ---- Initialize Carousel ----
         setTimeout(initPlansCarousel, 200);
 
-        console.log('Most Popular Plan:', mostPopularPlan ? mostPopularPlan.name : 'None yet');
+        console.log('Most Popular Plan:', mostPopularPlan.name, 'with', customerCounts[mostPopularPlan.id] || 0, 'customers');
 
     } catch (err) {
         console.error('Error loading plans:', err);
     }
 }
 
+// ================= FETCH CUSTOMER COUNTS =================
+async function fetchCustomerCounts() {
+    try {
+        const response = await fetch('/api/public/customer-plan-counts');
+        if (response.ok) {
+            const data = await response.json();
+            return data;
+        }
+    } catch (error) {
+        console.log('Could not fetch customer counts, using fallback');
+    }
+    return {};
+}
         // ================= DYNAMIC VIDEO CAROUSEL (REDESIGNED) =================
         (async function() {
             let videoSources = [];
