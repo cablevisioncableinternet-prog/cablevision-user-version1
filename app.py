@@ -998,6 +998,28 @@ def get_public_areas():
         return jsonify([])
 
 
+@app.route('/api/public/plan-application-counts', methods=['GET'])
+def get_plan_application_counts():
+    """
+    Count ALL applications per plan (pareho sa superadmin bar graph logic).
+    Case-insensitive matching against plan.name.
+    """
+    try:
+        # Kunin lahat ng applications (walang filter sa status)
+        applications = list(db.applications.find({}, {'plan': 1}))
+        
+        counts = {}
+        for app in applications:
+            plan_name = str(app.get('plan') or '').strip()
+            if not plan_name:
+                continue
+            key = plan_name.lower()
+            counts[key] = counts.get(key, 0) + 1
+        
+        return jsonify(counts)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 
 @app.route("/plans")
 def plans():
