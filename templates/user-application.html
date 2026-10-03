@@ -902,6 +902,232 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
 
 <script>
 
+    // ================= UNIFIED SUBMIT HANDLER (required fields -> toast + auto-scroll) =================
+    // Dapat ito ang PINAKAUNA sa script para ito ang unang tatakbo sa submit.
+    (function () {
+        const form = document.getElementById('applicationForm');
+        if (!form) return;
+
+        let flaggedEls = [];
+
+        function fieldByName(name) { return form.querySelector(`[name="${name}"]`); }
+        function isEmpty(el) { return !el || !el.value || !el.value.trim(); }
+        function isVisibleImage(id) {
+            const img = document.getElementById(id);
+            return !!(img && img.getAttribute('src') && img.style.display !== 'none');
+        }
+
+        function clearFlags() {
+            flaggedEls.forEach(el => el.classList.remove('field-error'));
+            flaggedEls = [];
+            form.querySelectorAll('[data-submit-error]').forEach(d => d.remove());
+            const t = document.getElementById('error-terms');
+            if (t) t.remove();
+        }
+
+        function flag(el, text, isTerms) {
+            const key = el.name || el.id;
+            el.classList.add('field-error');
+            flaggedEls.push(el);
+
+            const old = document.getElementById('error-' + key);
+            if (old) old.remove();
+
+            const d = document.createElement('div');
+            d.className = 'error-message';
+            d.dataset.submitError = '1';
+            d.dataset.for = key;
+            d.style.display = 'block';
+            d.textContent = text;
+
+            if (isTerms) {
+                d.id = 'error-terms';
+                const c = el.closest('.terms-container');
+                if (c) c.appendChild(d);
+            } else {
+                el.parentNode.insertBefore(d, el.nextSibling);
+            }
+        }
+
+        // Kapag nag-type / nagbago ang field, tanggalin ang error nito
+        function clearOne(e) {
+            const el = e.target;
+            const key = el.name || el.id;
+            if (!key) return;
+            el.classList.remove('field-error');
+            const d = form.querySelector(`[data-submit-error][data-for="${key}"]`);
+            if (d) d.remove();
+            if (el.id === 'termsCheckbox') {
+                const t = document.getElementById('error-terms');
+                if (t) t.remove();
+            }
+        }
+        form.addEventListener('input', clearOne);
+        form.addEventListener('change', clearOne);
+
+        function collectProblems() {
+            const problems = [];
+            const add = (el, label, opts) => {
+                if (!el) return;
+                opts = opts || {};
+                problems.push({
+                    el: el,
+                    display: opts.invalid ? `${label} (invalid)` : label,
+                    msg: opts.msg || `${label} is required`,
+                    inline: opts.inline !== false,
+                    terms: !!opts.terms
+                });
+            };
+            const text = (name, label) => {
+                const el = fieldByName(name);
+                if (el && isEmpty(el)) add(el, label);
+                return el;
+            };
+            // Para sa fields na may format validation (phone/email)
+            const formatField = (name, label, required) => {
+                const el = fieldByName(name);
+                if (!el) return;
+                if (isEmpty(el)) { if (required) add(el, label); return; }
+                el.dispatchEvent(new Event('blur'));   // patakbuhin ang existing validators
+                if (el.classList.contains('field-error')) {
+                    add(el, label, { invalid: true, inline: false });
+                }
+            };
+            const fileField = (id, label, previewId) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                const hasNew = el.files && el.files.length > 0;
+                const hasOld = window.isReapplyGlobal && isVisibleImage(previewId);
+                if (!hasNew && !hasOld) add(el, label);
+            };
+
+            // ---- Personal Information ----
+            text('first_name', 'First Name');
+            text('last_name', 'Last Name');
+
+            const bd = fieldByName('birthdate');
+            if (bd) {
+                if (isEmpty(bd)) add(bd, 'Birthdate');
+                else {
+                    bd.dispatchEvent(new Event('blur'));
+                    const bdErr = document.getElementById('birthdateError');
+                    if (bdErr && bdErr.style.display === 'block') {
+                        add(bd, 'Birthdate', { invalid: true, inline: false });
+                    }
+                }
+            }
+
+            text('place_of_birth', 'Place of Birth');
+            text('citizenship', 'Citizenship');
+            text('home_ownership', 'Home Ownership');
+            text('sex', 'Sex');
+            text('civil_status', 'Civil Status');
+            text('occupation', 'Occupation');
+
+            // ---- Contact ----
+            formatField('email', 'Email Address', true);
+            const emailEl = fieldByName('email');
+            const dupErr = document.getElementById('email-duplicate-error');
+            if (emailEl && !isEmpty(emailEl) && dupErr && dupErr.style.display === 'block') {
+                add(emailEl, 'Email Address', { invalid: true, inline: false });
+            }
+            formatField('mobile', 'Primary Mobile Number', true);
+            formatField('secondary_mobile', 'Secondary Mobile Number', false);
+
+            // ---- Employment ----
+            text('employer', 'Company / Employer');
+            text('business_address', 'Business Address');
+            formatField('business_phone', 'Business Phone', false);
+
+            // ---- Spouse (conditional) ----
+            if (typeof window.isSpouseInfoRequired === 'function' && window.isSpouseInfoRequired()) {
+                text('spouse_name', 'Name of Spouse');
+            }
+
+            // ---- Family ----
+            text('father_name', "Father's Name");
+            text('mother_maiden_name', "Mother's Maiden Name");
+
+            // ---- Service ----
+            text('service_type', 'Service Type');
+
+            // ---- Documents ----
+            fileField('id_front', 'Valid ID - Front', 'preview_id_front');
+            fileField('id_back', 'Valid ID - Back', 'preview_id_back');
+            if (typeof window.isProofBillingRequired !== 'function' || window.isProofBillingRequired()) {
+                fileField('proof_billing', 'Proof of Billing', 'preview_billing');
+            }
+
+            // ---- Signature ----
+            fileField('signature_upload', 'E-Signature', 'signature-preview');
+
+            // ---- Installation Address ----
+            text('province', 'Province');
+            text('city', 'Municipality');
+            text('barangay', 'Barangay');
+            text('billing_address', 'Billing Address');
+            text('landmark', 'Nearest Landmark');
+
+            // ---- Map pin ----
+            const lat = document.getElementById('latitude');
+            const lng = document.getElementById('longitude');
+            if (!lat || !lng || !lat.value || !lng.value) {
+                add(document.getElementById('map'), 'Pin Location on Map', {
+                    msg: 'Please pin your location on the map',
+                    inline: false
+                });
+            }
+
+            // ---- Installation Fee ----
+            text('installation_fee', 'Installation Fee Option');
+
+            // ---- Terms and Conditions (laging huli) ----
+            const cb = document.getElementById('termsCheckbox');
+            if (cb && !cb.checked) {
+                add(cb, 'Terms and Conditions', {
+                    msg: 'You must agree to the Terms and Conditions before submitting',
+                    terms: true
+                });
+            }
+
+            return problems;
+        }
+
+        form.addEventListener('submit', function (e) {
+            // Ito na lang ang hahawak ng submit; hindi na tatakbo ang ibang submit listeners
+            e.preventDefault();
+            e.stopImmediatePropagation();
+
+            clearFlags();
+            const problems = collectProblems();
+
+            if (problems.length > 0) {
+                problems.forEach(p => { if (p.inline) flag(p.el, p.msg, p.terms); });
+
+                const labels = problems.map(p => p.display);
+                const shown = labels.slice(0, 5).join(', ');
+                const extra = labels.length > 5 ? ` and ${labels.length - 5} more` : '';
+                showToast(`Please complete: ${shown}${extra}`, 'error');
+
+                const first = problems[0].el;
+                first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                setTimeout(() => { try { first.focus({ preventScroll: true }); } catch (err) {} }, 400);
+
+                if (first.id === 'map') {
+                    first.classList.add('map-highlight-error');
+                    setTimeout(() => first.classList.remove('map-highlight-error'), 2000);
+                }
+                return false;
+            }
+
+            // Kumpleto na lahat -> saka lang lalabas ang email verification modal
+            if (typeof window.showEmailVerification === 'function') {
+                window.showEmailVerification();
+            }
+            return false;
+        }, true);   // capture = true, at ito ang pinakaunang nakarehistro
+    })();
+
     const api = "https://psgc.gitlab.io/api";
 
     // ================= GLOBAL HELPERS =================
@@ -2591,7 +2817,6 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                 if (!errorMsg) {
                     errorMsg = document.createElement('div');
                     errorMsg.className = 'terms-error-message';
-                    errorMsg.textContent = 'You must agree to the Terms and Conditions before submitting';
                     termsCheckbox.closest('.terms-container').appendChild(errorMsg);
                 }
                 errorMsg.style.display = 'block';
@@ -2928,7 +3153,7 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                     termsError.id = 'error-terms';
                     termsError.className = 'error-message';
                     termsError.style.marginTop = '10px';
-                    termsError.textContent = 'You must agree to the Terms and Conditions';
+                    termsError.textContent = 'You must agree to the Terms and Conditions before submitting';
                     termsContainer.appendChild(termsError);
                     termsError.style.display = 'block';
                 }
@@ -4525,6 +4750,9 @@ async function getBarangayCoordinates(barangayName, cityName) {
         }
 
         setupCodeDigits();
+
+        // I-expose para matawag ng unified submit handler
+        window.showEmailVerification = showEmailVerification;
 
         const form = document.getElementById('applicationForm');
         if (form) {
