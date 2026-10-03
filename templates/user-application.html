@@ -108,9 +108,9 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                     </div>
                     <div class="profile-upload-grid">
                         <div class="profile-upload-left">
-                            <label class="form-label-modern">Upload Profile Photo (JPG/PNG) <span class="required-star">*</span></label>
-                            <input type="file" id="profile_photo" name="profile_photo" accept="image/png, image/jpeg" class="form-control-modern" required>
-                            <p class="file-hint-modern">Upload JPG or PNG file. Make sure na malinaw ang photo.</p>
+                            <label class="form-label-modern">Upload Profile Photo (JPG/PNG) <span class="optional-badge">(Optional)</span></label>
+                            <input type="file" id="profile_photo" name="profile_photo" accept="image/png, image/jpeg" class="form-control-modern">
+                            <p class="file-hint-modern">Upload JPG or PNG file. Make sure na malinaw ang photo. Kung walang ia-upload, default na logo ang gagamitin.</p>
                             {% if is_reapply and form_data and form_data.existing_profile_photo %}
                                 <div class="existing-file-modern">
                                     <label>Current Profile Photo:</label>
@@ -125,8 +125,8 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                             <label class="form-label-modern">Preview:</label>
                             <div class="preview-box-modern" id="profile-preview-container">
                                 <div class="preview-placeholder-modern" id="profile-placeholder">
-                                    <i class="fas fa-user-circle"></i>
-                                    <p>Profile photo preview</p>
+                                    <img src="{{ url_for('static', filename='logo1.png') }}" alt="Default profile" style="max-width: 80px; height: auto; opacity: 0.7;">
+                                    <p>Default logo (kung walang ia-upload)</p>
                                 </div>
                                 <img id="preview_profile_photo" class="preview-img-modern" style="display: none;">
                             </div>
@@ -2804,7 +2804,6 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
             { name: 'mother_maiden_name', message: "Mother's Maiden Name is required" }
         ];
 
-        requiredFieldsConfig.unshift({ name: 'profile_photo', message: 'Please upload your profile photo' });
 
         function hasExistingImage(field) {
             // Ang preview image ay nasa "-right" na container (hal. .profile-upload-right),

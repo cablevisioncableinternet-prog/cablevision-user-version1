@@ -1551,6 +1551,9 @@ def upload_base64_to_cloudinary(base64_string, application_number, file_type, ma
 # ===============================
 # APPLICATION SUBMIT (XAMPP/MYSQL VERSION WITH FILE UPLOADS)
 # ===============================
+DEFAULT_PROFILE_PHOTO = "/static/logo1.png"
+
+
 @app.route("/submit_application", methods=["POST"])
 def submit_application():
     import io
@@ -1788,6 +1791,7 @@ def submit_application():
     id_back_value = save_uploaded_file(id_back_file, application_number, 'id_back', max_size=(600, 600), quality=75) if id_back_file and id_back_file.filename != '' else None
     billing_value = save_uploaded_file(billing_file, application_number, 'proof_billing', max_size=(600, 600), quality=75) if billing_file and billing_file.filename != '' else None
     profile_value = save_uploaded_file(profile_file, application_number, 'profile_photo', max_size=(300, 300), quality=80) if profile_file and profile_file.filename != '' else None
+    # NOTE: Ang default (/static/logo1.png) ay ilalapat sa ibaba, pagkatapos malaman kung re-apply
 
     # ========== LOCATION VALIDATION ==========
     lat = data.get('latitude')
@@ -1812,6 +1816,11 @@ def submit_application():
     if is_reapply and original_application_id:
         existing_app_data = existing_app or {}
         reapplied_count_value = existing_app.get('reapplied_count', 0) + 1
+
+    # ========== PROFILE PHOTO DEFAULT ==========
+    # Priority: bagong upload -> dating photo (re-apply) -> default logo
+    if not profile_value:
+        profile_value = existing_app_data.get('profile_photo') or DEFAULT_PROFILE_PHOTO
 
     # ========== GET SELECTED NAP BOX FROM FORM ==========
     selected_napbox_info = data.get('selected_napbox_info')
@@ -2232,7 +2241,9 @@ def reapply_application(application_id):
         form_data['assigned_napbox_name'] = get_value('assigned_napbox_name')
         
         # ========== Image Paths ==========
-        form_data['existing_profile_photo'] = get_value('profile_photo')
+        _existing_profile = get_value('profile_photo')
+        # Huwag ituring na "existing upload" ang default logo
+        form_data['existing_profile_photo'] = '' if _existing_profile == DEFAULT_PROFILE_PHOTO else _existing_profile
         form_data['existing_signature'] = get_value('signature')
         form_data['existing_id_front'] = get_value('id_front')
         form_data['existing_id_back'] = get_value('id_back')
