@@ -9261,11 +9261,12 @@ def cancel_plan_change():
             return jsonify({"error": "Cancellation period has ended. Requests can only be cancelled within 24 hours."}), 400
 
         # Mark as Cancelled (may status = 'Pending' sa WHERE para iwas race sa admin approval)
+        cancelled_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # Manila time, parehong format ng requested_at
         cursor.execute("""
             UPDATE plan_change_requests
-            SET status = 'Cancelled', admin_notes = %s
+            SET status = 'Cancelled', admin_notes = %s, reviewed_at = %s
             WHERE id = %s AND status = 'Pending'
-        """, ("Cancelled by user", req["id"]))
+        """, ("Cancelled by user", cancelled_at, req["id"]))
 
         if cursor.rowcount == 0:
             conn.rollback()
@@ -9332,7 +9333,7 @@ def cancel_plan_change():
             conn.close()
 
 
-            
+
 # ===============================
 # CHECK IF USER HAS PENDING REQUEST
 # ===============================
