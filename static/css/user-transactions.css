@@ -264,7 +264,7 @@
   border: 1px solid #81c784;
 }
 
-.status-rejected, .status-cancelled {
+.status-rejected {
   background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
   color: #c62828;
   border: 1px solid #ef9a9a;
@@ -1200,7 +1200,7 @@
   border: 1px solid #d6eadc !important;
   background-image: none !important;
 }
-.status-rejected, .status-cancelled {
+.status-rejected {
   background: #fdf0f0 !important;
   color: #b42318 !important;
   border: 1px solid #f3d0d0 !important;
@@ -1579,4 +1579,12 @@
     font-size: 9px !important;
     padding: 3px 7px !important;
   }
+}
+
+/* ================= STATUS: CANCELLED (same red as Rejected) ================= */
+.status-cancelled {
+  background: #fdf0f0 !important;
+  color: #b42318 !important;
+  border: 1px solid #f3d0d0 !important;
+  background-image: none !important;
 }

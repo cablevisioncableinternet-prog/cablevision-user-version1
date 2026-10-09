@@ -9903,7 +9903,7 @@ def cancel_termination_request():
             conn.close()
 
 
-            
+
 # ===============================
 # I-DAGDAG ITO SA app.py MO
 # (kasama ng ibang user routes gaya ng /user/change-plan)
@@ -9991,7 +9991,10 @@ def get_user_all_transactions():
         """, (user_id,))
         for row in cursor.fetchall():
             status = row.get("status") or "Pending"
-            updated = row.get("approved_at") or row.get("rejected_at")
+            if status == "Cancelled":
+                updated = row.get("updated_at")
+            else:
+                updated = row.get("approved_at") or row.get("rejected_at")
             full_name = f"{row.get('first_name') or ''} {row.get('last_name') or ''}".strip() or "N/A"
             transactions.append({
                 "id": row.get("request_id"),
