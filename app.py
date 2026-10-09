@@ -8954,7 +8954,10 @@ def get_user_current_plan():
                 "speed": pending.get("requested_speed"),
                 "price": pending.get("requested_price"),
                 "status": pending.get("status"),
-                "requested_at": pending.get("requested_at"),
+                "requested_at": (
+                    _parse_request_datetime(pending.get("requested_at")).strftime("%Y-%m-%d %H:%M:%S")
+                    if _parse_request_datetime(pending.get("requested_at")) else None
+                ),
                 "can_cancel": seconds_left > 0,
                 "cancel_seconds_left": seconds_left
             }
@@ -9115,7 +9118,7 @@ def submit_plan_change():
             new_plan_speed,
             new_plan_price,
             'Pending',
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            ph_now().strftime("%Y-%m-%d %H:%M:%S")
         ))
         conn.commit()
 
@@ -9347,7 +9350,7 @@ def cancel_plan_change():
             conn.close()
 
 
-            
+
 # ===============================
 # CHECK IF USER HAS PENDING REQUEST
 # ===============================
@@ -9417,14 +9420,21 @@ def _parse_request_datetime(value):
     return None
 
 
+def ph_now():
+    """Kasalukuyang oras sa Pilipinas (UTC+8), kahit anong timezone ang server."""
+    from datetime import timezone, timedelta
+    return datetime.now(timezone(timedelta(hours=8))).replace(tzinfo=None)
+
+
 def _get_cancel_seconds_left(requested_at):
-    """Ilang segundo pa ang natitira para makapag-cancel. 0 kung lampas na."""
+    """Ilang segundo pa ang natitira para makapag-cancel. 0 kung lampas na.
+    PH time ang gamit dahil PH time ang nakasave sa requested_at."""
     from datetime import timedelta
     submitted = _parse_request_datetime(requested_at)
     if not submitted:
         return 0
     deadline = submitted + timedelta(hours=CANCEL_WINDOW_HOURS)
-    left = (deadline - datetime.now()).total_seconds()
+    left = (deadline - ph_now()).total_seconds()
     return max(0, int(left))
 
 

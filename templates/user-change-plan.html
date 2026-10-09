@@ -448,8 +448,8 @@
     function formatDateTime12Hour(dateString) {
         if (!dateString) return 'N/A';
         
-        // Parse the date string as UTC
-        const date = new Date(dateString + ' UTC');
+        // Naka-save na sa PH time ang oras, kaya walang timezone conversion
+        const date = new Date(String(dateString).replace(' ', 'T'));
         if (isNaN(date.getTime())) return 'Invalid Date';
         
         const options = {
@@ -458,8 +458,7 @@
             day: 'numeric',
             hour: '2-digit',
             minute: '2-digit',
-            hour12: true,
-            timeZone: 'UTC'  // Force UTC timezone
+            hour12: true
         };
         
         return date.toLocaleString('en-US', options);
