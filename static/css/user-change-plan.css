@@ -4080,8 +4080,10 @@ body {
     align-items: center;
     gap: 12px;
     flex-wrap: wrap;
-    margin-top: 16px;
+    padding: 0 22px 20px;
 }
+
+
 .btn-cancel-request {
     display: inline-flex;
     align-items: center;
