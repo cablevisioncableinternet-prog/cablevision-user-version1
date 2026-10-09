@@ -287,40 +287,6 @@
     </div>
 </div>
 
-
-<!-- ================= CANCEL REQUEST CONFIRMATION MODAL ================= -->
-<div id="cancelRequestModal" class="modal">
-    <div class="modal-content plan-confirm-content">
-        <div class="plan-confirm-header">
-            <div class="plan-confirm-heading">
-                <h2>Cancel Plan Change Request</h2>
-                <p>This will withdraw your pending request</p>
-            </div>
-            <button type="button" class="close-btn plan-confirm-close" id="closeCancelRequestModal" aria-label="Close cancel request confirmation">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-
-        <div class="plan-confirm-body">
-            <p class="plan-confirm-question" id="cancelRequestMessage">
-                Are you sure you want to cancel your plan change request?
-            </p>
-            <div class="plan-confirm-note">
-                <i class="fas fa-info-circle"></i>
-                <span>Once cancelled, you can submit a new plan change request anytime.</span>
-            </div>
-        </div>
-
-        <div class="plan-confirm-actions">
-            <button type="button" id="keepRequestBtn" class="btn-plan-cancel">Keep Request</button>
-            <button type="button" id="confirmCancelRequestBtn" class="btn-plan-confirm btn-plan-danger">
-                <i class="fas fa-ban"></i> Cancel Request
-            </button>
-        </div>
-    </div>
-</div>
-
-
 <!-- MAIN CONTENT -->
 <main class="main-content">
     <!-- DASHBOARD HEADER -->
@@ -441,15 +407,13 @@
     let hasPendingRequest = false;
     let pendingRequestData = null;
     let pendingSelectedPlan = null;
-    let cancelDeadlineMs = 0;
-    let cancelCountdownTimer = null;
 
     // ==================== FORMAT DATE TIME TO 12-HOUR WITH AM/PM (UTC) ====================
     function formatDateTime12Hour(dateString) {
         if (!dateString) return 'N/A';
         
-        // Naka-save na sa PH time ang oras, kaya walang timezone conversion
-        const date = new Date(String(dateString).replace(' ', 'T'));
+        // Parse the date string as UTC
+        const date = new Date(dateString + ' UTC');
         if (isNaN(date.getTime())) return 'Invalid Date';
         
         const options = {
@@ -458,7 +422,8 @@
             day: 'numeric',
             hour: '2-digit',
             minute: '2-digit',
-            hour12: true
+            hour12: true,
+            timeZone: 'UTC'  // Force UTC timezone
         };
         
         return date.toLocaleString('en-US', options);
@@ -590,12 +555,6 @@
                     pendingRequestData = data.pending_request;
                     const alertDiv = document.getElementById('pendingRequestAlert');
                     const pendingReqId = pendingRequestData.request_id ? escapeHtml(String(pendingRequestData.request_id)) : 'N/A';
-
-                    // Deadline para sa cancel (galing sa server ang natitirang segundo)
-                    const secondsLeft = Number(pendingRequestData.cancel_seconds_left) || 0;
-                    cancelDeadlineMs = Date.now() + (secondsLeft * 1000);
-                    const canCancelNow = pendingRequestData.can_cancel && secondsLeft > 0;
-
                     alertDiv.innerHTML = `
                         <div class="pending-request-card">
                             <div class="pending-request-header">
@@ -628,21 +587,8 @@
                                 <i class="fas fa-info-circle"></i>
                                 <span>Your request will be updated the day after cut off</span>
                             </div>
-
-                            <div class="pending-request-actions">
-                                <button type="button" id="cancelRequestBtn" class="btn-cancel-request" ${canCancelNow ? '' : 'disabled'}>
-                                    <i class="fas fa-ban"></i> Cancel Request
-                                </button>
-                                <span class="pending-cancel-hint" id="cancelRequestHint"></span>
-                            </div>
                         </div>
                     `;
-
-                    const cancelBtnEl = document.getElementById('cancelRequestBtn');
-                    if (cancelBtnEl) {
-                        cancelBtnEl.addEventListener('click', openCancelRequestModal);
-                    }
-                    startCancelCountdown();
                 }
             }, 400); // Smooth transition delay
             
@@ -881,126 +827,6 @@
 
     }
 
-        // ==================== CANCEL REQUEST (24 HOURS ONLY) ====================
-    function formatTimeLeft(ms) {
-        const totalMinutes = Math.max(0, Math.floor(ms / 60000));
-        const hours = Math.floor(totalMinutes / 60);
-        const minutes = totalMinutes % 60;
-        if (hours > 0) return `${hours}h ${minutes}m`;
-        return `${Math.max(1, minutes)}m`;
-    }
-
-    function updateCancelButtonState() {
-        const btn = document.getElementById('cancelRequestBtn');
-        const hint = document.getElementById('cancelRequestHint');
-        if (!btn) {
-            clearInterval(cancelCountdownTimer);
-            return;
-        }
-
-        const msLeft = cancelDeadlineMs - Date.now();
-
-        if (msLeft > 0) {
-            btn.disabled = false;
-            if (hint) {
-                hint.textContent = `You can cancel within 24 hours of submitting (${formatTimeLeft(msLeft)} left)`;
-                hint.classList.remove('expired');
-            }
-        } else {
-            btn.disabled = true;
-            if (hint) {
-                hint.textContent = 'Cancellation is no longer available (24-hour period has ended)';
-                hint.classList.add('expired');
-            }
-            clearInterval(cancelCountdownTimer);
-        }
-    }
-
-    function startCancelCountdown() {
-        clearInterval(cancelCountdownTimer);
-        updateCancelButtonState();
-        cancelCountdownTimer = setInterval(updateCancelButtonState, 30000);
-    }
-
-    function openCancelRequestModal() {
-        if (!pendingRequestData || cancelDeadlineMs - Date.now() <= 0) {
-            showToast('Cancellation period has already ended', 'error');
-            return;
-        }
-        const messageEl = document.getElementById('cancelRequestMessage');
-        if (messageEl) {
-            messageEl.innerHTML = 'Are you sure you want to cancel request <strong>' +
-                escapeHtml(String(pendingRequestData.request_id || '')) + '</strong> to change to <strong>' +
-                escapeHtml(pendingRequestData.plan || 'the new plan') + '</strong>?';
-        }
-        document.getElementById('cancelRequestModal').classList.add('show');
-    }
-
-    function closeCancelRequestModal() {
-        document.getElementById('cancelRequestModal').classList.remove('show');
-    }
-
-    async function confirmCancelRequest() {
-        if (!pendingRequestData) return;
-
-        const confirmBtn = document.getElementById('confirmCancelRequestBtn');
-        const originalText = confirmBtn.innerHTML;
-        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cancelling...';
-        confirmBtn.disabled = true;
-
-        try {
-            const tabId = sessionStorage.getItem('tab_id');
-
-            const response = await fetch('/api/user/cancel-plan-change', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    request_id: pendingRequestData.request_id,
-                    tab_id: tabId
-                })
-            });
-
-            const data = await response.json();
-
-            if (data.success) {
-                closeCancelRequestModal();
-                showToast(`Request ${data.request_id} cancelled successfully`, 'success');
-                setTimeout(() => location.reload(), 2000);
-            } else {
-                closeCancelRequestModal();
-                showToast(data.error || 'Failed to cancel request', 'error');
-                confirmBtn.innerHTML = originalText;
-                confirmBtn.disabled = false;
-            }
-        } catch (error) {
-            console.error('Error cancelling request:', error);
-            showToast('Network error. Please try again.', 'error');
-            confirmBtn.innerHTML = originalText;
-            confirmBtn.disabled = false;
-        }
-    }
-
-    function setupCancelRequestModal() {
-        const modal = document.getElementById('cancelRequestModal');
-        const closeBtn = document.getElementById('closeCancelRequestModal');
-        const keepBtn = document.getElementById('keepRequestBtn');
-        const confirmBtn = document.getElementById('confirmCancelRequestBtn');
-
-        if (closeBtn) closeBtn.addEventListener('click', closeCancelRequestModal);
-        if (keepBtn) keepBtn.addEventListener('click', closeCancelRequestModal);
-        if (confirmBtn) confirmBtn.addEventListener('click', confirmCancelRequest);
-
-        window.addEventListener('click', (e) => {
-            if (e.target === modal) closeCancelRequestModal();
-        });
-
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && modal && modal.classList.contains('show')) {
-                closeCancelRequestModal();
-            }
-        });
-    }
-
     // ==================== ESCAPE HTML ====================
     function escapeHtml(text) {
         if (!text) return '';
@@ -1235,7 +1061,6 @@ function setupLogout() {
         setupProfileDropdown();
         setupLogout();
         setupModalEventListeners();
-        setupCancelRequestModal();
         await loadProfileName();
         await loadProfileIcon();
         await loadCurrentPlan();

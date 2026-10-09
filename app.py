@@ -8946,7 +8946,6 @@ def get_user_current_plan():
         }
 
         if pending:
-            seconds_left = _get_cancel_seconds_left(pending.get("requested_at"))
             response["pending_request"] = {
                 "id": pending.get("id"),
                 "request_id": pending.get("request_id"),
@@ -8954,12 +8953,7 @@ def get_user_current_plan():
                 "speed": pending.get("requested_speed"),
                 "price": pending.get("requested_price"),
                 "status": pending.get("status"),
-                "requested_at": (
-                    _parse_request_datetime(pending.get("requested_at")).strftime("%Y-%m-%d %H:%M:%S")
-                    if _parse_request_datetime(pending.get("requested_at")) else None
-                ),
-                "can_cancel": seconds_left > 0,
-                "cancel_seconds_left": seconds_left
+                "requested_at": pending.get("requested_at")
             }
 
         return jsonify(response)
@@ -9118,7 +9112,7 @@ def submit_plan_change():
             new_plan_speed,
             new_plan_price,
             'Pending',
-            ph_now().strftime("%Y-%m-%d %H:%M:%S")
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         ))
         conn.commit()
 
@@ -9201,156 +9195,6 @@ def submit_plan_change():
             conn.close()
 
 
-
-# ===============================
-# USER CANCEL PLAN CHANGE REQUEST (WITHIN 24 HOURS ONLY)
-# ===============================
-@app.route("/api/user/cancel-plan-change", methods=["POST"])
-def cancel_plan_change():
-    """User cancels their pending plan change request (within 24 hours)"""
-    data = request.get_json() or {}
-
-    tab_id = data.get("tab_id")
-    if tab_id:
-        user_session = session.get(f"user_{tab_id}")
-        if user_session:
-            user_id = user_session.get("user_id")
-        else:
-            return jsonify({"error": "Invalid session"}), 401
-    else:
-        if "user_id" not in session:
-            return jsonify({"error": "Not logged in"}), 401
-        user_id = session["user_id"]
-
-    request_id = data.get("request_id")
-
-    conn = None
-    cursor = None
-
-    try:
-        conn = get_db_connection()
-        cursor = conn.cursor(dictionary=True)
-
-        # Hanapin ang pending request ng user
-        find_query = """
-            SELECT id, request_id, application_number, current_plan,
-                   requested_plan, requested_speed, requested_at
-            FROM plan_change_requests
-            WHERE user_id = %s AND status = 'Pending'
-        """
-        params = [user_id]
-        if request_id:
-            find_query += " AND request_id = %s"
-            params.append(request_id)
-        find_query += " ORDER BY requested_at DESC LIMIT 1"
-
-        cursor.execute(find_query, tuple(params))
-        pending = cursor.fetchone()
-
-        if not pending:
-            return jsonify({"error": "No pending request found. It may have already been processed."}), 404
-
-        # 24-HOUR CHECK (server-side, hindi lang sa frontend)
-        if _get_cancel_seconds_left(pending.get("requested_at")) <= 0:
-            return jsonify({
-                "error": f"The {CANCEL_WINDOW_HOURS}-hour cancellation period has already ended."
-            }), 400
-
-        # I-MARK AS CANCELLED (may status guard para hindi mag-conflict kung na-approve na)
-        cursor.execute("""
-            UPDATE plan_change_requests
-            SET status = 'Cancelled'
-            WHERE id = %s AND status = 'Pending'
-        """, (pending["id"],))
-
-        if cursor.rowcount == 0:
-            conn.rollback()
-            return jsonify({"error": "This request has already been processed."}), 400
-
-        conn.commit()
-
-        # Kunin ang user info para sa notifications
-        cursor.execute("""
-            SELECT u.first_name, u.last_name,
-                   c.city, c.contract_number, c.billing_date
-            FROM users u
-            JOIN customers c ON u.application_number = c.application_number
-            WHERE u.user_id = %s
-        """, (user_id,))
-        user = cursor.fetchone() or {}
-
-        applicant_name = f"{user.get('first_name', '')} {user.get('last_name', '')}".strip()
-        application_city = user.get('city', 'Unknown')
-        application_number = pending.get("application_number")
-        cancelled_request_id = pending.get("request_id")
-        requested_plan = pending.get("requested_plan")
-        requested_speed = pending.get("requested_speed")
-
-        # ========== NOTIFICATION PARA SA SUPERADMIN ==========
-        notification_id = int(datetime.now().timestamp() * 1000)
-        cursor.execute("""
-            INSERT INTO notifications (id, title, message, type, relatedId, timestamp, read_status)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """, (
-            notification_id,
-            "Plan Change Request Cancelled",
-            f"[{cancelled_request_id}] {applicant_name} cancelled the plan change request to {requested_plan} ({requested_speed}) - Application #{application_number}",
-            "plan_change_cancelled",
-            application_number,
-            datetime.now().isoformat(),
-            0
-        ))
-        conn.commit()
-
-        # ========== NOTIFICATION PARA SA ADMIN (BY CITY) ==========
-        cursor.execute("""
-            INSERT INTO admin_notifications (
-                id, title, message, type, relatedId, timestamp, read_status,
-                admin_city, application_city, application_id, requested_by, requested_status,
-                contract_number, billing_date, request_id
-            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        """, (
-            notification_id + 1,
-            "Plan Change Request Cancelled",
-            f"[{cancelled_request_id}] {applicant_name} cancelled the plan change request to {requested_plan} ({requested_speed})",
-            "plan_change_cancelled",
-            application_number,
-            datetime.now().isoformat(),
-            0,
-            application_city,
-            application_city,
-            application_number,
-            None,
-            "Cancelled",
-            user.get('contract_number'),
-            user.get('billing_date'),
-            cancelled_request_id
-        ))
-        conn.commit()
-
-        print(f" Plan change request {cancelled_request_id} cancelled by user {user_id}")
-
-        return jsonify({
-            "success": True,
-            "message": f"Your plan change request {cancelled_request_id} has been cancelled.",
-            "request_id": cancelled_request_id
-        })
-
-    except Exception as e:
-        print(f"Error in cancel_plan_change: {e}")
-        import traceback
-        traceback.print_exc()
-        if conn:
-            conn.rollback()
-        return jsonify({"error": str(e)}), 500
-    finally:
-        if cursor:
-            cursor.close()
-        if conn:
-            conn.close()
-
-
-
 # ===============================
 # CHECK IF USER HAS PENDING REQUEST
 # ===============================
@@ -9401,44 +9245,6 @@ def check_pending_request():
         return jsonify({"has_pending": False}), 200
 
 
-
-# ===============================
-# HELPERS: 24-HOUR CANCEL WINDOW
-# ===============================
-CANCEL_WINDOW_HOURS = 24
-
-def _parse_request_datetime(value):
-    """Gawing datetime ang requested_at (string man o datetime galing DB)"""
-    if isinstance(value, datetime):
-        return value
-    if isinstance(value, str):
-        for fmt in ("%Y-%m-%d %H:%M:%S", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%dT%H:%M:%S.%f"):
-            try:
-                return datetime.strptime(value, fmt)
-            except ValueError:
-                continue
-    return None
-
-
-def ph_now():
-    """Kasalukuyang oras sa Pilipinas (UTC+8), kahit anong timezone ang server."""
-    from datetime import timezone, timedelta
-    return datetime.now(timezone(timedelta(hours=8))).replace(tzinfo=None)
-
-
-def _get_cancel_seconds_left(requested_at):
-    """Ilang segundo pa ang natitira para makapag-cancel. 0 kung lampas na.
-    PH time ang gamit dahil PH time ang nakasave sa requested_at."""
-    from datetime import timedelta
-    submitted = _parse_request_datetime(requested_at)
-    if not submitted:
-        return 0
-    deadline = submitted + timedelta(hours=CANCEL_WINDOW_HOURS)
-    left = (deadline - ph_now()).total_seconds()
-    return max(0, int(left))
-
-
-    
 # ===============================
 # USER TERMINATION PAGE
 # ===============================
