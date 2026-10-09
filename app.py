@@ -9465,11 +9465,14 @@ def get_user_termination_info():
         }
         
         if pending:
+            can_cancel, seconds_remaining = get_cancel_info(pending.get("created_at"))
             response["pending_request"] = {
                 "id": pending.get("id"),
                 "request_id": pending.get("request_id"),
                 "status": pending.get("status"),
-                "created_at": pending.get("created_at")
+                "created_at": pending.get("created_at"),
+                "can_cancel": can_cancel,
+                "seconds_remaining": seconds_remaining
             }
         
         return jsonify(response)
@@ -9479,7 +9482,7 @@ def get_user_termination_info():
         return jsonify({"error": str(e)}), 500
     
 
-    # ===============================
+# ===============================
 # GET TERMINATION INFO FOR USER
 # ===============================
 @app.route("/api/user/termination-info", methods=["GET"])
@@ -9779,7 +9782,128 @@ def submit_termination_request():
         if conn:
             conn.close()
 
+# ===============================
+# USER CANCEL TERMINATION REQUEST (within 24 hours only)
+# ===============================
+@app.route("/api/user/cancel-termination", methods=["POST"])
+def cancel_termination_request():
+    data = request.get_json() or {}
+    tab_id = data.get("tab_id")
 
+    if tab_id:
+        user_session = session.get(f"user_{tab_id}")
+        if not user_session:
+            return jsonify({"error": "Invalid session"}), 401
+        user_id = user_session.get("user_id")
+    else:
+        if "user_id" not in session:
+            return jsonify({"error": "Not logged in"}), 401
+        user_id = session["user_id"]
+
+    request_id = data.get("request_id")
+    if not request_id:
+        return jsonify({"error": "Missing request ID"}), 400
+
+    conn = None
+    cursor = None
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor(dictionary=True)
+
+        # Kunin ang request (dapat sa user mismo)
+        cursor.execute("""
+            SELECT id, request_id, application_number, current_plan,
+                   status, created_at
+            FROM termination_requests
+            WHERE request_id = %s AND user_id = %s
+        """, (request_id, user_id))
+        req = cursor.fetchone()
+
+        if not req:
+            return jsonify({"error": "Request not found"}), 404
+
+        if req["status"] != "Pending":
+            return jsonify({"error": f"This request is already {req['status']} and can no longer be cancelled."}), 400
+
+        # 24-hour check (backend ang masusunod, hindi ang frontend)
+        can_cancel, _ = get_cancel_info(req["created_at"])
+        if not can_cancel:
+            return jsonify({"error": "Cancellation period has ended. Requests can only be cancelled within 24 hours."}), 400
+
+        # Mark as Cancelled (may status = 'Pending' sa WHERE para iwas race sa admin approval)
+        cancelled_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # Manila time
+        cursor.execute("""
+            UPDATE termination_requests
+            SET status = 'Cancelled', admin_notes = %s, updated_at = %s
+            WHERE id = %s AND status = 'Pending'
+        """, ("Cancelled by user", cancelled_at, req["id"]))
+
+        if cursor.rowcount == 0:
+            conn.rollback()
+            return jsonify({"error": "This request was already processed by the admin."}), 400
+        conn.commit()
+
+        # Kunin info ng user para sa notifications
+        cursor.execute("""
+            SELECT u.first_name, u.last_name, c.city, c.contract_number, c.billing_date
+            FROM users u
+            JOIN customers c ON u.application_number = c.application_number
+            WHERE u.user_id = %s
+        """, (user_id,))
+        user = cursor.fetchone() or {}
+
+        applicant_name = f"{user.get('first_name', '')} {user.get('last_name', '')}".strip()
+        application_city = user.get("city", "Unknown")
+        application_number = req["application_number"]
+        message = (f"[{request_id}] {applicant_name} cancelled the termination request "
+                   f"(Plan: {req['current_plan'] or 'N/A'}) - Application #{application_number}")
+
+        # Notification para sa SUPERADMIN
+        notification_id = int(datetime.now().timestamp() * 1000)
+        cursor.execute("""
+            INSERT INTO notifications (id, title, message, type, relatedId, timestamp, read_status)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, (notification_id, "Termination Request Cancelled", message,
+              "termination_cancelled", application_number,
+              datetime.now().isoformat(), 0))
+
+        # Notification para sa ADMIN (by city)
+        cursor.execute("""
+            INSERT INTO admin_notifications (
+                id, title, message, type, relatedId, timestamp, read_status,
+                admin_city, application_city, application_id, requested_by, requested_status,
+                contract_number, billing_date, request_id
+            ) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, (notification_id + 1, "Termination Request Cancelled", message,
+              "termination_cancelled", application_number, datetime.now().isoformat(), 0,
+              application_city, application_city, application_number, None, "Cancelled",
+              user.get("contract_number"), user.get("billing_date"), request_id))
+
+        # I-update din ang original na "Termination Request" notif ng admin
+        cursor.execute("""
+            UPDATE admin_notifications
+            SET requested_status = 'Cancelled'
+            WHERE request_id = %s AND type = 'termination_request'
+        """, (request_id,))
+        conn.commit()
+
+        return jsonify({"success": True, "message": f"Request {request_id} has been cancelled."})
+
+    except Exception as e:
+        print(f"Error in cancel_termination_request: {e}")
+        import traceback
+        traceback.print_exc()
+        if conn:
+            conn.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+
+
+            
 # ===============================
 # I-DAGDAG ITO SA app.py MO
 # (kasama ng ibang user routes gaya ng /user/change-plan)

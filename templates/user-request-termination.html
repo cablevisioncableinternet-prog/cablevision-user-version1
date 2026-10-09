@@ -276,6 +276,19 @@
     </div>
 </div>
 
+
+<!-- CANCEL REQUEST MODAL -->
+<div id="cancelRequestModal" class="modal logout-modal">
+  <div class="modal-content logout-modal-content">
+    <h2 class="logout-title">Cancel Termination Request?</h2>
+    <p class="logout-message">Your request will be marked as <strong>Cancelled</strong>. You can submit a new one afterwards.</p>
+    <div class="logout-actions">
+      <button id="keepRequestBtn" class="btn logout-cancel">Keep Request</button>
+      <button id="confirmCancelRequestBtn" class="btn logout-confirm"><i class="fas fa-ban"></i> Yes, Cancel</button>
+    </div>
+  </div>
+</div>
+
 <!-- MAIN CONTENT -->
 <main class="main-content">
     <div class="dashboard-header-card">
@@ -627,10 +640,20 @@ function showToast(message, type = 'info') {
                                 <i class="fas fa-info-circle"></i>
                                 <span>Your request will be updated the day after cut off</span>
                             </div>
+
+                            <div class="pending-request-actions">
+                                <button type="button" id="cancelRequestBtn" class="btn-cancel-request">
+                                    <i class="fas fa-ban"></i> Cancel Request
+                                </button>
+                                <span id="cancelCountdown" class="cancel-countdown"></span>
+                            </div>
                         </div>
                     `;
                     document.getElementById('submitTerminationBtn').disabled = true;
                     document.getElementById('submitTerminationBtn').innerHTML = '<i class="fas fa-clock"></i> Request Pending...';
+
+                    // I-setup ang cancel button + countdown
+                    setupCancelRequest(pendingRequestData);
                 } else {
                     hasPendingRequest = false;
                     pendingRequestData = null;
@@ -647,6 +670,81 @@ function showToast(message, type = 'info') {
             document.getElementById('currentPlanDetails').style.display = 'grid';
         }
     }
+
+
+    // ==================== CANCEL PENDING REQUEST ====================
+    let cancelTimer = null;
+
+    function setupCancelRequest(req) {
+        const btn = document.getElementById('cancelRequestBtn');
+        const label = document.getElementById('cancelCountdown');
+        const modal = document.getElementById('cancelRequestModal');
+        if (!btn || !label || !modal) return;
+
+        let remaining = Number(req.seconds_remaining) || 0;
+
+        function render() {
+            if (!req.can_cancel || remaining <= 0) {
+                btn.disabled = true;
+                label.textContent = 'Cancellation period (24 hours) has ended';
+                clearInterval(cancelTimer);
+                return;
+            }
+            const h = Math.floor(remaining / 3600);
+            const m = Math.floor((remaining % 3600) / 60);
+            label.textContent = `You can cancel within ${h}h ${m}m`;
+            remaining--;
+        }
+
+        clearInterval(cancelTimer);
+        render();
+        cancelTimer = setInterval(render, 1000);
+
+        const closeModal = () => modal.classList.remove('show');
+
+        btn.addEventListener('click', () => {
+            if (!btn.disabled) modal.classList.add('show');
+        });
+        document.getElementById('keepRequestBtn').onclick = closeModal;
+        modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+
+        document.getElementById('confirmCancelRequestBtn').onclick = async () => {
+            const confirmBtn = document.getElementById('confirmCancelRequestBtn');
+            const original = confirmBtn.innerHTML;
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Cancelling...';
+
+            try {
+                const response = await fetch('/api/user/cancel-termination', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        request_id: req.request_id,
+                        tab_id: sessionStorage.getItem('tab_id')
+                    })
+                });
+                const data = await response.json();
+                closeModal();
+
+                if (data.success) {
+                    showToast(data.message, 'success');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    showToast(data.error || 'Failed to cancel request', 'error');
+                    // i-reload para ma-refresh ang state (baka lampas 24h na o na-process na)
+                    setTimeout(() => location.reload(), 2000);
+                }
+            } catch (err) {
+                console.error('Error cancelling request:', err);
+                closeModal();
+                showToast('Network error. Please try again.', 'error');
+            } finally {
+                confirmBtn.disabled = false;
+                confirmBtn.innerHTML = original;
+            }
+        };
+    }
+    
 
     // ==================== HELPERS: SPEED FORMAT ====================
     // Tinatanggal ang existing "Mbps" para hindi maging "98 Mbps Mbps"
