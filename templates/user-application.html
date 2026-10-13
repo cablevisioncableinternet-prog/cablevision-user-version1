@@ -5374,6 +5374,58 @@ function addUserNapboxMarkers() {
         });
     })();
 
+
+        // ================= IMAGE-ONLY FILE PICKER (walang "All Files") =================
+    // DAPAT NASA PINAKADULO, pagkatapos ng IMAGE ORIENTATION VALIDATION,
+    // dahil pinapalitan (cloneNode) nun ang ilang file inputs.
+    (function() {
+        function setupImageOnlyPicker(inputId) {
+            const input = document.getElementById(inputId);
+
+            // Kung hindi supported ang browser, normal na file input ang gagamitin
+            if (!input || !window.showOpenFilePicker) return;
+
+            input.addEventListener('click', async function(e) {
+                e.preventDefault(); // huwag buksan ang default na file manager
+
+                try {
+                    const [handle] = await window.showOpenFilePicker({
+                        multiple: false,
+                        excludeAcceptAllOption: true, // tinatanggal ang "All Files"
+                        types: [{
+                            description: 'Images (JPG, PNG)',
+                            accept: {
+                                'image/jpeg': ['.jpg', '.jpeg'],
+                                'image/png': ['.png']
+                            }
+                        }]
+                    });
+
+                    const file = await handle.getFile();
+
+                    // Ilagay ang napiling file sa original input
+                    const dt = new DataTransfer();
+                    dt.items.add(file);
+                    input.files = dt.files;
+
+                    // I-trigger ang change para tumakbo ang preview, orientation check, at validation
+                    input.dispatchEvent(new Event('change', { bubbles: true }));
+                } catch (err) {
+                    // AbortError = nag-cancel lang ang user
+                    if (err.name !== 'AbortError') {
+                        console.error('File picker error:', err);
+                    }
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            ['profile_photo', 'id_front', 'id_back', 'proof_billing', 'signature_upload']
+                .forEach(setupImageOnlyPicker);
+        });
+    })();
+    
+
 </script>
 </body>
 </html>
