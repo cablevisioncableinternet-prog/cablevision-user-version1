@@ -5424,7 +5424,70 @@ function addUserNapboxMarkers() {
                 .forEach(setupImageOnlyPicker);
         });
     })();
-    
+
+
+        // ================= AUTO "09" PREFIX SA PH MOBILE NUMBER FIELDS =================
+    (function() {
+        const PREFIX = '09';
+        const MAX_LEN = 11;
+        const prefixFields = ['mobile', 'secondary_mobile', 'business_phone'];
+
+        // Gawing 09XXXXXXXXX ang kahit anong input (09..., 9..., 639..., +639...)
+        function normalizePhone(rawValue) {
+            let d = (rawValue || '').replace(/\D/g, '');
+            if (d.startsWith('63')) d = d.slice(2);        // +63 / 63
+            else if (d.startsWith('0')) d = d.slice(1);    // 0
+            if (d.startsWith('9')) d = d.slice(1);         // 9
+            return (PREFIX + d).slice(0, MAX_LEN);
+        }
+
+        function moveCaretToEnd(input) {
+            const len = input.value.length;
+            input.setSelectionRange(len, len);
+        }
+
+        prefixFields.forEach(function(name) {
+            const field = document.querySelector('input[name="' + name + '"]');
+            if (!field) return;
+
+            // Pag-focus: kung blangko, ilagay agad ang "09"
+            field.addEventListener('focus', function() {
+                if (!this.value) {
+                    this.value = PREFIX;
+                    const self = this;
+                    setTimeout(function() { moveCaretToEnd(self); }, 0);
+                }
+            });
+
+            // Habang nagta-type / nagpa-paste: laging may "09" sa unahan, hindi mabubura ang prefix
+            field.addEventListener('input', function() {
+                if (!this.value) {
+                    // Binura lahat habang naka-focus -> ibalik ang prefix
+                    this.value = PREFIX;
+                    moveCaretToEnd(this);
+                    return;
+                }
+                const fixed = normalizePhone(this.value);
+                if (fixed !== this.value) {
+                    const pos = this.selectionStart;
+                    this.value = fixed;
+                    const newPos = Math.min(Math.max(pos, PREFIX.length), fixed.length);
+                    this.setSelectionRange(newPos, newPos);
+                }
+            });
+
+            // Pag-alis sa field: kung "09" lang ang laman, ituring na blangko
+            field.addEventListener('blur', function() {
+                if (this.value === PREFIX || this.value === '0') {
+                    this.value = '';
+                    // Hindi nag-bubble para hindi makialam ang form-level listeners;
+                    // gumagana ang validator at ang auto-fill ng Installation Phone
+                    this.dispatchEvent(new Event('change'));
+                }
+            });
+        });
+    })();
+
 
 </script>
 </body>
