@@ -511,6 +511,54 @@ function disableRestrictedSidebarLinks() {
     });
 }
 
+
+// ==================== AUTO-OPEN DETAILS MODAL (GALING SA NOTIFICATION) ====================
+function openTransactionFromNotification() {
+    const params = new URLSearchParams(window.location.search);
+    const openId = params.get('open_id');
+    const openType = params.get('open_type');
+    const openStatus = params.get('open_status');
+
+    if (!openId && !openType) return;
+
+    // Linisin ang URL (tira ang tab_id) para hindi bumukas ulit kapag nag-refresh
+    params.delete('open_id');
+    params.delete('open_type');
+    params.delete('open_status');
+    const cleanQuery = params.toString();
+    history.replaceState(null, '', window.location.pathname + (cleanQuery ? '?' + cleanQuery : ''));
+
+    let target = null;
+
+    // 1) Eksaktong match kung may request ID
+    if (openId) {
+        target = allTransactions.find(t =>
+            String(t.id) === String(openId) && (!openType || t.type === openType)
+        );
+    }
+
+    // 2) Kung walang ID: pinakabagong request ng type na iyon, na kapareho ng status
+    if (!target && openType) {
+        const sameType = allTransactions.filter(t => t.type === openType);
+        const sameStatus = openStatus
+            ? sameType.filter(t => (t.status || '').toLowerCase() === openStatus.toLowerCase())
+            : sameType;
+        const pool = (sameStatus.length ? sameStatus : sameType).slice();
+
+        pool.sort((a, b) => {
+            const aDate = a.updated_at || a.submitted_at || '';
+            const bDate = b.updated_at || b.submitted_at || '';
+            return bDate.localeCompare(aDate);
+        });
+        target = pool[0] || null;
+    }
+
+    if (!target) return;
+    openTransactionDetails(target.id);
+}
+
+
+
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', async () => {
     const isLoggedIn = sessionStorage.getItem('username') && sessionStorage.getItem('userType') === 'user';
@@ -544,9 +592,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadCurrentPlan();
     await fetchTransactions();
 
+    // Kung galing sa notification, buksan agad ang details modal
+    openTransactionFromNotification();
+
     checkTerminatedStatus();
 
     if (window.UserNotificationSystem) {
         window.UserNotificationSystem.init();
     }
 });
+
+
+

@@ -213,23 +213,47 @@ function escapeHtml(text) {
 }
 
 // Determine target URL based on notification type - PURELY IN JS
+// Change plan / termination / reconnect -> My Transactions page (kusang bubukas ang details modal)
 function getNotificationTargetUrl(notification) {
     const tabId = sessionStorage.getItem('tab_id') || '';
-    const baseUrl = tabId ? `/user/dashboard?tab_id=${tabId}` : '/user/dashboard';
-    
-    // Plan change related notifications
-    const planChangeTypes = [
-        'plan_change_approved',
-        'plan_change_rejected', 
-        'plan_change_request'
-    ];
-    
-    if (planChangeTypes.includes(notification.type)) {
-        return tabId ? `/user/change-plan?tab_id=${tabId}` : '/user/change-plan';
+    const type = (notification.type || '').toLowerCase();
+    const text = ((notification.title || '') + ' ' + (notification.message || '')).toLowerCase();
+
+    // 1) Alamin kung anong klase ng transaction ito
+    let transactionType = null;
+    if (type.includes('plan_change')) {
+        transactionType = 'Change Plan';
+    } else if (type.includes('termination')) {
+        transactionType = 'Termination';
+    } else if (type.includes('reconnect') || text.includes('reconnect')) {
+        transactionType = 'Reconnection';
+    } else if (type === 'request_approved' || type === 'request_rejected') {
+        transactionType = 'Reconnection';
     }
-    
+
+    if (transactionType) {
+        // 2) Alamin ang status base sa type ng notification
+        let status = '';
+        if (type.includes('approved')) status = 'Approved';
+        else if (type.includes('rejected')) status = 'Rejected';
+        else if (type.includes('cancel')) status = 'Cancelled';
+        else if (type.includes('request')) status = 'Pending';
+
+        // 3) Kung may request ID ang notification, gamitin para eksakto ang mabuksan
+        const requestId = notification.request_id || notification.reference_id ||
+                          notification.related_id || notification.transaction_id || '';
+
+        const params = new URLSearchParams();
+        if (tabId) params.set('tab_id', tabId);
+        params.set('open_type', transactionType);
+        if (status) params.set('open_status', status);
+        if (requestId) params.set('open_id', requestId);
+
+        return '/user/transactions?' + params.toString();
+    }
+
     // All other notifications go to dashboard
-    return baseUrl;
+    return tabId ? `/user/dashboard?tab_id=${tabId}` : '/user/dashboard';
 }
 
 // Render notification list with click navigation
