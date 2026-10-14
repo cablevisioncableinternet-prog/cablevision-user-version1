@@ -315,6 +315,44 @@
 </div>
 
 
+<!-- ================= FORCE CHANGE PASSWORD MODAL (FIRST LOGIN) ================= -->
+<style>
+#forceChangeModal .forgot-modal-header::after {
+    content: 'Set a new password to continue';
+}
+</style>
+<div id="forceChangeModal" class="forgot-modal">
+    <div class="forgot-modal-content">
+        <div class="forgot-modal-header">
+            <h3>Change Your Password</h3>
+        </div>
+
+        <div class="forgot-modal-body">
+            <p class="forgot-step-title">First-time login</p>
+            <p class="forgot-step-desc">For your security, please replace your default password with a new one before continuing. Minimum of 8 characters.</p>
+
+            <div class="forgot-input-group pw-toggle-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="fcNewPassword" placeholder="New Password" autocomplete="new-password">
+                <button type="button" class="password-toggle-btn" aria-label="Show password">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+
+            <div class="forgot-input-group pw-toggle-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="fcConfirmPassword" placeholder="Confirm New Password" autocomplete="new-password">
+                <button type="button" class="password-toggle-btn" aria-label="Show password">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </div>
+
+            <button type="button" id="forceChangeBtn" class="forgot-btn-primary"> <i class="fas fa-key"></i> Change Password</button>
+            <div id="forceChangeMessage" class="forgot-message"></div>
+        </div>
+    </div>
+</div>
+
 <!-- GOOGLE AUTHENTICATOR MODAL -->
 <div id="gaVerificationModal" class="modal" style="display: none;">
     <div class="modal-content">
@@ -868,6 +906,17 @@
                     return;
                 }
 
+                // CHECK KUNG FIRST LOGIN (KAILANGANG PALITAN ANG DEFAULT PASSWORD)
+                if (data.requires_password_change) {
+                    if (data.tab_id) {
+                        sessionStorage.setItem('tab_id', data.tab_id);
+                    }
+                    openForceChangeModal();
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                    return;
+                }
+
                 // CHECK KUNG 2FA REQUIRED
                 if (data.requires_2fa) {
                     gaPendingUserId = data.user_id || null;
@@ -930,6 +979,113 @@
     if (gaHiddenInput && gaHiddenInput.value) {
         openGaModal('Enter the 6-digit code from Google Authenticator to continue.');
     }
+
+    // ================= FORCE CHANGE PASSWORD (FIRST LOGIN) =================
+    const forceChangeModal = document.getElementById('forceChangeModal');
+    const forceChangeBtn = document.getElementById('forceChangeBtn');
+    const forceChangeMessage = document.getElementById('forceChangeMessage');
+    const fcNewPassword = document.getElementById('fcNewPassword');
+    const fcConfirmPassword = document.getElementById('fcConfirmPassword');
+
+    function showForceChangeMessage(text, isError = true) {
+        if (!forceChangeMessage) return;
+        forceChangeMessage.textContent = text;
+        forceChangeMessage.style.color = isError ? '#b42318' : '#059669';
+        forceChangeMessage.style.background = isError ? '#fef2f2' : '#ecfdf5';
+    }
+
+    function openForceChangeModal() {
+        if (!forceChangeModal) return;
+        fcNewPassword.value = '';
+        fcConfirmPassword.value = '';
+        showForceChangeMessage('');
+        forceChangeModal.style.display = 'flex';
+        fcNewPassword.focus();
+    }
+
+    function closeForceChangeModal() {
+        if (forceChangeModal) forceChangeModal.style.display = 'none';
+    }
+
+    async function submitForceChange() {
+        const newPassword = fcNewPassword.value.trim();
+        const confirmPassword = fcConfirmPassword.value.trim();
+
+        if (!newPassword || !confirmPassword) {
+            showForceChangeMessage('Please fill in both password fields.');
+            return;
+        }
+        if (newPassword.length < 8) {
+            showForceChangeMessage('Password must be at least 8 characters.');
+            return;
+        }
+        if (newPassword !== confirmPassword) {
+            showForceChangeMessage('Passwords do not match.');
+            return;
+        }
+
+        forceChangeBtn.disabled = true;
+        forceChangeBtn.textContent = 'Saving...';
+        showForceChangeMessage('');
+
+        try {
+            const tabId = getOrCreateTabId();
+            const res = await fetch('/api/user/force-change-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    new_password: newPassword,
+                    confirm_password: confirmPassword,
+                    tab_id: tabId
+                })
+            });
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                const finalTabId = data.tab_id || tabId;
+                sessionStorage.setItem('tab_id', finalTabId);
+                sessionStorage.setItem('username', data.username || data.user_id || '');
+                sessionStorage.setItem('userType', 'user');
+                if (data.user_id) sessionStorage.setItem('user_id', data.user_id);
+                sessionStorage.setItem('sessionStart', Date.now().toString());
+
+                let finalRedirect = data.redirect || '/user/dashboard';
+                if (!finalRedirect.includes('tab_id=')) {
+                    const sep = finalRedirect.includes('?') ? '&' : '?';
+                    finalRedirect += sep + 'tab_id=' + finalTabId;
+                }
+                window.location.replace(finalRedirect);
+                return;
+            }
+
+            // Expired ang pending session: balik sa login form
+            if (data.expired) {
+                closeForceChangeModal();
+                errorDiv.textContent = data.error || 'Session expired. Please login again.';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            showForceChangeMessage(data.error || 'Failed to change password.');
+        } catch (err) {
+            console.error(err);
+            showForceChangeMessage('Server error. Please try again.');
+        } finally {
+            forceChangeBtn.disabled = false;
+            forceChangeBtn.innerHTML = '<i class="fas fa-key"></i> Change Password';
+        }
+    }
+
+    if (forceChangeBtn) {
+        forceChangeBtn.addEventListener('click', submitForceChange);
+    }
+    [fcNewPassword, fcConfirmPassword].forEach(input => {
+        if (input) {
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') submitForceChange();
+            });
+        }
+    });
 
     // ================= TIME SYNC CHECK =================
     function checkTimeSync() {

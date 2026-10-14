@@ -4143,7 +4143,7 @@ def login():
                    password, role, connection_status, contract_number, status,
                    ga_secret, ga_enabled, first_name, last_name, middle_name,
                      suffix, contact_number, address, failed_login_attempts,
-                     locked_until, lock_level
+                     locked_until, lock_level, must_change_password
             FROM users 
             WHERE user_id = %s OR email = %s OR username = %s
             LIMIT 1
@@ -4183,6 +4183,28 @@ def login():
                 
                 user_status = user_data.get("status", "Active")
                 session["user_status"] = user_status
+
+                # ========== FIRST LOGIN: KAILANGANG PALITAN ANG DEFAULT PASSWORD ==========
+                # Walang session na gagawin dito. Pending state lang.
+                if int(user_data.get("must_change_password") or 0) == 1:
+                    execute_query(
+                        "UPDATE users SET failed_login_attempts = 0, locked_until = NULL, lock_level = 0 WHERE user_id = %s",
+                        (user_data.get("user_id"),)
+                    )
+                    session["pending_pw_change_user_id"] = user_data.get("user_id")
+                    session["pending_pw_change_at"] = datetime.now().timestamp()
+                    session.modified = True
+
+                    if request.is_json:
+                        return jsonify({
+                            "success": False,
+                            "requires_password_change": True,
+                            "user_id": user_data.get("user_id"),
+                            "tab_id": tab_id
+                        }), 200
+
+                    flash("You must change your default password. Please login using the website form.", "warning")
+                    return redirect(url_for("login"))
 
                 # ========== CHECK IF 2FA IS ENABLED ==========
                 if user_data.get("ga_enabled"):
@@ -4780,6 +4802,7 @@ def user_reset_password():
         update_query = """
             UPDATE users
             SET password = %s,
+                must_change_password = 0,
                 reset_code = NULL
             WHERE user_id = %s
                OR username = %s
@@ -4789,6 +4812,7 @@ def user_reset_password():
         update_query = """
             UPDATE users
             SET password = %s,
+                must_change_password = 0,
                 reset_code = NULL,
                 failed_login_attempts = 0,
                 locked_until = NULL,
@@ -4956,6 +4980,137 @@ def user_reset_password():
         "user_id": user_data.get("user_id")
     }), 200
 
+
+
+# ===============================
+# FORCE CHANGE PASSWORD (FIRST LOGIN)
+# ===============================
+@app.route("/api/user/force-change-password", methods=["POST"])
+def user_force_change_password():
+    data = request.get_json(silent=True) or {}
+    new_password = (data.get("new_password") or "").strip()
+    confirm_password = (data.get("confirm_password") or "").strip()
+    tab_id = (data.get("tab_id") or "").strip()
+
+    pending_user_id = session.get("pending_pw_change_user_id")
+    pending_at = session.get("pending_pw_change_at", 0)
+
+    # Walang pending o lampas 10 minuto na
+    if not pending_user_id or (datetime.now().timestamp() - float(pending_at or 0)) > 600:
+        session.pop("pending_pw_change_user_id", None)
+        session.pop("pending_pw_change_at", None)
+        return jsonify({
+            "success": False,
+            "expired": True,
+            "error": "Session expired. Please login again."
+        }), 401
+
+    if not new_password or not confirm_password:
+        return jsonify({"success": False, "error": "Please fill in both password fields."}), 400
+
+    if len(new_password) < 8:
+        return jsonify({"success": False, "error": "Password must be at least 8 characters."}), 400
+
+    if new_password != confirm_password:
+        return jsonify({"success": False, "error": "Passwords do not match."}), 400
+
+    user_data = execute_query(
+        """
+        SELECT user_id, customer_id, email, username, password, role,
+               contract_number, status, must_change_password
+        FROM users
+        WHERE user_id = %s
+        LIMIT 1
+        """,
+        (pending_user_id,),
+        fetch_one=True
+    )
+
+    if not user_data or int(user_data.get("must_change_password") or 0) != 1:
+        session.pop("pending_pw_change_user_id", None)
+        session.pop("pending_pw_change_at", None)
+        return jsonify({
+            "success": False,
+            "expired": True,
+            "error": "Invalid request. Please login again."
+        }), 400
+
+    # Bawal na kapareho ng kasalukuyang (default) password
+    current_password = user_data.get("password") or ""
+    same_as_current = (current_password == new_password)
+    if not same_as_current:
+        try:
+            same_as_current = check_password_hash(current_password, new_password)
+        except Exception:
+            same_as_current = False
+
+    if same_as_current:
+        return jsonify({
+            "success": False,
+            "error": "New password must be different from your default password."
+        }), 400
+
+    # I-save ang bagong password at i-clear ang flag
+    execute_query(
+        """
+        UPDATE users
+        SET password = %s,
+            must_change_password = 0,
+            reset_code = NULL,
+            failed_login_attempts = 0,
+            locked_until = NULL,
+            lock_level = 0
+        WHERE user_id = %s
+        """,
+        (generate_password_hash(new_password), user_data.get("user_id"))
+    )
+
+    # Tapos na ang pending state
+    session.pop("pending_pw_change_user_id", None)
+    session.pop("pending_pw_change_at", None)
+
+    # GUMAWA NA NG TOTOONG SESSION (kapareho ng normal login)
+    if tab_id:
+        session[f"user_{tab_id}"] = {
+            "user_id": user_data.get("user_id"),
+            "customer_id": user_data.get("customer_id"),
+            "role": user_data.get("role"),
+            "email": user_data.get("email"),
+            "userType": "user",
+            "contract_number": user_data.get("contract_number"),
+            "status": user_data.get("status", "Active")
+        }
+        session["active_tab"] = tab_id
+    else:
+        session["user_id"] = user_data.get("user_id")
+        session["customer_id"] = user_data.get("customer_id")
+        session["role"] = user_data.get("role")
+        session["email"] = user_data.get("email")
+        session["userType"] = "user"
+        session["contract_number"] = user_data.get("contract_number")
+        session["ga_verified"] = True
+
+    session["user_status"] = user_data.get("status", "Active")
+    session.modified = True
+
+    execute_query(
+        "UPDATE users SET connection_status = 'Connected' WHERE user_id = %s AND status != 'Terminated'",
+        (user_data.get("user_id"),)
+    )
+    record_login_history(user_data.get("user_id"), tab_id)
+
+    redirect_url = url_for("dashboard")
+    if tab_id:
+        redirect_url += "?tab_id=" + tab_id
+
+    return jsonify({
+        "success": True,
+        "message": "Password changed successfully.",
+        "redirect": redirect_url,
+        "tab_id": tab_id,
+        "username": user_data.get("username") or user_data.get("user_id"),
+        "user_id": user_data.get("user_id")
+    }), 200
 
 
 @app.route("/api/get-user-status")
