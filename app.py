@@ -1751,6 +1751,10 @@ def submit_application():
     if not email_ok:
         return email_err, 400
 
+    mobile_owner = (data.get('mobile_owner') or '').strip()
+    if not mobile_owner:
+        return 'Owner of the primary mobile number is required.', 400
+
     if session.get('email_verified') != email:
         return 'Please verify your email address before submitting.', 400
     
@@ -1880,7 +1884,7 @@ def submit_application():
                 plan = %s, plan_speed = %s, plan_price = %s,
                 date_submitted = %s, time_submitted = %s, timestamp = %s,
                 first_name = %s, middle_name = %s, last_name = %s, suffix = %s,
-                email = %s, mobile = %s, secondary_mobile = %s, phone = %s,
+                email = %s, mobile = %s, mobile_owner = %s, secondary_mobile = %s, phone = %s,
                 birthdate = %s, place_of_birth = %s, mother_maiden_name = %s,
                 father_name = %s, sex = %s, civil_status = %s, citizenship = %s,
                 occupation = %s, home_ownership = %s, address = %s, billing_address = %s,
@@ -1902,7 +1906,7 @@ def submit_application():
             data.get('plan'), data.get('plan_speed'), data.get('plan_price'),
             now.strftime('%B %d, %Y'), now.strftime('%I:%M %p'), now.timestamp(),
             data.get('first_name'), middle_name, data.get('last_name'), suffix,
-            email, data.get('mobile'), secondary_mobile, phone,
+            email, data.get('mobile'), mobile_owner, secondary_mobile, phone,
             birthdate,  # CONVERTED BIRTHDATE
             data.get('place_of_birth'), mother_maiden_name,
             father_name, data.get('sex'), data.get('civil_status'), data.get('citizenship'),
@@ -1935,7 +1939,7 @@ def submit_application():
                 application_number, plan, plan_speed, plan_price,
                 date_submitted, time_submitted, timestamp,
                 first_name, middle_name, last_name, suffix, email,
-                mobile, secondary_mobile, phone, birthdate, place_of_birth,
+                mobile, mobile_owner, secondary_mobile, phone, birthdate, place_of_birth,
                 mother_maiden_name, father_name, sex, civil_status, citizenship,
                 occupation, home_ownership, address, billing_address,
                 barangay, city, province, zip, house_number, landmark,
@@ -1951,7 +1955,7 @@ def submit_application():
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
                 %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s,
-                %s, %s
+                %s, %s, %s
             )
         """
 
@@ -1960,7 +1964,7 @@ def submit_application():
             data.get('plan'), data.get('plan_speed'), data.get('plan_price'),
             now.strftime('%B %d, %Y'), now.strftime('%I:%M %p'), now.timestamp(),
             data.get('first_name'), middle_name, data.get('last_name'), suffix, email,
-            data.get('mobile'), secondary_mobile, phone,
+            data.get('mobile'), mobile_owner, secondary_mobile, phone,
             birthdate,  # CONVERTED BIRTHDATE
             data.get('place_of_birth'), mother_maiden_name,
             father_name, data.get('sex'), data.get('civil_status'), data.get('citizenship'),
@@ -1976,7 +1980,7 @@ def submit_application():
         )
 
         print(f" Number of params: {len(params)}")
-        print(f" Expected: 57 (55 original + 2 for preferred napbox)")
+        print(f" Expected: 58 (55 original + 2 for preferred napbox + 1 for mobile_owner)")
         print(f" Application Number: {application_number}")
         print(f" Birthdate saved as: {birthdate}")
         
@@ -2171,7 +2175,7 @@ def reapply_application(application_id):
         
         # Contact Details
         form_data['email'] = get_value('email')
-        form_data['mobile'] = get_value('mobile')
+        form_data['mobile_owner'] = get_value('mobile_owner')
         form_data['secondary_mobile'] = get_value('secondary_mobile')
         form_data['phone'] = get_value('phone')
         
@@ -2464,7 +2468,7 @@ def application_success(application_number):
                 application_number, plan, plan_speed, plan_price,
                 date_submitted, time_submitted,
                 first_name, middle_name, last_name, suffix,
-                email, mobile, secondary_mobile, phone,
+                email, mobile, mobile_owner, secondary_mobile, phone,
                 birthdate, place_of_birth, mother_maiden_name, father_name,
                 sex, civil_status, citizenship, occupation,
                 home_ownership, address, billing_address,

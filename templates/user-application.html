@@ -250,18 +250,25 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                 </div>
                 <div class="form-card-body">
                     <div class="row g-3">
-                        <div class="col-12 col-md-6">
+                        <div class="col-12 col-md-4">
                             <div class="form-group-modern">
                                 <label class="form-label-modern">Email Address <span class="required-star">*</span></label>
                                 <input class="form-control-modern" name="email" placeholder="e.g., juan.delacruz@gmail.com" autocomplete="email" required>
                                 <div id="email-duplicate-error" class="error-message" style="display: none;"></div>
                             </div>
                         </div>
-                        <div class="col-12 col-md-6">
+                        <div class="col-12 col-md-4">
                             <div class="form-group-modern">
                                 <label class="form-label-modern">Primary Mobile Number <span class="required-star">*</span></label>
                                 <input class="form-control-modern" name="mobile" placeholder="09123456789" required>
                                 <small class="form-hint-modern">11 digits starting with 09</small>
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Owner of Primary Mobile Number <span class="required-star">*</span></label>
+                                <input class="form-control-modern" name="mobile_owner" id="mobile_owner" placeholder="e.g., Juan Dela Cruz" required>
+                                <small class="form-hint-modern">Full name ng may-ari ng number</small>
                             </div>
                         </div>
                     </div>
@@ -1032,6 +1039,7 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                 add(emailEl, 'Email Address', { invalid: true, inline: false });
             }
             formatField('mobile', 'Primary Mobile Number', true);
+            text('mobile_owner', 'Owner of Primary Mobile Number');
             formatField('secondary_mobile', 'Secondary Mobile Number', false);
 
             // ---- Employment ----
@@ -3013,6 +3021,7 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
             { name: 'occupation', message: 'Occupation is required' },
             { name: 'email', message: 'Email address is required' },
             { name: 'mobile', message: 'Primary mobile number is required' },
+            { name: 'mobile_owner', message: 'Owner of the primary mobile number is required' },
             { name: 'province', message: 'Please select your province' },
             { name: 'city', message: 'Please select your city' },
             { name: 'barangay', message: 'Please select your barangay' },
@@ -3541,7 +3550,7 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
     // ================= NAME FIELDS - INVALID CHARACTERS =================
     (function() {
         const nameFields = [
-            'first_name','middle_name','last_name','citizenship','occupation',
+            'first_name','middle_name','last_name','mobile_owner','citizenship','occupation',
             'spouse_name','spouse_occupation','spouse_employer','father_name','mother_maiden_name'
         ];
 
@@ -4274,7 +4283,7 @@ async function getBarangayCoordinates(barangayName, cityName) {
             setSelectByText('civil_status', formData.civil_status);
             setFieldValue('occupation', formData.occupation);
             setFieldValue('email', formData.email);
-            setFieldValue('mobile', formData.mobile);
+            setFieldValue('mobile_owner', formData.mobile_owner);
             setFieldValue('secondary_mobile', formData.secondary_mobile);
             setFieldValue('phone', formData.phone);
 
