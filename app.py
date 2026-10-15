@@ -1848,34 +1848,41 @@ def submit_application():
         profile_value = existing_app_data.get('profile_photo') or DEFAULT_PROFILE_PHOTO
 
     # ========== GET SELECTED NAP BOX FROM FORM ==========
-    selected_napbox_info = data.get('selected_napbox_info')
     preferred_napbox_id = None
     preferred_napbox_name = None
-    
-    if selected_napbox_info:
-        try:
-            napbox_data = json.loads(selected_napbox_info)
-            candidate_id = napbox_data.get('napbox_id')
-            candidate_name = napbox_data.get('napbox_name')
 
-            if candidate_id:
-                check_napbox = execute_query(
-                    "SELECT id FROM napboxes WHERE id = %s LIMIT 1",
-                    (candidate_id,),
-                    fetch_one=True
-                )
-                if check_napbox:
-                    preferred_napbox_id = candidate_id
-                    preferred_napbox_name = candidate_name
-                    print(f" User selected valid NAP Box: {preferred_napbox_name} (ID: {preferred_napbox_id})")
-                else:
-                    print(f" NAP Box ID {candidate_id} does not exist in DB — proceeding with NULL")
+    candidate_id = (data.get('preferred_napbox_id') or '').strip()
+    candidate_name = (data.get('preferred_napbox_name') or '').strip()
+
+    # Fallback: lumang paraan (selected_napbox_info JSON)
+    if not candidate_id:
+        selected_napbox_info = data.get('selected_napbox_info')
+        if selected_napbox_info:
+            try:
+                napbox_data = json.loads(selected_napbox_info)
+                candidate_id = str(napbox_data.get('napbox_id') or '').strip()
+                candidate_name = candidate_name or napbox_data.get('napbox_name') or ''
+            except Exception as e:
+                print(f" Error parsing napbox info (non-blocking): {e}")
+
+    if candidate_id:
+        try:
+            check_napbox = execute_query(
+                "SELECT id, name FROM napboxes WHERE id = %s LIMIT 1",
+                (candidate_id,),
+                fetch_one=True
+            )
+            if check_napbox:
+                preferred_napbox_id = check_napbox['id']
+                # Gamitin ang pangalan mula sa DB para laging tama
+                preferred_napbox_name = check_napbox.get('name') or candidate_name
+                print(f" User NAP Box: {preferred_napbox_name} (ID: {preferred_napbox_id})")
             else:
-                print(" No NAP box in coverage (out of radius) — proceeding with NULL, application allowed")
+                print(f" NAP Box ID {candidate_id} not in DB — proceeding with NULL")
         except Exception as e:
-            print(f" Error parsing napbox info (non-blocking): {e}")
+            print(f" NAP box lookup failed (non-blocking): {e}")
     else:
-        print(" No selected_napbox_info sent from form — proceeding with NULL")
+        print(" No NAP box in coverage — proceeding with NULL, application allowed")
 
     # ========== CHECK IF APPLICATION ALREADY EXISTS (for re-apply) ==========
     if is_reapply and original_application_id:
