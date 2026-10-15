@@ -2317,6 +2317,11 @@ def check_email_duplicate():
         
         if not email:
             return jsonify({"available": False, "message": "Email is required"}), 400
+
+        # Format + domain (MX) check, para lumabas agad ang error sa ilalim ng email field
+        email_ok, email_err = is_valid_email(email)
+        if not email_ok:
+            return jsonify({"available": False, "message": email_err})
         
         # Direct MySQL connection (para iwas sa execute_query issue)
         connection = get_db_connection()
