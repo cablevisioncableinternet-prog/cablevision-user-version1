@@ -253,7 +253,7 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                         <div class="col-12 col-md-6">
                             <div class="form-group-modern">
                                 <label class="form-label-modern">Email Address <span class="required-star">*</span></label>
-                                <input class="form-control-modern" name="email" placeholder="only @gmail.com or @yahoo.com" required>
+                                <input class="form-control-modern" name="email" placeholder="e.g., juan.delacruz@gmail.com" autocomplete="email" required>
                                 <div id="email-duplicate-error" class="error-message" style="display: none;"></div>
                             </div>
                         </div>
@@ -3458,14 +3458,18 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
         function validateEmail(email) {
             if (!email || email.trim() === '') return false;
             const emailValue = email.trim().toLowerCase();
+            if (emailValue.length > 254) return false;
             if (!emailValue.includes('@')) return false;
             const parts = emailValue.split('@');
             if (parts.length !== 2) return false;
             let localPart = parts[0];
             let domain = parts[1];
-            const allowedDomains = ['gmail.com', 'yahoo.com'];
-            if (!allowedDomains.includes(domain)) return false;
-            if (localPart.length === 0) return false;
+
+            // Domain: kahit anong valid domain (hal. gmail.com, outlook.com, kumpanya.com, negosyo.ph, pangalanmo.me)
+            const domainRegex = /^(?=.{1,253}$)([a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,}$/;
+            if (!domainRegex.test(domain)) return false;
+
+            if (localPart.length === 0 || localPart.length > 64) return false;
             if (localPart.includes('..')) return false;
             if (localPart.startsWith('.') || localPart.endsWith('.')) return false;
             const allowedCharsRegex = /^[a-zA-Z0-9._+-]+$/;
@@ -3505,7 +3509,7 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
             if (!email || email.trim() === '') { removeEmailError(); return true; }
             if (validateEmail(email)) { removeEmailError(); return true; }
             else {
-                addEmailError('Please enter a valid email address. Only @gmail.com or @yahoo.com is allowed. Format: username@gmail.com or username@yahoo.com (username can contain letters, numbers, dots, underscores, plus, hyphens, but cannot start/end with special characters or have consecutive dots)');
+                addEmailError('Please enter a valid email address (e.g., juan.delacruz@gmail.com or info@kumpanya.com). The part before @ may contain letters, numbers, dots, underscores, plus and hyphens, but cannot start or end with a special character or have consecutive dots.');
                 return false;
             }
         }

@@ -1746,6 +1746,11 @@ def submit_application():
     if not email:
         return 'Email is required', 400
     
+    email = (email or '').strip().lower()
+    email_ok, email_err = is_valid_email(email)
+    if not email_ok:
+        return email_err, 400
+
     if session.get('email_verified') != email:
         return 'Please verify your email address before submitting.', 400
     
@@ -2689,6 +2694,40 @@ def is_email_duplicate_allowed_with_reapply_check(email, application_number):
 
 
 
+import re
+import dns.resolver
+
+EMAIL_REGEX = re.compile(
+    r"^[A-Za-z0-9](?:[A-Za-z0-9._%+\-]{0,62}[A-Za-z0-9])?@"
+    r"(?:[A-Za-z0-9](?:[A-Za-z0-9\-]{0,61}[A-Za-z0-9])?\.)+[A-Za-z]{2,}$"
+)
+
+def is_valid_email(email):
+    """Ibabalik ang (True, '') kung valid, o (False, 'error message')."""
+    email = (email or "").strip().lower()
+
+    if len(email) > 254 or not EMAIL_REGEX.match(email) or ".." in email:
+        return False, "Please enter a valid email address."
+
+    domain = email.rsplit("@", 1)[1]
+
+    try:
+        resolver = dns.resolver.Resolver()
+        resolver.lifetime = 3  # max 3 segundo
+        try:
+            resolver.resolve(domain, "MX")
+        except dns.resolver.NoAnswer:
+            # Walang MX, subukan ang A record
+            resolver.resolve(domain, "A")
+    except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
+        return False, "This email domain does not exist or cannot receive emails."
+    except Exception:
+        # Timeout o DNS error: huwag harangin ang user, sasalo na ang OTP
+        pass
+
+    return True, ""
+
+
 @app.route("/send-verification-code", methods=["POST"])
 def send_verification_code():
     import requests
@@ -2722,6 +2761,17 @@ def send_verification_code():
             }), 400
 
         email = email.strip().lower()
+
+        # ============================================================
+        # EMAIL FORMAT + DOMAIN (MX) CHECK
+        # ============================================================
+
+        email_ok, email_err = is_valid_email(email)
+        if not email_ok:
+            return jsonify({
+                "success": False,
+                "message": email_err
+            }), 400
 
         # ============================================================
         # DUPLICATE EMAIL CHECK
@@ -3184,6 +3234,9 @@ def verify_email_code():
         
         if not email or not code:
             return jsonify({"success": False, "message": "Email and code are required"}), 400
+
+        email = email.strip().lower()
+        code = str(code).strip()
         
         stored_data = verification_codes.get(email)
         
