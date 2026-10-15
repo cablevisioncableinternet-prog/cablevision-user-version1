@@ -2715,20 +2715,28 @@ def is_valid_email(email):
         return False, "Please enter a valid email address."
 
     domain = email.rsplit("@", 1)[1]
+    domain_error = "This email domain does not exist or cannot receive emails."
 
     try:
         resolver = dns.resolver.Resolver()
         resolver.lifetime = 3  # max 3 segundo
-        try:
-            resolver.resolve(domain, "MX")
-        except dns.resolver.NoAnswer:
-            # Walang MX, subukan ang A record
-            resolver.resolve(domain, "A")
-    except (dns.resolver.NXDOMAIN, dns.resolver.NoAnswer):
-        return False, "This email domain does not exist or cannot receive emails."
-    except Exception:
+        answers = resolver.resolve(domain, "MX")
+        hosts = [str(r.exchange).rstrip(".") for r in answers]
+        print(f"[EMAIL CHECK] {domain} MX records: {hosts}")
+
+        # "Null MX" = sinasabi ng domain na hindi ito tumatanggap ng email
+        if all(h == "" for h in hosts):
+            return False, domain_error
+
+    except dns.resolver.NXDOMAIN:
+        print(f"[EMAIL CHECK] {domain} does not exist")
+        return False, domain_error
+    except dns.resolver.NoAnswer:
+        print(f"[EMAIL CHECK] {domain} has no MX record")
+        return False, domain_error
+    except Exception as e:
         # Timeout o DNS error: huwag harangin ang user, sasalo na ang OTP
-        pass
+        print(f"[EMAIL CHECK] DNS error for {domain}: {type(e).__name__}: {e}")
 
     return True, ""
 
