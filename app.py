@@ -1868,15 +1868,14 @@ def submit_application():
     if candidate_id:
         try:
             check_napbox = execute_query(
-                "SELECT id, name FROM napboxes WHERE id = %s LIMIT 1",
+                "SELECT id FROM napboxes WHERE id = %s LIMIT 1",
                 (candidate_id,),
                 fetch_one=True
             )
+            print(f" DEBUG napbox lookup result: {check_napbox}")
             if check_napbox:
                 preferred_napbox_id = check_napbox['id']
-                # Gamitin ang pangalan mula sa DB para laging tama
-                preferred_napbox_name = check_napbox.get('name') or candidate_name
-                print(f" User NAP Box: {preferred_napbox_name} (ID: {preferred_napbox_id})")
+                preferred_napbox_name = candidate_name
             else:
                 print(f" NAP Box ID {candidate_id} not in DB — proceeding with NULL")
         except Exception as e:
