@@ -5528,6 +5528,50 @@ def user_review_status():
     })
 
 
+
+INSTALLATION_REVIEW_TYPE = "installation"  # dapat kasama sa REVIEW_TYPES mo
+
+
+def get_review_plan_name(user_id, transaction_type, transaction_id):
+    """Kukunin ang plan name ng user para i-save sa review."""
+    try:
+        # TODO: PALITAN ang table/column ayon sa schema mo
+        rows = execute_query(
+            "SELECT plan_name FROM applications WHERE user_id = %s ORDER BY id DESC LIMIT 1",
+            (user_id,),
+            fetch=True
+        ) or []
+        if rows and rows[0].get("plan_name"):
+            return rows[0]["plan_name"]
+    except Exception as e:
+        print("get_review_plan_name error:", e)
+    return None
+
+
+def fetch_my_reviews(user_id):
+    rows = execute_query(
+        """
+        SELECT id, transaction_type, transaction_id, plan_name, rating,
+               comment, is_anonymous, created_at, updated_at
+        FROM reviews
+        WHERE user_id = %s
+        ORDER BY COALESCE(updated_at, created_at) DESC
+        """,
+        (user_id,),
+        fetch=True
+    ) or []
+
+    result = []
+    for r in rows:
+        item = dict(r)
+        item["is_anonymous"] = bool(item.get("is_anonymous"))
+        item["created_at"] = str(item["created_at"]) if item.get("created_at") else None
+        item["updated_at"] = str(item["updated_at"]) if item.get("updated_at") else None
+        result.append(item)
+    return result
+
+
+
 @app.route("/api/user/submit-review", methods=["POST"])
 def user_submit_review():
     user_id = get_review_user_id()
@@ -5551,12 +5595,17 @@ def user_submit_review():
         return jsonify({"success": False, "already_reviewed": True,
                         "error": "You already submitted a review for this."}), 409
 
+    # Plan name ay kinukuha ng server (hindi galing sa browser)
+    plan_name = get_review_plan_name(user_id, transaction_type, transaction_id)
+
     result = execute_query(
         """
-        INSERT INTO reviews (user_id, transaction_type, transaction_id, rating, comment, is_anonymous)
-        VALUES (%s, %s, %s, %s, %s, %s)
+        INSERT INTO reviews (user_id, transaction_type, transaction_id, plan_name,
+                             rating, comment, is_anonymous)
+        VALUES (%s, %s, %s, %s, %s, %s, %s)
         """,
-        (user_id, transaction_type, transaction_id, rating, comment or None, is_anonymous)
+        (user_id, transaction_type, transaction_id, plan_name,
+         rating, comment or None, is_anonymous)
     )
     if result is None:
         return jsonify({"success": False, "error": "Could not save your review. Please try again."}), 500
@@ -5597,6 +5646,65 @@ def user_update_review():
         return jsonify({"success": False, "error": "Could not update your review. Please try again."}), 500
 
     return jsonify({"success": True, "message": "Your review has been updated."})
+
+@app.route("/user/reviews")
+def user_reviews_page():
+    return render_template("user-reviews.html")
+
+
+@app.route("/api/user/my-reviews")
+def user_my_reviews():
+    user_id = get_review_user_id()
+    if not user_id:
+        return jsonify({"success": False, "error": "Not logged in"}), 401
+
+    ensure_reviews_table()
+
+    reviews = fetch_my_reviews(user_id)
+    full_name = get_review_full_name(user_id)
+
+    # One-time installation review: lalabas ang card kung wala pang review
+    pending = []
+    inst_id = get_review_transaction_id(user_id, INSTALLATION_REVIEW_TYPE, None)
+    if inst_id and not get_existing_review(user_id, INSTALLATION_REVIEW_TYPE, inst_id):
+        pending.append({
+            "transaction_type": INSTALLATION_REVIEW_TYPE,
+            "transaction_id": inst_id,
+            "plan_name": get_review_plan_name(user_id, INSTALLATION_REVIEW_TYPE, inst_id)
+        })
+
+    return jsonify({
+        "success": True,
+        "full_name": full_name,
+        "masked_name": mask_name(full_name),
+        "reviews": reviews,
+        "pending": pending
+    })
+
+
+@app.route("/api/user/delete-review", methods=["POST"])
+def user_delete_review():
+    user_id = get_review_user_id()
+    if not user_id:
+        return jsonify({"success": False, "error": "Not logged in"}), 401
+
+    data = request.get_json(silent=True) or {}
+    try:
+        review_id = int(data.get("id"))
+    except (TypeError, ValueError):
+        return jsonify({"success": False, "error": "Invalid review."}), 400
+
+    ensure_reviews_table()
+
+    # user_id check = hindi mabubura ang review ng iba
+    result = execute_query(
+        "DELETE FROM reviews WHERE id = %s AND user_id = %s",
+        (review_id, user_id)
+    )
+    if result is None:
+        return jsonify({"success": False, "error": "Could not delete your review."}), 500
+
+    return jsonify({"success": True, "message": "Your review has been deleted."})
 
 
 # ===============================

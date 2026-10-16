@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Cablevision | Reviews & Ratings</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <link rel="shortcut icon" href="{{ url_for('static', filename='cablevision.jpg') }}?v=123" type="image/jpeg">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/user-dashboard.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/user-notification-system.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/user-reviews.css') }}">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+<!-- ============ PAGE GUARD ============ -->
+<script>
+(function() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlTabId = urlParams.get('tab_id');
+  const sessionTabId = sessionStorage.getItem('tab_id');
+  const isLoggedIn = sessionStorage.getItem('username') && sessionStorage.getItem('userType') === 'user';
+  if (!isLoggedIn) { window.location.replace('/'); return; }
+  if (!urlTabId && sessionTabId) {
+    window.location.replace(window.location.pathname + '?tab_id=' + sessionTabId); return;
+  }
+  if (urlTabId && !sessionTabId) { sessionStorage.setItem('tab_id', urlTabId); window.location.reload(); return; }
+  if (urlTabId && sessionTabId && urlTabId !== sessionTabId) {
+    sessionStorage.setItem('tab_id', urlTabId); window.location.reload(); return;
+  }
+  history.replaceState(null, null, window.location.href);
+})();
+</script>
+
+<div id="toast"></div>
+
+<!-- ============ SIDEBAR ============ -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <h2>Cablevision</h2>
+    <p>Subscribers Portal</p>
+  </div>
+
+  <nav class="sidebar-menu">
+    <ul>
+      <li>
+        <a href="/user/dashboard">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/>
+            <rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>
+          </svg>
+          <span class="menu-text">Dashboard</span>
+        </a>
+      </li>
+      <li>
+        <a href="/user/change-plan">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 11a8.1 8.1 0 0 0-15.5-2m-.5-4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/>
+          </svg>
+          <span class="menu-text">Change Plan</span>
+        </a>
+      </li>
+      <li>
+        <a href="/user/request-termination">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <path d="M14 2v6h6"/><path d="M8 15h8"/>
+          </svg>
+          <span class="menu-text">Request Termination</span>
+        </a>
+      </li>
+      <li>
+        <a href="/user/transactions">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <path d="M14 2v6h6"/><path d="M8 13h8M8 17h5"/>
+          </svg>
+          <span class="menu-text">My Transactions</span>
+        </a>
+      </li>
+      <li class="active">
+        <a href="/user/reviews">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+          </svg>
+          <span class="menu-text">Reviews & Ratings</span>
+        </a>
+      </li>
+    </ul>
+
+    <div class="sidebar-description">
+      <div class="desc-item">
+        <i class="fas fa-star"></i>
+        <div>
+          <strong>Rate Our Service</strong>
+          <span>Share your experience</span>
+        </div>
+      </div>
+      <div class="desc-item">
+        <i class="fas fa-comment-dots"></i>
+        <div>
+          <strong>Your Feedback</strong>
+          <span>Helps us improve</span>
+        </div>
+      </div>
+      <div class="desc-item">
+        <i class="fas fa-users"></i>
+        <div>
+          <strong>Community</strong>
+          <span>See what others say</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sidebar-footer">
+      <p>© 2026 Cablevision Systems Corporation</p>
+      <p>All rights reserved.</p>
+    </div>
+  </nav>
+</aside>
+
+<!-- ============ TOP BAR ============ -->
+<div class="top-bar">
+  <button class="hamburger" id="hamburgerBtn"><span></span><span></span><span></span></button>
+  <div class="top-bar-left"></div>
+  <div class="top-bar-right">
+    <div class="notification-dropdown">
+      <button id="userNotificationBtn" class="notification-btn">
+        <i class="fas fa-bell"></i>
+        <span id="userNotificationBadge" class="notification-badge" style="display:none;">0</span>
+      </button>
+      <div class="notification-menu" id="userNotificationMenu">
+        <div class="notification-header">
+          <h4>My Notifications</h4>
+          <button id="userMarkAllReadBtn" class="mark-read-btn">Mark all as read</button>
+        </div>
+        <div class="notification-list" id="userNotificationList">
+          <div class="notification-empty"><i class="fas fa-bell-slash"></i><p>No notifications</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="profile-dropdown">
+      <button id="profileBtn">
+        <img src="" alt="Profile" class="profile-icon" id="profileIcon">
+        <span id="profileName"></span>
+        <i class="fas fa-chevron-down"></i>
+      </button>
+      <ul class="dropdown-menu" id="profileMenu">
+        <li><a href="/user/profile" id="profileLink"><i class="fas fa-user-circle"></i> Profile</a></li>
+        <li><a href="/user/login-history" id="loginHistoryLink"><i class="fas fa-history"></i> Login History</a></li>
+        <li><a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MAIN CONTENT ============ -->
+<main class="main-content">
+
+  <div class="dashboard-header-card">
+    <div class="dashboard-header-left">
+      <h1>Reviews & Ratings</h1>
+      <p>Manage the reviews you've shared about Cablevision</p>
+    </div>
+    <div class="dashboard-header-right">
+      <div class="date-box"><i class="fas fa-calendar-alt"></i> <span id="currentDay">Loading...</span>, <span id="currentDate">Loading...</span></div>
+      <div class="time-box"><i class="fas fa-clock"></i> <span id="liveTime">Loading...</span></div>
+    </div>
+  </div>
+
+  <!-- PENDING (installation) -->
+  <section class="card pending-review-section" id="pendingSection" style="display:none;">
+    <h2><i class="fas fa-bell"></i> Pending Review</h2>
+    <p class="security-intro">You haven't reviewed your installation yet. This can only be submitted once.</p>
+    <div id="pendingList"></div>
+  </section>
+
+  <!-- ALL MY REVIEWS -->
+  <section class="card all-reviews-section">
+    <div class="all-reviews-header">
+      <div>
+        <h2><i class="fas fa-star"></i> My Reviews <span class="review-count-pill" id="myReviewsCount">0</span></h2>
+        <p class="security-intro">These are the reviews you submitted from your dashboard, transactions, and installation.</p>
+      </div>
+    </div>
+    <div class="all-reviews-list" id="myReviewsList">
+      <div class="review-empty"><i class="fas fa-spinner fa-spin"></i><p>Loading your reviews...</p></div>
+    </div>
+  </section>
+
+</main>
+
+<!-- EDIT REVIEW MODAL -->
+<div class="review-modal" id="editReviewModal">
+  <div class="review-modal-box">
+    <button type="button" class="review-modal-close" id="closeEditReview">&times;</button>
+    <h3><i class="fas fa-pen"></i> Edit Review</h3>
+    <p class="review-modal-sub" id="editReviewContext"></p>
+
+    <div class="star-rating-input" id="editStarInput">
+      <button type="button" class="star-btn" data-value="1"><i class="far fa-star"></i></button>
+      <button type="button" class="star-btn" data-value="2"><i class="far fa-star"></i></button>
+      <button type="button" class="star-btn" data-value="3"><i class="far fa-star"></i></button>
+      <button type="button" class="star-btn" data-value="4"><i class="far fa-star"></i></button>
+      <button type="button" class="star-btn" data-value="5"><i class="far fa-star"></i></button>
+    </div>
+    <div class="star-rating-hint" id="editStarHint">Select a rating</div>
+
+    <textarea id="editComment" class="review-input review-textarea" rows="4" maxlength="2000"
+              placeholder="Share your experience (optional)"></textarea>
+
+    <label class="review-checkbox-label review-modal-anon">
+      <input type="checkbox" id="editAnonymous"> <span>Post as anonymous</span>
+    </label>
+
+    <div class="review-form-actions">
+      <button type="button" class="review-btn review-btn-light" id="cancelEditReview">Cancel</button>
+      <button type="button" class="review-btn review-btn-primary" id="saveEditReview">
+        <i class="fas fa-save"></i> <span id="saveEditLabel">Save Changes</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="review-modal" id="deleteReviewModal">
+  <div class="review-modal-box review-modal-small">
+    <h3><i class="fas fa-trash-alt"></i> Delete Review</h3>
+    <p class="review-modal-sub">Are you sure you want to delete this review? This cannot be undone.</p>
+    <div class="review-form-actions">
+      <button type="button" class="review-btn review-btn-light" id="cancelDeleteReview">Cancel</button>
+      <button type="button" class="review-btn review-btn-danger" id="confirmDeleteReview">
+        <i class="fas fa-trash-alt"></i> <span id="confirmDeleteLabel">Delete</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- LOGOUT MODAL -->
+<div id="logoutModal" class="modal logout-modal">
+  <div class="modal-content logout-modal-content">
+    <span class="close-btn logout-close-btn" id="closeLogoutModal">&times;</span>
+    <h2 class="logout-title">Confirm Logout</h2>
+    <p class="logout-message">Are you sure you want to logout?</p>
+    <div class="logout-actions">
+      <button id="cancelLogout" class="btn logout-cancel"><i class="fas fa-times"></i> Cancel</button>
+      <button id="confirmLogout" class="btn logout-confirm"><i class="fas fa-sign-out-alt"></i> Logout</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SCRIPTS ============ -->
+<script src="{{ url_for('static', filename='js/user-dashboard.js') }}"></script>
+<script src="/static/js/user-notification-system.js"></script>
+<script>
+// ============================================================
+// REVIEWS PAGE SCRIPT
+// ============================================================
+const RATING_LABELS = {
+  1: "Poor - We're sorry to hear that",
+  2: "Fair - We can do better",
+  3: "Good - Thanks for the feedback",
+  4: "Very Good - Glad you liked it!",
+  5: "Excellent - Thank you so much!"
+};
+
+// Palitan/dagdagan ayon sa REVIEW_TYPES mo
+const TYPE_LABELS = {
+  installation: 'Installation',
+  plan_change: 'Plan Change',
+  termination: 'Termination',
+  payment: 'Payment'
+};
+
+let allReviews = [];
+let maskedName = 'Customer';
+let fullName = 'Customer';
+let editing = null;      // review object na ine-edit
+let editRating = 0;
+let deletingId = null;
+
+function escapeHtmlR(str) {
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+}
+function typeLabel(t) {
+  return TYPE_LABELS[t] || String(t || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+function renderStars(rating) {
+  let html = '';
+  for (let i = 1; i <= 5; i++) html += `<i class="${i <= rating ? 'fas' : 'far'} fa-star"></i>`;
+  return html;
+}
+function formatDateShort(str) {
+  if (!str) return '';
+  const d = new Date(String(str).replace(' ', 'T'));
+  if (isNaN(d.getTime())) return str;
+  return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+async function postJSON(url, body) {
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  return res.json();
+}
+
+// ---------- LOAD ----------
+async function loadMyReviews() {
+  try {
+    const res = await fetch('/api/user/my-reviews');
+    const data = await res.json();
+    if (!data.success) {
+      document.getElementById('myReviewsList').innerHTML =
+        `<div class="review-empty"><i class="fas fa-exclamation-circle"></i><p>${escapeHtmlR(data.error || 'Failed to load reviews.')}</p></div>`;
+      return;
+    }
+    allReviews = data.reviews || [];
+    maskedName = data.masked_name || 'Customer';
+    fullName = data.full_name || 'Customer';
+    renderPending(data.pending || []);
+    renderReviews();
+  } catch (e) {
+    console.error('loadMyReviews', e);
+    document.getElementById('myReviewsList').innerHTML =
+      `<div class="review-empty"><i class="fas fa-wifi"></i><p>Network error. Please refresh.</p></div>`;
+  }
+}
+
+// ---------- PENDING (installation, one-time) ----------
+function renderPending(list) {
+  const sec = document.getElementById('pendingSection');
+  const box = document.getElementById('pendingList');
+  if (!list.length) { sec.style.display = 'none'; box.innerHTML = ''; return; }
+  sec.style.display = 'block';
+
+  box.innerHTML = list.map((p, idx) => `
+    <div class="review-card pending-card" data-idx="${idx}">
+      <div class="review-card-header">
+        <div class="review-card-user">
+          <div class="review-card-avatar"><i class="fas fa-tools"></i></div>
+          <div class="review-card-user-info">
+            <div class="review-card-name">${escapeHtmlR(typeLabel(p.transaction_type))} Review</div>
+            <div class="review-card-meta">
+              <span class="review-card-plan"><i class="fas fa-wifi"></i> ${escapeHtmlR(p.plan_name || 'Cablevision Service')}</span>
+            </div>
+          </div>
+        </div>
+        <div class="review-card-badges"><span class="review-badge review-badge-pending">One-time only</span></div>
+      </div>
+
+      <div class="star-rating-input pending-stars" data-idx="${idx}">
+        ${[1,2,3,4,5].map(v => `<button type="button" class="star-btn" data-value="${v}"><i class="far fa-star"></i></button>`).join('')}
+      </div>
+      <div class="star-rating-hint pending-hint">Select a rating</div>
+
+      <textarea class="review-input review-textarea pending-comment" rows="3" maxlength="2000"
+                placeholder="How was your installation experience? (optional)"></textarea>
+
+      <label class="review-checkbox-label review-modal-anon">
+        <input type="checkbox" class="pending-anon"> <span>Post as anonymous</span>
+      </label>
+
+      <div class="review-form-actions">
+        <button type="button" class="review-btn review-btn-primary pending-submit" data-idx="${idx}">
+          <i class="fas fa-paper-plane"></i> <span>Submit Review</span>
+        </button>
+      </div>
+    </div>
+  `).join('');
+
+  box.dataset.pending = JSON.stringify(list);
+  box.dataset.ratings = JSON.stringify(list.map(() => 0));
+}
+
+document.getElementById('pendingList').addEventListener('click', async (e) => {
+  const box = document.getElementById('pendingList');
+  const starBtn = e.target.closest('.pending-stars .star-btn');
+  if (starBtn) {
+    const wrap = starBtn.closest('.pending-stars');
+    const idx = parseInt(wrap.dataset.idx);
+    const val = parseInt(starBtn.dataset.value);
+    const ratings = JSON.parse(box.dataset.ratings || '[]');
+    ratings[idx] = val;
+    box.dataset.ratings = JSON.stringify(ratings);
+    wrap.querySelectorAll('.star-btn').forEach(b => {
+      const v = parseInt(b.dataset.value);
+      b.querySelector('i').className = v <= val ? 'fas fa-star' : 'far fa-star';
+      b.classList.toggle('active', v <= val);
+    });
+    wrap.parentElement.querySelector('.pending-hint').textContent = RATING_LABELS[val];
+    return;
+  }
+
+  const submitBtn = e.target.closest('.pending-submit');
+  if (!submitBtn) return;
+
+  const idx = parseInt(submitBtn.dataset.idx);
+  const pending = JSON.parse(box.dataset.pending || '[]')[idx];
+  const rating = (JSON.parse(box.dataset.ratings || '[]'))[idx] || 0;
+  const card = submitBtn.closest('.pending-card');
+
+  if (rating < 1) { showToast('Please select a star rating first.', 'error'); return; }
+
+  submitBtn.disabled = true;
+  try {
+    const data = await postJSON('/api/user/submit-review', {
+      type: pending.transaction_type,
+      transaction_id: pending.transaction_id,
+      rating: rating,
+      comment: card.querySelector('.pending-comment').value.trim(),
+      is_anonymous: card.querySelector('.pending-anon').checked
+    });
+    if (data.success) {
+      showToast(data.message || 'Thank you for your review!', 'success');
+      await loadMyReviews();
+    } else {
+      showToast(data.error || 'Failed to submit review.', 'error');
+      if (data.already_reviewed) await loadMyReviews();
+    }
+  } catch (err) {
+    showToast('Network error. Please try again.', 'error');
+  } finally {
+    submitBtn.disabled = false;
+  }
+});
+
+// ---------- RENDER REVIEWS ----------
+function renderReviewCard(r) {
+  const displayName = r.is_anonymous ? 'Anonymous Customer' : maskedName;
+  const edited = r.updated_at ? `<span class="review-card-date"><i class="fas fa-pen"></i> Edited ${formatDateShort(r.updated_at)}</span>` : '';
+  return `
+    <div class="review-card" data-id="${r.id}">
+      <div class="review-card-header">
+        <div class="review-card-user">
+          <div class="review-card-avatar"><i class="fas fa-user"></i></div>
+          <div class="review-card-user-info">
+            <div class="review-card-name">${escapeHtmlR(displayName)}</div>
+            <div class="review-card-meta">
+              <span class="review-card-plan"><i class="fas fa-wifi"></i> ${escapeHtmlR(r.plan_name || 'Cablevision Service')}</span>
+              <span class="review-card-date"><i class="fas fa-clock"></i> ${formatDateShort(r.created_at)}</span>
+              ${edited}
+            </div>
+          </div>
+        </div>
+        <div class="review-card-badges">
+          <span class="review-badge review-badge-type">${escapeHtmlR(typeLabel(r.transaction_type))}</span>
+          ${r.is_anonymous ? '<span class="review-badge review-badge-anon"><i class="fas fa-user-secret"></i> Anonymous</span>' : ''}
+        </div>
+      </div>
+
+      <div class="review-card-stars">${renderStars(r.rating)} <span class="review-card-rating-num">${r.rating}.0</span></div>
+      ${r.comment
+        ? `<div class="review-card-comment">${escapeHtmlR(r.comment)}</div>`
+        : `<div class="review-card-comment review-card-nocomment">No written comment.</div>`}
+
+      <div class="review-card-actions">
+        <button type="button" class="review-btn review-btn-secondary btn-edit-review" data-id="${r.id}">
+          <i class="fas fa-pen"></i> Edit
+        </button>
+        <button type="button" class="review-btn review-btn-ghost btn-delete-review" data-id="${r.id}">
+          <i class="fas fa-trash-alt"></i> Delete
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+function renderReviews() {
+  document.getElementById('myReviewsCount').textContent = allReviews.length;
+  const list = document.getElementById('myReviewsList');
+  if (!allReviews.length) {
+    list.innerHTML = `<div class="review-empty"><i class="far fa-comment-dots"></i><p>You haven't submitted any reviews yet.</p></div>`;
+    return;
+  }
+  list.innerHTML = allReviews.map(renderReviewCard).join('');
+}
+
+document.getElementById('myReviewsList').addEventListener('click', (e) => {
+  const editBtn = e.target.closest('.btn-edit-review');
+  const delBtn = e.target.closest('.btn-delete-review');
+  if (editBtn) openEditModal(parseInt(editBtn.dataset.id));
+  if (delBtn) openDeleteModal(parseInt(delBtn.dataset.id));
+});
+
+// ---------- EDIT MODAL ----------
+function setEditStars(val) {
+  editRating = val;
+  document.querySelectorAll('#editStarInput .star-btn').forEach(b => {
+    const v = parseInt(b.dataset.value);
+    b.querySelector('i').className = v <= val ? 'fas fa-star' : 'far fa-star';
+    b.classList.toggle('active', v <= val);
+  });
+  document.getElementById('editStarHint').textContent = RATING_LABELS[val] || 'Select a rating';
+}
+
+function openEditModal(id) {
+  editing = allReviews.find(r => r.id === id);
+  if (!editing) return;
+  document.getElementById('editReviewContext').textContent =
+    `${typeLabel(editing.transaction_type)} • ${editing.plan_name || 'Cablevision Service'}`;
+  setEditStars(editing.rating);
+  document.getElementById('editComment').value = editing.comment || '';
+  document.getElementById('editAnonymous').checked = !!editing.is_anonymous;
+  document.getElementById('editReviewModal').classList.add('show');
+}
+function closeEditModal() {
+  document.getElementById('editReviewModal').classList.remove('show');
+  editing = null;
+}
+
+document.querySelectorAll('#editStarInput .star-btn').forEach(btn => {
+  btn.addEventListener('click', () => setEditStars(parseInt(btn.dataset.value)));
+});
+document.getElementById('closeEditReview').addEventListener('click', closeEditModal);
+document.getElementById('cancelEditReview').addEventListener('click', closeEditModal);
+
+document.getElementById('saveEditReview').addEventListener('click', async () => {
+  if (!editing) return;
+  if (editRating < 1) { showToast('Please select a star rating.', 'error'); return; }
+
+  const btn = document.getElementById('saveEditReview');
+  const label = document.getElementById('saveEditLabel');
+  btn.disabled = true;
+  label.textContent = 'Saving...';
+
+  try {
+    const data = await postJSON('/api/user/update-review', {
+      type: editing.transaction_type,
+      transaction_id: editing.transaction_id,
+      rating: editRating,
+      comment: document.getElementById('editComment').value.trim(),
+      is_anonymous: document.getElementById('editAnonymous').checked
+    });
+    if (data.success) {
+      showToast(data.message || 'Review updated.', 'success');
+      closeEditModal();
+      await loadMyReviews();
+    } else {
+      showToast(data.error || 'Failed to update review.', 'error');
+    }
+  } catch (err) {
+    showToast('Network error. Please try again.', 'error');
+  } finally {
+    btn.disabled = false;
+    label.textContent = 'Save Changes';
+  }
+});
+
+// ---------- DELETE MODAL ----------
+function openDeleteModal(id) {
+  deletingId = id;
+  document.getElementById('deleteReviewModal').classList.add('show');
+}
+function closeDeleteModal() {
+  document.getElementById('deleteReviewModal').classList.remove('show');
+  deletingId = null;
+}
+document.getElementById('cancelDeleteReview').addEventListener('click', closeDeleteModal);
+
+document.getElementById('confirmDeleteReview').addEventListener('click', async () => {
+  if (!deletingId) return;
+  const btn = document.getElementById('confirmDeleteReview');
+  const label = document.getElementById('confirmDeleteLabel');
+  btn.disabled = true;
+  label.textContent = 'Deleting...';
+
+  try {
+    const data = await postJSON('/api/user/delete-review', { id: deletingId });
+    if (data.success) {
+      showToast(data.message || 'Review deleted.', 'success');
+      closeDeleteModal();
+      await loadMyReviews();
+    } else {
+      showToast(data.error || 'Failed to delete review.', 'error');
+    }
+  } catch (err) {
+    showToast('Network error. Please try again.', 'error');
+  } finally {
+    btn.disabled = false;
+    label.textContent = 'Delete';
+  }
+});
+
+// Isara ang modal kapag clicked ang backdrop
+['editReviewModal', 'deleteReviewModal'].forEach(id => {
+  document.getElementById(id).addEventListener('click', (e) => {
+    if (e.target.id === id) {
+      id === 'editReviewModal' ? closeEditModal() : closeDeleteModal();
+    }
+  });
+});
+
+// ---------- INIT ----------
+document.addEventListener('DOMContentLoaded', async () => {
+  function updateDateTime() {
+    const now = new Date();
+    const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    document.getElementById('currentDay').textContent = days[now.getDay()];
+    document.getElementById('currentDate').textContent = now.toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+    document.getElementById('liveTime').textContent = now.toLocaleTimeString();
+  }
+  setInterval(updateDateTime, 1000); updateDateTime();
+
+  const hamburger = document.getElementById('hamburgerBtn');
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  if (hamburger) hamburger.addEventListener('click', () => {
+    sidebar.classList.toggle('active');
+    hamburger.classList.toggle('active');
+    overlay.classList.toggle('active');
+  });
+  if (overlay) overlay.addEventListener('click', () => {
+    sidebar.classList.remove('active');
+    hamburger.classList.remove('active');
+    overlay.classList.remove('active');
+  });
+
+  await loadMyReviews();
+});
+</script>
+
+</body>
+</html>
