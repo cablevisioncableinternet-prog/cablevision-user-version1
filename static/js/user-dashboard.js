@@ -1778,6 +1778,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const counterEl = document.getElementById('reviewCommentCount');
 
     let selectedRating = 0;
+    let fullName = '';
+    let maskedName = '';
+
+    const anonEl = document.getElementById('reviewAnonymous');
+    const anonPreviewEl = document.getElementById('reviewAnonPreview');
+
+    function paintAnonPreview() {
+        if (!anonEl || !anonPreviewEl) return;
+        const shown = anonEl.checked ? maskedName : fullName;
+        anonPreviewEl.innerHTML = shown
+            ? `Your name will appear as: <strong>${escapeHtml(shown)}</strong>`
+            : '';
+    }
 
     function snoozeKey() {
         const uid = sessionStorage.getItem('user_id') || localStorage.getItem('user_id') || 'user';
@@ -1806,6 +1819,8 @@ document.addEventListener('DOMContentLoaded', function() {
         paintStars(0);
         commentEl.value = '';
         counterEl.textContent = '0';
+        if (anonEl) anonEl.checked = false;
+        paintAnonPreview();
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Review';
     }
@@ -1833,6 +1848,7 @@ document.addEventListener('DOMContentLoaded', function() {
     commentEl.addEventListener('input', () => {
         counterEl.textContent = commentEl.value.length;
     });
+    if (anonEl) anonEl.addEventListener('change', paintAnonPreview);
 
     async function submitReview() {
         if (!selectedRating) {
@@ -1850,7 +1866,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 body: JSON.stringify({
                     transaction_type: REVIEW_TYPE,
                     rating: selectedRating,
-                    comment: commentEl.value.trim()
+                    comment: commentEl.value.trim(),
+                    is_anonymous: anonEl ? anonEl.checked : false
                 })
             });
             const data = await res.json();
@@ -1893,6 +1910,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!res.ok) return;
             const data = await res.json();
             if (data.eligible && !data.reviewed) {
+                fullName = data.full_name || '';
+                maskedName = data.masked_name || '';
                 card.style.display = 'flex';
             }
         } catch (err) {

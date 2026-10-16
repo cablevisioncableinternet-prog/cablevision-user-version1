@@ -5288,9 +5288,19 @@ def server_time():
     })
 
 # ===============================
-# REVIEWS (INSTALLATION; ang iba ay idadagdag sa transactions page)
+# REVIEWS (installation, change plan, termination, reconnect)
 # ===============================
-REVIEW_TYPES = {"installation"}
+REVIEW_TYPES = {"installation", "change_plan", "termination", "reconnect"}
+
+# Naka-fix na mapping (hindi galing sa user input) kaya ligtas gamitin sa query
+REVIEW_REQUEST_TABLES = {
+    "change_plan": "plan_change_requests",
+    "termination": "termination_requests",
+    "reconnect": "reconnect_requests",
+}
+
+# Status ng request na puwede nang i-review (lowercase)
+REVIEWABLE_STATUSES = {"approved"}
 
 
 def ensure_reviews_table():
@@ -5302,7 +5312,9 @@ def ensure_reviews_table():
             transaction_id VARCHAR(100) NOT NULL,
             rating TINYINT NOT NULL,
             comment TEXT NULL,
+            is_anonymous TINYINT(1) NOT NULL DEFAULT 0,
             created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            updated_at DATETIME NULL DEFAULT NULL,
             UNIQUE KEY uq_review (user_id, transaction_type, transaction_id)
         )
     """)
@@ -5318,10 +5330,32 @@ def get_review_user_id():
     return session.get("user_id")
 
 
-def get_review_transaction_id(user_id, transaction_type):
+def mask_name(full_name):
+    """Shopee style: first at last letter lang ang kita, asterisk ang iba."""
+    name = " ".join((full_name or "").split())
+    if not name:
+        return "Anonymous"
+    if len(name) <= 2:
+        return name[0] + "*"
+    return name[0] + "*" * (len(name) - 2) + name[-1]
+
+
+def get_review_full_name(user_id):
+    user = execute_query(
+        "SELECT first_name, last_name FROM users WHERE user_id = %s LIMIT 1",
+        (user_id,), fetch_one=True
+    )
+    if user:
+        name = f"{user.get('first_name') or ''} {user.get('last_name') or ''}".strip()
+        if name:
+            return name
+    return user_id
+
+
+def get_review_transaction_id(user_id, transaction_type, transaction_id=None):
     """
     Ibabalik ang transaction_id kung puwedeng i-review ng user ang transaksyong ito,
-    o None kung hindi pa.
+    o None kung hindi pa o hindi sa kanya.
     """
     if transaction_type == "installation":
         user = execute_query(
@@ -5338,7 +5372,68 @@ def get_review_transaction_id(user_id, transaction_type):
         if not customer or customer.get("installation_status") != "Installed":
             return None
         return str(app_no)
-    return None
+
+    table = REVIEW_REQUEST_TABLES.get(transaction_type)
+    if not table or not transaction_id:
+        return None
+
+    row = execute_query(
+        f"SELECT status FROM {table} WHERE request_id = %s AND user_id = %s LIMIT 1",
+        (transaction_id, user_id), fetch_one=True
+    )
+    if not row:
+        return None
+    if (row.get("status") or "").strip().lower() not in REVIEWABLE_STATUSES:
+        return None
+    return str(transaction_id)
+
+
+def _review_ts(value):
+    if not value:
+        return None
+    if hasattr(value, "strftime"):
+        return value.strftime("%Y-%m-%d %H:%M:%S")
+    return str(value)
+
+
+def get_existing_review(user_id, transaction_type, transaction_id):
+    row = execute_query(
+        """
+        SELECT rating, comment, is_anonymous, created_at, updated_at
+        FROM reviews
+        WHERE user_id = %s AND transaction_type = %s AND transaction_id = %s
+        LIMIT 1
+        """,
+        (user_id, transaction_type, transaction_id), fetch_one=True
+    )
+    if not row:
+        return None
+    return {
+        "rating": int(row.get("rating") or 0),
+        "comment": row.get("comment") or "",
+        "is_anonymous": bool(row.get("is_anonymous")),
+        "created_at": _review_ts(row.get("created_at")),
+        "updated_at": _review_ts(row.get("updated_at")),
+    }
+
+
+def parse_review_payload(data):
+    """Ibabalik ang (transaction_type, request_id, rating, comment, is_anonymous, error)."""
+    transaction_type = (data.get("transaction_type") or "").strip()
+    request_id = (str(data.get("transaction_id") or "")).strip() or None
+    comment = (data.get("comment") or "").strip()[:500]
+    is_anonymous = 1 if data.get("is_anonymous") else 0
+
+    try:
+        rating = int(data.get("rating"))
+    except (TypeError, ValueError):
+        rating = 0
+
+    if transaction_type not in REVIEW_TYPES:
+        return None, None, None, None, None, "Invalid review type"
+    if rating < 1 or rating > 5:
+        return None, None, None, None, None, "Please select a rating from 1 to 5."
+    return transaction_type, request_id, rating, comment, is_anonymous, None
 
 
 @app.route("/api/user/review-status")
@@ -5353,23 +5448,22 @@ def user_review_status():
 
     ensure_reviews_table()
 
-    transaction_id = get_review_transaction_id(user_id, transaction_type)
+    transaction_id = get_review_transaction_id(
+        user_id, transaction_type, request.args.get("transaction_id")
+    )
     if not transaction_id:
         return jsonify({"eligible": False, "reviewed": False})
 
-    existing = execute_query(
-        """
-        SELECT id FROM reviews
-        WHERE user_id = %s AND transaction_type = %s AND transaction_id = %s
-        LIMIT 1
-        """,
-        (user_id, transaction_type, transaction_id), fetch_one=True
-    )
+    full_name = get_review_full_name(user_id)
+    review = get_existing_review(user_id, transaction_type, transaction_id)
 
     return jsonify({
         "eligible": True,
-        "reviewed": bool(existing),
-        "transaction_id": transaction_id
+        "reviewed": bool(review),
+        "transaction_id": transaction_id,
+        "full_name": full_name,
+        "masked_name": mask_name(full_name),
+        "review": review
     })
 
 
@@ -5379,52 +5473,71 @@ def user_submit_review():
     if not user_id:
         return jsonify({"success": False, "error": "Not logged in"}), 401
 
-    data = request.get_json(silent=True) or {}
-    transaction_type = (data.get("transaction_type") or "").strip()
-    comment = (data.get("comment") or "").strip()[:500]
-
-    try:
-        rating = int(data.get("rating"))
-    except (TypeError, ValueError):
-        rating = 0
-
-    if transaction_type not in REVIEW_TYPES:
-        return jsonify({"success": False, "error": "Invalid review type"}), 400
-    if rating < 1 or rating > 5:
-        return jsonify({"success": False, "error": "Please select a rating from 1 to 5."}), 400
+    transaction_type, request_id, rating, comment, is_anonymous, err = parse_review_payload(
+        request.get_json(silent=True) or {}
+    )
+    if err:
+        return jsonify({"success": False, "error": err}), 400
 
     ensure_reviews_table()
 
-    # Ang server ang nagtatakda ng transaction_id, hindi ang frontend
-    transaction_id = get_review_transaction_id(user_id, transaction_type)
+    # Ang server ang nagtatakda/nagve-verify ng transaction_id
+    transaction_id = get_review_transaction_id(user_id, transaction_type, request_id)
     if not transaction_id:
         return jsonify({"success": False, "error": "This transaction cannot be reviewed yet."}), 400
 
-    existing = execute_query(
-        """
-        SELECT id FROM reviews
-        WHERE user_id = %s AND transaction_type = %s AND transaction_id = %s
-        LIMIT 1
-        """,
-        (user_id, transaction_type, transaction_id), fetch_one=True
-    )
-    if existing:
+    if get_existing_review(user_id, transaction_type, transaction_id):
         return jsonify({"success": False, "already_reviewed": True,
                         "error": "You already submitted a review for this."}), 409
 
     result = execute_query(
         """
-        INSERT INTO reviews (user_id, transaction_type, transaction_id, rating, comment)
-        VALUES (%s, %s, %s, %s, %s)
+        INSERT INTO reviews (user_id, transaction_type, transaction_id, rating, comment, is_anonymous)
+        VALUES (%s, %s, %s, %s, %s, %s)
         """,
-        (user_id, transaction_type, transaction_id, rating, comment or None)
+        (user_id, transaction_type, transaction_id, rating, comment or None, is_anonymous)
     )
     if result is None:
         return jsonify({"success": False, "error": "Could not save your review. Please try again."}), 500
 
     return jsonify({"success": True, "message": "Thank you for your feedback!"})
 
-    
+
+@app.route("/api/user/update-review", methods=["POST"])
+def user_update_review():
+    user_id = get_review_user_id()
+    if not user_id:
+        return jsonify({"success": False, "error": "Not logged in"}), 401
+
+    transaction_type, request_id, rating, comment, is_anonymous, err = parse_review_payload(
+        request.get_json(silent=True) or {}
+    )
+    if err:
+        return jsonify({"success": False, "error": err}), 400
+
+    ensure_reviews_table()
+
+    transaction_id = get_review_transaction_id(user_id, transaction_type, request_id)
+    if not transaction_id:
+        return jsonify({"success": False, "error": "This transaction cannot be reviewed."}), 400
+
+    if not get_existing_review(user_id, transaction_type, transaction_id):
+        return jsonify({"success": False, "error": "No review found to edit."}), 404
+
+    result = execute_query(
+        """
+        UPDATE reviews
+        SET rating = %s, comment = %s, is_anonymous = %s, updated_at = NOW()
+        WHERE user_id = %s AND transaction_type = %s AND transaction_id = %s
+        """,
+        (rating, comment or None, is_anonymous, user_id, transaction_type, transaction_id)
+    )
+    if result is None:
+        return jsonify({"success": False, "error": "Could not update your review. Please try again."}), 500
+
+    return jsonify({"success": True, "message": "Your review has been updated."})
+
+
 # ===============================
 # GET ANNOUNCEMENTS (XAMPP/MYSQL VERSION)
 # ===============================
@@ -10270,12 +10383,6 @@ def cancel_termination_request():
         if conn:
             conn.close()
 
-
-
-# ===============================
-# I-DAGDAG ITO SA app.py MO
-# (kasama ng ibang user routes gaya ng /user/change-plan)
-# ===============================
 
 # ===============================
 # USER TRANSACTIONS PAGE

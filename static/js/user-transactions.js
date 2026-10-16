@@ -341,11 +341,219 @@ function openTransactionDetails(id) {
     `;
 
     modal.classList.add('show');
+    loadReviewSection(t);
 }
 
 function closeTransactionDetails() {
     const modal = document.getElementById('transactionDetailsModal');
     modal.classList.remove('show');
+}
+
+// ==================== REVIEW SECTION (SA DETAILS MODAL) ====================
+const REVIEW_TYPE_MAP = {
+    'Change Plan': 'change_plan',
+    'Termination': 'termination',
+    'Reconnection': 'reconnect'
+};
+const TRV_LABELS = ['Select a rating', 'Poor', 'Fair', 'Good', 'Very good', 'Excellent'];
+let reviewRenderToken = 0;
+
+function trvStarsHtml(value) {
+    let html = '';
+    for (let i = 1; i <= 5; i++) {
+        html += `<i class="fas fa-star ${i <= value ? 'on' : ''}"></i>`;
+    }
+    return html;
+}
+
+async function loadReviewSection(t) {
+    const box = document.getElementById('transactionReviewSection');
+    if (!box) return;
+
+    const type = REVIEW_TYPE_MAP[t.type];
+    const token = ++reviewRenderToken;   // iwas lumang response na papalit sa bago
+    box.innerHTML = '';
+    if (!type) return;
+
+    box.innerHTML = '<div class="trv-loading"><i class="fas fa-spinner fa-spin"></i> Loading review...</div>';
+
+    try {
+        const res = await fetch(`/api/user/review-status?type=${type}&transaction_id=${encodeURIComponent(t.id)}`);
+        const data = await res.json();
+        if (token !== reviewRenderToken) return;
+
+        if (!res.ok) { box.innerHTML = ''; return; }
+
+        if (!data.eligible) {
+            const st = (t.status || '').toLowerCase();
+            box.innerHTML = st === 'pending'
+                ? `<div class="trv-note"><i class="fas fa-info-circle"></i> You can review this request once it is approved.</div>`
+                : '';
+            return;
+        }
+
+        if (data.reviewed) renderReviewView(box, t, type, data);
+        else renderReviewPrompt(box, t, type, data);
+    } catch (err) {
+        console.error('Review section error:', err);
+        if (token === reviewRenderToken) box.innerHTML = '';
+    }
+}
+
+function renderReviewPrompt(box, t, type, data) {
+    box.innerHTML = `
+        <div class="trv-card">
+            <div class="trv-head">
+                <span class="trv-title"><i class="fas fa-star"></i> How was this service?</span>
+                <button type="button" class="trv-btn trv-btn-primary" id="trvRateBtn">
+                    <i class="fas fa-star"></i> Rate
+                </button>
+            </div>
+            <p class="trv-muted">Share your feedback to help us improve.</p>
+        </div>`;
+    document.getElementById('trvRateBtn').addEventListener('click', () => {
+        renderReviewForm(box, t, type, data, null);
+    });
+}
+
+function renderReviewView(box, t, type, data) {
+    const r = data.review;
+    const postedAs = r.is_anonymous ? data.masked_name : data.full_name;
+    const when = r.updated_at
+        ? `Edited ${formatDateTime12Hour(r.updated_at)}`
+        : formatDateTime12Hour(r.created_at);
+
+    box.innerHTML = `
+        <div class="trv-card">
+            <div class="trv-head">
+                <span class="trv-title"><i class="fas fa-star"></i> Your Review</span>
+                <button type="button" class="trv-btn trv-btn-ghost" id="trvEditBtn">
+                    <i class="fas fa-pen"></i> Edit
+                </button>
+            </div>
+            <div class="trv-stars">${trvStarsHtml(r.rating)}
+                <span class="trv-rating-text">${TRV_LABELS[r.rating] || ''}</span>
+            </div>
+            ${r.comment
+                ? `<p class="trv-comment">${escapeHtml(r.comment)}</p>`
+                : `<p class="trv-comment trv-muted">No comment</p>`}
+            <div class="trv-meta">Posted as <strong>${escapeHtml(postedAs)}</strong> &middot; ${escapeHtml(when)}</div>
+        </div>`;
+
+    document.getElementById('trvEditBtn').addEventListener('click', () => {
+        renderReviewForm(box, t, type, data, r);
+    });
+}
+
+function renderReviewForm(box, t, type, data, existing) {
+    const isEdit = !!existing;
+    let rating = isEdit ? existing.rating : 0;
+
+    let starButtons = '';
+    for (let i = 1; i <= 5; i++) {
+        starButtons += `<button type="button" class="trv-star" data-value="${i}" aria-label="${i} star${i > 1 ? 's' : ''}"><i class="fas fa-star"></i></button>`;
+    }
+
+    box.innerHTML = `
+        <div class="trv-card">
+            <div class="trv-head">
+                <span class="trv-title"><i class="fas fa-star"></i> ${isEdit ? 'Edit Your Review' : 'Rate This Service'}</span>
+            </div>
+            <div class="trv-stars-input" id="trvStars">${starButtons}</div>
+            <div class="trv-rating-label" id="trvRatingLabel"></div>
+            <textarea id="trvComment" class="trv-textarea" rows="3" maxlength="500"
+                      placeholder="Tell us what went well or what we can improve (optional)"></textarea>
+            <label class="trv-check">
+                <input type="checkbox" id="trvAnon">
+                <span>Post as anonymous</span>
+            </label>
+            <div class="trv-anon-preview" id="trvAnonPreview"></div>
+            <div class="trv-actions">
+                <button type="button" class="trv-btn trv-btn-ghost" id="trvCancelBtn">Cancel</button>
+                <button type="button" class="trv-btn trv-btn-primary" id="trvSaveBtn">
+                    <i class="fas fa-paper-plane"></i> ${isEdit ? 'Save Changes' : 'Submit Review'}
+                </button>
+            </div>
+        </div>`;
+
+    const starsWrap = document.getElementById('trvStars');
+    const stars = Array.from(starsWrap.querySelectorAll('.trv-star'));
+    const labelEl = document.getElementById('trvRatingLabel');
+    const commentEl = document.getElementById('trvComment');
+    const anonEl = document.getElementById('trvAnon');
+    const previewEl = document.getElementById('trvAnonPreview');
+    const saveBtn = document.getElementById('trvSaveBtn');
+    const cancelBtn = document.getElementById('trvCancelBtn');
+
+    function paint(value) {
+        stars.forEach(s => s.classList.toggle('on', Number(s.dataset.value) <= value));
+        labelEl.textContent = TRV_LABELS[value] || TRV_LABELS[0];
+    }
+
+    function paintPreview() {
+        const shown = anonEl.checked ? data.masked_name : data.full_name;
+        previewEl.innerHTML = `Your name will appear as: <strong>${escapeHtml(shown)}</strong>`;
+    }
+
+    commentEl.value = isEdit ? existing.comment : '';
+    anonEl.checked = isEdit ? existing.is_anonymous : false;
+    paint(rating);
+    paintPreview();
+
+    stars.forEach(s => {
+        s.addEventListener('click', () => { rating = Number(s.dataset.value); paint(rating); });
+        s.addEventListener('mouseenter', () => paint(Number(s.dataset.value)));
+    });
+    starsWrap.addEventListener('mouseleave', () => paint(rating));
+    anonEl.addEventListener('change', paintPreview);
+
+    cancelBtn.addEventListener('click', () => loadReviewSection(t));
+
+    saveBtn.addEventListener('click', async () => {
+        if (!rating) {
+            showToast('Please select a star rating.', 'error');
+            return;
+        }
+
+        saveBtn.disabled = true;
+        cancelBtn.disabled = true;
+        const originalHtml = saveBtn.innerHTML;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+        try {
+            const res = await fetch(isEdit ? '/api/user/update-review' : '/api/user/submit-review', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    transaction_type: type,
+                    transaction_id: t.id,
+                    rating: rating,
+                    comment: commentEl.value.trim(),
+                    is_anonymous: anonEl.checked
+                })
+            });
+            const result = await res.json();
+
+            if (res.ok && result.success) {
+                showToast(result.message || 'Review saved.', 'success');
+                loadReviewSection(t);
+            } else if (result.already_reviewed) {
+                showToast(result.error, 'info');
+                loadReviewSection(t);
+            } else {
+                showToast(result.error || 'Failed to save review.', 'error');
+                saveBtn.disabled = false;
+                cancelBtn.disabled = false;
+                saveBtn.innerHTML = originalHtml;
+            }
+        } catch (err) {
+            console.error('Save review error:', err);
+            showToast('Network error. Please try again.', 'error');
+            saveBtn.disabled = false;
+            cancelBtn.disabled = false;
+            saveBtn.innerHTML = originalHtml;
+        }
+    });
 }
 
 // ==================== PROFILE / ICON ====================

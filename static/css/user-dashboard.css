@@ -4626,3 +4626,20 @@ textarea.rc-input {
   .rv-modal-footer .rv-btn { width: 100%; }
   .rv-star { font-size: 28px; }
 }
+
+
+.rv-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #465368;
+  cursor: pointer;
+}
+
+.rv-check input { width: 15px; height: 15px; accent-color: #075a9e; cursor: pointer; }
+
+.rv-anon-preview { margin: 4px 0 0 23px; font-size: 11px; color: #778397; }
+.rv-anon-preview strong { color: #24364b; font-family: monospace; }
