@@ -628,19 +628,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
   setInterval(updateDateTime, 1000); updateDateTime();
 
-  const hamburger = document.getElementById('hamburgerBtn');
-  const sidebar = document.querySelector('.sidebar');
-  const overlay = document.getElementById('sidebarOverlay');
-  if (hamburger) hamburger.addEventListener('click', () => {
-    sidebar.classList.toggle('active');
-    hamburger.classList.toggle('active');
-    overlay.classList.toggle('active');
-  });
-  if (overlay) overlay.addEventListener('click', () => {
-    sidebar.classList.remove('active');
-    hamburger.classList.remove('active');
-    overlay.classList.remove('active');
-  });
+  // Hamburger/sidebar toggle ay hawak na ng user-dashboard.js, kaya hindi na ito dinadagdagan dito.
 
   await loadMyReviews();
 });
