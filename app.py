@@ -593,6 +593,57 @@ def serve_shared_uploads(filename):
     return send_from_directory(SHARED_UPLOADS_BASE, filename)
 
 
+def get_homepage_reviews():
+    """
+    Latest 5 reviews para sa homepage.
+    Hindi kailanman ibinabalik ang user_id o transaction_id.
+    Kapag anonymous ang review, masked name lang ang lalabas.
+    """
+    try:
+        rows = execute_query(
+            """
+            SELECT user_id, rating, comment, is_anonymous
+            FROM reviews
+            ORDER BY created_at DESC, id DESC
+            LIMIT 5
+            """,
+            fetch_all=True
+        ) or []
+
+        reviews = []
+        for row in rows:
+            full_name = ""
+            try:
+                user = execute_query(
+                    "SELECT first_name, last_name FROM users WHERE user_id = %s LIMIT 1",
+                    (row.get("user_id"),), fetch_one=True
+                )
+                if user:
+                    full_name = f"{user.get('first_name') or ''} {user.get('last_name') or ''}".strip()
+            except Exception as name_err:
+                print(f"Homepage reviews: hindi makuha ang pangalan: {name_err}")
+
+            if not full_name:
+                display_name = "Subscriber"
+            elif row.get("is_anonymous"):
+                display_name = mask_name(full_name)
+            else:
+                display_name = full_name
+
+            reviews.append({
+                "name": display_name,
+                "rating": max(0, min(5, int(row.get("rating") or 0))),
+                "comment": (row.get("comment") or "").strip()
+            })
+
+        print(f"Homepage reviews: {len(reviews)} found")
+        return reviews
+
+    except Exception as e:
+        print(f"Homepage reviews error: {e}")
+        return []
+
+
 @app.route("/")
 def home():
     try:
@@ -622,12 +673,55 @@ def home():
         # I-PRINT ANG BUONG plan_list
         print(f" plan_list: {plan_list}")
         
-        return render_template("user-homepage.html", plans=plan_list)
+        return render_template(
+            "user-homepage.html",
+            plans=plan_list,
+            reviews=get_homepage_reviews()
+        )
         
     except Exception as e:
         print(f"Home error: {e}")
-        return render_template("user-homepage.html", plans=[])
+        return render_template(
+            "user-homepage.html",
+            plans=[],
+            reviews=get_homepage_reviews()
+        )
 
+
+@app.route("/api/public/reviews")
+def public_latest_reviews():
+    """Latest 5 reviews para sa homepage (public, walang login)."""
+    ensure_reviews_table()
+
+    rows = execute_query(
+        """
+        SELECT r.id, r.rating, r.comment, r.is_anonymous, r.created_at,
+               u.first_name, u.last_name
+        FROM reviews r
+        LEFT JOIN users u ON u.user_id = r.user_id
+        ORDER BY r.created_at DESC, r.id DESC
+        LIMIT 5
+        """
+    ) or []
+
+    reviews = []
+    for row in rows:
+        full_name = f"{row.get('first_name') or ''} {row.get('last_name') or ''}".strip()
+        if not full_name:
+            full_name = "Anonymous"
+
+        # Kapag anonymous, naka-mask ang pangalan (Shopee style)
+        display_name = mask_name(full_name) if row.get("is_anonymous") else full_name
+
+        reviews.append({
+            "id": row.get("id"),
+            "rating": int(row.get("rating") or 0),
+            "comment": (row.get("comment") or "").strip(),
+            "name": display_name,
+            "created_at": _review_ts(row.get("created_at")),
+        })
+
+    return jsonify(reviews)
 
 # ===============================
 # GET PLANS FOR SUPERADMIN (XAMPP/MYSQL)
@@ -914,73 +1008,6 @@ def public_customer_plan_counts():
             except:
                 pass            
             
-
-# ===============================
-# PUBLIC REVIEWS (latest 5, para sa homepage)
-# ===============================
-REVIEW_TYPE_LABELS = {
-    "installation": "Application & Installation",
-    "change_plan": "Change Plan",
-    "termination": "Termination",
-    "reconnect": "Reconnection",
-}
-
-
-def mask_review_name(full_name):
-    """'Juan Dela Cruz' -> 'J***z'"""
-    compact = "".join((full_name or "").split())
-    if len(compact) <= 2:
-        return (compact[:1] or "S") + "***"
-    return f"{compact[0]}***{compact[-1]}"
-
-
-@app.route("/api/public/reviews")
-def public_reviews():
-    """
-    Public endpoint. Latest 5 reviews lang, bawat isa ay sariling card.
-    Hindi kailanman ipinapadala ang user_id, transaction_id, o email.
-    Kapag anonymous ang review, masked name (J***z) lang ang lalabas.
-    """
-    try:
-        rows = execute_query(
-            """
-            SELECT r.rating, r.comment, r.is_anonymous, r.transaction_type,
-                   r.created_at, u.first_name, u.last_name
-            FROM reviews r
-            LEFT JOIN users u ON u.user_id = r.user_id
-            ORDER BY r.created_at DESC, r.id DESC
-            LIMIT 5
-            """,
-            fetch_all=True
-        ) or []
-
-        reviews = []
-        for row in rows:
-            full_name = f"{row.get('first_name') or ''} {row.get('last_name') or ''}".strip()
-            if not full_name:
-                display_name = "Subscriber"
-            elif row.get("is_anonymous"):
-                display_name = mask_review_name(full_name)
-            else:
-                display_name = full_name
-
-            created = row.get("created_at")
-            date_text = created.strftime("%b %d, %Y") if hasattr(created, "strftime") else str(created or "")
-
-            reviews.append({
-                "name": display_name,
-                "rating": int(row.get("rating") or 0),
-                "comment": (row.get("comment") or "").strip(),
-                "service": REVIEW_TYPE_LABELS.get(row.get("transaction_type"), "Service"),
-                "date": date_text
-            })
-
-        return jsonify({"reviews": reviews})
-
-    except Exception as e:
-        print(f"Public reviews error: {e}")
-        return jsonify({"reviews": []})
-
 
 @app.route('/api/public/announcements')
 def public_announcements():

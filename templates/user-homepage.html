@@ -149,19 +149,23 @@
     </section>
 
     <!-- ============================================================
-    SUBSCRIBER REVIEWS — LATEST 5 (nakatago hanggang may review)
+    CUSTOMER REVIEWS — LATEST 5 (DYNAMIC)
     ============================================================ -->
     <section class="reviews-section reveal-on-scroll" id="reviews">
-        <div class="container">
-            <div class="text-center">
-                <span class="section-label">Reviews</span>
-                <h2 class="section-title-lg">What Our <span class="highlight">Subscribers Say</span></h2>
-                <p class="section-sub">Real feedback from Cablevision subscribers about our application, installation, and services.</p>
-            </div>
+        <div class="container text-center">
+            <span class="section-label">Reviews</span>
+            <h2 class="section-title-lg">What Our <span class="highlight">Customers Say</span></h2>
+            <p class="section-sub">Real feedback from Cablevision subscribers.</p>
 
-            <div class="reviews-list" id="reviewsList"></div>
+            <div class="reviews-grid" id="reviewsGrid">
+                <div class="reviews-loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading reviews...</p>
+                </div>
+            </div>
         </div>
     </section>
+
 
     <!-- ============================================================
     VIDEO CAROUSEL — REDESIGNED "WATCH OUR LATEST VIDEOS"
@@ -2433,63 +2437,52 @@ async function fetchCustomerCounts() {
             if (e.target === this) closeImagePreview();
         });
 
-        // ================= SUBSCRIBER REVIEWS (LATEST 5) =================
-        function reviewStarsHtml(value) {
-            let html = '';
-            for (let i = 1; i <= 5; i++) {
-                html += `<i class="fas fa-star ${i <= value ? 'on' : ''}"></i>`;
-            }
-            return html;
-        }
 
-        async function loadReviews() {
-            const section = document.getElementById('reviews');
-            const list = document.getElementById('reviewsList');
-            if (!section || !list) {
-                console.warn('Reviews: wala ang #reviews o #reviewsList sa page');
-                return;
-            }
+                // ================= LATEST REVIEWS =================
+        async function loadPublicReviews() {
+            const grid = document.getElementById('reviewsGrid');
+            if (!grid) return;
 
             try {
                 const res = await fetch('/api/public/reviews');
-                if (!res.ok) {
-                    console.warn('Reviews: /api/public/reviews returned status', res.status);
-                    return;
-                }
-                const data = await res.json();
-                const reviews = Array.isArray(data.reviews) ? data.reviews : [];
-                console.log('Reviews loaded:', reviews.length, reviews);
+                if (!res.ok) throw new Error('Failed to fetch reviews');
+                const reviews = await res.json();
 
-                // Walang review pa: manatiling nakatago ang seksyon
-                if (reviews.length === 0) {
-                    section.style.display = 'none';
+                if (!Array.isArray(reviews) || reviews.length === 0) {
+                    grid.innerHTML = `
+                        <div class="reviews-empty">
+                            <i class="fas fa-comment-dots"></i>
+                            <p>No reviews yet. Be the first to share your experience!</p>
+                        </div>`;
                     return;
                 }
 
-                list.innerHTML = reviews.map(r => {
-                    const name = r.name || 'Subscriber';
-                    const hasComment = r.comment && r.comment.trim() !== '';
+                grid.innerHTML = reviews.map(r => {
+                    const rating = Math.max(0, Math.min(5, parseInt(r.rating) || 0));
+                    let stars = '';
+                    for (let i = 1; i <= 5; i++) {
+                        stars += `<i class="fas fa-star ${i <= rating ? '' : 'empty'}"></i>`;
+                    }
+                    const comment = r.comment
+                        ? `<p class="review-comment">“${escapeHtml(r.comment)}”</p>`
+                        : '';
                     return `
-                        <div class="review-card-home">
-                            <div class="review-card-head">
-                                <div class="review-avatar">${escapeHtml(name.charAt(0).toUpperCase())}</div>
-                                <div>
-                                    <div class="review-name">${escapeHtml(name)}</div>
-                                    <div class="review-date">${escapeHtml(r.date || '')}</div>
-                                </div>
-                            </div>
-                            <div class="rv-stars-row">${reviewStarsHtml(r.rating)}</div>
-                            <p class="review-comment ${hasComment ? '' : 'empty'}">${hasComment ? escapeHtml(r.comment) : 'Rated without a written comment.'}</p>
-                            <span class="review-service">${escapeHtml(r.service || 'Service')}</span>
+                        <div class="review-card">
+                            <div class="review-stars">${stars}</div>
+                            ${comment}
+                            <div class="review-name">${escapeHtml(r.name || 'Anonymous')}</div>
                         </div>`;
                 }).join('');
-
-                section.style.display = 'block';
-                section.classList.add('is-visible'); // siguradong lalabas kahit hindi pa na-trigger ang scroll reveal
             } catch (err) {
-                console.error('Reviews error:', err);
+                console.error('Error loading reviews:', err);
+                grid.innerHTML = `
+                    <div class="reviews-empty">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>Could not load reviews right now.</p>
+                    </div>`;
             }
         }
+
 
         // ================= INIT ALL =================
         document.addEventListener('DOMContentLoaded', async function() {
@@ -2503,8 +2496,8 @@ async function fetchCustomerCounts() {
 
             try { await loadHeroStats(); }        catch (e) { console.error("Hero stats error:", e); }
             try { await loadPlansDynamically(); } catch (e) { console.error("Plans error:", e); }
-            try { await loadReviews(); }          catch (e) { console.error("Reviews error:", e); }
             try { await fetchUploadedLogos(); }   catch (e) { console.error("Logos error:", e); }
+            try { await loadPublicReviews(); }    catch (e) { console.error("Reviews error:", e); }
 
             document.querySelectorAll('.thumbnail-wrapper').forEach((w, i) => {
                 w.addEventListener('click', function() {

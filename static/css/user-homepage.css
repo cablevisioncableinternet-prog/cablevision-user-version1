@@ -3165,46 +3165,87 @@ body.modal-open .chatbot-container {
 }
 
 
-.reviews-section { padding: 72px 0; background: #f5f8fc; display: none; }
-        .reviews-list {
-            display: flex; flex-wrap: wrap; justify-content: center;
-            gap: 20px; margin-top: 36px;
-        }
-        .review-card-home {
-            flex: 0 1 calc((100% - 40px) / 3); min-width: 260px;
-            background: #fff; border: 1px solid #d7e1ec; border-radius: 14px; padding: 20px;
-            box-shadow: 0 2px 8px rgba(18, 45, 73, 0.07);
-            display: flex; flex-direction: column; gap: 12px; text-align: left;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-        .review-card-home:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(18, 45, 73, 0.12); }
+/* ============================================================
+   CUSTOMER REVIEWS — LATEST 5 CARDS
+   ============================================================ */
+.reviews-section {
+    padding: 80px 0;
+    background: linear-gradient(180deg, #f8faff 0%, #ffffff 100%);
+}
 
-        .review-card-head { display: flex; align-items: center; gap: 12px; }
-        .review-avatar {
-            width: 42px; height: 42px; border-radius: 50%; flex: 0 0 auto; display: grid; place-items: center;
-            background: linear-gradient(135deg, #001f3f, #1a5bb5); color: #fff; font-weight: 700; font-size: 16px;
-        }
-        .review-name { font-size: 14px; font-weight: 700; color: #24364b; line-height: 1.2; overflow-wrap: anywhere; }
-        .review-date { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+.reviews-grid {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 10px;
+}
 
-        .rv-stars-row { font-size: 15px; }
-        .rv-stars-row i { color: #d6dde6; }
-        .rv-stars-row i.on { color: #f59e0b; }
+.review-card {
+    flex: 0 1 340px;
+    background: #ffffff;
+    border: 1px solid #e8edf4;
+    border-radius: 24px;
+    padding: 32px 26px 28px;
+    text-align: center;
+    box-shadow: 0 8px 28px rgba(10, 26, 58, 0.06);
+    transition: all 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.review-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 44px rgba(10, 26, 58, 0.1);
+}
 
-        .review-comment {
-            font-size: 13px; color: #465368; line-height: 1.6; margin: 0; flex: 1;
-            overflow-wrap: anywhere; white-space: pre-wrap;
-        }
-        .review-comment.empty { color: #94a3b8; font-style: italic; }
-        .review-service {
-            align-self: flex-start; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
-            padding: 3px 9px; border-radius: 5px; background: #edf4fa; color: #075a9e; border: 1px solid #cfe0ef;
-        }
+.review-stars {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 18px;
+}
+.review-stars i {
+    color: #ff5a00;
+    font-size: 22px;
+}
+.review-stars i.empty {
+    color: #d9dee7;
+}
 
-        @media (max-width: 991px) {
-            .review-card-home { flex: 0 1 calc((100% - 20px) / 2); }
-        }
-        @media (max-width: 640px) {
-            .reviews-section { padding: 48px 0; }
-            .review-card-home { flex: 1 1 100%; }
-        }
+.review-comment {
+    font-size: 17px;
+    font-weight: 700;
+    color: #1a1a2e;
+    line-height: 1.5;
+    margin: 0 0 20px;
+    word-break: break-word;
+    flex: 1 1 auto;
+}
+
+.review-name {
+    font-size: 15px;
+    font-weight: 500;
+    color: #2d3748;
+    margin-top: auto;
+}
+
+.reviews-loading,
+.reviews-empty {
+    width: 100%;
+    padding: 40px 20px;
+    color: #94a3b8;
+    text-align: center;
+}
+.reviews-loading i,
+.reviews-empty i {
+    font-size: 36px;
+    margin-bottom: 12px;
+    display: block;
+}
+
+@media (max-width: 640px) {
+    .reviews-section { padding: 60px 0; }
+    .review-card { flex: 1 1 100%; padding: 26px 20px 24px; }
+    .review-comment { font-size: 15px; }
+    .review-stars i { font-size: 20px; }
+}
