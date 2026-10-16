@@ -1041,6 +1041,76 @@ def public_channel_logos():
         return jsonify([])
 
 
+
+# ===============================
+# PUBLIC REVIEWS (homepage carousel)
+# ===============================
+@app.route("/api/public/reviews")
+def public_reviews():
+    try:
+        limit = int(request.args.get("limit", 5))
+    except (TypeError, ValueError):
+        limit = 5
+    limit = max(1, min(limit, 5))  # latest 5 lang
+
+    try:
+        ensure_reviews_table()
+
+        rows = execute_query(
+            """
+            SELECT user_id, plan_name, rating, comment, is_anonymous,
+                   created_at, updated_at
+            FROM reviews
+            WHERE comment IS NOT NULL AND TRIM(comment) <> ''
+            ORDER BY COALESCE(updated_at, created_at) DESC
+            LIMIT %s
+            """,
+            (limit,),
+            fetch=True
+        ) or []
+
+        result = []
+        for r in rows:
+            full_name = get_review_full_name(r["user_id"])
+            display_name = mask_name(full_name) if r.get("is_anonymous") else full_name
+
+            result.append({
+                "rating": int(r.get("rating") or 0),
+                "comment": r.get("comment") or "",
+                "display_name": display_name,
+                "plan": r.get("plan_name") or "Cablevision Service",
+                "is_verified": True,  # reviews ay galing lang sa totoong customers
+                "created_at": _review_ts(r.get("created_at")),
+            })
+
+        return jsonify(result)
+
+    except Exception as e:
+        print("public_reviews error:", e)
+        return jsonify([]), 500
+
+
+@app.route("/api/public/reviews/stats")
+def public_reviews_stats():
+    try:
+        ensure_reviews_table()
+
+        row = execute_query(
+            "SELECT COUNT(*) AS total, AVG(rating) AS average FROM reviews",
+            fetch_one=True
+        ) or {}
+
+        return jsonify({
+            "success": True,
+            "total": int(row.get("total") or 0),
+            "average": round(float(row.get("average") or 0), 1)
+        })
+
+    except Exception as e:
+        print("public_reviews_stats error:", e)
+        return jsonify({"success": False, "total": 0, "average": 0}), 500
+    
+
 @app.route("/contact-us")
 def contact_us():
     return render_template("user-contact-us.html")
