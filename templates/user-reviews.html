@@ -210,7 +210,7 @@
     </div>
     <div class="star-rating-hint" id="editStarHint">Select a rating</div>
 
-    <textarea id="editComment" class="review-input review-textarea" rows="4" maxlength="2000"
+    <textarea id="editComment" class="review-input review-textarea" rows="4" maxlength="500"
               placeholder="Share your experience (optional)"></textarea>
 
     <label class="review-checkbox-label review-modal-anon">
@@ -273,9 +273,9 @@ const RATING_LABELS = {
 // Palitan/dagdagan ayon sa REVIEW_TYPES mo
 const TYPE_LABELS = {
   installation: 'Installation',
-  plan_change: 'Plan Change',
+  change_plan: 'Plan Change',
   termination: 'Termination',
-  payment: 'Payment'
+  reconnect: 'Reconnect'
 };
 
 let allReviews = [];
@@ -363,7 +363,7 @@ function renderPending(list) {
       </div>
       <div class="star-rating-hint pending-hint">Select a rating</div>
 
-      <textarea class="review-input review-textarea pending-comment" rows="3" maxlength="2000"
+      <textarea class="review-input review-textarea pending-comment" rows="3" maxlength="500"
                 placeholder="How was your installation experience? (optional)"></textarea>
 
       <label class="review-checkbox-label review-modal-anon">
@@ -414,7 +414,7 @@ document.getElementById('pendingList').addEventListener('click', async (e) => {
   submitBtn.disabled = true;
   try {
     const data = await postJSON('/api/user/submit-review', {
-      type: pending.transaction_type,
+      transaction_type: pending.transaction_type,
       transaction_id: pending.transaction_id,
       rating: rating,
       comment: card.querySelector('.pending-comment').value.trim(),
@@ -535,7 +535,7 @@ document.getElementById('saveEditReview').addEventListener('click', async () => 
 
   try {
     const data = await postJSON('/api/user/update-review', {
-      type: editing.transaction_type,
+      transaction_type: editing.transaction_type,
       transaction_id: editing.transaction_id,
       rating: editRating,
       comment: document.getElementById('editComment').value.trim(),

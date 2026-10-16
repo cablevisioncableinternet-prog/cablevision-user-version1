@@ -5371,6 +5371,7 @@ def ensure_reviews_table():
             user_id VARCHAR(50) NOT NULL,
             transaction_type VARCHAR(30) NOT NULL,
             transaction_id VARCHAR(100) NOT NULL,
+            plan_name VARCHAR(150) NULL,
             rating TINYINT NOT NULL,
             comment TEXT NULL,
             is_anonymous TINYINT(1) NOT NULL DEFAULT 0,
