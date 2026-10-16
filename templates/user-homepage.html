@@ -472,6 +472,95 @@
         </div>
     </div>
 
+<!-- ============================================================
+    CUSTOMER REVIEWS CAROUSEL — LOOPING SLIDES
+    Dynamic stats + stars + cards
+    ============================================================ -->
+<section class="reviews-carousel-section reveal-on-scroll" id="customer-reviews">
+    <div class="container">
+
+        <!-- HEADER -->
+        <div class="reviews-carousel-header">
+            <span class="section-label">Review/Ratings</span>
+            <h2>What Our <span class="highlight">Subscribers</span> Say</h2>
+            <p>Reviews from Cablevision subscribers.</p>
+
+            <!-- STATS -->
+            <div class="reviews-carousel-stats">
+
+                <!-- AVERAGE RATING + STARS -->
+                <div class="reviews-carousel-stat">
+                    <div class="stat-value" id="reviewStatAvg">0.0</div>
+                    <div class="review-stat-stars" id="reviewStatStars">
+                        <i class="far fa-star"></i>
+                        <i class="far fa-star"></i>
+                        <i class="far fa-star"></i>
+                        <i class="far fa-star"></i>
+                        <i class="far fa-star"></i>
+                    </div>
+                    <div class="stat-label">Average Rating</div>
+                </div>
+
+                <!-- TOTAL REVIEWS -->
+                <div class="reviews-carousel-stat">
+                    <div class="stat-value" id="reviewStatTotal">0</div>
+                    <div class="stat-label">Total Reviews</div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="reviews-carousel-wrapper">
+            <div class="reviews-carousel-track is-loading" id="reviewsCarouselTrack">
+                <!-- Skeleton placeholder — papalitan ng JS -->
+                <div class="review-skeleton-card">
+                    <div class="skeleton-line skeleton-stars"></div>
+                    <div class="skeleton-line skeleton-title"></div>
+                    <div class="skeleton-line skeleton-text"></div>
+                    <div class="skeleton-line skeleton-text short"></div>
+                    <div class="skeleton-line skeleton-text shorter"></div>
+                    <div class="skeleton-footer">
+                        <div class="skeleton-avatar"></div>
+                        <div class="skeleton-user">
+                            <div class="skeleton-line skeleton-name"></div>
+                            <div class="skeleton-line skeleton-plan"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="review-skeleton-card">
+                    <div class="skeleton-line skeleton-stars"></div>
+                    <div class="skeleton-line skeleton-title"></div>
+                    <div class="skeleton-line skeleton-text"></div>
+                    <div class="skeleton-line skeleton-text short"></div>
+                    <div class="skeleton-line skeleton-text shorter"></div>
+                    <div class="skeleton-footer">
+                        <div class="skeleton-avatar"></div>
+                        <div class="skeleton-user">
+                            <div class="skeleton-line skeleton-name"></div>
+                            <div class="skeleton-line skeleton-plan"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="review-skeleton-card">
+                    <div class="skeleton-line skeleton-stars"></div>
+                    <div class="skeleton-line skeleton-title"></div>
+                    <div class="skeleton-line skeleton-text"></div>
+                    <div class="skeleton-line skeleton-text short"></div>
+                    <div class="skeleton-line skeleton-text shorter"></div>
+                    <div class="skeleton-footer">
+                        <div class="skeleton-avatar"></div>
+                        <div class="skeleton-user">
+                            <div class="skeleton-line skeleton-name"></div>
+                            <div class="skeleton-line skeleton-plan"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>
+
     <!-- ============================================================
     FOOTER — RESTORED ORIGINAL DETAILS WITH ICONS
     ============================================================ -->
@@ -2431,6 +2520,7 @@ async function fetchCustomerCounts() {
             try { await loadHeroStats(); }        catch (e) { console.error("Hero stats error:", e); }
             try { await loadPlansDynamically(); } catch (e) { console.error("Plans error:", e); }
             try { await fetchUploadedLogos(); }   catch (e) { console.error("Logos error:", e); }
+            try { await loadReviewsCarousel(); } catch (e) { console.error('Reviews carousel init:', e); }
 
             document.querySelectorAll('.thumbnail-wrapper').forEach((w, i) => {
                 w.addEventListener('click', function() {
@@ -2442,6 +2532,229 @@ async function fetchCustomerCounts() {
 
         console.log('Cablevision homepage loaded with redesigned sections.');
         console.log('Most Popular Plan: Determined by customer count from database, tie-breaker by price.');
+
+        // ============================================================
+        // CUSTOMER REVIEWS CAROUSEL (Dynamic — stats + stars + skeleton)
+        // ============================================================
+        async function loadReviewsCarousel() {
+            const track = document.getElementById('reviewsCarouselTrack');
+            if (!track) return;
+
+            console.log('🎬 Loading reviews carousel...');
+
+            // Skeleton ay nasa HTML na — hindi na kailangan i-render dito
+            // Pero i-freeze ang animation habang naglo-load
+            track.style.animation = 'none';
+
+            try {
+                // ============================================================
+                // 1. FETCH STATS
+                // ============================================================
+                try {
+                    const statsRes = await fetch('/api/public/reviews/stats');
+                    if (statsRes.ok) {
+                        const stats = await statsRes.json();
+                        if (stats.success) {
+                            const avgEl   = document.getElementById('reviewStatAvg');
+                            const totalEl = document.getElementById('reviewStatTotal');
+                            const starsEl = document.getElementById('reviewStatStars');
+
+                            const avg   = parseFloat(stats.average || 0);
+                            const total = parseInt(stats.total || 0, 10);
+
+                            if (avgEl)   avgEl.textContent   = avg.toFixed(1);
+                            if (totalEl) totalEl.textContent = total;
+
+                            if (starsEl) {
+                                const rounded = Math.round(avg);
+                                let starsHtml = '';
+                                for (let i = 1; i <= 5; i++) {
+                                    starsHtml += `<i class="${i <= rounded ? 'fas' : 'far'} fa-star"></i>`;
+                                }
+                                starsEl.innerHTML = starsHtml;
+                            }
+
+                            console.log(`✅ Stats → avg: ${avg.toFixed(1)}, total: ${total}`);
+                        }
+                    }
+                } catch (statErr) {
+                    console.error('Stats fetch failed:', statErr);
+                }
+
+                // ============================================================
+                // 2. FETCH REVIEWS
+                // ============================================================
+                const res = await fetch('/api/public/reviews?limit=30');
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                const reviews = await res.json();
+
+                // ---- EMPTY STATE ----
+                if (!Array.isArray(reviews) || reviews.length === 0) {
+                    track.style.animation = 'none';
+                    track.classList.remove('is-loading');       // ← IDAGDAG
+                    track.classList.add('is-empty');            // ← IDAGDAG
+                    track.innerHTML = `
+                        <div class="reviews-carousel-empty" style="width:100%;">
+                            <i class="fas fa-comment-dots"></i>
+                            <p>No reviews yet. Be the first to share your experience!</p>
+                        </div>`;
+                    console.log('ℹ️ No reviews to display');
+                    return;
+                }
+
+                // ---- DEDUPLICATE ----
+                const seen = new Set();
+                const unique = [];
+                for (const r of reviews) {
+                    const key = (r.comment || '').toLowerCase().replace(/\s+/g, ' ').trim();
+                    if (!key || seen.has(key)) continue;
+                    seen.add(key);
+                    unique.push(r);
+                }
+
+                if (unique.length === 0) {
+                    track.style.animation = 'none';
+                    track.classList.remove('is-loading');       // ← IDAGDAG
+                    track.classList.add('is-empty');            // ← IDAGDAG
+                    track.innerHTML = `
+                        <div class="reviews-carousel-empty" style="width:100%;">
+                            <i class="fas fa-comment-dots"></i>
+                            <p>No reviews yet.</p>
+                        </div>`;
+                    return;
+                }
+                // ============================================================
+                // 3. BUILD CARD
+                // ============================================================
+                const safeEscape = (typeof escapeHtml === 'function')
+                    ? escapeHtml
+                    : (s) => String(s == null ? '' : s)
+                        .replace(/&/g, '&amp;')
+                        .replace(/</g, '&lt;')
+                        .replace(/>/g, '&gt;')
+                        .replace(/"/g, '&quot;')
+                        .replace(/'/g, '&#039;');
+
+                const buildCard = (r) => {
+                    const stars = Array.from({ length: 5 }, (_, i) =>
+                        `<i class="${i < r.rating ? 'fas' : 'far'} fa-star"></i>`
+                    ).join('');
+
+                    const name    = (r.display_name || 'Anonymous').trim();
+                    const verified = r.is_verified
+                        ? '<i class="fas fa-check-circle review-slide-verified" title="Verified Customer"></i>'
+                        : '';
+                    const planText = r.plan || 'Cablevision Service';
+
+                    return `
+                        <div class="review-slide-card">
+                            <div class="review-slide-stars">${stars}</div>
+                            ${r.title ? `<div class="review-slide-title">${safeEscape(r.title)}</div>` : ''}
+                            <div class="review-slide-comment">${safeEscape(r.comment)}</div>
+                            <div class="review-slide-footer">
+                                <div class="review-slide-avatar">
+                                    <img src="/static/logo1.png" alt="Cablevision" class="review-slide-avatar-img">
+                                </div>
+                                <div class="review-slide-user">
+                                    <div class="review-slide-name">${safeEscape(name)}</div>
+                                    <div class="review-slide-plan">
+                                        <i class="fas fa-wifi"></i>
+                                        <span>${safeEscape(planText)}</span>
+                                    </div>
+                                </div>
+                                ${verified}
+                            </div>
+                        </div>`;
+                };
+
+            // ============================================================
+            // 4. RENDER — SMART MODE (loop o static, walang duplicate)
+            // ============================================================
+            const cardsHtml = unique.map(buildCard).join('');
+
+            // Fade out skeleton
+            track.style.transition = 'opacity 0.3s ease';
+            track.style.opacity = '0';
+
+            setTimeout(() => {
+                track.classList.remove('is-loading');
+                track.classList.remove('is-empty');
+
+                const uniqueCount = unique.length;
+                const CARD_WIDTH  = 382; // 360 card + 22 gap
+                const totalUniqueWidth = uniqueCount * CARD_WIDTH;
+
+                // Get viewport width
+                const viewportWidth = track.parentElement?.clientWidth || window.innerWidth || 1200;
+
+                // ------------------------------------------------------------
+                // DECISION: LOOP MODE o STATIC MODE
+                // ------------------------------------------------------------
+                // LOOP MODE kapag: 3+ reviews AT sapat ang total width
+                // STATIC MODE kapag: 1-2 reviews (o sobrang liit ng content)
+                // ------------------------------------------------------------
+                const enoughForLoop = uniqueCount >= 3 && totalUniqueWidth >= viewportWidth * 0.8;
+
+                if (!enoughForLoop) {
+                    // ---------- STATIC MODE ----------
+                    // Ipakita ang bawat review nang ISANG BESES lang, naka-center
+                    track.style.animation = 'none';
+                    track.style.width = '100%';
+                    track.style.justifyContent = 'center';
+                    track.classList.add('is-static');
+
+                    // Render each review exactly ONCE
+                    track.innerHTML = cardsHtml;
+
+                    console.log(`ℹ️ Static mode: ${uniqueCount} review(s) — no loop, no duplicate`);
+
+                } else {
+                    // ---------- LOOP MODE ----------
+                    track.classList.remove('is-static');
+                    track.style.width = '';
+                    track.style.justifyContent = '';
+
+                    // Compute kung ilang copies ang kailangan (EVEN number)
+                    const minTrackWidth = viewportWidth * 2;
+                    let copies = Math.ceil(minTrackWidth / totalUniqueWidth);
+                    if (copies % 2 === 1) copies += 1; // ensure even
+                    copies = Math.max(2, Math.min(copies, 8)); // clamp 2-8
+
+                    // Build final HTML — duplicated copies
+                    let finalHtml = '';
+                    for (let i = 0; i < copies; i++) finalHtml += cardsHtml;
+                    track.innerHTML = finalHtml;
+
+                    // Animation speed based sa UNIQUE count (hindi total)
+                    const duration = Math.max(20, Math.min(70, totalUniqueWidth / 90));
+                    track.style.animation = `reviewsScrollLinear ${duration}s linear infinite`;
+
+                    console.log(`🎬 Loop mode: ${uniqueCount} unique × ${copies} copies = ${uniqueCount * copies} total cards`);
+                }
+
+                // Fade in
+                requestAnimationFrame(() => {
+                    track.style.opacity = '1';
+                });
+
+                console.log(`✅ Reviews carousel ready: ${uniqueCount} unique`);
+            }, 250);
+
+            } catch (err) {
+                console.error('❌ Reviews carousel error:', err);
+                track.style.animation = 'none';
+                track.style.opacity = '1';
+                track.classList.remove('is-loading');  
+                track.classList.add('is-empty');  
+                track.innerHTML = `
+                    <div class="reviews-carousel-empty" style="width:100%;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>Could not load reviews right now.</p>
+                    </div>`;
+            }
+        }
     </script>
+
+    
 </body>
 </html>

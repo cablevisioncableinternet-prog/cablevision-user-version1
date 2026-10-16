@@ -5536,16 +5536,17 @@ INSTALLATION_REVIEW_TYPE = "installation"  # dapat kasama sa REVIEW_TYPES mo
 def get_review_plan_name(user_id, transaction_type, transaction_id):
     """Kukunin ang plan name ng user mula sa customers table."""
     try:
+        user = execute_query(
+            "SELECT application_number FROM users WHERE user_id = %s LIMIT 1",
+            (user_id,), fetch_one=True
+        )
+        app_no = user.get("application_number") if user else None
+        if not app_no:
+            return None
+
         row = execute_query(
-            """
-            SELECT c.plan
-            FROM users u
-            JOIN customers c ON c.application_number = u.application_number
-            WHERE u.user_id = %s
-            LIMIT 1
-            """,
-            (user_id,),
-            fetch_one=True
+            "SELECT plan FROM customers WHERE application_number = %s LIMIT 1",
+            (app_no,), fetch_one=True
         )
         if row and row.get("plan"):
             return row["plan"]
