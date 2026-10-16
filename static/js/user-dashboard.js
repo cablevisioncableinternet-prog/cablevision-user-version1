@@ -282,7 +282,7 @@ async function loadCustomerTable() {
   
   if (!tbody) return;
   
-  tbody.innerHTML = `<tr><td colspan="6" class="no-data">Loading...</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="8" class="no-data">Loading...</td></tr>`;
 
   try {
     const res = await fetch("/api/get-user-connection");
@@ -297,15 +297,14 @@ async function loadCustomerTable() {
       const status = user.status || "Active";
       
       if ((status.toLowerCase() === "inactive" || status.toLowerCase() === "terminated") && balance > 0) {
-            showBalanceCard(balance, status);
-        } else {
-            // I-HIDE ANG CARD KUNG WALANG BALANCE O ACTIVE
-            hideBalanceCard();
-        }
+        showBalanceCard(balance, status);
+      } else {
+        hideBalanceCard();
+      }
     }
 
     if (!data || data.length === 0) {
-      tbody.innerHTML = `<tr><td colspan="6" class="no-data">No data found</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="8" class="no-data">No data found</td></tr>`;
       return;
     }
 
@@ -335,12 +334,21 @@ async function loadCustomerTable() {
 
       const contractNumber = user.contract_number || "N/A";
 
+      // BAGO: Billing Date at Monthly Bill
+      const billingDate = user.billing_date ? String(user.billing_date) : "N/A";
+      const priceNum = Number(user.plan_price) || 0;
+      const monthlyBill = priceNum > 0
+        ? `₱${priceNum.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+        : "N/A";
+
       const tr = document.createElement("tr");
 
       tr.innerHTML = `
         <td>${escapeHtml(fullName)}</td>
         <td>${escapeHtml(user.plan_name || 'N/A')}</td>
         <td>${escapeHtml(user.mbps || '0')} Mbps</td>
+        <td>${escapeHtml(billingDate)}</td>
+        <td>${escapeHtml(monthlyBill)}</td>
         <td><span class="contract-number-badge"><i class="fas fa-file-contract"></i> ${escapeHtml(contractNumber)}</span></td>
         <td><span class="status ${statusClass}">${escapeHtml(status)}</span></td>
         <td><span class="status ${connectionClass}">${escapeHtml(connectionStatus)}</span></td>
@@ -351,7 +359,7 @@ async function loadCustomerTable() {
 
   } catch (err) {
     console.error("Error loading customer table:", err);
-    tbody.innerHTML = `<tr><td colspan="6" class="no-data">Failed to load data</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="8" class="no-data">Failed to load data</td></tr>`;
   }
 }
 

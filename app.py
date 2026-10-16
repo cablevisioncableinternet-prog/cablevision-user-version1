@@ -5820,6 +5820,29 @@ def get_announcements():
         return jsonify([])
 
 
+
+
+def _to_price(value):
+    """Gawing float ang plan_price kahit may ₱, comma, o '/month'."""
+    if value is None or value == "":
+        return 0
+    try:
+        cleaned = str(value).replace("₱", "").replace(",", "").replace("/month", "").strip()
+        return float(cleaned)
+    except ValueError:
+        return 0
+
+
+def _format_billing_date(value):
+    """Date -> 'November 05, 2026'. Kung numero o text lang (hal. '15'), ibabalik as is."""
+    if not value:
+        return ""
+    if hasattr(value, "strftime"):
+        return value.strftime("%B %d, %Y")
+    return str(value)
+
+
+    
 @app.route("/api/get-user-connection")
 def get_user_connection():
     if "user_id" not in session:
@@ -5828,12 +5851,14 @@ def get_user_connection():
     user_id = session["user_id"]
 
     try:
+        import re
+
         # ===== GET USER FROM MYSQL - KASAMA ANG BALANCE =====
         user_query = """
             SELECT user_id, application_number, email, username,
                    connection_status, contract_number, first_name, last_name, 
                    middle_name, suffix, contact_number, address, 
-                   status as user_status, balance  # ← IDAGDAG ANG BALANCE
+                   status as user_status, balance
             FROM users 
             WHERE user_id = %s
             LIMIT 1
@@ -5848,7 +5873,11 @@ def get_user_connection():
         application_number = user.get("application_number")
         email = user.get("email")
         user_status = user.get("user_status", "Active")
-        balance = user.get("balance", 0)  # KUNIN ANG BALANCE
+        balance = user.get("balance", 0)
+
+        # BAGO: default values para sa billing
+        plan_price = 0
+        billing_date = ""
 
         if not application_number:
             return jsonify([{
@@ -5858,10 +5887,12 @@ def get_user_connection():
                 "suffix": user.get("suffix", ""),
                 "plan_name": "No Active Plan",
                 "mbps": "0",
+                "plan_price": 0,
+                "billing_date": "",
                 "status": user_status,
                 "connection_status": connection_status,
                 "contract_number": contract_number,
-                "balance": float(balance) if balance else 0  # ← IDAGDAG
+                "balance": float(balance) if balance else 0
             }])
 
         # ===== GET CUSTOMER DATA =====
@@ -5881,6 +5912,10 @@ def get_user_connection():
             app_status = customer.get("status", "Pending")
             installation_status = customer.get("installation_status", "Pending")
             contract_number = customer.get("contract_number", contract_number)
+
+            # BAGO: billing info
+            plan_price = _to_price(customer.get("plan_price"))
+            billing_date = _format_billing_date(customer.get("billing_date"))
             
             # CRITICAL: Kung ang user_status ay "Active", gamitin yun
             if user_status == "Active":
@@ -5888,7 +5923,6 @@ def get_user_connection():
             elif user_status in ["Terminated", "Inactive"]:
                 display_status = user_status
             else:
-                # Fallback: gamitin ang app_status logic
                 if app_status == "Pending":
                     display_status = "Pending Approval"
                 elif app_status == "Approved" and installation_status == "Pending":
@@ -5902,9 +5936,7 @@ def get_user_connection():
                 else:
                     display_status = app_status
             
-            # Extract mbps from plan_speed
             mbps = "0"
-            import re
             if plan_speed:
                 speed_match = re.search(r'(\d+)', str(plan_speed))
                 if speed_match:
@@ -5933,18 +5965,23 @@ def get_user_connection():
                     "suffix": user.get("suffix", ""),
                     "plan_name": "No Active Plan",
                     "mbps": "0",
+                    "plan_price": 0,
+                    "billing_date": "",
                     "status": user_status,
                     "connection_status": connection_status,
                     "contract_number": contract_number,
-                    "balance": float(balance) if balance else 0  # ← IDAGDAG
+                    "balance": float(balance) if balance else 0
                 }])
             
             plan_name = application.get("plan", "Basic Package")
             plan_speed = application.get("plan_speed", "0")
             app_status = application.get("status", "Pending")
             installation_status = application.get("installation_status", "Pending")
+
+            # BAGO: plan_price lang ang meron sa applications (walang billing_date pa)
+            plan_price = _to_price(application.get("plan_price"))
+            billing_date = ""
             
-            # CRITICAL: Same logic para sa applications table
             if user_status == "Active":
                 display_status = "Active"
             elif user_status in ["Terminated", "Inactive"]:
@@ -5963,9 +6000,7 @@ def get_user_connection():
                 else:
                     display_status = app_status
             
-            # Extract mbps from plan_speed
             mbps = "0"
-            import re
             if plan_speed:
                 speed_match = re.search(r'(\d+)', str(plan_speed))
                 if speed_match:
@@ -5976,7 +6011,7 @@ def get_user_connection():
             middle_name = user.get("middle_name")
             suffix = user.get("suffix")
 
-        # ===== FINAL RESULT - KASAMA ANG BALANCE =====
+        # ===== FINAL RESULT =====
         result = [{
             "firstname": first_name or "",
             "middlename": middle_name or "",
@@ -5984,10 +6019,12 @@ def get_user_connection():
             "suffix": suffix or "",
             "plan_name": plan_name,
             "mbps": mbps,
+            "plan_price": plan_price,
+            "billing_date": billing_date,
             "status": display_status,
             "connection_status": connection_status,
             "contract_number": contract_number,
-            "balance": float(balance) if balance else 0  # ← IDAGDAG ANG BALANCE
+            "balance": float(balance) if balance else 0
         }]
 
         return jsonify(result)

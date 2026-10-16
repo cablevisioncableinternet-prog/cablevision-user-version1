@@ -2041,7 +2041,7 @@ body {
 @media (max-width: 640px) {
   .customers-table {
     font-size: 12px;
-    min-width: 600px;
+    min-width: 820px;
   }
   
   .customers-table th,
@@ -2052,7 +2052,7 @@ body {
 
 @media (max-width: 480px) {
   .customers-table {
-    min-width: 550px;
+    min-width: 780px;
     font-size: 11px;
   }
   
