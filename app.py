@@ -7053,6 +7053,7 @@ def user_profile():
         suffix=application_data.get("suffix", "") if application_data else "",
         email=application_data.get("email", "") if application_data else "",
         mobile=application_data.get("mobile", "") if application_data else "",
+        mobile_owner=application_data.get("mobile_owner", "") if application_data else "",
         secondary_mobile=application_data.get("secondary_mobile", "") if application_data else "",
         phone=application_data.get("phone", "") if application_data else "",
         birthdate=application_data.get("birthdate", "") if application_data else "",
