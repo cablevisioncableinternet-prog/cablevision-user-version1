@@ -915,6 +915,94 @@ def public_customer_plan_counts():
                 pass            
             
 
+# ===============================
+# PUBLIC REVIEWS (para sa homepage)
+# ===============================
+REVIEW_TYPE_LABELS = {
+    "installation": "Application & Installation",
+    "change_plan": "Change Plan",
+    "termination": "Termination",
+    "reconnect": "Reconnection",
+}
+
+
+@app.route("/api/public/reviews")
+def public_reviews():
+    """
+    Public endpoint. Hindi kailanman ipinapadala ang user_id, email, o application number.
+    Kapag anonymous ang review, masked name (J***z) lang ang lalabas.
+    """
+    empty = {
+        "summary": {"total": 0, "average": 0, "distribution": {str(i): 0 for i in range(1, 6)}},
+        "reviews": []
+    }
+    try:
+        ensure_reviews_table()
+
+        summary_row = execute_query(
+            "SELECT COUNT(*) AS total, AVG(rating) AS average FROM reviews",
+            fetch_one=True
+        ) or {}
+        total = int(summary_row.get("total") or 0)
+        if total == 0:
+            return jsonify(empty)
+
+        average = round(float(summary_row.get("average") or 0), 1)
+
+        distribution = {str(i): 0 for i in range(1, 6)}
+        dist_rows = execute_query(
+            "SELECT rating, COUNT(*) AS c FROM reviews GROUP BY rating",
+            fetch_all=True
+        ) or []
+        for row in dist_rows:
+            key = str(int(row.get("rating") or 0))
+            if key in distribution:
+                distribution[key] = int(row.get("c") or 0)
+
+        rows = execute_query(
+            """
+            SELECT r.rating, r.comment, r.is_anonymous, r.transaction_type,
+                   r.created_at, u.first_name, u.last_name
+            FROM reviews r
+            LEFT JOIN users u ON u.user_id = r.user_id
+            WHERE r.comment IS NOT NULL AND TRIM(r.comment) != ''
+            ORDER BY r.created_at DESC
+            LIMIT 12
+            """,
+            fetch_all=True
+        ) or []
+
+        reviews = []
+        for row in rows:
+            full_name = f"{row.get('first_name') or ''} {row.get('last_name') or ''}".strip()
+            if not full_name:
+                display_name = "Subscriber"
+            elif row.get("is_anonymous"):
+                display_name = mask_name(full_name)
+            else:
+                display_name = full_name
+
+            created = row.get("created_at")
+            date_text = created.strftime("%b %d, %Y") if hasattr(created, "strftime") else str(created or "")
+
+            reviews.append({
+                "name": display_name,
+                "rating": int(row.get("rating") or 0),
+                "comment": row.get("comment") or "",
+                "service": REVIEW_TYPE_LABELS.get(row.get("transaction_type"), "Service"),
+                "date": date_text
+            })
+
+        return jsonify({
+            "summary": {"total": total, "average": average, "distribution": distribution},
+            "reviews": reviews
+        })
+
+    except Exception as e:
+        print(f"Public reviews error: {e}")
+        return jsonify(empty)
+
+
 @app.route('/api/public/announcements')
 def public_announcements():
     """Public endpoint for announcements - ginagamit ng announcements modal"""

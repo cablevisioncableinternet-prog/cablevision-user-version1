@@ -149,6 +149,30 @@
     </section>
 
     <!-- ============================================================
+    SUBSCRIBER REVIEWS (nakatago hanggang may review)
+    ============================================================ -->
+    <section class="reviews-section reveal-on-scroll" id="reviews">
+        <div class="container">
+            <div class="text-center">
+                <span class="section-label">Reviews</span>
+                <h2 class="section-title-lg">What Our <span class="highlight">Subscribers Say</span></h2>
+                <p class="section-sub">Real feedback from Cablevision subscribers about our application, installation, and services.</p>
+            </div>
+
+            <div class="reviews-wrap">
+                <div class="reviews-summary">
+                    <div class="reviews-avg" id="reviewsAvg">0.0</div>
+                    <div class="reviews-avg-stars rv-stars-row" id="reviewsAvgStars"></div>
+                    <div class="reviews-total" id="reviewsTotal">0 reviews</div>
+                    <div class="reviews-bars" id="reviewsBars"></div>
+                </div>
+
+                <div class="reviews-list" id="reviewsList"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================================
     VIDEO CAROUSEL — REDESIGNED "WATCH OUR LATEST VIDEOS"
     ============================================================ -->
     <section class="video-carousel-section-modern reveal-on-scroll">
@@ -2418,6 +2442,75 @@ async function fetchCustomerCounts() {
             if (e.target === this) closeImagePreview();
         });
 
+        // ================= SUBSCRIBER REVIEWS =================
+        function reviewStarsHtml(value) {
+            let html = '';
+            for (let i = 1; i <= 5; i++) {
+                html += `<i class="fas fa-star ${i <= value ? 'on' : ''}"></i>`;
+            }
+            return html;
+        }
+
+        async function loadReviews() {
+            const section = document.getElementById('reviews');
+            if (!section) return;
+
+            try {
+                const res = await fetch('/api/public/reviews');
+                if (!res.ok) return;
+                const data = await res.json();
+                const summary = data.summary || {};
+                const reviews = data.reviews || [];
+
+                // Walang review pa: manatiling nakatago ang seksyon
+                if (!summary.total) return;
+
+                document.getElementById('reviewsAvg').textContent = Number(summary.average).toFixed(1);
+                document.getElementById('reviewsAvgStars').innerHTML = reviewStarsHtml(Math.round(summary.average));
+                document.getElementById('reviewsTotal').textContent =
+                    `Based on ${summary.total} review${summary.total > 1 ? 's' : ''}`;
+
+                const dist = summary.distribution || {};
+                let bars = '';
+                for (let star = 5; star >= 1; star--) {
+                    const count = dist[String(star)] || 0;
+                    const pct = Math.round((count / summary.total) * 100);
+                    bars += `
+                        <div class="rv-bar-row">
+                            <span class="rv-bar-label">${star} <i class="fas fa-star" style="color:#f59e0b;font-size:11px;"></i></span>
+                            <div class="rv-bar-track"><div class="rv-bar-fill" style="width:${pct}%"></div></div>
+                            <span class="rv-bar-count">${count}</span>
+                        </div>`;
+                }
+                document.getElementById('reviewsBars').innerHTML = bars;
+
+                const list = document.getElementById('reviewsList');
+                if (reviews.length === 0) {
+                    list.innerHTML = `<div class="text-center" style="grid-column:1/-1;padding:30px;color:#94a3b8;">
+                        <p style="margin:0;">No written comments yet.</p></div>`;
+                } else {
+                    list.innerHTML = reviews.map(r => `
+                        <div class="review-card-home">
+                            <div class="review-card-head">
+                                <div class="review-avatar">${escapeHtml((r.name || 'S').charAt(0).toUpperCase())}</div>
+                                <div>
+                                    <div class="review-name">${escapeHtml(r.name)}</div>
+                                    <div class="review-date">${escapeHtml(r.date)}</div>
+                                </div>
+                            </div>
+                            <div class="rv-stars-row">${reviewStarsHtml(r.rating)}</div>
+                            <p class="review-comment">${escapeHtml(r.comment)}</p>
+                            <span class="review-service">${escapeHtml(r.service)}</span>
+                        </div>
+                    `).join('');
+                }
+
+                section.style.display = 'block';
+            } catch (err) {
+                console.error('Reviews error:', err);
+            }
+        }
+
         // ================= INIT ALL =================
         document.addEventListener('DOMContentLoaded', async function() {
             try {
@@ -2430,6 +2523,7 @@ async function fetchCustomerCounts() {
 
             try { await loadHeroStats(); }        catch (e) { console.error("Hero stats error:", e); }
             try { await loadPlansDynamically(); } catch (e) { console.error("Plans error:", e); }
+            try { await loadReviews(); }          catch (e) { console.error("Reviews error:", e); }
             try { await fetchUploadedLogos(); }   catch (e) { console.error("Logos error:", e); }
 
             document.querySelectorAll('.thumbnail-wrapper').forEach((w, i) => {
