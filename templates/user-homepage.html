@@ -2603,14 +2603,7 @@ async function fetchCustomerCounts() {
                 }
 
                 // ---- DEDUPLICATE ----
-                const seen = new Set();
-                const unique = [];
-                for (const r of reviews) {
-                    const key = (r.comment || '').toLowerCase().replace(/\s+/g, ' ').trim();
-                    if (!key || seen.has(key)) continue;
-                    seen.add(key);
-                    unique.push(r);
-                }
+                const unique = reviews.slice();
 
                 if (unique.length === 0) {
                     track.style.animation = 'none';
@@ -2650,7 +2643,7 @@ async function fetchCustomerCounts() {
                         <div class="review-slide-card">
                             <div class="review-slide-stars">${stars}</div>
                             ${r.title ? `<div class="review-slide-title">${safeEscape(r.title)}</div>` : ''}
-                            <div class="review-slide-comment">${safeEscape(r.comment)}</div>
+                            <div class="review-slide-comment" ${r.comment ? '' : 'style="color:#94a3b8;font-style:italic;"'}>${r.comment ? safeEscape(r.comment) : 'No written comment.'}</div>
                             <div class="review-slide-footer">
                                 <div class="review-slide-avatar">
                                     <img src="/static/logo1.png" alt="Cablevision" class="review-slide-avatar-img">
@@ -2693,7 +2686,7 @@ async function fetchCustomerCounts() {
                 // LOOP MODE kapag: 3+ reviews AT sapat ang total width
                 // STATIC MODE kapag: 1-2 reviews (o sobrang liit ng content)
                 // ------------------------------------------------------------
-                const enoughForLoop = uniqueCount >= 3 && totalUniqueWidth >= viewportWidth * 0.8;
+                const enoughForLoop = uniqueCount > 3;
 
                 if (!enoughForLoop) {
                     // ---------- STATIC MODE ----------

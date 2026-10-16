@@ -1061,7 +1061,6 @@ def public_reviews():
             SELECT user_id, plan_name, rating, comment, is_anonymous,
                    created_at, updated_at
             FROM reviews
-            WHERE comment IS NOT NULL AND TRIM(comment) <> ''
             ORDER BY COALESCE(updated_at, created_at) DESC
             LIMIT %s
             """,
