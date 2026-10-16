@@ -149,8 +149,54 @@
     </section>
 
     <!-- ============================================================
-    SUBSCRIBER REVIEWS (nakatago hanggang may review)
+    SUBSCRIBER REVIEWS — LATEST 5 (nakatago hanggang may review)
     ============================================================ -->
+    <style>
+        .reviews-section { padding: 72px 0; background: #f5f8fc; display: none; }
+        .reviews-list {
+            display: flex; flex-wrap: wrap; justify-content: center;
+            gap: 20px; margin-top: 36px;
+        }
+        .review-card-home {
+            flex: 0 1 calc((100% - 40px) / 3); min-width: 260px;
+            background: #fff; border: 1px solid #d7e1ec; border-radius: 14px; padding: 20px;
+            box-shadow: 0 2px 8px rgba(18, 45, 73, 0.07);
+            display: flex; flex-direction: column; gap: 12px; text-align: left;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .review-card-home:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(18, 45, 73, 0.12); }
+
+        .review-card-head { display: flex; align-items: center; gap: 12px; }
+        .review-avatar {
+            width: 42px; height: 42px; border-radius: 50%; flex: 0 0 auto; display: grid; place-items: center;
+            background: linear-gradient(135deg, #001f3f, #1a5bb5); color: #fff; font-weight: 700; font-size: 16px;
+        }
+        .review-name { font-size: 14px; font-weight: 700; color: #24364b; line-height: 1.2; overflow-wrap: anywhere; }
+        .review-date { font-size: 11px; color: #94a3b8; margin-top: 2px; }
+
+        .rv-stars-row { font-size: 15px; }
+        .rv-stars-row i { color: #d6dde6; }
+        .rv-stars-row i.on { color: #f59e0b; }
+
+        .review-comment {
+            font-size: 13px; color: #465368; line-height: 1.6; margin: 0; flex: 1;
+            overflow-wrap: anywhere; white-space: pre-wrap;
+        }
+        .review-comment.empty { color: #94a3b8; font-style: italic; }
+        .review-service {
+            align-self: flex-start; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+            padding: 3px 9px; border-radius: 5px; background: #edf4fa; color: #075a9e; border: 1px solid #cfe0ef;
+        }
+
+        @media (max-width: 991px) {
+            .review-card-home { flex: 0 1 calc((100% - 20px) / 2); }
+        }
+        @media (max-width: 640px) {
+            .reviews-section { padding: 48px 0; }
+            .review-card-home { flex: 1 1 100%; }
+        }
+    </style>
+
     <section class="reviews-section reveal-on-scroll" id="reviews">
         <div class="container">
             <div class="text-center">
@@ -159,16 +205,7 @@
                 <p class="section-sub">Real feedback from Cablevision subscribers about our application, installation, and services.</p>
             </div>
 
-            <div class="reviews-wrap">
-                <div class="reviews-summary">
-                    <div class="reviews-avg" id="reviewsAvg">0.0</div>
-                    <div class="reviews-avg-stars rv-stars-row" id="reviewsAvgStars"></div>
-                    <div class="reviews-total" id="reviewsTotal">0 reviews</div>
-                    <div class="reviews-bars" id="reviewsBars"></div>
-                </div>
-
-                <div class="reviews-list" id="reviewsList"></div>
-            </div>
+            <div class="reviews-list" id="reviewsList"></div>
         </div>
     </section>
 
@@ -2442,7 +2479,7 @@ async function fetchCustomerCounts() {
             if (e.target === this) closeImagePreview();
         });
 
-        // ================= SUBSCRIBER REVIEWS =================
+        // ================= SUBSCRIBER REVIEWS (LATEST 5) =================
         function reviewStarsHtml(value) {
             let html = '';
             for (let i = 1; i <= 5; i++) {
@@ -2453,57 +2490,38 @@ async function fetchCustomerCounts() {
 
         async function loadReviews() {
             const section = document.getElementById('reviews');
-            if (!section) return;
+            const list = document.getElementById('reviewsList');
+            if (!section || !list) return;
 
             try {
                 const res = await fetch('/api/public/reviews');
                 if (!res.ok) return;
                 const data = await res.json();
-                const summary = data.summary || {};
-                const reviews = data.reviews || [];
+                const reviews = Array.isArray(data.reviews) ? data.reviews : [];
 
                 // Walang review pa: manatiling nakatago ang seksyon
-                if (!summary.total) return;
-
-                document.getElementById('reviewsAvg').textContent = Number(summary.average).toFixed(1);
-                document.getElementById('reviewsAvgStars').innerHTML = reviewStarsHtml(Math.round(summary.average));
-                document.getElementById('reviewsTotal').textContent =
-                    `Based on ${summary.total} review${summary.total > 1 ? 's' : ''}`;
-
-                const dist = summary.distribution || {};
-                let bars = '';
-                for (let star = 5; star >= 1; star--) {
-                    const count = dist[String(star)] || 0;
-                    const pct = Math.round((count / summary.total) * 100);
-                    bars += `
-                        <div class="rv-bar-row">
-                            <span class="rv-bar-label">${star} <i class="fas fa-star" style="color:#f59e0b;font-size:11px;"></i></span>
-                            <div class="rv-bar-track"><div class="rv-bar-fill" style="width:${pct}%"></div></div>
-                            <span class="rv-bar-count">${count}</span>
-                        </div>`;
-                }
-                document.getElementById('reviewsBars').innerHTML = bars;
-
-                const list = document.getElementById('reviewsList');
                 if (reviews.length === 0) {
-                    list.innerHTML = `<div class="text-center" style="grid-column:1/-1;padding:30px;color:#94a3b8;">
-                        <p style="margin:0;">No written comments yet.</p></div>`;
-                } else {
-                    list.innerHTML = reviews.map(r => `
+                    section.style.display = 'none';
+                    return;
+                }
+
+                list.innerHTML = reviews.map(r => {
+                    const name = r.name || 'Subscriber';
+                    const hasComment = r.comment && r.comment.trim() !== '';
+                    return `
                         <div class="review-card-home">
                             <div class="review-card-head">
-                                <div class="review-avatar">${escapeHtml((r.name || 'S').charAt(0).toUpperCase())}</div>
+                                <div class="review-avatar">${escapeHtml(name.charAt(0).toUpperCase())}</div>
                                 <div>
-                                    <div class="review-name">${escapeHtml(r.name)}</div>
-                                    <div class="review-date">${escapeHtml(r.date)}</div>
+                                    <div class="review-name">${escapeHtml(name)}</div>
+                                    <div class="review-date">${escapeHtml(r.date || '')}</div>
                                 </div>
                             </div>
                             <div class="rv-stars-row">${reviewStarsHtml(r.rating)}</div>
-                            <p class="review-comment">${escapeHtml(r.comment)}</p>
-                            <span class="review-service">${escapeHtml(r.service)}</span>
-                        </div>
-                    `).join('');
-                }
+                            <p class="review-comment ${hasComment ? '' : 'empty'}">${hasComment ? escapeHtml(r.comment) : 'Rated without a written comment.'}</p>
+                            <span class="review-service">${escapeHtml(r.service || 'Service')}</span>
+                        </div>`;
+                }).join('');
 
                 section.style.display = 'block';
             } catch (err) {

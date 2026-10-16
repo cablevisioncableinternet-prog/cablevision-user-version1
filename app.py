@@ -916,7 +916,7 @@ def public_customer_plan_counts():
             
 
 # ===============================
-# PUBLIC REVIEWS (para sa homepage)
+# PUBLIC REVIEWS (latest 5, para sa homepage)
 # ===============================
 REVIEW_TYPE_LABELS = {
     "installation": "Application & Installation",
@@ -926,48 +926,30 @@ REVIEW_TYPE_LABELS = {
 }
 
 
+def mask_review_name(full_name):
+    """'Juan Dela Cruz' -> 'J***z'"""
+    compact = "".join((full_name or "").split())
+    if len(compact) <= 2:
+        return (compact[:1] or "S") + "***"
+    return f"{compact[0]}***{compact[-1]}"
+
+
 @app.route("/api/public/reviews")
 def public_reviews():
     """
-    Public endpoint. Hindi kailanman ipinapadala ang user_id, email, o application number.
+    Public endpoint. Latest 5 reviews lang, bawat isa ay sariling card.
+    Hindi kailanman ipinapadala ang user_id, transaction_id, o email.
     Kapag anonymous ang review, masked name (J***z) lang ang lalabas.
     """
-    empty = {
-        "summary": {"total": 0, "average": 0, "distribution": {str(i): 0 for i in range(1, 6)}},
-        "reviews": []
-    }
     try:
-        ensure_reviews_table()
-
-        summary_row = execute_query(
-            "SELECT COUNT(*) AS total, AVG(rating) AS average FROM reviews",
-            fetch_one=True
-        ) or {}
-        total = int(summary_row.get("total") or 0)
-        if total == 0:
-            return jsonify(empty)
-
-        average = round(float(summary_row.get("average") or 0), 1)
-
-        distribution = {str(i): 0 for i in range(1, 6)}
-        dist_rows = execute_query(
-            "SELECT rating, COUNT(*) AS c FROM reviews GROUP BY rating",
-            fetch_all=True
-        ) or []
-        for row in dist_rows:
-            key = str(int(row.get("rating") or 0))
-            if key in distribution:
-                distribution[key] = int(row.get("c") or 0)
-
         rows = execute_query(
             """
             SELECT r.rating, r.comment, r.is_anonymous, r.transaction_type,
                    r.created_at, u.first_name, u.last_name
             FROM reviews r
             LEFT JOIN users u ON u.user_id = r.user_id
-            WHERE r.comment IS NOT NULL AND TRIM(r.comment) != ''
-            ORDER BY r.created_at DESC
-            LIMIT 12
+            ORDER BY r.created_at DESC, r.id DESC
+            LIMIT 5
             """,
             fetch_all=True
         ) or []
@@ -978,7 +960,7 @@ def public_reviews():
             if not full_name:
                 display_name = "Subscriber"
             elif row.get("is_anonymous"):
-                display_name = mask_name(full_name)
+                display_name = mask_review_name(full_name)
             else:
                 display_name = full_name
 
@@ -988,19 +970,16 @@ def public_reviews():
             reviews.append({
                 "name": display_name,
                 "rating": int(row.get("rating") or 0),
-                "comment": row.get("comment") or "",
+                "comment": (row.get("comment") or "").strip(),
                 "service": REVIEW_TYPE_LABELS.get(row.get("transaction_type"), "Service"),
                 "date": date_text
             })
 
-        return jsonify({
-            "summary": {"total": total, "average": average, "distribution": distribution},
-            "reviews": reviews
-        })
+        return jsonify({"reviews": reviews})
 
     except Exception as e:
         print(f"Public reviews error: {e}")
-        return jsonify(empty)
+        return jsonify({"reviews": []})
 
 
 @app.route('/api/public/announcements')
