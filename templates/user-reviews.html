@@ -216,6 +216,7 @@
     <label class="review-checkbox-label review-modal-anon">
       <input type="checkbox" id="editAnonymous"> <span>Post as anonymous</span>
     </label>
+    <div class="review-modal-sub" id="editAnonPreview"></div>
 
     <div class="review-form-actions">
       <button type="button" class="review-btn review-btn-light" id="cancelEditReview">Cancel</button>
@@ -369,6 +370,7 @@ function renderPending(list) {
       <label class="review-checkbox-label review-modal-anon">
         <input type="checkbox" class="pending-anon"> <span>Post as anonymous</span>
       </label>
+      <div class="review-modal-sub pending-anon-preview">Your name will appear as: <strong>${escapeHtmlR(fullName)}</strong></div>
 
       <div class="review-form-actions">
         <button type="button" class="review-btn review-btn-primary pending-submit" data-idx="${idx}">
@@ -381,6 +383,13 @@ function renderPending(list) {
   box.dataset.pending = JSON.stringify(list);
   box.dataset.ratings = JSON.stringify(list.map(() => 0));
 }
+
+document.getElementById('pendingList').addEventListener('change', (e) => {
+  const cb = e.target.closest('.pending-anon');
+  if (!cb) return;
+  const preview = cb.closest('.pending-card').querySelector('.pending-anon-preview strong');
+  if (preview) preview.textContent = cb.checked ? maskedName : fullName;
+});
 
 document.getElementById('pendingList').addEventListener('click', async (e) => {
   const box = document.getElementById('pendingList');
@@ -436,7 +445,7 @@ document.getElementById('pendingList').addEventListener('click', async (e) => {
 
 // ---------- RENDER REVIEWS ----------
 function renderReviewCard(r) {
-  const displayName = r.is_anonymous ? 'Anonymous Customer' : maskedName;
+  const displayName = r.is_anonymous ? maskedName : fullName;
   const edited = r.updated_at ? `<span class="review-card-date"><i class="fas fa-pen"></i> Edited ${formatDateShort(r.updated_at)}</span>` : '';
   return `
     <div class="review-card" data-id="${r.id}">
@@ -503,6 +512,13 @@ function setEditStars(val) {
   document.getElementById('editStarHint').textContent = RATING_LABELS[val] || 'Select a rating';
 }
 
+function paintEditAnonPreview() {
+  const checked = document.getElementById('editAnonymous').checked;
+  document.getElementById('editAnonPreview').innerHTML =
+    `Your name will appear as: <strong>${escapeHtmlR(checked ? maskedName : fullName)}</strong>`;
+}
+document.getElementById('editAnonymous').addEventListener('change', paintEditAnonPreview);
+
 function openEditModal(id) {
   editing = allReviews.find(r => r.id === id);
   if (!editing) return;
@@ -511,6 +527,7 @@ function openEditModal(id) {
   setEditStars(editing.rating);
   document.getElementById('editComment').value = editing.comment || '';
   document.getElementById('editAnonymous').checked = !!editing.is_anonymous;
+  paintEditAnonPreview();
   document.getElementById('editReviewModal').classList.add('show');
 }
 function closeEditModal() {
