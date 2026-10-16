@@ -2445,13 +2445,20 @@ async function fetchCustomerCounts() {
         async function loadReviews() {
             const section = document.getElementById('reviews');
             const list = document.getElementById('reviewsList');
-            if (!section || !list) return;
+            if (!section || !list) {
+                console.warn('Reviews: wala ang #reviews o #reviewsList sa page');
+                return;
+            }
 
             try {
                 const res = await fetch('/api/public/reviews');
-                if (!res.ok) return;
+                if (!res.ok) {
+                    console.warn('Reviews: /api/public/reviews returned status', res.status);
+                    return;
+                }
                 const data = await res.json();
                 const reviews = Array.isArray(data.reviews) ? data.reviews : [];
+                console.log('Reviews loaded:', reviews.length, reviews);
 
                 // Walang review pa: manatiling nakatago ang seksyon
                 if (reviews.length === 0) {
@@ -2478,6 +2485,7 @@ async function fetchCustomerCounts() {
                 }).join('');
 
                 section.style.display = 'block';
+                section.classList.add('is-visible'); // siguradong lalabas kahit hindi pa na-trigger ang scroll reveal
             } catch (err) {
                 console.error('Reviews error:', err);
             }
