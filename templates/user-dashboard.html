@@ -459,6 +459,21 @@
     </div>
   </div>
 
+  <!-- INSTALLATION REVIEW CARD (nakatago hanggang kumpirmahin ng JS na eligible) -->
+  <section class="card review-prompt-card" id="reviewPromptCard" style="display:none;">
+    <div class="review-prompt-icon"><i class="fas fa-star"></i></div>
+    <div class="review-prompt-text">
+      <strong>How was your application and installation experience?</strong>
+      <p>Your feedback helps us improve our service. It only takes a few seconds.</p>
+    </div>
+    <div class="review-prompt-actions">
+      <button type="button" class="rv-btn rv-btn-primary" id="reviewRateNowBtn">
+        <i class="fas fa-star"></i> Rate now
+      </button>
+      <button type="button" class="rv-btn rv-btn-ghost" id="reviewLaterBtn">Maybe later</button>
+    </div>
+  </section>
+
   <section class="card security-section">
     <h2><i class="fas fa-mobile-alt"></i> Google Authenticator</h2>
     <p class="security-intro">Protect your account before the next login with a simple 2-step verification setup.</p>
@@ -534,6 +549,39 @@
   </div>
 
 </main>
+
+<!-- REVIEW MODAL -->
+<div id="reviewModal" class="rv-modal">
+  <div class="rv-modal-content">
+    <div class="rv-modal-header">
+      <h3 id="reviewModalTitle">Rate your experience</h3>
+      <button type="button" class="rv-close" id="closeReviewModal" aria-label="Close">&times;</button>
+    </div>
+    <div class="rv-modal-body">
+      <p class="rv-subtitle">How would you rate your application and installation?</p>
+
+      <div class="rv-stars" id="reviewStars" role="radiogroup" aria-label="Rating">
+        <button type="button" class="rv-star" data-value="1" aria-label="1 star"><i class="fas fa-star"></i></button>
+        <button type="button" class="rv-star" data-value="2" aria-label="2 stars"><i class="fas fa-star"></i></button>
+        <button type="button" class="rv-star" data-value="3" aria-label="3 stars"><i class="fas fa-star"></i></button>
+        <button type="button" class="rv-star" data-value="4" aria-label="4 stars"><i class="fas fa-star"></i></button>
+        <button type="button" class="rv-star" data-value="5" aria-label="5 stars"><i class="fas fa-star"></i></button>
+      </div>
+      <div class="rv-rating-label" id="reviewRatingLabel">Select a rating</div>
+
+      <label class="rv-label" for="reviewComment">Comments <span class="rv-optional">(optional)</span></label>
+      <textarea id="reviewComment" class="rv-textarea" rows="4" maxlength="500"
+                placeholder="Tell us what went well or what we can improve"></textarea>
+      <div class="rv-counter"><span id="reviewCommentCount">0</span>/500</div>
+    </div>
+    <div class="rv-modal-footer">
+      <button type="button" class="rv-btn rv-btn-ghost" id="cancelReviewBtn">Cancel</button>
+      <button type="button" class="rv-btn rv-btn-primary" id="submitReviewBtn">
+        <i class="fas fa-paper-plane"></i> Submit Review
+      </button>
+    </div>
+  </div>
+</div>
 
 <div class="sidebar-overlay" id="sidebarOverlay"></div>
 

@@ -5287,7 +5287,144 @@ def server_time():
         "server_time": datetime.now().isoformat()
     })
 
+# ===============================
+# REVIEWS (INSTALLATION; ang iba ay idadagdag sa transactions page)
+# ===============================
+REVIEW_TYPES = {"installation"}
 
+
+def ensure_reviews_table():
+    execute_query("""
+        CREATE TABLE IF NOT EXISTS reviews (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            user_id VARCHAR(50) NOT NULL,
+            transaction_type VARCHAR(30) NOT NULL,
+            transaction_id VARCHAR(100) NOT NULL,
+            rating TINYINT NOT NULL,
+            comment TEXT NULL,
+            created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE KEY uq_review (user_id, transaction_type, transaction_id)
+        )
+    """)
+
+
+def get_review_user_id():
+    """Kunin ang naka-login na user (tab session o regular session)."""
+    active_tab = session.get("active_tab")
+    if active_tab:
+        tab_session = session.get(f"user_{active_tab}")
+        if isinstance(tab_session, dict) and tab_session.get("user_id"):
+            return tab_session.get("user_id")
+    return session.get("user_id")
+
+
+def get_review_transaction_id(user_id, transaction_type):
+    """
+    Ibabalik ang transaction_id kung puwedeng i-review ng user ang transaksyong ito,
+    o None kung hindi pa.
+    """
+    if transaction_type == "installation":
+        user = execute_query(
+            "SELECT application_number FROM users WHERE user_id = %s LIMIT 1",
+            (user_id,), fetch_one=True
+        )
+        app_no = user.get("application_number") if user else None
+        if not app_no:
+            return None
+        customer = execute_query(
+            "SELECT installation_status FROM customers WHERE application_number = %s LIMIT 1",
+            (app_no,), fetch_one=True
+        )
+        if not customer or customer.get("installation_status") != "Installed":
+            return None
+        return str(app_no)
+    return None
+
+
+@app.route("/api/user/review-status")
+def user_review_status():
+    user_id = get_review_user_id()
+    if not user_id:
+        return jsonify({"error": "Not logged in"}), 401
+
+    transaction_type = (request.args.get("type") or "").strip()
+    if transaction_type not in REVIEW_TYPES:
+        return jsonify({"error": "Invalid review type"}), 400
+
+    ensure_reviews_table()
+
+    transaction_id = get_review_transaction_id(user_id, transaction_type)
+    if not transaction_id:
+        return jsonify({"eligible": False, "reviewed": False})
+
+    existing = execute_query(
+        """
+        SELECT id FROM reviews
+        WHERE user_id = %s AND transaction_type = %s AND transaction_id = %s
+        LIMIT 1
+        """,
+        (user_id, transaction_type, transaction_id), fetch_one=True
+    )
+
+    return jsonify({
+        "eligible": True,
+        "reviewed": bool(existing),
+        "transaction_id": transaction_id
+    })
+
+
+@app.route("/api/user/submit-review", methods=["POST"])
+def user_submit_review():
+    user_id = get_review_user_id()
+    if not user_id:
+        return jsonify({"success": False, "error": "Not logged in"}), 401
+
+    data = request.get_json(silent=True) or {}
+    transaction_type = (data.get("transaction_type") or "").strip()
+    comment = (data.get("comment") or "").strip()[:500]
+
+    try:
+        rating = int(data.get("rating"))
+    except (TypeError, ValueError):
+        rating = 0
+
+    if transaction_type not in REVIEW_TYPES:
+        return jsonify({"success": False, "error": "Invalid review type"}), 400
+    if rating < 1 or rating > 5:
+        return jsonify({"success": False, "error": "Please select a rating from 1 to 5."}), 400
+
+    ensure_reviews_table()
+
+    # Ang server ang nagtatakda ng transaction_id, hindi ang frontend
+    transaction_id = get_review_transaction_id(user_id, transaction_type)
+    if not transaction_id:
+        return jsonify({"success": False, "error": "This transaction cannot be reviewed yet."}), 400
+
+    existing = execute_query(
+        """
+        SELECT id FROM reviews
+        WHERE user_id = %s AND transaction_type = %s AND transaction_id = %s
+        LIMIT 1
+        """,
+        (user_id, transaction_type, transaction_id), fetch_one=True
+    )
+    if existing:
+        return jsonify({"success": False, "already_reviewed": True,
+                        "error": "You already submitted a review for this."}), 409
+
+    result = execute_query(
+        """
+        INSERT INTO reviews (user_id, transaction_type, transaction_id, rating, comment)
+        VALUES (%s, %s, %s, %s, %s)
+        """,
+        (user_id, transaction_type, transaction_id, rating, comment or None)
+    )
+    if result is None:
+        return jsonify({"success": False, "error": "Could not save your review. Please try again."}), 500
+
+    return jsonify({"success": True, "message": "Thank you for your feedback!"})
+
+    
 # ===============================
 # GET ANNOUNCEMENTS (XAMPP/MYSQL VERSION)
 # ===============================

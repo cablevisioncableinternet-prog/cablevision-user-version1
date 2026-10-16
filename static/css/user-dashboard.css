@@ -4404,3 +4404,225 @@ textarea.rc-input {
     animation: none !important;
   }
 }
+
+/* ================= REVIEW PROMPT CARD + MODAL ================= */
+.review-prompt-card {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  border-left: 3px solid #f59e0b;
+}
+
+.review-prompt-icon {
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  color: #f59e0b;
+  font-size: 18px;
+}
+
+.review-prompt-text {
+  flex: 1;
+  min-width: 220px;
+}
+
+.review-prompt-text strong {
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  color: #24364b;
+  margin-bottom: 2px;
+}
+
+.review-prompt-text p {
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+  color: #617286;
+}
+
+.review-prompt-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.rv-btn {
+  min-height: 36px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: 1px solid #d6dde6;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.rv-btn-primary {
+  background: #075a9e;
+  border-color: #075a9e;
+  color: #fff;
+}
+
+.rv-btn-primary:hover:not(:disabled) { background: #064a83; }
+.rv-btn-primary:disabled { opacity: 0.65; cursor: wait; }
+
+.rv-btn-ghost {
+  background: #fff;
+  color: #465368;
+}
+
+.rv-btn-ghost:hover { background: #f5f8fc; }
+
+/* Modal */
+.rv-modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  background: rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(3px);
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.rv-modal.show { display: flex; }
+
+.rv-modal-content {
+  width: min(460px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid #d7e1ec;
+  border-radius: 8px;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.2);
+  animation: slideUp 0.3s ease;
+}
+
+.rv-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid #edf0f3;
+}
+
+.rv-modal-header h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 700;
+  color: #202b3c;
+}
+
+.rv-close {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: #778397;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.rv-close:hover { background: #f1f3f6; color: #202b3c; }
+
+.rv-modal-body { padding: 18px; }
+
+.rv-subtitle {
+  margin: 0 0 14px;
+  text-align: center;
+  font-size: 13px;
+  color: #617286;
+}
+
+.rv-stars {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.rv-star {
+  border: none;
+  background: transparent;
+  padding: 4px;
+  font-size: 32px;
+  color: #d6dde6;
+  cursor: pointer;
+  transition: color 0.12s ease, transform 0.12s ease;
+}
+
+.rv-star:hover { transform: scale(1.1); }
+.rv-star.active { color: #f59e0b; }
+
+.rv-rating-label {
+  text-align: center;
+  min-height: 20px;
+  margin: 4px 0 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #465368;
+}
+
+.rv-label {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #465368;
+}
+
+.rv-optional { font-weight: 400; color: #94a3b8; }
+
+.rv-textarea {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #d6dde6;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 13px;
+  color: #263246;
+  resize: vertical;
+  min-height: 90px;
+}
+
+.rv-textarea:focus {
+  outline: none;
+  border-color: #075a9e;
+  box-shadow: 0 0 0 3px rgba(40, 118, 185, 0.15);
+}
+
+.rv-counter {
+  margin-top: 4px;
+  text-align: right;
+  font-size: 11px;
+  color: #94a3b8;
+}
+
+.rv-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 12px 18px;
+  border-top: 1px solid #edf0f3;
+}
+
+@media (max-width: 575px) {
+  .review-prompt-actions { width: 100%; }
+  .review-prompt-actions .rv-btn { flex: 1; }
+  .rv-modal-footer { flex-direction: column-reverse; }
+  .rv-modal-footer .rv-btn { width: 100%; }
+  .rv-star { font-size: 28px; }
+}

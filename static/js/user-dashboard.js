@@ -1753,3 +1753,162 @@ document.addEventListener('DOMContentLoaded', function() {
 
     if (confirmSubmitBtn) confirmSubmitBtn.addEventListener('click', submitReconnectRequest);
 });
+
+
+// ================= REVIEW (INSTALLATION) =================
+(function () {
+    const REVIEW_TYPE = 'installation';
+    const MAX_SKIPS = 3;
+    const SNOOZE_DAYS = 3;
+    const RATING_LABELS = ['Select a rating', 'Poor', 'Fair', 'Good', 'Very good', 'Excellent'];
+
+    const card = document.getElementById('reviewPromptCard');
+    const modal = document.getElementById('reviewModal');
+    if (!card || !modal) return;
+
+    const rateNowBtn = document.getElementById('reviewRateNowBtn');
+    const laterBtn = document.getElementById('reviewLaterBtn');
+    const closeBtn = document.getElementById('closeReviewModal');
+    const cancelBtn = document.getElementById('cancelReviewBtn');
+    const submitBtn = document.getElementById('submitReviewBtn');
+    const starsWrap = document.getElementById('reviewStars');
+    const stars = Array.from(starsWrap.querySelectorAll('.rv-star'));
+    const ratingLabel = document.getElementById('reviewRatingLabel');
+    const commentEl = document.getElementById('reviewComment');
+    const counterEl = document.getElementById('reviewCommentCount');
+
+    let selectedRating = 0;
+
+    function snoozeKey() {
+        const uid = sessionStorage.getItem('user_id') || localStorage.getItem('user_id') || 'user';
+        return `review_snooze_${REVIEW_TYPE}_${uid}`;
+    }
+
+    function getSnooze() {
+        try { return JSON.parse(localStorage.getItem(snoozeKey())) || { count: 0, until: 0 }; }
+        catch (e) { return { count: 0, until: 0 }; }
+    }
+
+    function shouldShowPrompt() {
+        const s = getSnooze();
+        return s.count < MAX_SKIPS && Date.now() >= s.until;
+    }
+
+    function paintStars(value) {
+        stars.forEach(star => {
+            star.classList.toggle('active', Number(star.dataset.value) <= value);
+        });
+        ratingLabel.textContent = RATING_LABELS[value] || RATING_LABELS[0];
+    }
+
+    function resetForm() {
+        selectedRating = 0;
+        paintStars(0);
+        commentEl.value = '';
+        counterEl.textContent = '0';
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Review';
+    }
+
+    function openModal() {
+        resetForm();
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+    }
+
+    stars.forEach(star => {
+        star.addEventListener('click', () => {
+            selectedRating = Number(star.dataset.value);
+            paintStars(selectedRating);
+        });
+        star.addEventListener('mouseenter', () => paintStars(Number(star.dataset.value)));
+    });
+    starsWrap.addEventListener('mouseleave', () => paintStars(selectedRating));
+
+    commentEl.addEventListener('input', () => {
+        counterEl.textContent = commentEl.value.length;
+    });
+
+    async function submitReview() {
+        if (!selectedRating) {
+            showToast('Please select a star rating.', 'error');
+            return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Submitting...';
+
+        try {
+            const res = await fetch('/api/user/submit-review', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    transaction_type: REVIEW_TYPE,
+                    rating: selectedRating,
+                    comment: commentEl.value.trim()
+                })
+            });
+            const data = await res.json();
+
+            if (res.ok && data.success) {
+                closeModal();
+                card.style.display = 'none';
+                showToast(data.message || 'Thank you for your feedback!', 'success');
+            } else if (data.already_reviewed) {
+                closeModal();
+                card.style.display = 'none';
+                showToast(data.error, 'info');
+            } else {
+                showToast(data.error || 'Failed to submit review.', 'error');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Review';
+            }
+        } catch (err) {
+            console.error('Review submit error:', err);
+            showToast('Network error. Please try again.', 'error');
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Submit Review';
+        }
+    }
+
+    function maybeLater() {
+        const s = getSnooze();
+        localStorage.setItem(snoozeKey(), JSON.stringify({
+            count: s.count + 1,
+            until: Date.now() + SNOOZE_DAYS * 24 * 60 * 60 * 1000
+        }));
+        card.style.display = 'none';
+        showToast('No problem. You can rate us later.', 'info');
+    }
+
+    async function initReviewPrompt() {
+        if (!shouldShowPrompt()) return;
+        try {
+            const res = await fetch(`/api/user/review-status?type=${REVIEW_TYPE}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data.eligible && !data.reviewed) {
+                card.style.display = 'flex';
+            }
+        } catch (err) {
+            console.error('Review status error:', err);
+        }
+    }
+
+    rateNowBtn.addEventListener('click', openModal);
+    laterBtn.addEventListener('click', maybeLater);
+    closeBtn.addEventListener('click', closeModal);
+    cancelBtn.addEventListener('click', closeModal);
+    submitBtn.addEventListener('click', submitReview);
+    modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modal.classList.contains('show')) closeModal();
+    });
+
+    document.addEventListener('DOMContentLoaded', initReviewPrompt);
+})();
