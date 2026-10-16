@@ -916,7 +916,7 @@ document.addEventListener('DOMContentLoaded', () => {
         setInputValue('app_fullname', getDataValue('fullname'));
         setInputValue('app_email', getDataValue('email'));
         setInputValue('app_mobile', getDataValue('mobile'));
-        setInputValue('app_mobileOwwner', getDataValue('mobile-owner'));
+        setInputValue('app_mobileOwner', getDataValue('mobile-owner'));
         setInputValue('app_secondaryMobile', getDataValue('secondary-mobile'));
         setInputValue('app_phone', getDataValue('phone'));
         setInputValue('app_birthdate', getDataValue('birthdate'));
