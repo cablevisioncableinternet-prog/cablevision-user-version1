@@ -149,25 +149,6 @@
     </section>
 
     <!-- ============================================================
-    CUSTOMER REVIEWS — LATEST 5 (DYNAMIC)
-    ============================================================ -->
-    <section class="reviews-section reveal-on-scroll" id="reviews">
-        <div class="container text-center">
-            <span class="section-label">Reviews</span>
-            <h2 class="section-title-lg">What Our <span class="highlight">Customers Say</span></h2>
-            <p class="section-sub">Real feedback from Cablevision subscribers.</p>
-
-            <div class="reviews-grid" id="reviewsGrid">
-                <div class="reviews-loading">
-                    <i class="fas fa-spinner fa-spin"></i>
-                    <p>Loading reviews...</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-
-    <!-- ============================================================
     VIDEO CAROUSEL — REDESIGNED "WATCH OUR LATEST VIDEOS"
     ============================================================ -->
     <section class="video-carousel-section-modern reveal-on-scroll">
@@ -2437,53 +2418,6 @@ async function fetchCustomerCounts() {
             if (e.target === this) closeImagePreview();
         });
 
-
-                // ================= LATEST REVIEWS =================
-        async function loadPublicReviews() {
-            const grid = document.getElementById('reviewsGrid');
-            if (!grid) return;
-
-            try {
-                const res = await fetch('/api/public/reviews');
-                if (!res.ok) throw new Error('Failed to fetch reviews');
-                const reviews = await res.json();
-
-                if (!Array.isArray(reviews) || reviews.length === 0) {
-                    grid.innerHTML = `
-                        <div class="reviews-empty">
-                            <i class="fas fa-comment-dots"></i>
-                            <p>No reviews yet. Be the first to share your experience!</p>
-                        </div>`;
-                    return;
-                }
-
-                grid.innerHTML = reviews.map(r => {
-                    const rating = Math.max(0, Math.min(5, parseInt(r.rating) || 0));
-                    let stars = '';
-                    for (let i = 1; i <= 5; i++) {
-                        stars += `<i class="fas fa-star ${i <= rating ? '' : 'empty'}"></i>`;
-                    }
-                    const comment = r.comment
-                        ? `<p class="review-comment">“${escapeHtml(r.comment)}”</p>`
-                        : '';
-                    return `
-                        <div class="review-card">
-                            <div class="review-stars">${stars}</div>
-                            ${comment}
-                            <div class="review-name">${escapeHtml(r.name || 'Anonymous')}</div>
-                        </div>`;
-                }).join('');
-            } catch (err) {
-                console.error('Error loading reviews:', err);
-                grid.innerHTML = `
-                    <div class="reviews-empty">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <p>Could not load reviews right now.</p>
-                    </div>`;
-            }
-        }
-
-
         // ================= INIT ALL =================
         document.addEventListener('DOMContentLoaded', async function() {
             try {
@@ -2497,7 +2431,6 @@ async function fetchCustomerCounts() {
             try { await loadHeroStats(); }        catch (e) { console.error("Hero stats error:", e); }
             try { await loadPlansDynamically(); } catch (e) { console.error("Plans error:", e); }
             try { await fetchUploadedLogos(); }   catch (e) { console.error("Logos error:", e); }
-            try { await loadPublicReviews(); }    catch (e) { console.error("Reviews error:", e); }
 
             document.querySelectorAll('.thumbnail-wrapper').forEach((w, i) => {
                 w.addEventListener('click', function() {

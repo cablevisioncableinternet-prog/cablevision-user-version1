@@ -688,40 +688,7 @@ def home():
         )
 
 
-@app.route("/api/public/reviews")
-def public_latest_reviews():
-    """Latest 5 reviews para sa homepage (public, walang login)."""
-    ensure_reviews_table()
 
-    rows = execute_query(
-        """
-        SELECT r.id, r.rating, r.comment, r.is_anonymous, r.created_at,
-               u.first_name, u.last_name
-        FROM reviews r
-        LEFT JOIN users u ON u.user_id = r.user_id
-        ORDER BY r.created_at DESC, r.id DESC
-        LIMIT 5
-        """
-    ) or []
-
-    reviews = []
-    for row in rows:
-        full_name = f"{row.get('first_name') or ''} {row.get('last_name') or ''}".strip()
-        if not full_name:
-            full_name = "Anonymous"
-
-        # Kapag anonymous, naka-mask ang pangalan (Shopee style)
-        display_name = mask_name(full_name) if row.get("is_anonymous") else full_name
-
-        reviews.append({
-            "id": row.get("id"),
-            "rating": int(row.get("rating") or 0),
-            "comment": (row.get("comment") or "").strip(),
-            "name": display_name,
-            "created_at": _review_ts(row.get("created_at")),
-        })
-
-    return jsonify(reviews)
 
 # ===============================
 # GET PLANS FOR SUPERADMIN (XAMPP/MYSQL)
