@@ -1158,7 +1158,7 @@ async function loadPlansIntoSelect() {
     console.log(' [DEBUG] Number of plans:', plans.length);
     
     if (!plans || plans.length === 0) {
-      select.innerHTML = `<option value="">No plans available</option>`;
+      select.innerHTML = `<option value="" hidden>No plans available</option>`;
       return;
     }
     
@@ -1207,13 +1207,13 @@ async function loadPlansIntoSelect() {
     console.log(` [DEBUG] Filtered plans: ${filteredPlans.length} of ${plans.length} total`);
     
     if (filteredPlans.length === 0) {
-      select.innerHTML = `<option value="">No other plans available</option>`;
+      select.innerHTML = `<option value="" hidden>No other plans available</option>`;
       console.warn(' [DEBUG] No filtered plans found!');
       return;
     }
     
     // BUILD THE OPTIONS
-    let optionsHTML = `<option value="">-- Select a plan --</option>`;
+    let optionsHTML = `<option value="" hidden>-- Select a plan --</option>`;
     filteredPlans.forEach(p => {
       const price = parseFloat(p.price || 0);
       const priceDisplay = isNaN(price) ? '0.00' : price.toFixed(2);
