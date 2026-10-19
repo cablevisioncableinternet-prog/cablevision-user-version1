@@ -1739,13 +1739,20 @@ def _aws_client(service):
     return boto3.client(service, region_name=os.getenv("AWS_REGION", "ap-southeast-1"))
 
 
-def _prepare_image_bytes(raw, max_side=1600):
-    """I-convert sa JPEG at i-resize para pasok sa limit ng Rekognition/Textract (5MB)."""
+def _prepare_image_bytes(raw, max_side=1600, min_side=900):
+    """I-convert sa JPEG, i-upscale kung masyadong maliit, at i-resize para pasok sa limit (5MB)."""
     img = Image.open(io.BytesIO(raw))
     img = img.convert("RGB")
+
+    # Upscale ang maliliit na screenshot para mas madaling makita ang mukha/text
+    w, h = img.size
+    if max(w, h) < min_side:
+        scale = min_side / float(max(w, h))
+        img = img.resize((int(w * scale), int(h * scale)), Image.LANCZOS)
+
     img.thumbnail((max_side, max_side))
     out = io.BytesIO()
-    img.save(out, format="JPEG", quality=88)
+    img.save(out, format="JPEG", quality=90)
     return out.getvalue()
 
 
@@ -1854,10 +1861,12 @@ def api_verify_id_face():
         resp = rek.compare_faces(
             SourceImage={"Bytes": _prepare_image_bytes(id_bytes)},     # mukha sa ID
             TargetImage={"Bytes": _prepare_image_bytes(selfie_bytes)}, # selfie
-            SimilarityThreshold=50,
+            SimilarityThreshold=0,   # 0 para laging makita ang totoong score
         )
         matches = resp.get("FaceMatches", [])
         similarity = max((m["Similarity"] for m in matches), default=0.0)
+        print(f" FACE SCORE: {similarity:.2f} (threshold {FACE_MATCH_THRESHOLD}) | "
+              f"matches={len(matches)} unmatched={len(resp.get('UnmatchedFaces', []))}")
 
         if similarity >= FACE_MATCH_THRESHOLD:
             _set_id_verified(id_hash, id_type, "face", score=round(similarity, 2))
