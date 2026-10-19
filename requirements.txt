@@ -10,3 +10,4 @@ groq
 python-dotenv
 cloudinary
 dnspython
+boto3
