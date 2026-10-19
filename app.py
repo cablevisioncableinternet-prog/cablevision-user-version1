@@ -1693,6 +1693,229 @@ def upload_base64_to_cloudinary(base64_string, application_number, file_type, ma
         print(f" Base64 upload error for {file_type}: {e}")
         return None
 
+
+
+
+# ===============================
+# ID VERIFICATION (FACE MATCH + MANUAL ID NUMBER)
+# ===============================
+import hashlib
+import re
+import io
+import time
+import os
+import boto3
+from botocore.exceptions import ClientError, BotoCoreError
+from PIL import Image
+
+FACE_MATCH_THRESHOLD = 85          # % similarity na tatanggapin
+ID_VERIFY_TTL = 1800               # 30 minutes bisa ng verification
+MAX_FACE_ATTEMPTS = 5
+MAX_MANUAL_ATTEMPTS = 5            # proteksyon laban sa paghula ng ID numbers
+
+# I-verify ang formats na ito laban sa totoong ID mo bago i-deploy
+ID_NUMBER_PATTERNS = {
+    "philsys":         r"^\d{16}$",
+    "sss":             r"^\d{10}$",
+    "umid":            r"^\d{12}$",
+    "philhealth":      r"^\d{12}$",
+    "tin":             r"^(\d{9}|\d{12})$",
+    "passport":        r"^[A-Z]\d{7}[A-Z]$",
+    "drivers_license": r"^[A-Z]\d{2}\d{2}\d{6}$",
+}
+
+
+def _aws_client(service):
+    return boto3.client(service, region_name=os.getenv("AWS_REGION", "ap-southeast-1"))
+
+
+def _prepare_image_bytes(raw, max_side=1600):
+    """I-convert sa JPEG at i-resize para pasok sa limit ng Rekognition/Textract (5MB)."""
+    img = Image.open(io.BytesIO(raw))
+    img = img.convert("RGB")
+    img.thumbnail((max_side, max_side))
+    out = io.BytesIO()
+    img.save(out, format="JPEG", quality=88)
+    return out.getvalue()
+
+
+def _normalize_id_number(value):
+    return re.sub(r"[^A-Za-z0-9]", "", value or "").upper()
+
+
+def _mask_id_number(value):
+    v = _normalize_id_number(value)
+    return ("*" * max(len(v) - 4, 0)) + v[-4:]
+
+
+def _set_id_verified(id_hash, id_type, method, score=None, masked=None):
+    session["id_verification"] = {
+        "hash": id_hash,
+        "id_type": id_type,
+        "method": method,          # 'face' | 'manual'
+        "score": score,
+        "masked": masked,
+        "time": time.time(),
+    }
+
+
+def _get_valid_id_verification(id_hash):
+    v = session.get("id_verification")
+    if not v:
+        return None
+    if v.get("hash") != id_hash:
+        return None
+    if time.time() - v.get("time", 0) > ID_VERIFY_TTL:
+        return None
+    return v
+
+
+def ocr_contains_id_number(id_bytes, id_number):
+    """True/False kung nakita ang number sa ID image. None kung hindi available ang OCR."""
+    try:
+        textract = _aws_client("textract")
+        resp = textract.detect_document_text(Document={"Bytes": _prepare_image_bytes(id_bytes)})
+        text = " ".join(b.get("Text", "") for b in resp.get("Blocks", []) if b.get("BlockType") == "LINE")
+        haystack = re.sub(r"[^A-Za-z0-9]", "", text).upper()
+        return _normalize_id_number(id_number) in haystack
+    except (ClientError, BotoCoreError, Exception) as e:
+        print(f" OCR unavailable: {e}")
+        return None
+
+
+def verify_id_number_with_provider(id_type, id_number, first_name, last_name, birthdate):
+    """
+    >>> DITO MO IKABIT ANG TOTOONG ID VERIFICATION PROVIDER MO <<<
+    Dapat mag-return ng dict: {"checked": bool, "valid": bool, "message": str}
+    - checked=False  -> walang provider na naka-configure / hindi ma-reach
+    - valid=True     -> existing at tugma ang ID number
+    Baguhin ang payload at response parsing ayon sa dokumentasyon ng provider mo.
+    """
+    import requests
+    api_url = os.getenv("ID_VERIFY_API_URL")
+    api_key = os.getenv("ID_VERIFY_API_KEY")
+    if not api_url or not api_key:
+        return {"checked": False, "valid": False, "message": "No ID provider configured"}
+    try:
+        resp = requests.post(
+            api_url,
+            headers={"Authorization": f"Bearer {api_key}"},
+            json={
+                "id_type": id_type,
+                "id_number": _normalize_id_number(id_number),
+                "first_name": first_name,
+                "last_name": last_name,
+                "birthdate": birthdate,
+            },
+            timeout=15,
+        )
+        if resp.status_code != 200:
+            return {"checked": False, "valid": False, "message": f"Provider error {resp.status_code}"}
+        data = resp.json()
+        # I-ADJUST ayon sa response ng provider mo:
+        return {"checked": True, "valid": bool(data.get("valid")), "message": data.get("message", "")}
+    except Exception as e:
+        print(f" ID provider failed: {e}")
+        return {"checked": False, "valid": False, "message": "Provider unreachable"}
+
+
+@app.route("/api/verify-id-face", methods=["POST"])
+def api_verify_id_face():
+    id_file = request.files.get("id_front")
+    selfie = request.files.get("selfie")
+    id_type = (request.form.get("id_type") or "").strip()
+
+    if not id_file or not selfie or id_type not in ID_NUMBER_PATTERNS:
+        return jsonify(success=False, fallback=False,
+                       message="Kulang ang ID, selfie, o ID type."), 400
+
+    attempts = session.get("id_face_attempts", 0)
+    if attempts >= MAX_FACE_ATTEMPTS:
+        return jsonify(success=False, fallback=True,
+                       message="Too many face scan attempts. Please use manual ID verification."), 429
+    session["id_face_attempts"] = attempts + 1
+
+    id_bytes = id_file.read()
+    selfie_bytes = selfie.read()
+    id_hash = hashlib.sha256(id_bytes).hexdigest()
+
+    try:
+        rek = _aws_client("rekognition")
+        resp = rek.compare_faces(
+            SourceImage={"Bytes": _prepare_image_bytes(id_bytes)},     # mukha sa ID
+            TargetImage={"Bytes": _prepare_image_bytes(selfie_bytes)}, # selfie
+            SimilarityThreshold=50,
+        )
+        matches = resp.get("FaceMatches", [])
+        similarity = max((m["Similarity"] for m in matches), default=0.0)
+
+        if similarity >= FACE_MATCH_THRESHOLD:
+            _set_id_verified(id_hash, id_type, "face", score=round(similarity, 2))
+            session.pop("id_face_attempts", None)
+            return jsonify(success=True, score=round(similarity, 2),
+                           message="Face matched! ID verified.")
+
+        return jsonify(success=False, fallback=True,
+                       message="Hindi nag-match ang mukha sa ID. Subukan ulit o gamitin ang manual verification.")
+
+    except ClientError as e:
+        code = e.response.get("Error", {}).get("Code", "")
+        print(f" Rekognition ClientError: {code} - {e}")
+        if code == "InvalidParameterException":
+            msg = "Walang mukhang nakita sa ID o sa selfie. Siguraduhing malinaw at kita ang mukha."
+        else:
+            msg = "May error sa face verification."
+        return jsonify(success=False, fallback=True, message=msg)
+    except Exception as e:
+        print(f" Face verify error: {e}")
+        return jsonify(success=False, fallback=True, message="May error sa face verification.")
+
+
+@app.route("/api/verify-id-number", methods=["POST"])
+def api_verify_id_number():
+    id_file = request.files.get("id_front")
+    id_type = (request.form.get("id_type") or "").strip()
+    id_number = (request.form.get("id_number") or "").strip()
+
+    if not id_file or id_type not in ID_NUMBER_PATTERNS or not id_number:
+        return jsonify(success=False, message="Kulang ang ID, ID type, o ID number."), 400
+
+    attempts = session.get("id_manual_attempts", 0)
+    if attempts >= MAX_MANUAL_ATTEMPTS:
+        return jsonify(success=False,
+                       message="Too many attempts. Please contact support."), 429
+    session["id_manual_attempts"] = attempts + 1
+
+    normalized = _normalize_id_number(id_number)
+    if not re.match(ID_NUMBER_PATTERNS[id_type], normalized):
+        return jsonify(success=False, message="Mali ang format ng ID number para sa napiling ID type.")
+
+    id_bytes = id_file.read()
+    id_hash = hashlib.sha256(id_bytes).hexdigest()
+
+    # Dapat nasa mismong na-upload na ID ang number
+    ocr_ok = ocr_contains_id_number(id_bytes, normalized)
+    if ocr_ok is False:
+        return jsonify(success=False,
+                       message="Hindi tugma ang ID number sa nakikita sa na-upload na ID.")
+
+    provider = verify_id_number_with_provider(
+        id_type, normalized,
+        request.form.get("first_name", ""), request.form.get("last_name", ""),
+        request.form.get("birthdate", ""),
+    )
+    if provider["checked"] and not provider["valid"]:
+        return jsonify(success=False,
+                       message=provider.get("message") or "Hindi ma-verify ang ID number.")
+
+    # Kung walang provider (checked=False), format + OCR lang ang napatunayan.
+    # Mas ligtas na i-flag ito para sa admin review (tingnan ang method sa DB).
+    method = "manual" if provider["checked"] else "manual_unverified"
+    _set_id_verified(id_hash, id_type, method, masked=_mask_id_number(normalized))
+    session.pop("id_manual_attempts", None)
+    return jsonify(success=True, message="ID number verified.",
+                   provider_checked=provider["checked"])
+
     
 # ===============================
 # APPLICATION SUBMIT (XAMPP/MYSQL VERSION WITH FILE UPLOADS)
@@ -1926,6 +2149,21 @@ def submit_application():
         application_number = str(random.randint(1000000000, 9999999999))
         print(f" New application #{application_number}")
 
+
+
+    # ========== CHECK ID VERIFICATION ==========
+    id_verification = None
+    id_front_chk = request.files.get('id_front')
+    if id_front_chk and id_front_chk.filename != '':
+        raw_id = id_front_chk.read()
+        id_front_chk.seek(0)  # ibalik para ma-upload pa sa Cloudinary
+        id_verification = _get_valid_id_verification(hashlib.sha256(raw_id).hexdigest())
+        if not id_verification:
+            return 'Please verify your ID (face scan or ID number) before submitting.', 400
+    elif not (is_reapply and original_application_id):
+        return 'Valid ID (front) is required.', 400
+    
+
     # ========== PROCESS SIGNATURE ==========
     signature_value = None
     signature_upload = request.files.get('signature_upload')
@@ -2129,6 +2367,27 @@ def submit_application():
             print(f" CRITICAL: INSERT failed for application {application_number} — check [QUERY ERROR] above")
             return f"We couldn't save your application. Please try again or contact support. (Ref: {application_number})", 500
         print(f" New application {application_number} saved with preferred NAP Box")
+
+
+    # ========== SAVE ID VERIFICATION RESULT ==========
+    if id_verification:
+        try:
+            execute_query("""
+                UPDATE applications SET
+                    id_type = %s, id_number_masked = %s, id_verification_method = %s,
+                    id_face_score = %s, id_verified_at = NOW()
+                WHERE application_number = %s
+            """, (
+                id_verification.get('id_type'),
+                id_verification.get('masked'),
+                id_verification.get('method'),
+                id_verification.get('score'),
+                application_number
+            ))
+        except Exception as e:
+            print(f" Failed to save ID verification result: {e}")
+        session.pop('id_verification', None)
+
 
     # ========== CREATE NOTIFICATIONS ==========
     try:
@@ -5624,6 +5883,30 @@ def get_review_plan_name(user_id, transaction_type, transaction_id):
     return None
 
 
+def get_review_area(user_id):
+    """Kinukuha ang city (area) ng user mula sa customers table."""
+    row = execute_query(
+        """
+        SELECT c.city
+        FROM users u
+        JOIN customers c
+          ON c.application_number COLLATE utf8mb4_general_ci
+           = u.application_number COLLATE utf8mb4_general_ci
+        WHERE u.user_id = %s
+        LIMIT 1
+        """,
+        (user_id,),
+        fetch_one=True
+    )
+    if not row:
+        return None
+
+    city = row.get("city") if isinstance(row, dict) else row[0]
+    city = (city or "").strip()
+    return city or None
+
+
+
 def fetch_my_reviews(user_id):
     rows = execute_query(
         """
@@ -5671,17 +5954,18 @@ def user_submit_review():
         return jsonify({"success": False, "already_reviewed": True,
                         "error": "You already submitted a review for this."}), 409
 
-    # Plan name ay kinukuha ng server (hindi galing sa browser)
+    # Plan name at area ay kinukuha ng server (hindi galing sa browser)
     plan_name = get_review_plan_name(user_id, transaction_type, transaction_id)
+    area = get_review_area(user_id)
 
     result = execute_query(
         """
         INSERT INTO reviews (user_id, transaction_type, transaction_id, plan_name,
-                             rating, comment, is_anonymous)
-        VALUES (%s, %s, %s, %s, %s, %s, %s)
+                             area, rating, comment, is_anonymous)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
         """,
         (user_id, transaction_type, transaction_id, plan_name,
-         rating, comment or None, is_anonymous)
+         area, rating, comment or None, is_anonymous)
     )
     if result is None:
         return jsonify({"success": False, "error": "Could not save your review. Please try again."}), 500

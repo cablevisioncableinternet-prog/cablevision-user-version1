@@ -504,6 +504,72 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
                 </div>
             </div>
 
+
+                        <!-- ID VERIFICATION -->
+            <div class="form-card-modern" id="idVerifyCard">
+                <div class="form-card-header">
+                    <div class="form-card-icon"><i class="fas fa-user-check"></i></div>
+                    <h4 class="form-card-title">ID Verification</h4>
+                </div>
+                <div class="form-card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <div class="form-group-modern">
+                                <label class="form-label-modern">Type of ID Uploaded <span class="required-star">*</span></label>
+                                <select name="id_type" id="id_type" class="form-control-modern">
+                                    <option value="" disabled selected hidden>-- Select ID Type --</option>
+                                    <option value="philsys">PhilSys National ID</option>
+                                    <option value="umid">UMID</option>
+                                    <option value="sss">SSS ID</option>
+                                    <option value="drivers_license">Driver's License</option>
+                                    <option value="passport">Passport</option>
+                                    <option value="philhealth">PhilHealth ID</option>
+                                    <option value="tin">TIN ID</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <p class="file-hint-modern" style="margin-top:10px;">
+                        I-upload muna ang <strong>Valid ID - Front</strong>, piliin ang ID type, then i-click ang
+                        <strong>Scan Face</strong> para i-match ang mukha mo sa ID.
+                    </p>
+
+                    <button type="button" id="scanFaceBtn" class="btn-secondary-modern" disabled>
+                        <i class="fas fa-camera"></i> Scan Face
+                    </button>
+
+                    <div id="idVerifyStatus" style="margin-top:12px; font-size:0.9rem; display:none;"></div>
+
+                    <!-- MANUAL FALLBACK -->
+                    <div id="manualIdBox" style="display:none; margin-top:16px; padding:14px; border:1px solid #fde68a; background:#fffbeb; border-radius:10px;">
+                        <strong style="color:#92400e;">Manual ID Verification</strong>
+                        <p style="font-size:0.85rem; margin:6px 0 10px;">
+                            Hindi na-verify ang mukha. Ilagay ang ID number mo (nasa na-upload na ID) para ma-verify.
+                        </p>
+                        <input type="text" id="id_number" name="id_number" class="form-control-modern"
+                               placeholder="ID Number" autocomplete="off">
+                        <button type="button" id="verifyIdNumberBtn" class="btn-secondary-modern" style="margin-top:10px;">
+                            Verify ID Number
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FACE SCAN MODAL -->
+            <div id="faceModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:9999; align-items:center; justify-content:center;">
+                <div style="background:#fff; border-radius:14px; padding:16px; width:min(92vw,420px); text-align:center;">
+                    <h5 style="margin-bottom:8px;">Face Scan</h5>
+                    <p style="font-size:0.85rem; color:#475569;">Ilagay ang mukha sa gitna, maliwanag ang ilaw, walang suot na sumbrero/shades.</p>
+                    <video id="faceVideo" autoplay playsinline muted style="width:100%; border-radius:10px; background:#000; transform:scaleX(-1);"></video>
+                    <canvas id="faceCanvas" style="display:none;"></canvas>
+                    <div style="display:flex; gap:8px; justify-content:center; margin-top:12px;">
+                        <button type="button" id="captureFaceBtn" class="btn-secondary-modern">Capture & Verify</button>
+                        <button type="button" id="cancelFaceBtn" class="btn-secondary-modern">Cancel</button>
+                    </div>
+                </div>
+            </div>
+
                         <!-- E-SIGNATURE -->
             <div class="form-card-modern">
                 <div class="form-card-header">
@@ -1062,6 +1128,20 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
             // ---- Documents ----
             fileField('id_front', 'Valid ID - Front', 'preview_id_front');
             fileField('id_back', 'Valid ID - Back', 'preview_id_back');
+
+            // ---- ID Verification ----
+            const idFrontEl = document.getElementById('id_front');
+            const hasNewIdFront = idFrontEl && idFrontEl.files && idFrontEl.files.length > 0;
+            if (hasNewIdFront) {
+                const idTypeEl = document.getElementById('id_type');
+                if (idTypeEl && !idTypeEl.value) {
+                    add(idTypeEl, 'ID Type');
+                } else if (!(window.idVerification && window.idVerification.verified)) {
+                    add(idTypeEl, 'ID Verification', {
+                        msg: 'Please verify your ID (face scan or ID number) before submitting'
+                    });
+                }
+            }
             if (typeof window.isProofBillingRequired !== 'function' || window.isProofBillingRequired()) {
                 fileField('proof_billing', 'Proof of Billing', 'preview_billing');
             }
@@ -5508,6 +5588,157 @@ function addUserNapboxMarkers() {
                     this.dispatchEvent(new Event('change'));
                 }
             });
+        });
+    })();
+
+
+        // ================= ID VERIFICATION (FACE SCAN + MANUAL FALLBACK) =================
+    (function () {
+        window.idVerification = { verified: false, method: null };
+
+        const idInput   = document.getElementById('id_front');
+        const idType    = document.getElementById('id_type');
+        const scanBtn   = document.getElementById('scanFaceBtn');
+        const statusBox = document.getElementById('idVerifyStatus');
+        const manualBox = document.getElementById('manualIdBox');
+        const idNumber  = document.getElementById('id_number');
+        const verifyNumBtn = document.getElementById('verifyIdNumberBtn');
+        const modal     = document.getElementById('faceModal');
+        const video     = document.getElementById('faceVideo');
+        const canvas    = document.getElementById('faceCanvas');
+        const captureBtn = document.getElementById('captureFaceBtn');
+        const cancelBtn  = document.getElementById('cancelFaceBtn');
+        if (!idInput || !idType || !scanBtn) return;
+
+        let stream = null;
+
+        function setStatus(type, msg) {
+            const colors = { success: '#166534', error: '#b91c1c', info: '#1e40af' };
+            statusBox.style.display = 'block';
+            statusBox.style.color = colors[type] || '#334155';
+            statusBox.textContent = msg;
+        }
+
+        function refreshScanBtn() {
+            const ready = idInput.files && idInput.files.length > 0 && idType.value;
+            scanBtn.disabled = !ready || window.idVerification.verified;
+        }
+
+        function resetVerification() {
+            window.idVerification = { verified: false, method: null };
+            manualBox.style.display = 'none';
+            statusBox.style.display = 'none';
+            if (idNumber) idNumber.value = '';
+            refreshScanBtn();
+        }
+
+        // Kapag nagpalit ng ID file o ID type, kailangan ulit i-verify
+        idInput.addEventListener('change', resetVerification);
+        idType.addEventListener('change', resetVerification);
+        refreshScanBtn();
+
+        function stopCamera() {
+            if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+            video.srcObject = null;
+            modal.style.display = 'none';
+        }
+
+        scanBtn.addEventListener('click', async function () {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                setStatus('error', 'Hindi supported ang camera sa browser na ito (kailangan ng HTTPS). Gamitin ang manual verification.');
+                manualBox.style.display = 'block';
+                return;
+            }
+            try {
+                stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' }, audio: false });
+                video.srcObject = stream;
+                modal.style.display = 'flex';
+            } catch (err) {
+                console.error('Camera error:', err);
+                setStatus('error', 'Hindi ma-access ang camera. Payagan ang camera permission o gamitin ang manual verification.');
+                manualBox.style.display = 'block';
+            }
+        });
+
+        cancelBtn.addEventListener('click', stopCamera);
+
+        captureBtn.addEventListener('click', function () {
+            if (!video.videoWidth) return;
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+            canvas.toBlob(async function (blob) {
+                stopCamera();
+                await verifyFace(blob);
+            }, 'image/jpeg', 0.9);
+        });
+
+        async function verifyFace(selfieBlob) {
+            const file = idInput.files[0];
+            if (!file) return;
+            scanBtn.disabled = true;
+            setStatus('info', 'Vine-verify ang mukha mo... sandali lang.');
+
+            const fd = new FormData();
+            fd.append('id_front', file);
+            fd.append('selfie', selfieBlob, 'selfie.jpg');
+            fd.append('id_type', idType.value);
+
+            try {
+                const res = await fetch('/api/verify-id-face', { method: 'POST', body: fd });
+                const data = await res.json();
+                if (data.success) {
+                    window.idVerification = { verified: true, method: 'face' };
+                    manualBox.style.display = 'none';
+                    setStatus('success', 'Verified! Nag-match ang mukha mo sa ID.');
+                    showToast('ID verified by face scan', 'success');
+                } else {
+                    setStatus('error', data.message || 'Hindi na-verify ang mukha.');
+                    if (data.fallback !== false) manualBox.style.display = 'block';
+                    scanBtn.disabled = false;
+                }
+            } catch (err) {
+                console.error('Face verify error:', err);
+                setStatus('error', 'May error sa pag-verify. Subukan ulit o gamitin ang manual verification.');
+                manualBox.style.display = 'block';
+                scanBtn.disabled = false;
+            }
+        }
+
+        verifyNumBtn.addEventListener('click', async function () {
+            const file = idInput.files[0];
+            const number = (idNumber.value || '').trim();
+            if (!file || !idType.value) { setStatus('error', 'Piliin muna ang ID type at i-upload ang ID.'); return; }
+            if (!number) { setStatus('error', 'Ilagay ang ID number.'); return; }
+
+            verifyNumBtn.disabled = true;
+            setStatus('info', 'Vine-verify ang ID number...');
+
+            const fd = new FormData();
+            fd.append('id_front', file);
+            fd.append('id_type', idType.value);
+            fd.append('id_number', number);
+            fd.append('first_name', (document.querySelector('[name="first_name"]') || {}).value || '');
+            fd.append('last_name', (document.querySelector('[name="last_name"]') || {}).value || '');
+            fd.append('birthdate', (document.getElementById('birthdate') || {}).value || '');
+
+            try {
+                const res = await fetch('/api/verify-id-number', { method: 'POST', body: fd });
+                const data = await res.json();
+                if (data.success) {
+                    window.idVerification = { verified: true, method: 'manual' };
+                    setStatus('success', 'Verified! Tanggap ang ID number mo.');
+                    showToast('ID number verified', 'success');
+                    scanBtn.disabled = true;
+                } else {
+                    setStatus('error', data.message || 'Hindi na-verify ang ID number.');
+                }
+            } catch (err) {
+                console.error('ID number verify error:', err);
+                setStatus('error', 'Network error. Subukan ulit.');
+            } finally {
+                verifyNumBtn.disabled = false;
+            }
         });
     })();
 
