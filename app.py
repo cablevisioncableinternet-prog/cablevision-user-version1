@@ -1710,8 +1710,24 @@ from PIL import Image
 
 FACE_MATCH_THRESHOLD = 85          # % similarity na tatanggapin
 ID_VERIFY_TTL = 1800               # 30 minutes bisa ng verification
-MAX_FACE_ATTEMPTS = 5
-MAX_MANUAL_ATTEMPTS = 5            # proteksyon laban sa paghula ng ID numbers
+MAX_FACE_ATTEMPTS = int(os.getenv("MAX_FACE_ATTEMPTS", "5"))
+MAX_MANUAL_ATTEMPTS = int(os.getenv("MAX_MANUAL_ATTEMPTS", "5"))   # proteksyon laban sa paghula ng ID numbers
+ATTEMPT_WINDOW = 600               # 10 minuto, pagkatapos ay mag-reset ang bilang
+
+
+def _attempts_get(key):
+    d = session.get(key)
+    if not isinstance(d, dict) or time.time() - d.get("t", 0) > ATTEMPT_WINDOW:
+        return 0
+    return d.get("n", 0)
+
+
+def _attempts_add(key):
+    session[key] = {"n": _attempts_get(key) + 1, "t": time.time()}
+
+
+def _attempts_clear(key):
+    session.pop(key, None)
 
 # I-verify ang formats na ito laban sa totoong ID mo bago i-deploy
 ID_NUMBER_PATTERNS = {
@@ -1846,11 +1862,10 @@ def api_verify_id_face():
         return jsonify(success=False, fallback=False,
                        message="Kulang ang ID, selfie, o ID type."), 400
 
-    attempts = session.get("id_face_attempts", 0)
-    if attempts >= MAX_FACE_ATTEMPTS:
+    # Naka-block lang kapag naubos na ang totoong failed attempts sa loob ng 10 minuto
+    if _attempts_get("id_face_att") >= MAX_FACE_ATTEMPTS:
         return jsonify(success=False, fallback=True,
                        message="Too many face scan attempts. Please use manual ID verification."), 429
-    session["id_face_attempts"] = attempts + 1
 
     id_bytes = id_file.read()
     selfie_bytes = selfie.read()
@@ -1870,10 +1885,11 @@ def api_verify_id_face():
 
         if similarity >= FACE_MATCH_THRESHOLD:
             _set_id_verified(id_hash, id_type, "face", score=round(similarity, 2))
-            session.pop("id_face_attempts", None)
+            _attempts_clear("id_face_att")
             return jsonify(success=True, score=round(similarity, 2),
                            message="Face matched! ID verified.")
 
+        _attempts_add("id_face_att")   # totoong mismatch lang ang binibilang
         return jsonify(success=False, fallback=True,
                        message="Hindi nag-match ang mukha sa ID. Subukan ulit o gamitin ang manual verification.")
 
@@ -1881,8 +1897,10 @@ def api_verify_id_face():
         code = e.response.get("Error", {}).get("Code", "")
         print(f" Rekognition ClientError: {code} - {e}")
         if code == "InvalidParameterException":
+            _attempts_add("id_face_att")   # walang mukhang nakita, bilangin
             msg = "Walang mukhang nakita sa ID o sa selfie. Siguraduhing malinaw at kita ang mukha."
         else:
+            # AWS/config error: hindi kasalanan ng user, HINDI binibilang
             msg = "May error sa face verification."
         return jsonify(success=False, fallback=True, message=msg)
     except Exception as e:
@@ -1899,11 +1917,10 @@ def api_verify_id_number():
     if not id_file or id_type not in ID_NUMBER_PATTERNS or not id_number:
         return jsonify(success=False, message="Kulang ang ID, ID type, o ID number."), 400
 
-    attempts = session.get("id_manual_attempts", 0)
-    if attempts >= MAX_MANUAL_ATTEMPTS:
+    if _attempts_get("id_manual_att") >= MAX_MANUAL_ATTEMPTS:
         return jsonify(success=False,
                        message="Too many attempts. Please contact support."), 429
-    session["id_manual_attempts"] = attempts + 1
+    _attempts_add("id_manual_att")
 
     normalized = _normalize_id_number(id_number)
     if not re.match(ID_NUMBER_PATTERNS[id_type], normalized):
@@ -1915,7 +1932,7 @@ def api_verify_id_number():
     # ===== TEST-ONLY ID TYPES (hal. student ID): walang OCR rejection, walang provider =====
     if id_type in TEST_ID_TYPES:
         _set_id_verified(id_hash, id_type, "test_student_id", masked=_mask_id_number(normalized))
-        session.pop("id_manual_attempts", None)
+        _attempts_clear("id_manual_att")
         return jsonify(success=True, message="ID accepted (TEST MODE).",
                        provider_checked=False)
 
@@ -1938,7 +1955,7 @@ def api_verify_id_number():
     # Mas ligtas na i-flag ito para sa admin review (tingnan ang method sa DB).
     method = "manual" if provider["checked"] else "manual_unverified"
     _set_id_verified(id_hash, id_type, method, masked=_mask_id_number(normalized))
-    session.pop("id_manual_attempts", None)
+    _attempts_clear("id_manual_att")
     return jsonify(success=True, message="ID number verified.",
                    provider_checked=provider["checked"])
 
