@@ -1716,6 +1716,7 @@ MAX_MANUAL_ATTEMPTS = 5            # proteksyon laban sa paghula ng ID numbers
 # I-verify ang formats na ito laban sa totoong ID mo bago i-deploy
 ID_NUMBER_PATTERNS = {
     "philsys":         r"^\d{16}$",
+    "philsys_digital": r"^\d{16}$",     # Digital National ID (PCN, 16 digits, may dash sa display)
     "sss":             r"^\d{10}$",
     "umid":            r"^\d{12}$",
     "philhealth":      r"^\d{12}$",
@@ -1723,6 +1724,15 @@ ID_NUMBER_PATTERNS = {
     "passport":        r"^[A-Z]\d{7}[A-Z]$",
     "drivers_license": r"^[A-Z]\d{2}\d{2}\d{6}$",
 }
+
+# ===== TEST-ONLY ID TYPES =====
+# Naka-OFF by default. I-set ang env var ALLOW_TEST_ID_TYPES=1 para ma-enable (testing lang).
+# Sa production: huwag i-set ito (o alisin).
+ALLOW_TEST_ID_TYPES = os.getenv("ALLOW_TEST_ID_TYPES", "0") == "1"
+TEST_ID_TYPES = {"student_id"}
+
+if ALLOW_TEST_ID_TYPES:
+    ID_NUMBER_PATTERNS["student_id"] = r"^[A-Z0-9]{4,20}$"   # loose, walang standard na format
 
 
 def _aws_client(service):
@@ -1892,6 +1902,13 @@ def api_verify_id_number():
 
     id_bytes = id_file.read()
     id_hash = hashlib.sha256(id_bytes).hexdigest()
+
+    # ===== TEST-ONLY ID TYPES (hal. student ID): walang OCR rejection, walang provider =====
+    if id_type in TEST_ID_TYPES:
+        _set_id_verified(id_hash, id_type, "test_student_id", masked=_mask_id_number(normalized))
+        session.pop("id_manual_attempts", None)
+        return jsonify(success=True, message="ID accepted (TEST MODE).",
+                       provider_checked=False)
 
     # Dapat nasa mismong na-upload na ID ang number
     ocr_ok = ocr_contains_id_number(id_bytes, normalized)
