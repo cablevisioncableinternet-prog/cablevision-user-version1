@@ -1056,11 +1056,13 @@ def public_reviews():
     try:
         ensure_reviews_table()
 
+        # Shown reviews lang (is_hidden = 0)
         rows = execute_query(
             """
             SELECT user_id, plan_name, rating, comment, is_anonymous,
                    created_at, updated_at
             FROM reviews
+            WHERE is_hidden = 0
             ORDER BY COALESCE(updated_at, created_at) DESC
             LIMIT %s
             """,
@@ -1094,8 +1096,9 @@ def public_reviews_stats():
     try:
         ensure_reviews_table()
 
+        # Shown reviews lang ang binibilang
         row = execute_query(
-            "SELECT COUNT(*) AS total, AVG(rating) AS average FROM reviews",
+            "SELECT COUNT(*) AS total, AVG(rating) AS average FROM reviews WHERE is_hidden = 0",
             fetch_one=True
         ) or {}
 
