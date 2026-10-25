@@ -1698,6 +1698,262 @@ def upload_base64_to_cloudinary(base64_string, application_number, file_type, ma
 
     
 # ===============================
+# ID + FACE VERIFICATION (SELF-HOSTED: OpenCV YuNet + SFace, optional Tesseract OCR)
+# ===============================
+import os
+import re
+import time
+import difflib
+import hashlib
+import threading
+import numpy as np
+import cv2
+
+try:
+    import pytesseract
+    OCR_AVAILABLE = True
+except Exception:
+    pytesseract = None
+    OCR_AVAILABLE = False
+
+MODEL_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "models")
+YUNET_PATH = os.path.join(MODEL_DIR, "face_detection_yunet_2023mar.onnx")
+SFACE_PATH = os.path.join(MODEL_DIR, "face_recognition_sface_2021dec.onnx")
+
+# ---- Thresholds (pwedeng i-tune) ----
+FACE_MATCH_THRESHOLD = 0.363        # selfie vs ID photo (cosine, default ng SFace)
+FACE_SAME_PERSON_THRESHOLD = 0.30   # pagitan ng 3 selfie frames (iba-iba ang pose)
+FRONTAL_MAX_YAW = 0.15              # step 1: dapat diretso
+TURN_MIN_YAW = 0.18                 # step 2 & 3: minimum na ikot ng ulo
+MIN_BLUR_SCORE = 60.0               # Laplacian variance; mas mababa = malabo
+MIN_IMAGE_SIDE = 600                # pixels (pinakamahabang side ng ID photo)
+ID_MIN_OCR_CHARS = 20
+ID_REQUIRE_NAME_MATCH = True        # gawing False kung maraming false rejection sa OCR
+IDENTITY_TTL_SECONDS = 30 * 60
+IDENTITY_MAX_ATTEMPTS = 6           # kada 15 minutes kada session
+
+_face_lock = threading.Lock()
+_face_det = None
+_face_rec = None
+
+
+def _get_face_models():
+    global _face_det, _face_rec
+    if _face_det is None or _face_rec is None:
+        if not (os.path.exists(YUNET_PATH) and os.path.exists(SFACE_PATH)):
+            raise FileNotFoundError("Face model files are missing in the /models folder")
+        _face_det = cv2.FaceDetectorYN.create(YUNET_PATH, "", (320, 320), 0.6, 0.3, 5000)
+        _face_rec = cv2.FaceRecognizerSF.create(SFACE_PATH, "")
+    return _face_det, _face_rec
+
+
+def _decode_image(file_storage):
+    """Return (cv2 image or None, raw bytes)."""
+    if file_storage is None:
+        return None, b""
+    data = file_storage.read()
+    file_storage.seek(0)
+    if not data or len(data) > 12 * 1024 * 1024:
+        return None, data
+    img = cv2.imdecode(np.frombuffer(data, np.uint8), cv2.IMREAD_COLOR)
+    return img, data
+
+
+def _resize_max(img, max_side=1280):
+    h, w = img.shape[:2]
+    scale = max_side / float(max(h, w))
+    if scale < 1:
+        return cv2.resize(img, (int(w * scale), int(h * scale)), interpolation=cv2.INTER_AREA)
+    return img
+
+
+def _sharpness(img):
+    gray = cv2.cvtColor(_resize_max(img, 1000), cv2.COLOR_BGR2GRAY)
+    return float(cv2.Laplacian(gray, cv2.CV_64F).var())
+
+
+def _detect_faces(img):
+    det, _ = _get_face_models()
+    h, w = img.shape[:2]
+    with _face_lock:
+        det.setInputSize((w, h))
+        _, faces = det.detect(img)
+    if faces is None:
+        return []
+    return sorted(faces, key=lambda f: f[2] * f[3], reverse=True)
+
+
+def _face_feature(img, face):
+    _, rec = _get_face_models()
+    with _face_lock:
+        aligned = rec.alignCrop(img, face)
+        return rec.feature(aligned)
+
+
+def _cosine(f1, f2):
+    _, rec = _get_face_models()
+    with _face_lock:
+        return float(rec.match(f1, f2, cv2.FaceRecognizerSF_FR_COSINE))
+
+
+def _yaw(face):
+    """Estimate ng ikot ng ulo gamit ang landmarks: 0 = diretso, ± = nakalingon."""
+    right_eye_x, left_eye_x, nose_x = face[4], face[6], face[8]
+    eye_dist = abs(left_eye_x - right_eye_x)
+    if eye_dist < 1:
+        return 0.0
+    return float((nose_x - (right_eye_x + left_eye_x) / 2.0) / eye_dist)
+
+
+def _ocr_text(img):
+    gray = cv2.cvtColor(_resize_max(img, 1800), cv2.COLOR_BGR2GRAY)
+    text = pytesseract.image_to_string(gray, config="--psm 6", timeout=20)
+    return text, re.findall(r"[A-Z0-9ÑÁÉÍÓÚ]+", text.upper())
+
+
+def _name_found(name, tokens):
+    parts = [p for p in re.split(r"[\s\-]+", (name or "").upper()) if len(p) >= 3]
+    if not parts:
+        return True
+    for p in parts:
+        for t in tokens:
+            if difflib.SequenceMatcher(None, p, t).ratio() >= 0.8:
+                return True
+    return False
+
+
+@app.route("/api/verify-identity", methods=["POST"])
+def verify_identity():
+    def fail(msg, code=400):
+        return jsonify(success=False, message=msg), code
+
+    # ---- simpleng rate limit kada session ----
+    now_ts = time.time()
+    attempts = [t for t in session.get('identity_attempts', []) if now_ts - t < 900]
+    if len(attempts) >= IDENTITY_MAX_ATTEMPTS:
+        return fail("Too many attempts. Please wait 15 minutes and try again.", 429)
+    attempts.append(now_ts)
+    session['identity_attempts'] = attempts
+    session.pop('identity_verified', None)
+
+    try:
+        first = (request.form.get('first_name') or '').strip()
+        last = (request.form.get('last_name') or '').strip()
+        if not first or not last:
+            return fail("Please enter your First Name and Last Name first.")
+
+        front_img, front_bytes = _decode_image(request.files.get('id_front'))
+        back_img, back_bytes = _decode_image(request.files.get('id_back'))
+        if front_img is None or back_img is None:
+            return fail("Please upload both sides of your ID as JPG or PNG (max 12MB each).")
+
+        front_hash = hashlib.sha256(front_bytes).hexdigest()
+        back_hash = hashlib.sha256(back_bytes).hexdigest()
+        if front_hash == back_hash:
+            return fail("The front and back of the ID cannot be the same photo.")
+
+        # ---- ID photo quality ----
+        for label, img in (("front", front_img), ("back", back_img)):
+            h, w = img.shape[:2]
+            if max(h, w) < MIN_IMAGE_SIDE:
+                return fail(f"The ID {label} photo is too small. Please upload a higher-quality photo.")
+            if _sharpness(img) < MIN_BLUR_SCORE:
+                return fail(f"The ID {label} photo is blurry. Please retake it in good lighting.")
+
+        # ---- may mukha ba sa ID front? ----
+        front_small = _resize_max(front_img, 1600)
+        id_faces = _detect_faces(front_small)
+        if not id_faces or id_faces[0][14] < 0.7:
+            return fail("We couldn't find a clear face photo on the ID front. Please retake it so the whole ID is visible.")
+        id_feat = _face_feature(front_small, id_faces[0])
+
+        # ---- selfie frames + liveness ----
+        selfies = []
+        for key in ('selfie_center', 'selfie_turn_a', 'selfie_turn_b'):
+            step_no = len(selfies) + 1
+            img, _ = _decode_image(request.files.get(key))
+            if img is None:
+                return fail("A face scan photo could not be read. Please try again.")
+            img = _resize_max(img, 960)
+            faces = _detect_faces(img)
+            if not faces:
+                return fail(f"No face detected in step {step_no}. Make sure your face is well lit and fully visible.")
+            if len(faces) > 1 and (faces[1][2] * faces[1][3]) > 0.35 * (faces[0][2] * faces[0][3]):
+                return fail("More than one face detected. Only you should be in front of the camera.")
+            if faces[0][2] < 0.15 * img.shape[1]:
+                return fail(f"Your face is too far in step {step_no}. Please move closer to the camera.")
+            selfies.append((img, faces[0]))
+
+        yaws = [_yaw(face) for _, face in selfies]
+        if abs(yaws[0]) > FRONTAL_MAX_YAW:
+            return fail("Step 1: please look straight at the camera.")
+        if abs(yaws[1]) < TURN_MIN_YAW or abs(yaws[2]) < TURN_MIN_YAW:
+            return fail("Steps 2 and 3: please turn your head a bit more to the side.")
+        if yaws[1] * yaws[2] >= 0:
+            return fail("Step 2 and step 3 must be opposite sides (one left, one right).")
+
+        feats = [_face_feature(img, face) for img, face in selfies]
+        for i in (1, 2):
+            if _cosine(feats[0], feats[i]) < FACE_SAME_PERSON_THRESHOLD:
+                return fail("The face scan photos don't seem to be of the same person. Please try again.")
+
+        # ---- selfie vs ID photo ----
+        match_score = _cosine(feats[0], id_feat)
+        print(f"[IDENTITY] face match score={match_score:.3f} yaws={[round(y, 2) for y in yaws]}")
+        if match_score < FACE_MATCH_THRESHOLD:
+            return fail("Your face doesn't match the photo on the ID. Please use your own valid ID.")
+
+        # ---- OCR (optional) ----
+        if OCR_AVAILABLE:
+            try:
+                text, tokens = _ocr_text(front_small)
+                if len(re.sub(r"[^A-Z0-9]", "", text.upper())) < ID_MIN_OCR_CHARS:
+                    return fail("We couldn't read any text on the ID front. Please retake the photo in good lighting.")
+                if ID_REQUIRE_NAME_MATCH and not (_name_found(first, tokens) and _name_found(last, tokens)):
+                    return fail("The name on the ID doesn't match the First/Last Name you entered.")
+            except Exception as ocr_err:
+                print(f"[IDENTITY] OCR skipped: {ocr_err}")
+
+        session['identity_verified'] = {
+            'front': front_hash,
+            'back': back_hash,
+            'first': first.lower(),
+            'last': last.lower(),
+            'time': now_ts
+        }
+        return jsonify(success=True, message="ID and face verified.")
+
+    except Exception as e:
+        print(f"[IDENTITY] ERROR: {e}")
+        import traceback
+        traceback.print_exc()
+        return fail("Verification service error. Please try again in a moment.", 500)
+
+
+def identity_session_ok(front_file, back_file, first_name, last_name):
+    """Tinitiyak na ang mismong files na isusubmit ay yung na-verify."""
+    info = session.get('identity_verified')
+    if not info:
+        return False, "Please complete the ID and face verification before submitting."
+    if time.time() - info.get('time', 0) > IDENTITY_TTL_SECONDS:
+        session.pop('identity_verified', None)
+        return False, "Your ID verification has expired. Please verify again."
+    if not (front_file and front_file.filename and back_file and back_file.filename):
+        return False, "Please upload both sides of your valid ID."
+
+    fh = hashlib.sha256(front_file.stream.read()).hexdigest()
+    front_file.stream.seek(0)
+    bh = hashlib.sha256(back_file.stream.read()).hexdigest()
+    back_file.stream.seek(0)
+
+    if fh != info.get('front') or bh != info.get('back'):
+        return False, "Your ID photos changed after verification. Please verify again."
+    if (first_name or '').strip().lower() != info.get('first') or (last_name or '').strip().lower() != info.get('last'):
+        return False, "Your name changed after verification. Please verify again."
+    return True, ""
+
+
+# ===============================
 # APPLICATION SUBMIT (XAMPP/MYSQL VERSION WITH FILE UPLOADS)
 # ===============================
 DEFAULT_PROFILE_PHOTO = "/static/logo1.png"
@@ -1900,6 +2156,21 @@ def submit_application():
     # ========== CHECK IF THIS IS A RE-APPLICATION ==========
     is_reapply = data.get('is_reapply') == 'true'
     original_application_id = data.get('original_application_id')
+
+    # ========== CHECK ID + FACE VERIFICATION ==========
+    _id_front_up = request.files.get('id_front')
+    _id_back_up = request.files.get('id_back')
+    _has_new_id = bool((_id_front_up and _id_front_up.filename) or (_id_back_up and _id_back_up.filename))
+    _is_reapply_keep_id = bool(is_reapply and original_application_id and not _has_new_id)
+
+    # Re-apply na hindi nag-upload ng bagong ID = gagamitin ang dating ID, hindi na ire-require
+    if not _is_reapply_keep_id:
+        id_ok, id_err = identity_session_ok(
+            _id_front_up, _id_back_up,
+            data.get('first_name'), data.get('last_name')
+        )
+        if not id_ok:
+            return id_err, 400
     
     if is_reapply and original_application_id:
         check_query = """
@@ -2209,6 +2480,7 @@ def submit_application():
     # Clear email verification session
     session.pop('email_verified', None)
     session.pop('email_verified_time', None)
+    session.pop('identity_verified', None)
 
     return redirect(url_for('application_success', application_number=application_number))
 

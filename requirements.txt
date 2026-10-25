@@ -10,3 +10,6 @@ groq
 python-dotenv
 cloudinary
 dnspython
+opencv-python-headless
+numpy
+pytesseract
