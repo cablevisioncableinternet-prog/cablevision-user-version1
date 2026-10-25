@@ -1897,16 +1897,21 @@ def verify_identity():
         if match_score < FACE_MATCH_THRESHOLD:
             return fail("Your face doesn't match the photo on the ID. Please use your own valid ID.")
 
-        # ---- OCR (optional) ----
-        if OCR_AVAILABLE:
+        # ---- OCR: pangalan sa ID vs tinype ----
+        if ID_REQUIRE_NAME_MATCH:
+            if not OCR_AVAILABLE:
+                print("[IDENTITY] OCR NOT AVAILABLE: pytesseract is not installed")
+                return fail("ID text verification is temporarily unavailable. Please try again later.", 503)
             try:
                 text, tokens = _ocr_text(front_small)
-                if len(re.sub(r"[^A-Z0-9]", "", text.upper())) < ID_MIN_OCR_CHARS:
-                    return fail("We couldn't read any text on the ID front. Please retake the photo in good lighting.")
-                if ID_REQUIRE_NAME_MATCH and not (_name_found(first, tokens) and _name_found(last, tokens)):
-                    return fail("The name on the ID doesn't match the First/Last Name you entered.")
             except Exception as ocr_err:
-                print(f"[IDENTITY] OCR skipped: {ocr_err}")
+                print(f"[IDENTITY] OCR ERROR: {ocr_err}")
+                return fail("ID text verification is temporarily unavailable. Please try again later.", 503)
+
+            if len(re.sub(r"[^A-Z0-9]", "", text.upper())) < ID_MIN_OCR_CHARS:
+                return fail("We couldn't read any text on the ID front. Please retake the photo in good lighting.")
+            if not (_name_found(first, tokens) and _name_found(last, tokens)):
+                return fail("The name on the ID doesn't match the First/Last Name you entered.")
 
         session['identity_verified'] = {
             'front': front_hash,
