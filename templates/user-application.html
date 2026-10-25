@@ -5567,6 +5567,62 @@ function addUserNapboxMarkers() {
     })();
 
 
+            // ================= AUTO-FILL NAME FROM ID FRONT =================
+    (function () {
+        let token = 0;
+
+        function fill(name, value) {
+            if (!value) return false;
+            const el = document.querySelector('[name="' + name + '"]');
+            if (!el) return false;
+            el.value = value;
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+            return true;
+        }
+
+        // Event delegation: gumagana kahit napalitan ang file input (cloneNode / showOpenFilePicker)
+        document.addEventListener('change', async function (e) {
+            const t = e.target;
+            if (!t || t.id !== 'id_front') return;
+            const file = t.files && t.files[0];
+            if (!file) return;   // na-reject ng orientation/type check o na-clear
+
+            const my = ++token;
+            showToast('Reading your ID...', 'loading');
+
+            try {
+                const fd = new FormData();
+                fd.append('id_front', file);
+                const res = await fetch('/api/extract-id-name', { method: 'POST', body: fd });
+                const data = await res.json().catch(() => ({ success: false }));
+                if (my !== token) return;   // may mas bago nang upload
+
+                if (!data.success) {
+                    showToast(data.message || 'Could not read the name on your ID. Please type it manually.', 'warning');
+                    return;
+                }
+
+                const gotFirst  = fill('first_name', data.first_name);
+                const gotMiddle = fill('middle_name', data.middle_name);
+                const gotLast   = fill('last_name', data.last_name);
+                fill('suffix', data.suffix);
+
+                if (gotFirst && gotLast) {
+                    showToast('Name filled from your ID. Please check it before continuing.', 'success');
+                } else {
+                    const missing = [!gotFirst ? 'First Name' : null, !gotLast ? 'Last Name' : null]
+                        .filter(Boolean).join(' and ');
+                    showToast('We could not read your ' + missing + '. Please type it manually.', 'warning');
+                }
+            } catch (err) {
+                if (my !== token) return;
+                showToast('Could not read your ID. Please type your name manually.', 'warning');
+            }
+        });
+    })();
+
+
         // ================= ID + FACE VERIFICATION =================
     (function () {
         const STEPS = [
