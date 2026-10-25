@@ -1827,13 +1827,7 @@ def verify_identity():
     def fail(msg, code=400):
         return jsonify(success=False, message=msg), code
 
-    # ---- simpleng rate limit kada session ----
     now_ts = time.time()
-    attempts = [t for t in session.get('identity_attempts', []) if now_ts - t < 900]
-    if len(attempts) >= IDENTITY_MAX_ATTEMPTS:
-        return fail("Too many attempts. Please wait 15 minutes and try again.", 429)
-    attempts.append(now_ts)
-    session['identity_attempts'] = attempts
     session.pop('identity_verified', None)
 
     try:
