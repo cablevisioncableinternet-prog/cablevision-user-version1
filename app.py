@@ -2017,17 +2017,11 @@ def _collect_field_candidates(passes):
             for toks in picked:
                 variants, suffix = _line_variants(toks)
                 if variants:
-                    cands[kind].append({
-                        "variants": variants, "suffix": suffix, "wrap": False,
-                        "tokens": [t for t in toks if t not in SUFFIX_TOKENS],
-                    })
+                    cands[kind].append({"variants": variants, "suffix": suffix, "wrap": False})
             if len(picked) >= 2:   # mahabang pangalan na pumutol sa 2 linya
                 variants, suffix = _line_variants(picked[0] + picked[1])
                 if variants:
-                    cands[kind].append({
-                        "variants": variants, "suffix": suffix, "wrap": True,
-                        "tokens": [t for t in picked[0] + picked[1] if t not in SUFFIX_TOKENS],
-                    })
+                    cands[kind].append({"variants": variants, "suffix": suffix, "wrap": True})
     return cands, seen
 
 
@@ -2162,95 +2156,7 @@ def _verify_names_against_id(passes, id_tokens, squashed, first, middle, last, s
     return True, ""
 
 
-# ===============================
-# AUTO-FILL NAME FROM ID
-# ===============================
-AUTOFILL_MIN_REPS = 2   # ilang OCR pass ang dapat magkapareho ang basa bago i-autofill
 
-
-def _display_name(tokens):
-    kept = [t for t in tokens if len(t) >= 3 or t in NAME_NOISE_PARTICLES]
-    return " ".join(w.capitalize() for w in kept)
-
-
-def _consensus_display(cand_list):
-    """Pinakamadalas na nabasang value ng field, may spaces at Title Case. Returns (text, reps)."""
-    singles = [c for c in cand_list if not c["wrap"] and c["variants"] and c.get("tokens")]
-    best, best_reps = None, 0
-    for c in singles:
-        v = c["variants"][0]
-        if len(v) < 3:
-            continue
-        reps = sum(1 for o in singles if _same_name(v, o["variants"][0]))
-        if reps > best_reps or (reps == best_reps and best and len(v) > len(best["variants"][0])):
-            best, best_reps = c, reps
-    if not best or best_reps < AUTOFILL_MIN_REPS:
-        return "", best_reps
-    return _display_name(best["tokens"]), best_reps
-
-
-def _consensus_suffix(cands):
-    counts = {}
-    for key in ("given", "last"):
-        for c in cands[key]:
-            if c["wrap"]:
-                continue
-            for s in set(c["suffix"]):
-                counts[s] = counts.get(s, 0) + 1
-    if not counts:
-        return ""
-    best = max(counts, key=counts.get)
-    if counts[best] < AUTOFILL_MIN_REPS:
-        return ""
-    return {"JR": "Jr.", "SR": "Sr."}.get(best, best)
-
-
-@app.route("/api/extract-id-name", methods=["POST"])
-def extract_id_name():
-    def fail(msg, code=400):
-        return jsonify(success=False, message=msg), code
-
-    try:
-        if not OCR_AVAILABLE:
-            return fail("ID text reading is temporarily unavailable. Please type your name manually.", 503)
-
-        now_ts = time.time()
-        if now_ts - session.get('last_name_extract', 0) < 3:
-            return fail("Please wait a few seconds before trying again.", 429)
-        session['last_name_extract'] = now_ts
-
-        img, _ = _decode_image(request.files.get('id_front'))
-        if img is None:
-            return fail("Please upload the ID front as JPG or PNG (max 12MB).")
-        if max(img.shape[:2]) < MIN_IMAGE_SIDE:
-            return fail("The ID photo is too small. Please upload a higher-quality photo.")
-        if _sharpness(img) < MIN_BLUR_SCORE:
-            return fail("The ID photo is blurry. Please retake it in good lighting.")
-
-        small = _resize_max(img, 1600)
-        text, tokens, squashed, passes = _ocr_text(small)
-        if len(squashed) < ID_MIN_OCR_CHARS:
-            return fail("We couldn't read any text on the ID. Please retake the photo in good lighting.")
-
-        cands, _seen = _collect_field_candidates(passes)
-        first, fr = _consensus_display(cands["given"])
-        middle, mr = _consensus_display(cands["middle"])
-        last, lr = _consensus_display(cands["last"])
-        suffix = _consensus_suffix(cands)
-        print(f"[IDENTITY] autofill first={first!r}({fr}) middle={middle!r}({mr}) last={last!r}({lr}) suffix={suffix!r}")
-
-        if not first and not last:
-            return fail("We couldn't read the name on the ID. Please type it manually.")
-
-        return jsonify(success=True, first_name=first, middle_name=middle,
-                       last_name=last, suffix=suffix)
-
-    except Exception as e:
-        print(f"[IDENTITY] AUTOFILL ERROR: {e}")
-        return fail("Couldn't read the ID right now. Please type your name manually.", 500)
-
-
-    
 
 @app.route("/api/verify-identity", methods=["POST"])
 def verify_identity():
