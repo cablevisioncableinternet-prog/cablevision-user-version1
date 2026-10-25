@@ -1806,18 +1806,63 @@ def _yaw(face):
 
 
 def _ocr_text(img):
-    gray = cv2.cvtColor(_resize_max(img, 1800), cv2.COLOR_BGR2GRAY)
-    text = pytesseract.image_to_string(gray, config="--psm 6", timeout=20)
-    return text, re.findall(r"[A-Z0-9ÑÁÉÍÓÚ]+", text.upper())
+    """Maraming OCR pass, kasama ang pag-ikot ng imahe (0/90/180/270), at pinagsasama ang resulta."""
+    base = _resize_max(img, 2000)
+    if max(base.shape[:2]) < 1400:   # i-upscale ang maliliit na photo
+        base = cv2.resize(base, None, fx=1.5, fy=1.5, interpolation=cv2.INTER_CUBIC)
+
+    rotations = [
+        base,
+        cv2.rotate(base, cv2.ROTATE_90_CLOCKWISE),
+        cv2.rotate(base, cv2.ROTATE_180),
+        cv2.rotate(base, cv2.ROTATE_90_COUNTERCLOCKWISE),
+    ]
+
+    chunks = []
+    for idx, rotated in enumerate(rotations):
+        gray = cv2.cvtColor(rotated, cv2.COLOR_BGR2GRAY)
+        variants = [(gray, "--psm 11")]
+        if idx == 0:
+            # buong set ng pagproseso para sa normal na ayos
+            clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(gray)
+            _, otsu = cv2.threshold(clahe, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+            variants = [
+                (gray, "--psm 6"),
+                (gray, "--psm 11"),
+                (clahe, "--psm 11"),
+                (otsu, "--psm 11"),
+            ]
+        for variant, cfg in variants:
+            try:
+                chunks.append(pytesseract.image_to_string(variant, config=cfg, timeout=15))
+            except RuntimeError:
+                pass   # timeout, subukan ang susunod
+
+    text = "\n".join(chunks)
+    upper = text.upper()
+    tokens = re.findall(r"[A-Z0-9ÑÁÉÍÓÚ]+", upper)
+    squashed = re.sub(r"[^A-Z0-9ÑÁÉÍÓÚ]", "", upper)
+    return text, tokens, squashed
 
 
-def _name_found(name, tokens):
+def _name_found(name, tokens, squashed=""):
     parts = [p for p in re.split(r"[\s\-]+", (name or "").upper()) if len(p) >= 3]
     if not parts:
         return True
     for p in parts:
+        p_clean = re.sub(r"[^A-Z0-9ÑÁÉÍÓÚ]", "", p)
+        if not p_clean:
+            continue
+        # 1) buong salita
         for t in tokens:
-            if difflib.SequenceMatcher(None, p, t).ratio() >= 0.8:
+            if difflib.SequenceMatcher(None, p_clean, t).ratio() >= 0.75:
+                return True
+        # 2) nakadikit sa ibang salita o may kaunting mali sa pagbasa
+        if p_clean in squashed:
+            return True
+        L = len(p_clean)
+        for i in range(0, max(1, len(squashed) - L + 1)):
+            if difflib.SequenceMatcher(None, p_clean, squashed[i:i + L]).ratio() >= 0.8:
                 return True
     return False
 
@@ -1903,14 +1948,19 @@ def verify_identity():
                 print("[IDENTITY] OCR NOT AVAILABLE: pytesseract is not installed")
                 return fail("ID text verification is temporarily unavailable. Please try again later.", 503)
             try:
-                text, tokens = _ocr_text(front_small)
+                text, tokens, squashed = _ocr_text(front_small)
             except Exception as ocr_err:
                 print(f"[IDENTITY] OCR ERROR: {ocr_err}")
                 return fail("ID text verification is temporarily unavailable. Please try again later.", 503)
 
-            if len(re.sub(r"[^A-Z0-9]", "", text.upper())) < ID_MIN_OCR_CHARS:
+            first_ok = _name_found(first, tokens, squashed)
+            last_ok = _name_found(last, tokens, squashed)
+            print(f"[IDENTITY] OCR chars={len(squashed)} first_ok={first_ok} last_ok={last_ok}")
+            print(f"[IDENTITY] OCR DEBUG TEXT: {text[:600]!r}")   # TEMPORARY: tanggalin pagkatapos mag-test
+
+            if len(squashed) < ID_MIN_OCR_CHARS:
                 return fail("We couldn't read any text on the ID front. Please retake the photo in good lighting.")
-            if not (_name_found(first, tokens) and _name_found(last, tokens)):
+            if not (first_ok and last_ok):
                 return fail("The name on the ID doesn't match the First/Last Name you entered.")
 
         session['identity_verified'] = {
