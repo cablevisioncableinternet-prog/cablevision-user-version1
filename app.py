@@ -1860,35 +1860,32 @@ def _ocr_text(img):
 
 
 def _name_found(name, tokens, squashed=""):
-    """Lahat ng salita sa tinype na pangalan (3+ letra) ay dapat makita sa ID."""
-    parts = [p for p in re.split(r"[\s\-]+", (name or "").upper()) if len(p) >= 3]
+    """Lahat ng salita sa tinype na pangalan ay dapat makita sa ID (kahit lima pa ang pangalan)."""
+    raw_parts = [re.sub(r"[^A-Z0-9ÑÁÉÍÓÚ]", "", p) for p in re.split(r"[\s\-]+", (name or "").upper())]
+    parts = [p for p in raw_parts if len(p) >= 2]   # initial (1 letra) lang ang nilalaktawan
     if not parts:
-        return False   # walang valid na pangalan = hindi pasado
+        return False
 
     def part_found(p):
-        p_clean = re.sub(r"[^A-Z0-9ÑÁÉÍÓÚ]", "", p)
-        if not p_clean:
-            return False
-        L = len(p_clean)
+        L = len(p)
         short = L <= 4
 
         # 1) buong salita sa ID (eksakto kung maikli, may tolerance kung mahaba)
         min_ratio = 1.0 if short else 0.8
         for t in tokens:
-            if difflib.SequenceMatcher(None, p_clean, t).ratio() >= min_ratio:
+            if difflib.SequenceMatcher(None, p, t).ratio() >= min_ratio:
                 return True
 
         # 2) nakadikit sa ibang salita o may maliit na mali sa pagbasa (mahahabang pangalan lang)
         if not short:
-            if p_clean in squashed:
+            if p in squashed:
                 return True
             for i in range(0, max(1, len(squashed) - L + 1)):
-                if difflib.SequenceMatcher(None, p_clean, squashed[i:i + L]).ratio() >= 0.85:
+                if difflib.SequenceMatcher(None, p, squashed[i:i + L]).ratio() >= 0.85:
                     return True
         return False
 
     return all(part_found(p) for p in parts)
-
 
 
 # ===============================
