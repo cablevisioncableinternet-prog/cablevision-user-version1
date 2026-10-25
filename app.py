@@ -1705,6 +1705,8 @@ import re
 import time
 import difflib
 import hashlib
+import itertools
+import unicodedata
 import threading
 import numpy as np
 import cv2
@@ -1729,6 +1731,10 @@ MIN_BLUR_SCORE = 60.0               # Laplacian variance; mas mababa = malabo
 MIN_IMAGE_SIDE = 600                # pixels (pinakamahabang side ng ID photo)
 ID_MIN_OCR_CHARS = 20
 ID_REQUIRE_NAME_MATCH = True        # gawing False kung maraming false rejection sa OCR
+ID_ALLOW_NAME_ORDER_SWAP = False    # True = tatanggapin kahit baligtad ang pagkakasunod (hal. "Spencer Mark")
+ID_ALLOW_UNLABELED_FALLBACK = True  # para sa ID na walang "Given Names / Last Name" label (mas mahina ang check)
+NAME_NOISE_PARTICLES = {"DE", "DI", "DA", "LA", "LE", "ST"}   # maiikling parte ng apelyido, hindi noise
+SUFFIX_TOKENS = {"JR", "SR", "II", "III", "IV"}
 IDENTITY_TTL_SECONDS = 30 * 60
 IDENTITY_MAX_ATTEMPTS = 6           # kada 15 minutes kada session
 
@@ -1806,7 +1812,8 @@ def _yaw(face):
 
 
 def _ocr_text(img):
-    """Maraming OCR pass, kasama ang pag-ikot ng imahe (0/90/180/270), at pinagsasama ang resulta."""
+    """Maraming OCR pass, kasama ang pag-ikot ng imahe (0/90/180/270).
+    Nagbabalik ng (text, tokens, squashed, passes) — ang `passes` ay listahan ng text kada OCR pass."""
     base = _resize_max(img, 2000)
     if max(base.shape[:2]) < 1400:   # i-upscale ang maliliit na photo
         base = cv2.resize(base, None, fx=1.5, fy=1.5, interpolation=cv2.INTER_CUBIC)
@@ -1819,6 +1826,7 @@ def _ocr_text(img):
     ]
 
     chunks = []
+    passes = []
     for idx, rotated in enumerate(rotations):
         gray = cv2.cvtColor(rotated, cv2.COLOR_BGR2GRAY)
         variants = [(gray, "--psm 11")]
@@ -1826,45 +1834,327 @@ def _ocr_text(img):
             # buong set ng pagproseso para sa normal na ayos
             clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8)).apply(gray)
             _, otsu = cv2.threshold(clahe, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+            adaptive = cv2.adaptiveThreshold(
+                clahe, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 31, 15
+            )
             variants = [
                 (gray, "--psm 6"),
                 (gray, "--psm 11"),
                 (clahe, "--psm 11"),
                 (otsu, "--psm 11"),
+                (adaptive, "--psm 6"),
             ]
         for variant, cfg in variants:
             try:
-                chunks.append(pytesseract.image_to_string(variant, config=cfg, timeout=15))
+                out = pytesseract.image_to_string(variant, config=cfg, timeout=15)
             except RuntimeError:
-                pass   # timeout, subukan ang susunod
+                continue   # timeout, subukan ang susunod
+            chunks.append(out)
+            passes.append(out)
 
     text = "\n".join(chunks)
     upper = text.upper()
     tokens = re.findall(r"[A-Z0-9ÑÁÉÍÓÚ]+", upper)
     squashed = re.sub(r"[^A-Z0-9ÑÁÉÍÓÚ]", "", upper)
-    return text, tokens, squashed
+    return text, tokens, squashed, passes
 
 
 def _name_found(name, tokens, squashed=""):
+    """Lahat ng salita sa tinype na pangalan (3+ letra) ay dapat makita sa ID."""
     parts = [p for p in re.split(r"[\s\-]+", (name or "").upper()) if len(p) >= 3]
     if not parts:
-        return True
-    for p in parts:
+        return False   # walang valid na pangalan = hindi pasado
+
+    def part_found(p):
         p_clean = re.sub(r"[^A-Z0-9ÑÁÉÍÓÚ]", "", p)
         if not p_clean:
-            continue
-        # 1) buong salita
-        for t in tokens:
-            if difflib.SequenceMatcher(None, p_clean, t).ratio() >= 0.75:
-                return True
-        # 2) nakadikit sa ibang salita o may kaunting mali sa pagbasa
-        if p_clean in squashed:
-            return True
+            return False
         L = len(p_clean)
-        for i in range(0, max(1, len(squashed) - L + 1)):
-            if difflib.SequenceMatcher(None, p_clean, squashed[i:i + L]).ratio() >= 0.8:
+        short = L <= 4
+
+        # 1) buong salita sa ID (eksakto kung maikli, may tolerance kung mahaba)
+        min_ratio = 1.0 if short else 0.8
+        for t in tokens:
+            if difflib.SequenceMatcher(None, p_clean, t).ratio() >= min_ratio:
+                return True
+
+        # 2) nakadikit sa ibang salita o may maliit na mali sa pagbasa (mahahabang pangalan lang)
+        if not short:
+            if p_clean in squashed:
+                return True
+            for i in range(0, max(1, len(squashed) - L + 1)):
+                if difflib.SequenceMatcher(None, p_clean, squashed[i:i + L]).ratio() >= 0.85:
+                    return True
+        return False
+
+    return all(part_found(p) for p in parts)
+
+
+
+# ===============================
+# STRICT NAME MATCHING (field-based: Last Name / Given Names / Middle Name)
+# ===============================
+_DIGIT_FIX = str.maketrans({"0": "O", "1": "I", "5": "S", "8": "B", "4": "A", "6": "G"})
+
+_LABEL_PATTERNS = [
+    ("middle", re.compile(r"\bMIDDLE\b|GITNANG")),
+    ("given", re.compile(r"\bGIVEN\b|\bFIRST\s*NAME\b|\bPANGALAN\b")),
+    ("last", re.compile(r"\bLAST\b|SURNAME|\bAPELYIDO\b")),
+]
+_STOP_LABEL = re.compile(
+    r"BIRTH|KAPANGANAKAN|ADDRESS|TIRAHAN|\bSEX\b|KASARIAN|BLOOD|MARITAL|CIVIL STATUS|"
+    r"PLACE OF|NATIONALITY|SIGNATURE|PAMBANSANG|REPUBLI|PHILIPPINE\s+IDENT"
+)
+
+
+def _fold(text):
+    """Uppercase at tanggalin ang accent (pero panatilihin ang Ñ)."""
+    t = (text or "").upper().replace("Ñ", "\0")
+    t = unicodedata.normalize("NFKD", t)
+    t = "".join(c for c in t if not unicodedata.combining(c))
+    return t.replace("\0", "Ñ")
+
+
+def _name_tokens(text):
+    """Letters lang (A-Z, Ñ). Inaayos ang karaniwang OCR mix-up ng digit/letter."""
+    return re.findall(r"[A-ZÑ]+", _fold(text).translate(_DIGIT_FIX))
+
+
+def _edit_limit(n):
+    """Ilang mali sa OCR ang pinapayagan base sa haba ng pangalan."""
+    return 0 if n < 6 else (1 if n < 12 else 2)
+
+
+def _edit_distance(a, b, limit):
+    if abs(len(a) - len(b)) > limit:
+        return limit + 1
+    prev = list(range(len(b) + 1))
+    for i, ca in enumerate(a, 1):
+        cur = [i]
+        for j, cb in enumerate(b, 1):
+            cur.append(min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (ca != cb)))
+        if min(cur) > limit:
+            return limit + 1
+        prev = cur
+    return prev[-1]
+
+
+def _same_name(typed, seen):
+    """typed = tinype ng user, seen = nabasa ng OCR (squashed, walang space)."""
+    if not typed or not seen:
+        return False
+    if typed == seen:
+        return True
+    lim = _edit_limit(len(typed))
+    return lim > 0 and _edit_distance(typed, seen, lim) <= lim
+
+
+def _contains_fuzzy(typed, text):
+    """May bahagi ba ng `text` na kapareho ng `typed` (may OCR tolerance)?"""
+    if not typed or not text:
+        return False
+    if typed in text:
+        return True
+    if _edit_limit(len(typed)) == 0:
+        return False
+    n = len(typed)
+    for size in (n - 1, n, n + 1):
+        if size < 1:
+            continue
+        for i in range(0, max(1, len(text) - size + 1)):
+            if _same_name(typed, text[i:i + size]):
                 return True
     return False
+
+
+def _line_variants(tokens):
+    """Mga 'malinis' na bersyon ng isang linya (squashed). Tinatanggal ang maiikling noise
+    at inihihiwalay ang suffix (JR/SR/II/III/IV). Returns (variants, suffix_tokens)."""
+    suffix = [t for t in tokens if t in SUFFIX_TOKENS]
+    base = [t for t in tokens if t not in SUFFIX_TOKENS]
+    out = []
+    for k in (3, 2, 1):
+        kept = [t for t in base if len(t) >= k or t in NAME_NOISE_PARTICLES]
+        s = "".join(kept)
+        if s and s not in out:
+            out.append(s)
+    return out, suffix
+
+
+def _line_label(line):
+    up = _fold(line)
+    for kind, rx in _LABEL_PATTERNS:
+        if rx.search(up):
+            return kind
+    if _STOP_LABEL.search(up):
+        return "stop"
+    return None
+
+
+def _collect_field_candidates(passes):
+    """Kukunin ang mga linya sa ilalim ng bawat label (Last / Given / Middle) sa bawat OCR pass."""
+    cands = {"last": [], "given": [], "middle": []}
+    seen = set()
+    for text in passes:
+        lines = [ln.strip() for ln in (text or "").splitlines()]
+        for i, ln in enumerate(lines):
+            kind = _line_label(ln)
+            if kind not in cands:
+                continue
+            seen.add(kind)
+            picked = []
+            for nxt in lines[i + 1:i + 6]:
+                if not nxt:
+                    continue
+                if _line_label(nxt):
+                    break
+                toks = _name_tokens(nxt)
+                if sum(len(t) for t in toks) < 3:
+                    continue
+                picked.append(toks)
+                if len(picked) == 3:
+                    break
+            for toks in picked:
+                variants, suffix = _line_variants(toks)
+                if variants:
+                    cands[kind].append({"variants": variants, "suffix": suffix, "wrap": False})
+            if len(picked) >= 2:   # mahabang pangalan na pumutol sa 2 linya
+                variants, suffix = _line_variants(picked[0] + picked[1])
+                if variants:
+                    cands[kind].append({"variants": variants, "suffix": suffix, "wrap": True})
+    return cands, seen
+
+
+def _typed_orders(tokens):
+    if ID_ALLOW_NAME_ORDER_SWAP and 1 < len(tokens) <= 4:
+        return list({"".join(p) for p in itertools.permutations(tokens)})
+    return ["".join(tokens)]
+
+
+def _field_matches(typed_tokens, cand_list):
+    for t in _typed_orders(typed_tokens):
+        for c in cand_list:
+            for v in c["variants"]:
+                if _same_name(t, v):
+                    return True
+    return False
+
+
+def _field_has_longer_reading(typed_tokens, cand_list):
+    """True kung may mas mahabang pangalan sa ID na bahagi lang ang tinype (kulang ang tinype)."""
+    singles = [c for c in cand_list if not c["wrap"] and c["variants"]]
+    for t in _typed_orders(typed_tokens):
+        for c in singles:
+            v = c["variants"][0]
+            if len(v) < len(t) + 3:
+                continue
+            if _same_name(t, v[:len(t)]) or _same_name(t, v[-len(t):]):
+                reps = sum(1 for o in singles if _same_name(v, o["variants"][0]))
+                if reps >= 2:   # inulit-ulit na nabasa, hindi basta noise
+                    return True
+    return False
+
+
+def _consensus_value(cand_list):
+    """Pinakamadalas na nabasang value ng isang field. Returns (value, reps)."""
+    singles = [c for c in cand_list if not c["wrap"] and c["variants"]]
+    best, best_reps = "", 0
+    for c in singles:
+        v = c["variants"][0]
+        if len(v) < 3:
+            continue
+        reps = sum(1 for o in singles if _same_name(v, o["variants"][0]))
+        if reps > best_reps or (reps == best_reps and len(v) > len(best)):
+            best, best_reps = v, reps
+    return best, best_reps
+
+
+def _unlabeled_name_found(passes, f_tok, m_tok, l_tok):
+    """Fallback para sa ID na walang label: dapat magkakadikit sa iisang linya ang buong pangalan."""
+    f, m, l = "".join(f_tok), "".join(m_tok), "".join(l_tok)
+    forms = {f + m + l, l + f + m}
+    for text in passes:
+        for line in (text or "").splitlines():
+            variants, _ = _line_variants(_name_tokens(line))
+            for v in variants:
+                for form in forms:
+                    if _contains_fuzzy(form, v):
+                        return True
+    return False
+
+
+def _verify_names_against_id(passes, id_tokens, squashed, first, middle, last, suffix):
+    """Returns (ok, message). Strict: kumpleto, tamang pagkakasunod, kasama ang middle name at suffix."""
+    f_all, m_all = _name_tokens(first), _name_tokens(middle)
+    l_all, s_all = _name_tokens(last), _name_tokens(suffix)
+    typed_suffix = {t for t in f_all + m_all + l_all + s_all if t in SUFFIX_TOKENS}
+    f_tok = [t for t in f_all if t not in SUFFIX_TOKENS]
+    m_tok = [t for t in m_all if t not in SUFFIX_TOKENS]
+    l_tok = [t for t in l_all if t not in SUFFIX_TOKENS]
+
+    if not f_tok or not l_tok:
+        return False, "Please enter your First Name and Last Name."
+
+    cands, seen = _collect_field_candidates(passes)
+    for kind in ("given", "last", "middle"):
+        val, reps = _consensus_value(cands[kind])
+        print(f"[IDENTITY] field={kind} label_seen={kind in seen} consensus={val!r} reps={reps} candidates={len(cands[kind])}")
+
+    # ---- walang mabasang label: fallback ----
+    if not (cands["given"] and cands["last"]):
+        if not ID_ALLOW_UNLABELED_FALLBACK:
+            return False, "We couldn't read the name fields on the ID. Please retake the photo so the labels and names are clear."
+        ok = _unlabeled_name_found(passes, f_tok, m_tok, l_tok)
+        print(f"[IDENTITY] unlabeled fallback ok={ok}")
+        if ok:
+            return True, ""
+        return False, "The name on the ID doesn't match the name you entered."
+
+    def check(label, typed, key):
+        if _field_has_longer_reading(typed, cands[key]):
+            return f"The {label} you entered is incomplete. Type it completely, exactly as printed on the ID."
+        if not _field_matches(typed, cands[key]):
+            return f"The {label} doesn't match the ID. Type it exactly as printed on the ID."
+        return None
+
+    err = check("First Name", f_tok, "given")
+    if err:
+        return False, err
+    err = check("Last Name", l_tok, "last")
+    if err:
+        return False, err
+
+    # ---- middle name ----
+    if m_tok:
+        if cands["middle"]:
+            err = check("Middle Name", m_tok, "middle")
+        else:
+            ok = _contains_fuzzy("".join(m_tok), squashed)
+            err = None if ok else "The Middle Name doesn't match the ID. If your ID has no middle name, leave it blank."
+        if err:
+            return False, err
+    else:
+        _, reps = _consensus_value(cands["middle"])
+        if reps >= 2:
+            return False, "Your ID shows a Middle Name. Please enter it in the Middle Name field."
+
+    # ---- suffix ----
+    counts = {}
+    for key in ("given", "last"):
+        for c in cands[key]:
+            if c["wrap"]:
+                continue
+            for s in set(c["suffix"]):
+                counts[s] = counts.get(s, 0) + 1
+    if typed_suffix:
+        for s in typed_suffix:
+            if s not in counts and s not in id_tokens:
+                return False, "The Suffix doesn't match the ID."
+    elif any(n >= 2 for n in counts.values()):
+        return False, "Your ID shows a Suffix (e.g., Jr.). Please enter it in the Suffix field."
+
+    return True, ""
+
 
 
 @app.route("/api/verify-identity", methods=["POST"])
@@ -1877,7 +2167,9 @@ def verify_identity():
 
     try:
         first = (request.form.get('first_name') or '').strip()
+        middle = (request.form.get('middle_name') or '').strip()
         last = (request.form.get('last_name') or '').strip()
+        suffix = (request.form.get('suffix') or '').strip()
         if not first or not last:
             return fail("Please enter your First Name and Last Name first.")
 
@@ -1942,32 +2234,37 @@ def verify_identity():
         if match_score < FACE_MATCH_THRESHOLD:
             return fail("Your face doesn't match the photo on the ID. Please use your own valid ID.")
 
-        # ---- OCR: pangalan sa ID vs tinype ----
+        # ---- OCR: pangalan sa ID vs tinype (strict, field-based) ----
         if ID_REQUIRE_NAME_MATCH:
             if not OCR_AVAILABLE:
                 print("[IDENTITY] OCR NOT AVAILABLE: pytesseract is not installed")
                 return fail("ID text verification is temporarily unavailable. Please try again later.", 503)
             try:
-                text, tokens, squashed = _ocr_text(front_small)
+                text, tokens, squashed, passes = _ocr_text(front_small)
             except Exception as ocr_err:
                 print(f"[IDENTITY] OCR ERROR: {ocr_err}")
                 return fail("ID text verification is temporarily unavailable. Please try again later.", 503)
 
-            first_ok = _name_found(first, tokens, squashed)
-            last_ok = _name_found(last, tokens, squashed)
-            print(f"[IDENTITY] OCR chars={len(squashed)} first_ok={first_ok} last_ok={last_ok}")
+            print(f"[IDENTITY] OCR chars={len(squashed)} passes={len(passes)}")
             print(f"[IDENTITY] OCR DEBUG TEXT: {text[:600]!r}")   # TEMPORARY: tanggalin pagkatapos mag-test
 
             if len(squashed) < ID_MIN_OCR_CHARS:
                 return fail("We couldn't read any text on the ID front. Please retake the photo in good lighting.")
-            if not (first_ok and last_ok):
-                return fail("The name on the ID doesn't match the First/Last Name you entered.")
+
+            name_ok, name_msg = _verify_names_against_id(
+                passes, set(tokens), squashed, first, middle, last, suffix
+            )
+            print(f"[IDENTITY] name check ok={name_ok} msg={name_msg!r}")
+            if not name_ok:
+                return fail(name_msg)
 
         session['identity_verified'] = {
             'front': front_hash,
             'back': back_hash,
             'first': first.lower(),
+            'middle': middle.lower(),
             'last': last.lower(),
+            'suffix': suffix.lower(),
             'time': now_ts
         }
         return jsonify(success=True, message="ID and face verified.")
@@ -1999,6 +2296,12 @@ def identity_session_ok(front_file, back_file, first_name, last_name):
         return False, "Your ID photos changed after verification. Please verify again."
     if (first_name or '').strip().lower() != info.get('first') or (last_name or '').strip().lower() != info.get('last'):
         return False, "Your name changed after verification. Please verify again."
+
+    # Middle name at suffix (kinukuha direkta sa form para hindi na galawin ang submit_application)
+    middle = (request.form.get('middle_name_submitted', request.form.get('middle_name', '')) or '').strip().lower()
+    suffix = (request.form.get('suffix_submitted', request.form.get('suffix', '')) or '').strip().lower()
+    if middle != info.get('middle', '') or suffix != info.get('suffix', ''):
+        return False, "Your Middle Name or Suffix changed after verification. Please verify again."
     return True, ""
 
 

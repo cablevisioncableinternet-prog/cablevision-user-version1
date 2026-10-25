@@ -5606,7 +5606,9 @@ function addUserNapboxMarkers() {
         document.addEventListener('change', function (e) {
             const t = e.target;
             if (!t) return;
-            if (t.id === 'id_front' || t.id === 'id_back' || t.name === 'first_name' || t.name === 'last_name') {
+            if (t.id === 'id_front' || t.id === 'id_back' ||
+                t.name === 'first_name' || t.name === 'middle_name' ||
+                t.name === 'last_name' || t.name === 'suffix') {
                 resetIdentity();
             }
         });
@@ -5721,7 +5723,9 @@ function addUserNapboxMarkers() {
             fd.append('selfie_turn_a', frames[1], 'turn_a.jpg');
             fd.append('selfie_turn_b', frames[2], 'turn_b.jpg');
             fd.append('first_name', document.querySelector('[name="first_name"]').value.trim());
+            fd.append('middle_name', (document.querySelector('[name="middle_name"]')?.value || '').trim());
             fd.append('last_name', document.querySelector('[name="last_name"]').value.trim());
+            fd.append('suffix', (document.querySelector('[name="suffix"]')?.value || '').trim());
 
             try {
                 const res = await fetch('/api/verify-identity', { method: 'POST', body: fd });
