@@ -5600,15 +5600,17 @@ function addUserNapboxMarkers() {
         const HINT_MS = 450;        // gaano kadalas mag-check ng live hint
         const HOLD_MS = 1500;       // gaano katagal dapat steady bago mag-auto capture
         const MAX_GAP = 700;        // max na idadagdag sa progress kada hint
-        const BAD_RESET_MS = 2000;  // kung mali/gumagalaw nang ganito katagal, babalik sa 0%
+        const BAD_RESET_MS = 3500;  // kung mali/gumagalaw nang ganito katagal, babalik sa 0%
         const FAIL_PAUSE_MS = 2500; // pahinga pagkatapos mag-fail ang verification
-        const MOVE_XY = 0.03, MOVE_W = 0.04, MOVE_YAW = 0.08;   // gaano kalaki ang galaw bago ituring na gumagalaw
+        const MOVE_XY = 0.08, MOVE_W = 0.10, MOVE_YAW = 0.20;   // gaano kalaki ang galaw bago ituring na gumagalaw
+        const HISTORY = 4;          // ilang huling frame ang pinagmumulan ng average na posisyon
 
         const $ = id => document.getElementById(id);
 
         let stream = null, step = 0, busy = false, hintBusy = false;
         let hintTimer = null, scanOpen = false, nameKey = null, verifiedKey = null;
         let progress = 0, lastTick = 0, badSince = 0, prev = null, pauseUntil = 0;
+        let hist = [];
 
         window.identityVerified = false;
 
@@ -5736,18 +5738,26 @@ function addUserNapboxMarkers() {
 
         // ---------- live hint + auto capture ----------
         function markBad(now) {
-            prev = null;
+            hist = [];
             lastTick = 0;
             if (!badSince) badSince = now;
             if (now - badSince > BAD_RESET_MS) setProgress(0);
         }
 
+        // Kino-compare sa AVERAGE ng huling ilang frame, hindi sa nakaraang frame lang
         function isMoving(m) {
-            if (!prev || !m) return false;
-            return Math.abs(m.cx - prev.cx) > MOVE_XY ||
-                   Math.abs(m.cy - prev.cy) > MOVE_XY ||
-                   Math.abs(m.w - prev.w) > MOVE_W ||
-                   Math.abs(m.yaw - prev.yaw) > MOVE_YAW;
+            if (!m) return false;
+            if (hist.length < 2) return false;
+            const avg = k => hist.reduce((s, h) => s + h[k], 0) / hist.length;
+            return Math.abs(m.cx - avg('cx')) > MOVE_XY ||
+                   Math.abs(m.cy - avg('cy')) > MOVE_XY ||
+                   Math.abs(m.w - avg('w')) > MOVE_W ||
+                   Math.abs(m.yaw - avg('yaw')) > MOVE_YAW;
+        }
+
+        function pushHist(m) {
+            hist.push(m);
+            if (hist.length > HISTORY) hist.shift();
         }
 
         async function pollHint() {
@@ -5773,14 +5783,15 @@ function addUserNapboxMarkers() {
                         markBad(now);
                         setIndicator(false, d.message || 'Looking for your face...');
                     } else if (isMoving(d.metrics)) {
-                        prev = d.metrics;
-                        lastTick = 0;
+                        pushHist(d.metrics);
+                        // hihinto lang ang bar; hindi i-reset ang lastTick para maayos ang pagpapatuloy
+                        lastTick = now;
                         if (!badSince) badSince = now;
                         if (now - badSince > BAD_RESET_MS) setProgress(0);
                         setIndicator(false, 'You moved. Hold still...');
                     } else {
                         badSince = 0;
-                        prev = d.metrics;
+                        pushHist(d.metrics);
                         const dt = lastTick ? Math.min(now - lastTick, MAX_GAP) : HINT_MS;
                         lastTick = now;
                         setProgress(progress + dt);
@@ -5871,7 +5882,7 @@ function addUserNapboxMarkers() {
             }
 
             step = 0; busy = false; hintBusy = false;
-            prev = null; lastTick = 0; badSince = 0; pauseUntil = 0;
+            hist = []; lastTick = 0; badSince = 0; pauseUntil = 0;
             setProgress(0);
             showScanError('');
             setIndicator(false, 'Looking for your face...');
@@ -5904,7 +5915,7 @@ function addUserNapboxMarkers() {
                 const data = await res.json().catch(() => ({ success: false, message: 'Unexpected server response. Please try again.' }));
 
                 if (data.success) {
-                    prev = null; lastTick = 0; badSince = 0;
+                    hist = []; lastTick = 0; badSince = 0;
                     setProgress(0);
                     if (data.done) {
                         verifiedKey = currentKey();
@@ -5920,7 +5931,7 @@ function addUserNapboxMarkers() {
                     setIndicator(false, LABELS[myStep] + ' verified ✓ — next: ' + LABELS[step]);
                 } else {
                     setProgress(0);
-                    prev = null; lastTick = 0; badSince = 0;
+                    hist = []; lastTick = 0; badSince = 0;
                     pauseUntil = Date.now() + FAIL_PAUSE_MS;
                     showScanError(data.message || 'Verification failed. Please try again.');
                     setIndicator(false, data.message || 'Verification failed.');
@@ -5936,7 +5947,7 @@ function addUserNapboxMarkers() {
                 }
             } catch (err) {
                 setProgress(0);
-                prev = null; lastTick = 0; badSince = 0;
+                hist = []; lastTick = 0; badSince = 0;
                 pauseUntil = Date.now() + FAIL_PAUSE_MS;
                 showScanError('Network error. Please try again.');
                 setIndicator(false, 'Network error. Please try again.');
