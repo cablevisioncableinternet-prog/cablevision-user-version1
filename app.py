@@ -1706,7 +1706,6 @@ import time
 import difflib
 import hashlib
 import base64
-from datetime import date as _date
 import itertools
 import unicodedata
 import threading
@@ -1749,10 +1748,6 @@ FACE_MAX_WIDTH = 0.65               # masyadong malapit kung mas malaki
 FACE_CENTER_TOLERANCE = 0.22        # gaano kalayo sa gitna ang pwede
 TURN_MAX_YAW = 0.85                 # sobra ang ikot kung lampas dito
 FACE_PROGRESS_TTL = 10 * 60
-# ---- Sex / Birthdate check laban sa ID ----
-ID_REQUIRE_SEX_MATCH = True
-ID_REQUIRE_BIRTHDATE_MATCH = True
-ID_FAIL_IF_UNREADABLE = True        # True = bagsak kapag hindi mabasa ang sex/birthdate sa ID; False = lalaktawan
 
 _face_lock = threading.Lock()
 _face_det = None
@@ -2230,140 +2225,7 @@ def _check_face_frame(img, step):
 
 
 # ===============================
-# SEX / BIRTHDATE vs ID
-# ===============================
-_MONTH_FULL = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY",
-               "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"]
-_RX_SEX_LABEL = re.compile(r"\bSEX\b|KASARIAN|\bGENDER\b")
-_RX_SEX_VALUE = re.compile(r"\b(FEMALE|MALE|BABAE|LALAKI|F|M)\b")
-_SEX_CODE = {"FEMALE": "F", "BABAE": "F", "F": "F", "MALE": "M", "LALAKI": "M", "M": "M"}
-
-
-def _parse_typed_birthdate(value):
-    """MM-DD-YYYY (galing sa form) -> date, o None kung mali."""
-    m = re.fullmatch(r"(\d{2})-(\d{2})-(\d{4})", (value or "").strip())
-    if not m:
-        return None
-    try:
-        return _date(int(m.group(3)), int(m.group(1)), int(m.group(2)))
-    except ValueError:
-        return None
-
-
-def _month_from_word(w):
-    w = re.sub(r"[^A-Z]", "", _fold(w))
-    if len(w) < 3:
-        return None
-    for i, full in enumerate(_MONTH_FULL, 1):
-        if len(w) == 3 and w == full[:3]:
-            return i
-        if len(w) >= 4 and (full.startswith(w) or difflib.SequenceMatcher(None, w, full).ratio() >= 0.8):
-            return i
-    return None
-
-
-def _dates_in_text(text):
-    """Lahat ng petsang nabasa sa OCR text, kahit anong format."""
-    up = _fold(text)
-    out = set()
-
-    def add(y, m, d):
-        try:
-            out.add(_date(y, m, d))
-        except (ValueError, TypeError):
-            pass
-
-    # MARCH 15, 1990
-    for m in re.finditer(r"([A-Z]{3,10})\.?\s*(\d{1,2})\s*,?\s*((?:19|20)\d{2})", up):
-        mo = _month_from_word(m.group(1))
-        if mo:
-            add(int(m.group(3)), mo, int(m.group(2)))
-    # 15 MARCH 1990
-    for m in re.finditer(r"(\d{1,2})\s*([A-Z]{3,10})\.?\s*,?\s*((?:19|20)\d{2})", up):
-        mo = _month_from_word(m.group(2))
-        if mo:
-            add(int(m.group(3)), mo, int(m.group(1)))
-    # 1990/03/15
-    for m in re.finditer(r"((?:19|20)\d{2})\s*[-/.]\s*(\d{1,2})\s*[-/.]\s*(\d{1,2})", up):
-        add(int(m.group(1)), int(m.group(2)), int(m.group(3)))
-    # 03/15/1990 o 15/03/1990 (tinatanggap ang parehong ayos)
-    for m in re.finditer(r"(\d{1,2})\s*[-/.]\s*(\d{1,2})\s*[-/.]\s*((?:19|20)\d{2})", up):
-        a, b, y = int(m.group(1)), int(m.group(2)), int(m.group(3))
-        add(y, a, b)
-        add(y, b, a)
-    return out
-
-
-def _sex_values_on_id(passes):
-    """Mga nabasang sex sa ID ('M' / 'F'). Unahin ang katabi ng label na Sex/Kasarian."""
-    labeled, loose = [], []
-    for text in passes:
-        lines = [ln.strip() for ln in (text or "").splitlines()]
-        for i, ln in enumerate(lines):
-            up = _fold(ln)
-            ms = list(_RX_SEX_LABEL.finditer(up))
-            if not ms:
-                continue
-            chunk = [up[ms[-1].end():]]
-            for nxt in lines[i + 1:i + 4]:
-                if not nxt:
-                    continue
-                if _line_label(nxt):
-                    break
-                chunk.append(_fold(nxt))
-                if len(chunk) > 2:
-                    break
-            m = _RX_SEX_VALUE.search(" ".join(chunk))
-            if m:
-                labeled.append(_SEX_CODE[m.group(1)])
-        for m in re.finditer(r"\b(FEMALE|MALE)\b", _fold(text)):
-            loose.append(_SEX_CODE[m.group(1)])
-    return labeled or loose
-
-
-def _check_sex_dob(passes, typed_sex, typed_dob):
-    """Returns {'dob': state, 'sex': state}. state = None (hindi required) | 'ok' | 'mismatch' | 'unreadable'."""
-    states = {"dob": None, "sex": None}
-
-    if typed_dob is not None:
-        seen_any = False
-        states["dob"] = "mismatch"
-        for text in passes:
-            ds = _dates_in_text(text)
-            if ds:
-                seen_any = True
-            if typed_dob in ds:
-                states["dob"] = "ok"
-                break
-        if states["dob"] != "ok" and not seen_any:
-            states["dob"] = "unreadable"
-
-    if typed_sex:
-        found = _sex_values_on_id(passes)
-        if not found:
-            states["sex"] = "unreadable"
-        else:
-            other = "F" if typed_sex == "M" else "M"
-            states["sex"] = "ok" if found.count(typed_sex) > found.count(other) else "mismatch"
-
-    return states
-
-
-def _sex_dob_message(states):
-    """Unang error na makikita, o '' kung ayos lahat."""
-    if states.get("dob") == "mismatch":
-        return "The Birthdate you entered doesn't match the ID. Please enter it exactly as on your ID (Month-Day-Year, e.g., 05-15-1990)."
-    if states.get("dob") == "unreadable" and ID_FAIL_IF_UNREADABLE:
-        return "We couldn't read the Birthdate on the ID. Please retake the photo so the details are clear."
-    if states.get("sex") == "mismatch":
-        return "The Sex you selected doesn't match the ID."
-    if states.get("sex") == "unreadable" and ID_FAIL_IF_UNREADABLE:
-        return "We couldn't read the Sex on the ID. Please retake the photo so the details are clear."
-    return ""
-
-
-# ===============================
-# STEP 0: NAME + BIRTHDATE + SEX vs ID (bago bumukas ang camera)
+# STEP 0: NAME vs ID (bago bumukas ang camera)
 # ===============================
 @app.route("/api/verify-id-name", methods=["POST"])
 def verify_id_name():
@@ -2380,17 +2242,8 @@ def verify_id_name():
         middle = (request.form.get('middle_name') or '').strip()
         last = (request.form.get('last_name') or '').strip()
         suffix = (request.form.get('suffix') or '').strip()
-        birthdate = (request.form.get('birthdate') or '').strip()
-        sex = (request.form.get('sex') or '').strip()
         if not first or not last:
             return fail("Please enter your First Name and Last Name first.")
-
-        typed_sex = {"male": "M", "female": "F"}.get(sex.lower())
-        typed_dob = _parse_typed_birthdate(birthdate)
-        if ID_REQUIRE_BIRTHDATE_MATCH and typed_dob is None:
-            return fail("Please enter a valid Birthdate (MM-DD-YYYY) first.")
-        if ID_REQUIRE_SEX_MATCH and not typed_sex:
-            return fail("Please select your Sex first.")
 
         front_img, front_bytes = _decode_image(request.files.get('id_front'))
         back_img, back_bytes = _decode_image(request.files.get('id_back'))
@@ -2413,7 +2266,7 @@ def verify_id_name():
         if _id_face_feature(front_small) is None:
             return fail("We couldn't find a clear face photo on the ID front. Please retake it so the whole ID is visible.")
 
-        if ID_REQUIRE_NAME_MATCH or ID_REQUIRE_SEX_MATCH or ID_REQUIRE_BIRTHDATE_MATCH:
+        if ID_REQUIRE_NAME_MATCH:
             if not OCR_AVAILABLE:
                 print("[IDENTITY] OCR NOT AVAILABLE: pytesseract is not installed")
                 return fail("ID text verification is temporarily unavailable. Please try again later.", 503)
@@ -2429,36 +2282,12 @@ def verify_id_name():
             if len(squashed) < ID_MIN_OCR_CHARS:
                 return fail("We couldn't read any text on the ID front. Please retake the photo in good lighting.")
 
-            # ---- pangalan ----
-            if ID_REQUIRE_NAME_MATCH:
-                name_ok, name_msg = _verify_names_against_id(
-                    passes, set(tokens), squashed, first, middle, last, suffix
-                )
-                print(f"[IDENTITY] name check ok={name_ok} msg={name_msg!r}")
-                if not name_ok:
-                    return fail(name_msg)
-
-            # ---- birthdate + sex ----
-            if ID_REQUIRE_SEX_MATCH or ID_REQUIRE_BIRTHDATE_MATCH:
-                req_sex = typed_sex if ID_REQUIRE_SEX_MATCH else None
-                req_dob = typed_dob if ID_REQUIRE_BIRTHDATE_MATCH else None
-
-                states = _check_sex_dob(passes, req_sex, req_dob)
-                print(f"[IDENTITY] sex/dob check (front) = {states}")
-
-                # kung hindi pa ok, basahin din ang BACK ng ID (hal. nasa likod ang sex)
-                if any(s not in (None, "ok") for s in states.values()):
-                    try:
-                        b_text, _bt, _bs, back_passes = _ocr_text(_resize_max(back_img, 1600))
-                        print(f"[IDENTITY] BACK OCR DEBUG TEXT: {b_text[:600]!r}")   # TEMPORARY
-                        states = _check_sex_dob(passes + back_passes, req_sex, req_dob)
-                        print(f"[IDENTITY] sex/dob check (front+back) = {states}")
-                    except Exception as back_err:
-                        print(f"[IDENTITY] BACK OCR ERROR: {back_err}")
-
-                sd_msg = _sex_dob_message(states)
-                if sd_msg:
-                    return fail(sd_msg)
+            name_ok, name_msg = _verify_names_against_id(
+                passes, set(tokens), squashed, first, middle, last, suffix
+            )
+            print(f"[IDENTITY] name check ok={name_ok} msg={name_msg!r}")
+            if not name_ok:
+                return fail(name_msg)
 
         session['id_name_ok'] = {
             'front': front_hash,
@@ -2467,11 +2296,9 @@ def verify_id_name():
             'middle': middle.lower(),
             'last': last.lower(),
             'suffix': suffix.lower(),
-            'birthdate': birthdate,
-            'sex': sex.lower(),
             'time': now_ts
         }
-        return jsonify(success=True, message="Details match the ID.")
+        return jsonify(success=True, message="Name matches the ID.")
 
     except Exception as e:
         print(f"[IDENTITY] NAME ERROR: {e}")
@@ -2586,8 +2413,6 @@ def verify_face_step():
             'middle': nm['middle'],
             'last': nm['last'],
             'suffix': nm['suffix'],
-            'birthdate': nm.get('birthdate', ''),
-            'sex': nm.get('sex', ''),
             'time': now_ts
         }
         return jsonify(success=True, done=True, step=3, message="ID and face verified.")
@@ -2625,11 +2450,6 @@ def identity_session_ok(front_file, back_file, first_name, last_name):
     suffix = (request.form.get('suffix_submitted', request.form.get('suffix', '')) or '').strip().lower()
     if middle != info.get('middle', '') or suffix != info.get('suffix', ''):
         return False, "Your Middle Name or Suffix changed after verification. Please verify again."
-
-    birth = (request.form.get('birthdate') or '').strip()
-    sex = (request.form.get('sex') or '').strip().lower()
-    if birth != info.get('birthdate', '') or sex != info.get('sex', ''):
-        return False, "Your Birthdate or Sex changed after verification. Please verify again."
     return True, ""
 
 
