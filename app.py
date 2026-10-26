@@ -2264,8 +2264,8 @@ def _lines(text):
     return [ln.strip() for ln in (text or "").splitlines()]
 
 
-def _vote(items, key=None):
-    """Pinakamadalas na lumabas sa lahat ng OCR pass."""
+def _vote(items, key=None, min_count=1):
+    """Pinakamadalas na lumabas sa lahat ng OCR pass. None kung kulang ang bilang."""
     counts = {}
     for it in items:
         k = key(it) if key else it
@@ -2278,7 +2278,8 @@ def _vote(items, key=None):
             counts[k][1] = it
     if not counts:
         return None
-    return max(counts.values(), key=lambda v: (v[0], len(str(v[1]))))[1]
+    best = max(counts.values(), key=lambda v: (v[0], len(str(v[1]))))
+    return best[1] if best[0] >= min_count else None
 
 
 def _label_vicinity(passes, rx, after=2):
@@ -2500,23 +2501,42 @@ def _extract_pob(passes):
         if vals[0][0].strip().endswith(",") and len(vals) > 1:
             place += ", " + vals[1][1]
         found.append(place)
-    best = _vote(found, key=lambda s: re.sub(r"[^A-Z0-9Ñ]", "", s))
+    best = _vote(found, key=lambda s: re.sub(r"[^A-Z0-9Ñ]", "", s), min_count=2)
     return best.title()[:80] if best else None
 
 
-def _extract_id_fields(passes):
-    last_c = _name_value_candidates(passes, "last")
-    given_c = _name_value_candidates(passes, "given")
-    middle_c = _name_value_candidates(passes, "middle")
-    cl, cg, cm = _combined_name_candidates(passes)
-    last_c += cl
-    given_c += cg
-    middle_c += cm
+_NAME_JUNK = ("KAPANG", "PETSA", "LUGAR", "BIRTH", "DATE", "ADDRESS", "TIRAHAN", "NAME", "LAST",
+              "GIVEN", "MIDDLE", "GITNANG", "APELYIDO", "PANGALAN", "SEX", "PLACE", "REPUBLI",
+              "PHILIPPINE", "PAMBANSANG", "IDENT", "MARITAL", "BLOOD", "SIGNATURE")
 
+
+def _plausible_name(v):
+    """Itapon ang mga mukhang OCR garbage (maraming maiikling salita, o mga salita ng label)."""
+    toks = v.split()
+    if not toks or len(toks) > 4:
+        return False
+    letters = [re.sub(r"[^A-ZÑ]", "", _fold(t)) for t in toks]
+    if len(letters[0]) < 3:
+        return False
+    if sum(1 for t in letters if len(t) >= 3) * 2 < len(letters):
+        return False
+    return not any(t.startswith(j) for t in letters for j in _NAME_JUNK)
+
+
+def _extract_id_fields(front_passes, back_passes):
+    both = front_passes + back_passes
     squash = lambda s: re.sub(r"[^A-ZÑ]", "", s)
+
+    # Pangalan: sa FRONT lang, at dapat lumabas sa hindi bababa sa 2 OCR pass
+    cl, cg, cm = _combined_name_candidates(front_passes)
+    last_c = _name_value_candidates(front_passes, "last") + cl
+    given_c = _name_value_candidates(front_passes, "given") + cg
+    middle_c = _name_value_candidates(front_passes, "middle") + cm
+
     fields, suffix = {}, ""
     for key, cands in (("first_name", given_c), ("last_name", last_c), ("middle_name", middle_c)):
-        best = _vote(cands, key=squash)
+        cands = [c for c in cands if _plausible_name(c)]
+        best = _vote(cands, key=squash, min_count=2)
         if best:
             clean, sfx = _split_suffix(best)
             if clean:
@@ -2525,16 +2545,16 @@ def _extract_id_fields(passes):
     if suffix:
         fields["suffix"] = suffix
 
-    dob = _extract_dob(passes)
+    dob = _extract_dob(both)
     if dob:
         fields["birthdate"] = dob
-    sex = _extract_sex(passes)
+    sex = _extract_sex(both)
     if sex:
         fields["sex"] = sex
-    civil = _extract_civil(passes, sex)
+    civil = _extract_civil(both, sex)
     if civil:
         fields["civil_status"] = civil
-    pob = _extract_pob(passes)
+    pob = _extract_pob(both)
     if pob:
         fields["place_of_birth"] = pob
     return fields
@@ -2566,10 +2586,11 @@ def extract_id_info():
             back_passes = list(b_fut.result()[3])
 
         # TEMPORARY: tanggalin pagkatapos mag-test
-        print(f"[IDENTITY] AUTOFILL FRONT: {(front_passes[0] if front_passes else '')[:500]!r}")
-        print(f"[IDENTITY] AUTOFILL BACK: {(back_passes[0] if back_passes else '')[:500]!r}")
+        for label, plist in (("FRONT", front_passes), ("BACK", back_passes)):
+            for i, p in enumerate(plist[:3]):
+                print(f"[IDENTITY] AUTOFILL {label} pass{i}: {p[:1200]!r}")
 
-        fields = _extract_id_fields(front_passes + back_passes)
+        fields = _extract_id_fields(front_passes, back_passes)
         print(f"[IDENTITY] autofill found={sorted(fields)}")
 
         if not fields:
@@ -2584,7 +2605,7 @@ def extract_id_info():
 
 
 
-        
+
 # ===============================
 # STEP 0: NAME vs ID (bago bumukas ang camera)
 # ===============================
