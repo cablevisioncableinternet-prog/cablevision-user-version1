@@ -1705,6 +1705,7 @@ import re
 import time
 import difflib
 import hashlib
+import base64
 from datetime import date as _date
 from concurrent.futures import ThreadPoolExecutor
 import itertools
