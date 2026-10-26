@@ -1742,7 +1742,7 @@ IDENTITY_MAX_ATTEMPTS = 6           # kada 15 minutes kada session
 
 # ---- Face scan per-step ----
 LEFT_TURN_SIGN = 1                  # kung baligtad ang kaliwa/kanan sa test mo, gawing -1
-FACE_STEPS = {1: "HARAP", 2: "KALIWA", 3: "KANAN"}
+FACE_STEPS = {1: "FRONT", 2: "LEFT", 3: "RIGHT"}
 FACE_MIN_WIDTH = {1: 0.22, 2: 0.18, 3: 0.18}   # lapad ng mukha / lapad ng frame (masyadong malayo kung mas maliit)
 FACE_MAX_WIDTH = 0.65               # masyadong malapit kung mas malaki
 FACE_CENTER_TOLERANCE = 0.22        # gaano kalayo sa gitna ang pwede
@@ -2189,39 +2189,39 @@ def _check_face_frame(img, step):
     """Returns (ok, code, message, face). Ginagamit ng live hint at ng actual verify."""
     faces = _detect_faces(img)
     if not faces:
-        return False, "no_face", "Walang makitang mukha. Humarap sa camera at siguraduhing maliwanag.", None
+        return False, "no_face", "No face detected. Face the camera and make sure the lighting is good.", None
     if len(faces) > 1 and (faces[1][2] * faces[1][3]) > 0.35 * (faces[0][2] * faces[0][3]):
-        return False, "multi_face", "Higit sa isang mukha ang nakita. Ikaw lang dapat ang nasa camera.", None
+        return False, "multi_face", "More than one face detected. Only you should be in front of the camera.", None
 
     face = faces[0]
     ih, iw = img.shape[:2]
     ratio = float(face[2]) / iw
     if ratio < FACE_MIN_WIDTH[step]:
-        return False, "too_far", "Masyadong malayo. Lumapit pa sa camera.", None
+        return False, "too_far", "Too far. Move closer to the camera.", None
     if ratio > FACE_MAX_WIDTH:
-        return False, "too_close", "Masyadong malapit. Lumayo nang kaunti.", None
+        return False, "too_close", "Too close. Move back a little.", None
 
     cx = (float(face[0]) + float(face[2]) / 2.0) / iw
     cy = (float(face[1]) + float(face[3]) / 2.0) / ih
     if abs(cx - 0.5) > FACE_CENTER_TOLERANCE or abs(cy - 0.5) > FACE_CENTER_TOLERANCE:
-        return False, "off_center", "Ilagay ang mukha sa gitna ng oval.", None
+        return False, "off_center", "Center your face inside the oval.", None
 
     yaw = _yaw(face)
     if step == 1:
         if abs(yaw) > FRONTAL_MAX_YAW:
-            return False, "not_front", "Tumingin nang diretso sa camera.", None
-        return True, "ok", "Maayos! Pindutin ang Capture.", face
+            return False, "not_front", "Look straight at the camera.", None
+        return True, "ok", "Good! Press Capture.", face
 
     want = LEFT_TURN_SIGN if step == 2 else -LEFT_TURN_SIGN
-    side = FACE_STEPS[step]
+    side = FACE_STEPS[step].lower()
     signed = yaw * want
     if signed < -0.08:
-        return False, "wrong_side", f"Maling side. Lumingon sa {side} mo.", None
+        return False, "wrong_side", f"Wrong side. Turn your head to the {side}.", None
     if signed < TURN_MIN_YAW:
-        return False, "turn_more", f"Lumingon pa nang kaunti sa {side}.", None
+        return False, "turn_more", f"Turn a little more to the {side}.", None
     if signed > TURN_MAX_YAW:
-        return False, "turn_less", "Sobra ang ikot. Bawasan nang kaunti.", None
-    return True, "ok", f"Tama ang {side}! I-hold at pindutin ang Capture.", face
+        return False, "turn_less", "Turned too far. Turn back a little.", None
+    return True, "ok", f"Good {side} turn! Hold still and press Capture.", face
 
 
 # ===============================
@@ -2318,7 +2318,7 @@ def face_hint():
             return jsonify(ok=False, code="bad_step", message="")
         img, _ = _decode_image(request.files.get('frame'))
         if img is None:
-            return jsonify(ok=False, code="bad_frame", message="Hindi mabasa ang camera frame.")
+            return jsonify(ok=False, code="bad_frame", message="Could not read the camera frame.")
         img = _resize_max(img, 640)
         ok, code, msg, _face = _check_face_frame(img, step)
         return jsonify(ok=ok, code=code, message=msg)
@@ -2343,7 +2343,7 @@ def verify_face_step():
 
         nm = session.get('id_name_ok')
         if not nm or now_ts - nm.get('time', 0) > IDENTITY_TTL_SECONDS:
-            return fail("Kailangan munang ma-verify ang pangalan sa ID. Pindutin ulit ang Start.",
+            return fail("Your name must be verified against the ID first. Please press Start again.",
                         "need_name", restart=True)
 
         prog = session.get('face_progress') or {}
@@ -2354,11 +2354,11 @@ def verify_face_step():
         if step == 1:
             prog, done = {}, []          # laging pwedeng magsimula ulit
         elif step != len(done) + 1 or not prog.get('f1'):
-            return fail("Mali ang pagkakasunod ng steps. Magsimula ulit.", "order", restart=True)
+            return fail("The steps are out of order. Please start again.", "order", restart=True)
 
         img, _ = _decode_image(request.files.get('frame'))
         if img is None:
-            return fail("Hindi mabasa ang larawan. Subukan ulit.")
+            return fail("Could not read the photo. Please try again.")
         img = _resize_max(img, 960)
 
         ok, code, msg, face = _check_face_frame(img, step)
@@ -2370,7 +2370,7 @@ def verify_face_step():
         if step == 1:
             front_img, front_bytes = _decode_image(request.files.get('id_front'))
             if front_img is None or hashlib.sha256(front_bytes).hexdigest() != nm['front']:
-                return fail("Nagbago ang ID photo. Paki-verify ulit.", "need_name", restart=True)
+                return fail("The ID photo has changed. Please verify again.", "need_name", restart=True)
             id_feat = _id_face_feature(_resize_max(front_img, 1600))
             if id_feat is None:
                 return fail("We couldn't find a clear face photo on the ID front.", "need_name", restart=True)
@@ -2381,13 +2381,13 @@ def verify_face_step():
                 return fail("Your face doesn't match the photo on the ID. Please use your own valid ID.", "no_match")
 
             session['face_progress'] = {'f1': _feat_to_b64(feat), 'done': [1], 'time': now_ts}
-            return jsonify(success=True, done=False, step=1, message="Harap: verified.")
+            return jsonify(success=True, done=False, step=1, message="Front: verified.")
 
         # step 2 / 3: dapat kapareho ng mukha sa step 1
         same = _cosine(_feat_from_b64(prog['f1']), feat)
         print(f"[IDENTITY] step{step} same-person score={same:.3f} yaw={_yaw(face):.2f}")
         if same < FACE_SAME_PERSON_THRESHOLD:
-            return fail("Hindi ito mukhang kapareho ng nasa step 1. Subukan ulit.", "diff_person")
+            return fail("This doesn't look like the same person as in step 1. Please try again.", "diff_person")
 
         done.append(step)
         if step < 3:

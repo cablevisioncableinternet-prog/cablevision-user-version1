@@ -873,13 +873,13 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
             <!-- oval guide -->
             <div id="faceScanGuide" style="position:absolute; left:50%; top:50%; width:52%; height:82%; transform:translate(-50%,-50%); border:3px dashed #dc2626; border-radius:50%; pointer-events:none; transition:border-color .2s;"></div>
             <!-- message badge -->
-            <div id="faceScanBadge" style="position:absolute; left:8px; right:8px; bottom:8px; padding:8px 10px; border-radius:8px; background:#dc2626; color:#fff; text-align:center; font-size:0.85rem; font-weight:600; transition:background .2s;">Hinahanap ang mukha...</div>
+            <div id="faceScanBadge" style="position:absolute; left:8px; right:8px; bottom:8px; padding:8px 10px; border-radius:8px; background:#dc2626; color:#fff; text-align:center; font-size:0.85rem; font-weight:600; transition:background .2s;">Looking for your face...</div>
         </div>
 
         <div id="faceScanDots" style="display:flex; gap:18px; justify-content:center; margin:12px 0 4px;">
-            <div style="text-align:center;"><span class="fs-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#cbd5e1;"></span><div style="font-size:0.7rem;color:#64748b;margin-top:2px;">Harap</div></div>
-            <div style="text-align:center;"><span class="fs-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#cbd5e1;"></span><div style="font-size:0.7rem;color:#64748b;margin-top:2px;">Kaliwa</div></div>
-            <div style="text-align:center;"><span class="fs-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#cbd5e1;"></span><div style="font-size:0.7rem;color:#64748b;margin-top:2px;">Kanan</div></div>
+            <div style="text-align:center;"><span class="fs-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#cbd5e1;"></span><div style="font-size:0.7rem;color:#64748b;margin-top:2px;">Front</div></div>
+            <div style="text-align:center;"><span class="fs-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#cbd5e1;"></span><div style="font-size:0.7rem;color:#64748b;margin-top:2px;">Left</div></div>
+            <div style="text-align:center;"><span class="fs-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#cbd5e1;"></span><div style="font-size:0.7rem;color:#64748b;margin-top:2px;">Right</div></div>
         </div>
 
         <div id="faceScanError" style="display:none; color:#dc2626; font-size:0.85rem; margin:8px 0; font-weight:600;"></div>
@@ -5576,14 +5576,14 @@ function addUserNapboxMarkers() {
     
 
 
-    // ================= ID + FACE VERIFICATION (name check muna, tapos per-step face scan) =================
+    // ================= ID + FACE VERIFICATION (name check first, then per-step face scan) =================
     (function () {
         const INSTR = [
-            'Step 1 of 3 — HARAP: Tumingin nang diretso sa camera.',
-            'Step 2 of 3 — KALIWA: Dahan-dahang lumingon sa KALIWA mo at i-hold.',
-            'Step 3 of 3 — KANAN: Dahan-dahang lumingon sa KANAN mo at i-hold.'
+            'Step 1 of 3 — FRONT: Look straight at the camera.',
+            'Step 2 of 3 — LEFT: Slowly turn your head to your LEFT and hold.',
+            'Step 3 of 3 — RIGHT: Slowly turn your head to your RIGHT and hold.'
         ];
-        const LABELS = ['Harap', 'Kaliwa', 'Kanan'];
+        const LABELS = ['Front', 'Left', 'Right'];
         const START_HTML = '<i class="fas fa-camera"></i> Start ID &amp; Face Verification';
         const HINT_MS = 700;
         const $ = id => document.getElementById(id);
@@ -5613,7 +5613,7 @@ function addUserNapboxMarkers() {
             nameKey = null;
             if (window.identityVerified) {
                 window.identityVerified = false;
-                setStatus(false, 'Nagbago ang ID o pangalan. Paki-verify ulit.');
+                setStatus(false, 'Your ID or name has changed. Please verify again.');
             }
         }
 
@@ -5705,7 +5705,7 @@ function addUserNapboxMarkers() {
                 const res = await fetch('/api/face-hint', { method: 'POST', body: fd });
                 const d = await res.json();
                 if (scanOpen && !busy && myStep === step) {
-                    setIndicator(!!d.ok, d.message || 'Hinahanap ang mukha...');
+                    setIndicator(!!d.ok, d.message || 'Looking for your face...');
                 }
             } catch (e) { /* ignore, susubukan ulit sa susunod */ }
             hintBusy = false;
@@ -5726,8 +5726,8 @@ function addUserNapboxMarkers() {
         async function checkNameOnServer(f, b) {
             const btn = $('startIdentityBtn');
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Chine-check ang pangalan sa ID...';
-            setStatus(null, 'Binabasa ang ID at kino-compare ang pangalan. Maghintay sandali...');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking name on ID...';
+            setStatus(null, 'Reading your ID and comparing the name. Please wait...');
             try {
                 const val = n => (document.querySelector('[name="' + n + '"]')?.value || '').trim();
                 const fd = new FormData();
@@ -5780,7 +5780,7 @@ function addUserNapboxMarkers() {
                 if (!nameOk) { nameKey = null; return; }
                 nameKey = key;
             }
-            setStatus(true, 'Tugma ang pangalan sa ID. Ituloy ang face scan.');
+            setStatus(true, 'Name matches the ID. Continue with the face scan.');
 
             try {
                 stream = await navigator.mediaDevices.getUserMedia({
@@ -5794,7 +5794,7 @@ function addUserNapboxMarkers() {
 
             step = 0; busy = false; hintBusy = false;
             showScanError('');
-            setIndicator(false, 'Hinahanap ang mukha...');
+            setIndicator(false, 'Looking for your face...');
             $('faceScanVideo').srcObject = stream;
             $('faceScanModal').style.display = 'flex';
             document.body.style.overflow = 'hidden';
@@ -5809,7 +5809,7 @@ function addUserNapboxMarkers() {
             busy = true;
             const myStep = step;
             showScanError('');
-            setIndicator('busy', 'Vine-verify ang ' + LABELS[myStep] + '...');
+            setIndicator('busy', 'Verifying ' + LABELS[myStep].toLowerCase() + '...');
 
             let restartScan = false;
             try {
@@ -5834,7 +5834,7 @@ function addUserNapboxMarkers() {
                     }
                     step = myStep + 1;
                     updateUI();
-                    setIndicator(false, LABELS[myStep] + ' ✓ — sunod: ' + LABELS[step]);
+                    setIndicator(false, LABELS[myStep] + ' verified ✓ — next: ' + LABELS[step]);
                 } else {
                     showScanError(data.message || 'Verification failed. Please try again.');
                     setIndicator(false, data.message || 'Verification failed.');
@@ -5850,7 +5850,7 @@ function addUserNapboxMarkers() {
                 }
             } catch (err) {
                 showScanError('Network error. Please try again.');
-                setIndicator(false, 'Network error. Subukan ulit.');
+                setIndicator(false, 'Network error. Please try again.');
             }
 
             if (restartScan) { step = 0; updateUI(); }   // out-of-order lang ang dahilan
