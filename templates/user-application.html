@@ -876,6 +876,17 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
             <div id="faceScanBadge" style="position:absolute; left:8px; right:8px; bottom:8px; padding:8px 10px; border-radius:8px; background:#dc2626; color:#fff; text-align:center; font-size:0.85rem; font-weight:600; transition:background .2s;">Looking for your face...</div>
         </div>
 
+        <!-- scan progress bar -->
+        <div style="margin-top:12px;">
+            <div style="display:flex; justify-content:space-between; font-size:0.75rem; color:#64748b; margin-bottom:4px;">
+                <span>Scanning progress</span>
+                <span id="faceScanPercent">0%</span>
+            </div>
+            <div style="height:10px; background:#e2e8f0; border-radius:999px; overflow:hidden;">
+                <div id="faceScanBar" style="height:100%; width:0%; background:#16a34a; border-radius:999px; transition:width .25s linear;"></div>
+            </div>
+        </div>
+
         <div id="faceScanDots" style="display:flex; gap:18px; justify-content:center; margin:12px 0 4px;">
             <div style="text-align:center;"><span class="fs-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#cbd5e1;"></span><div style="font-size:0.7rem;color:#64748b;margin-top:2px;">Front</div></div>
             <div style="text-align:center;"><span class="fs-dot" style="display:inline-block;width:12px;height:12px;border-radius:50%;background:#cbd5e1;"></span><div style="font-size:0.7rem;color:#64748b;margin-top:2px;">Left</div></div>
@@ -885,7 +896,6 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
         <div id="faceScanError" style="display:none; color:#dc2626; font-size:0.85rem; margin:8px 0; font-weight:600;"></div>
         <div style="display:flex; gap:10px; justify-content:flex-end; margin-top:14px;">
             <button type="button" id="faceScanCancelBtn" style="padding:9px 18px; border-radius:8px; border:1px solid #cbd5e1; background:#fff; cursor:pointer;">Cancel</button>
-            <button type="button" id="faceScanCaptureBtn" disabled style="padding:9px 18px; border-radius:8px; border:none; background:#0047ab; color:#fff; font-weight:600; cursor:pointer; opacity:.5;">Capture</button>
         </div>
     </div>
 </div>
@@ -1123,7 +1133,8 @@ MAIN APPLICATION FORM — may novalidate para hindi ma-block ang submit
             fileField('signature_upload', 'E-Signature', 'signature-preview');
 
             // ---- ID & Face Verification ----
-            if (typeof window.isIdentityRequired === 'function' && window.isIdentityRequired() && !window.identityVerified) {
+            if (typeof window.isIdentityRequired === 'function' && window.isIdentityRequired() &&
+                !(typeof window.isIdentityValid === 'function' && window.isIdentityValid())) {
                 add(document.getElementById('startIdentityBtn'), 'ID & Face Verification', {
                     msg: 'Please complete the ID and face verification',
                     inline: false
@@ -5576,20 +5587,28 @@ function addUserNapboxMarkers() {
     
 
 
-    // ================= ID + FACE VERIFICATION (name check first, then per-step face scan) =================
+    // ================= ID + FACE VERIFICATION (name check first, then auto-capture face scan) =================
     (function () {
         const INSTR = [
-            'Step 1 of 3 — FRONT: Look straight at the camera.',
-            'Step 2 of 3 — LEFT: Slowly turn your head to your LEFT and hold.',
-            'Step 3 of 3 — RIGHT: Slowly turn your head to your RIGHT and hold.'
+            'Step 1 of 3 — FRONT: Look straight at the camera and hold still.',
+            'Step 2 of 3 — LEFT: Slowly turn your head to your LEFT and hold still.',
+            'Step 3 of 3 — RIGHT: Slowly turn your head to your RIGHT and hold still.'
         ];
         const LABELS = ['Front', 'Left', 'Right'];
         const START_HTML = '<i class="fas fa-camera"></i> Start ID &amp; Face Verification';
-        const HINT_MS = 700;
+
+        const HINT_MS = 450;        // gaano kadalas mag-check ng live hint
+        const HOLD_MS = 1500;       // gaano katagal dapat steady bago mag-auto capture
+        const MAX_GAP = 700;        // max na idadagdag sa progress kada hint
+        const BAD_RESET_MS = 2000;  // kung mali/gumagalaw nang ganito katagal, babalik sa 0%
+        const FAIL_PAUSE_MS = 2500; // pahinga pagkatapos mag-fail ang verification
+        const MOVE_XY = 0.03, MOVE_W = 0.04, MOVE_YAW = 0.08;   // gaano kalaki ang galaw bago ituring na gumagalaw
+
         const $ = id => document.getElementById(id);
 
         let stream = null, step = 0, busy = false, hintBusy = false;
-        let hintTimer = null, scanOpen = false, canCapture = false, nameKey = null;
+        let hintTimer = null, scanOpen = false, nameKey = null, verifiedKey = null;
+        let progress = 0, lastTick = 0, badSince = 0, prev = null, pauseUntil = 0;
 
         window.identityVerified = false;
 
@@ -5598,6 +5617,25 @@ function addUserNapboxMarkers() {
             const f = $('id_front'), b = $('id_back');
             const hasNew = (f && f.files && f.files.length) || (b && b.files && b.files.length);
             return !window.isReapplyGlobal || !!hasNew;
+        };
+
+        const val = n => (document.querySelector('[name="' + n + '"]')?.value || '').trim();
+
+        // Snapshot ng ID files + pangalan. Kung nagbago, hindi na valid ang verification.
+        function currentKey() {
+            const f = $('id_front'), b = $('id_back');
+            if (!f || !f.files || !f.files[0] || !b || !b.files || !b.files[0]) return null;
+            return buildKey(f, b);
+        }
+
+        function buildKey(f, b) {
+            const fa = f.files[0], fb = b.files[0];
+            return [fa.name, fa.size, fa.lastModified, fb.name, fb.size, fb.lastModified,
+                    val('first_name'), val('middle_name'), val('last_name'), val('suffix')].join('|');
+        }
+
+        window.isIdentityValid = function () {
+            return !!window.identityVerified && !!verifiedKey && verifiedKey === currentKey();
         };
 
         function setStatus(ok, msg) {
@@ -5609,26 +5647,29 @@ function addUserNapboxMarkers() {
             el.textContent = msg;
         }
 
-        function resetIdentity() {
-            nameKey = null;
-            if (window.identityVerified) {
+        // Tumatakbo sa bawat input/change: kapag may nagbago, i-invalidate agad
+        function checkStillValid() {
+            if (window.identityVerified && !window.isIdentityValid()) {
                 window.identityVerified = false;
+                verifiedKey = null;
                 setStatus(false, 'Your ID or name has changed. Please verify again.');
             }
         }
 
         // Event delegation: gumagana kahit napalitan na ang file inputs (cloneNode)
-        document.addEventListener('change', function (e) {
-            const t = e.target;
-            if (!t) return;
-            if (t.id === 'id_front' || t.id === 'id_back' ||
-                t.name === 'first_name' || t.name === 'middle_name' ||
-                t.name === 'last_name' || t.name === 'suffix') {
-                resetIdentity();
-            }
+        ['input', 'change'].forEach(evt => {
+            document.addEventListener(evt, function (e) {
+                const t = e.target;
+                if (!t) return;
+                if (t.id === 'id_front' || t.id === 'id_back' ||
+                    t.name === 'first_name' || t.name === 'middle_name' ||
+                    t.name === 'last_name' || t.name === 'suffix') {
+                    checkStillValid();
+                }
+            });
         });
 
-        // ---------- indicator ----------
+        // ---------- indicator + progress bar ----------
         // state: true = green, false = red, 'busy' = blue
         function setIndicator(state, msg) {
             const color = state === true ? '#16a34a' : (state === 'busy' ? '#0047ab' : '#dc2626');
@@ -5637,10 +5678,13 @@ function addUserNapboxMarkers() {
             const badge = $('faceScanBadge');
             badge.style.background = color;
             badge.textContent = msg || '';
-            canCapture = state === true;
-            const btn = $('faceScanCaptureBtn');
-            btn.disabled = !canCapture;
-            btn.style.opacity = canCapture ? '1' : '.5';
+        }
+
+        function setProgress(ms) {
+            progress = Math.max(0, Math.min(HOLD_MS, ms));
+            const pct = Math.round((progress / HOLD_MS) * 100);
+            $('faceScanBar').style.width = pct + '%';
+            $('faceScanPercent').textContent = pct + '%';
         }
 
         function updateUI() {
@@ -5690,13 +5734,31 @@ function addUserNapboxMarkers() {
             });
         }
 
-        // ---------- live hint ----------
+        // ---------- live hint + auto capture ----------
+        function markBad(now) {
+            prev = null;
+            lastTick = 0;
+            if (!badSince) badSince = now;
+            if (now - badSince > BAD_RESET_MS) setProgress(0);
+        }
+
+        function isMoving(m) {
+            if (!prev || !m) return false;
+            return Math.abs(m.cx - prev.cx) > MOVE_XY ||
+                   Math.abs(m.cy - prev.cy) > MOVE_XY ||
+                   Math.abs(m.w - prev.w) > MOVE_W ||
+                   Math.abs(m.yaw - prev.yaw) > MOVE_YAW;
+        }
+
         async function pollHint() {
             if (!scanOpen || busy || hintBusy) return;
+            if (Date.now() < pauseUntil) return;
             const v = $('faceScanVideo');
             if (!v || !v.videoWidth) return;
+
             hintBusy = true;
             const myStep = step;
+            let shouldCapture = false;
             try {
                 const blob = await grabFrame(480, 0.7);
                 const fd = new FormData();
@@ -5704,11 +5766,35 @@ function addUserNapboxMarkers() {
                 fd.append('step', myStep + 1);
                 const res = await fetch('/api/face-hint', { method: 'POST', body: fd });
                 const d = await res.json();
+
                 if (scanOpen && !busy && myStep === step) {
-                    setIndicator(!!d.ok, d.message || 'Looking for your face...');
+                    const now = Date.now();
+                    if (!d.ok) {
+                        markBad(now);
+                        setIndicator(false, d.message || 'Looking for your face...');
+                    } else if (isMoving(d.metrics)) {
+                        prev = d.metrics;
+                        lastTick = 0;
+                        if (!badSince) badSince = now;
+                        if (now - badSince > BAD_RESET_MS) setProgress(0);
+                        setIndicator(false, 'You moved. Hold still...');
+                    } else {
+                        badSince = 0;
+                        prev = d.metrics;
+                        const dt = lastTick ? Math.min(now - lastTick, MAX_GAP) : HINT_MS;
+                        lastTick = now;
+                        setProgress(progress + dt);
+                        if (progress >= HOLD_MS / 2) showScanError('');
+                        setIndicator(true, 'Hold still... ' + Math.round((progress / HOLD_MS) * 100) + '%');
+                        if (progress >= HOLD_MS) shouldCapture = true;
+                    }
                 }
-            } catch (e) { /* ignore, susubukan ulit sa susunod */ }
+            } catch (e) { /* susubukan ulit sa susunod */ }
             hintBusy = false;
+
+            if (shouldCapture && scanOpen && !busy && myStep === step) {
+                await autoCapture(myStep);
+            }
         }
 
         function startHints() {
@@ -5717,19 +5803,12 @@ function addUserNapboxMarkers() {
         }
 
         // ---------- step 0: name vs ID ----------
-        function buildKey(f, b) {
-            const val = n => (document.querySelector('[name="' + n + '"]')?.value || '').trim();
-            return [f.name, f.size, f.lastModified, b.name, b.size, b.lastModified,
-                    val('first_name'), val('middle_name'), val('last_name'), val('suffix')].join('|');
-        }
-
         async function checkNameOnServer(f, b) {
             const btn = $('startIdentityBtn');
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking name on ID...';
             setStatus(null, 'Reading your ID and comparing the name. Please wait...');
             try {
-                const val = n => (document.querySelector('[name="' + n + '"]')?.value || '').trim();
                 const fd = new FormData();
                 fd.append('id_front', f.files[0]);
                 fd.append('id_back', b.files[0]);
@@ -5760,9 +5839,7 @@ function addUserNapboxMarkers() {
                 (f && !(f.files && f.files[0]) ? f : b).scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return;
             }
-            const fn = document.querySelector('[name="first_name"]').value.trim();
-            const ln = document.querySelector('[name="last_name"]').value.trim();
-            if (!fn || !ln) {
+            if (!val('first_name') || !val('last_name')) {
                 showToast('Please enter your First Name and Last Name first.', 'error');
                 return;
             }
@@ -5772,6 +5849,7 @@ function addUserNapboxMarkers() {
             }
 
             window.identityVerified = false;
+            verifiedKey = null;
 
             // STEP 0: pangalan muna bago ang camera (hindi na uulitin kung walang nagbago)
             const key = buildKey(f, b);
@@ -5793,6 +5871,8 @@ function addUserNapboxMarkers() {
             }
 
             step = 0; busy = false; hintBusy = false;
+            prev = null; lastTick = 0; badSince = 0; pauseUntil = 0;
+            setProgress(0);
             showScanError('');
             setIndicator(false, 'Looking for your face...');
             $('faceScanVideo').srcObject = stream;
@@ -5803,11 +5883,10 @@ function addUserNapboxMarkers() {
             startHints();
         }
 
-        // ---------- capture + verify ISANG step ----------
-        async function onCapture() {
-            if (busy || !canCapture) return;
+        // ---------- auto capture + verify ISANG step ----------
+        async function autoCapture(myStep) {
+            if (busy) return;
             busy = true;
-            const myStep = step;
             showScanError('');
             setIndicator('busy', 'Verifying ' + LABELS[myStep].toLowerCase() + '...');
 
@@ -5825,8 +5904,11 @@ function addUserNapboxMarkers() {
                 const data = await res.json().catch(() => ({ success: false, message: 'Unexpected server response. Please try again.' }));
 
                 if (data.success) {
+                    prev = null; lastTick = 0; badSince = 0;
+                    setProgress(0);
                     if (data.done) {
-                        window.identityVerified = true;
+                        verifiedKey = currentKey();
+                        window.identityVerified = !!verifiedKey;
                         setStatus(true, 'ID and face verified.');
                         showToast('ID and face verified!', 'success');
                         closeScan();
@@ -5834,8 +5916,12 @@ function addUserNapboxMarkers() {
                     }
                     step = myStep + 1;
                     updateUI();
+                    pauseUntil = Date.now() + 1200;   // maikling pahinga para makalingon
                     setIndicator(false, LABELS[myStep] + ' verified ✓ — next: ' + LABELS[step]);
                 } else {
+                    setProgress(0);
+                    prev = null; lastTick = 0; badSince = 0;
+                    pauseUntil = Date.now() + FAIL_PAUSE_MS;
                     showScanError(data.message || 'Verification failed. Please try again.');
                     setIndicator(false, data.message || 'Verification failed.');
                     if (data.restart) {
@@ -5849,6 +5935,9 @@ function addUserNapboxMarkers() {
                     }
                 }
             } catch (err) {
+                setProgress(0);
+                prev = null; lastTick = 0; badSince = 0;
+                pauseUntil = Date.now() + FAIL_PAUSE_MS;
                 showScanError('Network error. Please try again.');
                 setIndicator(false, 'Network error. Please try again.');
             }
@@ -5860,7 +5949,6 @@ function addUserNapboxMarkers() {
         document.addEventListener('DOMContentLoaded', function () {
             const startBtn = $('startIdentityBtn');
             if (startBtn) startBtn.addEventListener('click', openScan);
-            $('faceScanCaptureBtn').addEventListener('click', onCapture);
             $('faceScanCancelBtn').addEventListener('click', closeScan);
         });
     })();

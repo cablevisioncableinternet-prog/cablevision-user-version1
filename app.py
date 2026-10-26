@@ -2315,16 +2315,26 @@ def face_hint():
     try:
         step = int(request.form.get('step', 1))
         if step not in FACE_STEPS:
-            return jsonify(ok=False, code="bad_step", message="")
+            return jsonify(ok=False, code="bad_step", message="", metrics=None)
         img, _ = _decode_image(request.files.get('frame'))
         if img is None:
-            return jsonify(ok=False, code="bad_frame", message="Could not read the camera frame.")
+            return jsonify(ok=False, code="bad_frame", message="Could not read the camera frame.", metrics=None)
         img = _resize_max(img, 640)
-        ok, code, msg, _face = _check_face_frame(img, step)
-        return jsonify(ok=ok, code=code, message=msg)
+        ok, code, msg, face = _check_face_frame(img, step)
+
+        metrics = None
+        if ok and face is not None:
+            ih, iw = img.shape[:2]
+            metrics = {
+                "cx": float((face[0] + face[2] / 2.0) / iw),
+                "cy": float((face[1] + face[3] / 2.0) / ih),
+                "w": float(face[2] / iw),
+                "yaw": float(_yaw(face)),
+            }
+        return jsonify(ok=ok, code=code, message=msg, metrics=metrics)
     except Exception as e:
         print(f"[IDENTITY] HINT ERROR: {e}")
-        return jsonify(ok=False, code="error", message="")
+        return jsonify(ok=False, code="error", message="", metrics=None)
 
 
 # ===============================
