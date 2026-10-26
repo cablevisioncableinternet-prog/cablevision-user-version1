@@ -5633,7 +5633,8 @@ function addUserNapboxMarkers() {
         function buildKey(f, b) {
             const fa = f.files[0], fb = b.files[0];
             return [fa.name, fa.size, fa.lastModified, fb.name, fb.size, fb.lastModified,
-                    val('first_name'), val('middle_name'), val('last_name'), val('suffix')].join('|');
+                    val('first_name'), val('middle_name'), val('last_name'), val('suffix'),
+                    val('birthdate'), val('sex')].join('|');
         }
 
         window.isIdentityValid = function () {
@@ -5665,7 +5666,8 @@ function addUserNapboxMarkers() {
                 if (!t) return;
                 if (t.id === 'id_front' || t.id === 'id_back' ||
                     t.name === 'first_name' || t.name === 'middle_name' ||
-                    t.name === 'last_name' || t.name === 'suffix') {
+                    t.name === 'last_name' || t.name === 'suffix' ||
+                    t.name === 'birthdate' || t.name === 'sex') {
                     checkStillValid();
                 }
             });
@@ -5830,6 +5832,8 @@ function addUserNapboxMarkers() {
                 fd.append('middle_name', val('middle_name'));
                 fd.append('last_name', val('last_name'));
                 fd.append('suffix', val('suffix'));
+                fd.append('birthdate', val('birthdate'));
+                fd.append('sex', val('sex'));
                 const res = await fetch('/api/verify-id-name', { method: 'POST', body: fd });
                 const data = await res.json().catch(() => ({ success: false, message: 'Unexpected server response. Please try again.' }));
                 if (data.success) return true;
@@ -5853,8 +5857,12 @@ function addUserNapboxMarkers() {
                 (f && !(f.files && f.files[0]) ? f : b).scrollIntoView({ behavior: 'smooth', block: 'center' });
                 return;
             }
-            if (!val('first_name') || !val('last_name')) {
-                showToast('Please enter your First Name and Last Name first.', 'error');
+            if (!/^\d{2}-\d{2}-\d{4}$/.test(val('birthdate'))) {
+                showToast('Please enter your Birthdate (MM-DD-YYYY) first.', 'error');
+                return;
+            }
+            if (!val('sex')) {
+                showToast('Please select your Sex first.', 'error');
                 return;
             }
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
