@@ -1705,6 +1705,7 @@ import re
 import time
 import difflib
 import hashlib
+import base64
 import itertools
 import unicodedata
 import threading
@@ -1737,6 +1738,16 @@ NAME_NOISE_PARTICLES = {"DE", "DI", "DA", "LA", "LE", "ST"}   # maiikling parte 
 SUFFIX_TOKENS = {"JR", "SR", "II", "III", "IV"}
 IDENTITY_TTL_SECONDS = 30 * 60
 IDENTITY_MAX_ATTEMPTS = 6           # kada 15 minutes kada session
+
+
+# ---- Face scan per-step ----
+LEFT_TURN_SIGN = 1                  # kung baligtad ang kaliwa/kanan sa test mo, gawing -1
+FACE_STEPS = {1: "HARAP", 2: "KALIWA", 3: "KANAN"}
+FACE_MIN_WIDTH = {1: 0.22, 2: 0.18, 3: 0.18}   # lapad ng mukha / lapad ng frame (masyadong malayo kung mas maliit)
+FACE_MAX_WIDTH = 0.65               # masyadong malapit kung mas malaki
+FACE_CENTER_TOLERANCE = 0.22        # gaano kalayo sa gitna ang pwede
+TURN_MAX_YAW = 0.85                 # sobra ang ikot kung lampas dito
+FACE_PROGRESS_TTL = 10 * 60
 
 _face_lock = threading.Lock()
 _face_det = None
@@ -2155,13 +2166,76 @@ def _verify_names_against_id(passes, id_tokens, squashed, first, middle, last, s
 
 
 
-@app.route("/api/verify-identity", methods=["POST"])
-def verify_identity():
+# ===============================
+# FACE SCAN HELPERS (per-step)
+# ===============================
+def _feat_to_b64(feat):
+    return base64.b64encode(np.asarray(feat, dtype=np.float32).tobytes()).decode()
+
+
+def _feat_from_b64(s):
+    return np.frombuffer(base64.b64decode(s), dtype=np.float32).reshape(1, -1)
+
+
+def _id_face_feature(front_small):
+    """Mukha sa ID front -> feature, o None kung walang malinaw na mukha."""
+    id_faces = _detect_faces(front_small)
+    if not id_faces or id_faces[0][14] < 0.7:
+        return None
+    return _face_feature(front_small, id_faces[0])
+
+
+def _check_face_frame(img, step):
+    """Returns (ok, code, message, face). Ginagamit ng live hint at ng actual verify."""
+    faces = _detect_faces(img)
+    if not faces:
+        return False, "no_face", "Walang makitang mukha. Humarap sa camera at siguraduhing maliwanag.", None
+    if len(faces) > 1 and (faces[1][2] * faces[1][3]) > 0.35 * (faces[0][2] * faces[0][3]):
+        return False, "multi_face", "Higit sa isang mukha ang nakita. Ikaw lang dapat ang nasa camera.", None
+
+    face = faces[0]
+    ih, iw = img.shape[:2]
+    ratio = float(face[2]) / iw
+    if ratio < FACE_MIN_WIDTH[step]:
+        return False, "too_far", "Masyadong malayo. Lumapit pa sa camera.", None
+    if ratio > FACE_MAX_WIDTH:
+        return False, "too_close", "Masyadong malapit. Lumayo nang kaunti.", None
+
+    cx = (float(face[0]) + float(face[2]) / 2.0) / iw
+    cy = (float(face[1]) + float(face[3]) / 2.0) / ih
+    if abs(cx - 0.5) > FACE_CENTER_TOLERANCE or abs(cy - 0.5) > FACE_CENTER_TOLERANCE:
+        return False, "off_center", "Ilagay ang mukha sa gitna ng oval.", None
+
+    yaw = _yaw(face)
+    if step == 1:
+        if abs(yaw) > FRONTAL_MAX_YAW:
+            return False, "not_front", "Tumingin nang diretso sa camera.", None
+        return True, "ok", "Maayos! Pindutin ang Capture.", face
+
+    want = LEFT_TURN_SIGN if step == 2 else -LEFT_TURN_SIGN
+    side = FACE_STEPS[step]
+    signed = yaw * want
+    if signed < -0.08:
+        return False, "wrong_side", f"Maling side. Lumingon sa {side} mo.", None
+    if signed < TURN_MIN_YAW:
+        return False, "turn_more", f"Lumingon pa nang kaunti sa {side}.", None
+    if signed > TURN_MAX_YAW:
+        return False, "turn_less", "Sobra ang ikot. Bawasan nang kaunti.", None
+    return True, "ok", f"Tama ang {side}! I-hold at pindutin ang Capture.", face
+
+
+# ===============================
+# STEP 0: NAME vs ID (bago bumukas ang camera)
+# ===============================
+@app.route("/api/verify-id-name", methods=["POST"])
+def verify_id_name():
     def fail(msg, code=400):
         return jsonify(success=False, message=msg), code
 
     now_ts = time.time()
     session.pop('identity_verified', None)
+    session.pop('face_progress', None)
+    session.pop('id_name_ok', None)
 
     try:
         first = (request.form.get('first_name') or '').strip()
@@ -2181,7 +2255,6 @@ def verify_identity():
         if front_hash == back_hash:
             return fail("The front and back of the ID cannot be the same photo.")
 
-        # ---- ID photo quality ----
         for label, img in (("front", front_img), ("back", back_img)):
             h, w = img.shape[:2]
             if max(h, w) < MIN_IMAGE_SIDE:
@@ -2189,50 +2262,10 @@ def verify_identity():
             if _sharpness(img) < MIN_BLUR_SCORE:
                 return fail(f"The ID {label} photo is blurry. Please retake it in good lighting.")
 
-        # ---- may mukha ba sa ID front? ----
         front_small = _resize_max(front_img, 1600)
-        id_faces = _detect_faces(front_small)
-        if not id_faces or id_faces[0][14] < 0.7:
+        if _id_face_feature(front_small) is None:
             return fail("We couldn't find a clear face photo on the ID front. Please retake it so the whole ID is visible.")
-        id_feat = _face_feature(front_small, id_faces[0])
 
-        # ---- selfie frames + liveness ----
-        selfies = []
-        for key in ('selfie_center', 'selfie_turn_a', 'selfie_turn_b'):
-            step_no = len(selfies) + 1
-            img, _ = _decode_image(request.files.get(key))
-            if img is None:
-                return fail("A face scan photo could not be read. Please try again.")
-            img = _resize_max(img, 960)
-            faces = _detect_faces(img)
-            if not faces:
-                return fail(f"No face detected in step {step_no}. Make sure your face is well lit and fully visible.")
-            if len(faces) > 1 and (faces[1][2] * faces[1][3]) > 0.35 * (faces[0][2] * faces[0][3]):
-                return fail("More than one face detected. Only you should be in front of the camera.")
-            if faces[0][2] < 0.15 * img.shape[1]:
-                return fail(f"Your face is too far in step {step_no}. Please move closer to the camera.")
-            selfies.append((img, faces[0]))
-
-        yaws = [_yaw(face) for _, face in selfies]
-        if abs(yaws[0]) > FRONTAL_MAX_YAW:
-            return fail("Step 1: please look straight at the camera.")
-        if abs(yaws[1]) < TURN_MIN_YAW or abs(yaws[2]) < TURN_MIN_YAW:
-            return fail("Steps 2 and 3: please turn your head a bit more to the side.")
-        if yaws[1] * yaws[2] >= 0:
-            return fail("Step 2 and step 3 must be opposite sides (one left, one right).")
-
-        feats = [_face_feature(img, face) for img, face in selfies]
-        for i in (1, 2):
-            if _cosine(feats[0], feats[i]) < FACE_SAME_PERSON_THRESHOLD:
-                return fail("The face scan photos don't seem to be of the same person. Please try again.")
-
-        # ---- selfie vs ID photo ----
-        match_score = _cosine(feats[0], id_feat)
-        print(f"[IDENTITY] face match score={match_score:.3f} yaws={[round(y, 2) for y in yaws]}")
-        if match_score < FACE_MATCH_THRESHOLD:
-            return fail("Your face doesn't match the photo on the ID. Please use your own valid ID.")
-
-        # ---- OCR: pangalan sa ID vs tinype (strict, field-based) ----
         if ID_REQUIRE_NAME_MATCH:
             if not OCR_AVAILABLE:
                 print("[IDENTITY] OCR NOT AVAILABLE: pytesseract is not installed")
@@ -2256,7 +2289,7 @@ def verify_identity():
             if not name_ok:
                 return fail(name_msg)
 
-        session['identity_verified'] = {
+        session['id_name_ok'] = {
             'front': front_hash,
             'back': back_hash,
             'first': first.lower(),
@@ -2265,13 +2298,120 @@ def verify_identity():
             'suffix': suffix.lower(),
             'time': now_ts
         }
-        return jsonify(success=True, message="ID and face verified.")
+        return jsonify(success=True, message="Name matches the ID.")
 
     except Exception as e:
-        print(f"[IDENTITY] ERROR: {e}")
+        print(f"[IDENTITY] NAME ERROR: {e}")
         import traceback
         traceback.print_exc()
         return fail("Verification service error. Please try again in a moment.", 500)
+
+
+# ===============================
+# LIVE HINT (indicator habang nasa scanner)
+# ===============================
+@app.route("/api/face-hint", methods=["POST"])
+def face_hint():
+    try:
+        step = int(request.form.get('step', 1))
+        if step not in FACE_STEPS:
+            return jsonify(ok=False, code="bad_step", message="")
+        img, _ = _decode_image(request.files.get('frame'))
+        if img is None:
+            return jsonify(ok=False, code="bad_frame", message="Hindi mabasa ang camera frame.")
+        img = _resize_max(img, 640)
+        ok, code, msg, _face = _check_face_frame(img, step)
+        return jsonify(ok=ok, code=code, message=msg)
+    except Exception as e:
+        print(f"[IDENTITY] HINT ERROR: {e}")
+        return jsonify(ok=False, code="error", message="")
+
+
+# ===============================
+# FACE STEP: isa-isang verify (1=harap, 2=kaliwa, 3=kanan)
+# ===============================
+@app.route("/api/verify-face-step", methods=["POST"])
+def verify_face_step():
+    def fail(msg, code="fail", http=400, restart=False):
+        return jsonify(success=False, code=code, message=msg, restart=restart), http
+
+    now_ts = time.time()
+    try:
+        step = int(request.form.get('step', 0))
+        if step not in FACE_STEPS:
+            return fail("Invalid step.")
+
+        nm = session.get('id_name_ok')
+        if not nm or now_ts - nm.get('time', 0) > IDENTITY_TTL_SECONDS:
+            return fail("Kailangan munang ma-verify ang pangalan sa ID. Pindutin ulit ang Start.",
+                        "need_name", restart=True)
+
+        prog = session.get('face_progress') or {}
+        if prog and now_ts - prog.get('time', 0) > FACE_PROGRESS_TTL:
+            prog = {}
+        done = list(prog.get('done', []))
+
+        if step == 1:
+            prog, done = {}, []          # laging pwedeng magsimula ulit
+        elif step != len(done) + 1 or not prog.get('f1'):
+            return fail("Mali ang pagkakasunod ng steps. Magsimula ulit.", "order", restart=True)
+
+        img, _ = _decode_image(request.files.get('frame'))
+        if img is None:
+            return fail("Hindi mabasa ang larawan. Subukan ulit.")
+        img = _resize_max(img, 960)
+
+        ok, code, msg, face = _check_face_frame(img, step)
+        if not ok:
+            return fail(msg, code)
+
+        feat = _face_feature(img, face)
+
+        if step == 1:
+            front_img, front_bytes = _decode_image(request.files.get('id_front'))
+            if front_img is None or hashlib.sha256(front_bytes).hexdigest() != nm['front']:
+                return fail("Nagbago ang ID photo. Paki-verify ulit.", "need_name", restart=True)
+            id_feat = _id_face_feature(_resize_max(front_img, 1600))
+            if id_feat is None:
+                return fail("We couldn't find a clear face photo on the ID front.", "need_name", restart=True)
+
+            score = _cosine(feat, id_feat)
+            print(f"[IDENTITY] step1 face match score={score:.3f} yaw={_yaw(face):.2f}")
+            if score < FACE_MATCH_THRESHOLD:
+                return fail("Your face doesn't match the photo on the ID. Please use your own valid ID.", "no_match")
+
+            session['face_progress'] = {'f1': _feat_to_b64(feat), 'done': [1], 'time': now_ts}
+            return jsonify(success=True, done=False, step=1, message="Harap: verified.")
+
+        # step 2 / 3: dapat kapareho ng mukha sa step 1
+        same = _cosine(_feat_from_b64(prog['f1']), feat)
+        print(f"[IDENTITY] step{step} same-person score={same:.3f} yaw={_yaw(face):.2f}")
+        if same < FACE_SAME_PERSON_THRESHOLD:
+            return fail("Hindi ito mukhang kapareho ng nasa step 1. Subukan ulit.", "diff_person")
+
+        done.append(step)
+        if step < 3:
+            session['face_progress'] = {'f1': prog['f1'], 'done': done, 'time': now_ts}
+            return jsonify(success=True, done=False, step=step, message=f"{FACE_STEPS[step].title()}: verified.")
+
+        # kumpleto na lahat
+        session.pop('face_progress', None)
+        session['identity_verified'] = {
+            'front': nm['front'],
+            'back': nm['back'],
+            'first': nm['first'],
+            'middle': nm['middle'],
+            'last': nm['last'],
+            'suffix': nm['suffix'],
+            'time': now_ts
+        }
+        return jsonify(success=True, done=True, step=3, message="ID and face verified.")
+
+    except Exception as e:
+        print(f"[IDENTITY] STEP ERROR: {e}")
+        import traceback
+        traceback.print_exc()
+        return fail("Verification service error. Please try again in a moment.", "error", 500)
 
 
 def identity_session_ok(front_file, back_file, first_name, last_name):
